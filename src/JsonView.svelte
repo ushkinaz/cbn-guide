@@ -10,13 +10,13 @@ export let buildNumber: string | undefined;
   )}</pre>
 {#if obj.__filename}
   <a
-    href={`https://github.com/CleverRaven/Cataclysm-DDA/blob/${
+    href={`https://github.com/cataclysmbnteam/Cataclysm-BN/blob/${
       buildNumber ?? "master"
     }/${obj.__filename}`}
     target="_blank">View</a>
   /
   <a
-    href={`https://github.dev/CleverRaven/Cataclysm-DDA/blob/${
+    href={`https://github.dev/cataclysmbnteam/Cataclysm-BN/blob/${
       buildNumber ?? "master"
     }/${obj.__filename}`}
     target="_blank">Edit on GitHub</a>

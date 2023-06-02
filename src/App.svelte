@@ -21,7 +21,7 @@ let builds:
     }[]
   | null = null;
 
-fetch("https://raw.githubusercontent.com/nornagon/cdda-data/main/builds.json")
+fetch("https://raw.githubusercontent.com/mythosmod/cbn-data/main/builds.json")
   .then((d) => d.json())
   .then((b) => {
     builds = b;
@@ -37,40 +37,40 @@ data.setVersion(version, locale);
 
 const tilesets = [
   {
-    name: "AltiCa",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/Altica",
+    name: "ASCII",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/ASCIITileset",
   },
   {
     name: "BrownLikeBears",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/BrownLikeBears",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/BrownLikeBears",
   },
   {
-    name: "Chibi_Ultica",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/ChibiUltica",
+    name: "ChestHole16Tileset",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/ChestHole16Tileset",
   },
   {
-    name: "Cuteclysm(Alpha)",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/Cuteclysm",
+    name: "HitButton_iso",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/HitButton_iso",
   },
   {
-    name: "Hollow Moon",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/HollowMoon",
+    name: "Hoder",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/HoderTileset",
   },
   {
-    name: "MSXotto+",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/MshockXotto%2B",
+    name: "MSX++UnDeadPeropleEdition",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/MSX++UnDeadPeropleEdition",
   },
   {
-    name: "NeoDays",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/NeoDaysTileset",
+    name: "RetroDays+",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/RetroDays+Tileset",
   },
   {
     name: "RetroDays",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/RetroDaysTileset",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/RetroDaysTileset",
   },
   {
     name: "UltiCa",
-    url: "https://raw.githubusercontent.com/CleverRaven/Cataclysm-DDA/{version}/gfx/UltimateCataclysm",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/UltimateCataclysm",
   },
 ];
 

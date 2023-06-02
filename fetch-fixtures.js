@@ -7,7 +7,7 @@ const { buildNum, sha } = JSON.parse(
   readFileSync("./_test/all.meta.json", "utf8")
 );
 const update = process.argv[2] === "latest";
-const dataUrl = `https://raw.githubusercontent.com/nornagon/cdda-data/main/data/${
+const dataUrl = `https://raw.githubusercontent.com/mythosmod/cbn-data/main/data/${
   update ? "latest" : buildNum
 }/all.json`;
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
