@@ -303,7 +303,7 @@ function langHref(lang: string, href: string) {
       <!-- svelte-ignore a11y-invalid-attribute -->
       <strong>
         <a href={import.meta.env.BASE_URL} on:click={() => (search = "")}
-          ><span class="wide">Hitchhiker's Guide to the Cataclysm</span><span
+          ><span class="wide">Hitchhiker's Guide to the Cataclysm (Bright Nights Editon)</span><span
             class="narrow">HHG</span
           ></a>
       </strong>
@@ -370,27 +370,27 @@ function langHref(lang: string, href: string) {
     <p>
       <InterpolatedTranslation
         str={t(
-          `The {hhg} is a guide to the zombie survival roguelike game {link_cdda}. You can
+          `The {hhg} is a guide to the zombie survival roguelike game {link_cbn}. You can
 search for things in the game, like items (e.g. a {link_flashlight}), furniture
 (e.g. a {link_table}), or monsters (e.g. a {link_zombie}), and find useful
 information about them. The data in the Guide comes directly from the JSON
 files in the game itself.`,
           {
             hhg: "{hhg}",
-            link_cdda: "{link_cdda}",
+            link_cdda: "{link_cbn}",
             link_flashlight: "{link_flashlight}",
             link_table: "{link_table}",
             link_zombie: "{link_zombie}",
           }
         )}
         slot0="hhg"
-        slot1="link_cdda"
+        slot1="link_cbn"
         slot2="link_flashlight"
         slot3="link_table"
         slot4="link_zombie">
         <strong slot="0">Hitchhiker's Guide to the Cataclysm</strong>
-        <a slot="1" href="https://cataclysmdda.org/"
-          >Cataclysm: Dark Days Ahead</a>
+        <a slot="1" href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+          >Cataclysm: Bright Nights</a>
         <a slot="2" href="{import.meta.env.BASE_URL}item/flashlight"
           >{t("flashlight", { _comment: "Item name" })}</a>
         <a slot="3" href="{import.meta.env.BASE_URL}furniture/f_table"
@@ -441,7 +441,7 @@ Anyway?`,
     <p>
       <InterpolatedTranslation
         str={t(
-          `The Guide is developed on {link_github} by {link_nornagon}. If you notice any problems, please {link_file_an_issue}!`,
+          `The Original Guide is developed on {link_github} by {link_nornagon}, this version is a fork by {link_mythosmod}. If you notice any problems, please {link_file_an_issue}!`,
           {
             link_github: "{link_github}",
             link_nornagon: "{link_nornagon}",
@@ -450,10 +450,12 @@ Anyway?`,
         )}
         slot0="link_github"
         slot1="link_nornagon"
-        slot2="link_file_an_issue">
+		slot2="link_mythosmod"
+        slot3="link_file_an_issue">
         <a slot="0" href="https://github.com/nornagon/cdda-guide">GitHub</a>
         <a slot="1" href="https://www.nornagon.net">nornagon</a>
-        <a slot="2" href="https://github.com/nornagon/cdda-guide/issues"
+		<a slot="2" href="https://github.com/mythosmod/cbn-guide">GitHub</a>
+        <a slot="3" href="https://github.com/mythosmod/cbn-guide/issues"
           >{t("file an issue")}</a>
       </InterpolatedTranslation>
     </p>
@@ -489,7 +491,6 @@ Anyway?`,
         <a href="/achievement">{t("Achievements")}</a> /
         <a href="/conduct">{t("Conducts")}</a>
       </li>
-      <li><a href="/proficiency">{t("Proficiencies")}</a></li>
     </ul>
 
     <InterpolatedTranslation
