@@ -122,11 +122,11 @@ $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
   document.title = `${singularName(
     it
-  )} - The Hitchhiker's Guide to the Cataclysm`;
+  )} - The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)`;
 } else if (item && !item.id && item.type) {
-  document.title = `${item.type} - The Hitchhiker's Guide to the Cataclysm`;
+  document.title = `${item.type} - The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)`;
 } else {
-  document.title = "The Hitchhiker's Guide to the Cataclysm";
+  document.title = "The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)";
 }
 
 let search: string = "";
@@ -441,26 +441,29 @@ Anyway?`,
     <p>
       <InterpolatedTranslation
         str={t(
-          `The Original Guide for {link_cdda} is developed on {link_github} by {link_nornagon}, this version is a Bright Nights specific fork by {link_mythosmod}. If you notice any problems with tjis version, please {link_file_an_issue}!`,
+          `The {link_OG} for {link_cdda} is developed on {link_github} by {link_nornagon}, this version is a Bright Nights specific fork by {link_mythosmod}. If you notice any problems with tjis version, please {link_file_an_issue}!`,
           {
             link_github: "{link_github}",
             link_nornagon: "{link_nornagon}",
 			link_mythosmod: "{link_mythosmod}",
             link_file_an_issue: "{link_file_an_issue}",
 			link_cdda: "{link_cdda}",
+			link_OG: "{link_OG}",
           }
         )}
         slot0="link_github"
         slot1="link_nornagon"
 		slot2="link_mythosmod"
         slot3="link_file_an_issue"
-		slot4="link_cdda">
+		slot4="link_cdda"
+		slot5="link_OG">
         <a slot="0" href="https://github.com/nornagon/cdda-guide">GitHub</a>
         <a slot="1" href="https://www.nornagon.net">nornagon</a>
 		<a slot="2" href="https://github.com/mythosmod/cbn-guide">MythosMod</a>
         <a slot="3" href="https://github.com/mythosmod/cbn-guide/issues"
           >{t("file an issue")}</a>
         <a slot="4" href="https://cataclysmdda.org/">Cataclysm: Dark Days Ahead</a>
+		<a slot="5" href="https://cdda-guide.nornagon.net/">Original Guide</a>
       </InterpolatedTranslation>
     </p>
 
