@@ -388,7 +388,7 @@ files in the game itself.`,
         slot2="link_flashlight"
         slot3="link_table"
         slot4="link_zombie">
-        <strong slot="0">Hitchhiker's Guide to the Cataclysm</strong>
+        <strong slot="0">Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)</strong>
         <a slot="1" href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
           >Cataclysm: Bright Nights</a>
         <a slot="2" href="{import.meta.env.BASE_URL}item/flashlight"
@@ -441,10 +441,11 @@ Anyway?`,
     <p>
       <InterpolatedTranslation
         str={t(
-          `The Original Guide is developed on {link_github} by {link_nornagon}, this version is a fork by {link_mythosmod}. If you notice any problems, please {link_file_an_issue}!`,
+          `The Original Guide for CDDA is developed on {link_github} by {link_nornagon}, this version is a Bright Nights specific fork by {link_mythosmod}. If you notice any problems, please {link_file_an_issue}!`,
           {
             link_github: "{link_github}",
             link_nornagon: "{link_nornagon}",
+			link_nornagon: "{link_mythosmod}",
             link_file_an_issue: "{link_file_an_issue}",
           }
         )}
