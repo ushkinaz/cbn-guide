@@ -453,7 +453,7 @@ Anyway?`,
         slot0="link_github"
         slot1="link_nornagon"
 		slot2="link_mythosmod"
-        slot3="link_file_an_issue">
+        slot3="link_file_an_issue"
 		slot4="link_cdda">
         <a slot="0" href="https://github.com/nornagon/cdda-guide">GitHub</a>
         <a slot="1" href="https://www.nornagon.net">nornagon</a>
