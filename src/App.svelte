@@ -57,8 +57,8 @@ const tilesets = [
     url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/HoderTileset",
   },
   {
-    name: "MSX++UnDeadPeropleEdition",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/MSX++UnDeadPeropleEdition",
+    name: "MSX++UnDeadPeopleEdition",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/MSX++UnDeadPeopleEdition",
   },
   {
     name: "RetroDays+",
@@ -488,10 +488,7 @@ Anyway?`,
       <li><a href="/mutation">{t("Mutations")}</a></li>
       <li><a href="/martial_art">{t("Martial Arts")}</a></li>
       <li><a href="/json_flag">{t("Flags")}</a></li>
-      <li>
-        <a href="/achievement">{t("Achievements")}</a> /
-        <a href="/conduct">{t("Conducts")}</a>
-      </li>
+      <li><a href="/achievement">{t("Achievements")}</a></li>
     </ul>
 
     <InterpolatedTranslation
