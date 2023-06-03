@@ -58,7 +58,7 @@ const tilesets = [
   },
   {
     name: "MSX++UnDeadPeopleEdition",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/upload/gfx/MSX%2B%2BUnDeadPeopleEdition",
+    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/MSX%2B%2BUnDeadPeopleEdition",
   },
   {
     name: "RetroDays+",
