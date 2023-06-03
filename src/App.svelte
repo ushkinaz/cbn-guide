@@ -441,7 +441,7 @@ Anyway?`,
     <p>
       <InterpolatedTranslation
         str={t(
-          `The {link_OG} for {link_cdda} is developed on {link_github} by {link_nornagon}, this version is a Bright Nights specific fork by {link_mythosmod}. If you notice any problems with tjis version, please {link_file_an_issue}!`,
+          `The {link_OG} for {link_cdda} is developed on {link_github} by {link_nornagon}, this version is a Bright Nights specific fork by {link_mythosmod}. If you notice any problems with this version, please {link_file_an_issue}!`,
           {
             link_github: "{link_github}",
             link_nornagon: "{link_nornagon}",
