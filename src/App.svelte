@@ -377,7 +377,7 @@ information about them. The data in the Guide comes directly from the JSON
 files in the game itself.`,
           {
             hhg: "{hhg}",
-            link_cdda: "{link_cbn}",
+            link_cbn: "{link_cbn}",
             link_flashlight: "{link_flashlight}",
             link_table: "{link_table}",
             link_zombie: "{link_zombie}",
@@ -445,7 +445,7 @@ Anyway?`,
           {
             link_github: "{link_github}",
             link_nornagon: "{link_nornagon}",
-			link_nornagon: "{link_mythosmod}",
+			link_mythosmod: "{link_mythosmod}",
             link_file_an_issue: "{link_file_an_issue}",
           }
         )}
