@@ -455,7 +455,7 @@ Anyway?`,
         slot3="link_file_an_issue">
         <a slot="0" href="https://github.com/nornagon/cdda-guide">GitHub</a>
         <a slot="1" href="https://www.nornagon.net">nornagon</a>
-		<a slot="2" href="https://github.com/mythosmod/cbn-guide">GitHub</a>
+		<a slot="2" href="https://github.com/mythosmod/cbn-guide">MythosMod</a>
         <a slot="3" href="https://github.com/mythosmod/cbn-guide/issues"
           >{t("file an issue")}</a>
       </InterpolatedTranslation>
