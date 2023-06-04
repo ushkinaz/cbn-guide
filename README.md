@@ -17,7 +17,7 @@ The Original Hitchhiker's Guide to the Cataclysm is maintained by [**@nornagon**
 - [**@hexagonrecursion**](https://github.com/hexagonrecursion)
 - [**@CalKerethi**](https://github.com/CalKerethi)
 
-This version is forked from the orginal and adapted for Cataclysm: Birght Nights by [**@mythosmod**](https://github.com/mythosmod)
+This version is forked from the orginal and adapted for Cataclysm: Bright Nights by [**@mythosmod**](https://github.com/mythosmod)
 
 Further, thanks to everyone who files bugs and feature requests in the issue tracker. You all help make the Guide what it is!
 
