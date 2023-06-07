@@ -286,18 +286,20 @@ export class CddaData {
       }
     }
   }
-
-  byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
-    type: TypeName,
-    id: string
-  ): (SupportedTypesWithMapped[TypeName] & { __filename: string }) | undefined {
-    if (typeof id !== "string") throw new Error("Requested non-string id");
-    const byId = this._byTypeById.get(type);
-    if (type === "item" && !byId?.has(id) && this._migrations.has(id))
-      return this.byIdMaybe(type, this._migrations.get(id)!);
-    const obj = byId?.get(id);
-    if (obj) return this._flatten(obj);
+  
+byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
+  type: TypeName,
+  id: string | any
+): (SupportedTypesWithMapped[TypeName] & { __filename: string }) | undefined {
+  if (typeof id !== "string") {
+    throw new Error(`Requested non-string id. Current id is of type: ${typeof id}`);
   }
+  const byId = this._byTypeById.get(type);
+  if (type === "item" && !byId?.has(id) && this._migrations.has(id))
+    return this.byIdMaybe(type, this._migrations.get(id)!);
+  const obj = byId?.get(id);
+  if (obj) return this._flatten(obj);
+}
 
   byId<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
