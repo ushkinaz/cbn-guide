@@ -289,7 +289,7 @@ export class CddaData {
   
 byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
   type: TypeName,
-  id: string | any
+  id: string
 ): (SupportedTypesWithMapped[TypeName] & { __filename: string }) | undefined {
   if (typeof id !== "string") {
     throw new Error(`Requested non-string id. Current id is of type: ${typeof id}`);
