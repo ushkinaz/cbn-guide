@@ -295,8 +295,8 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     throw new Error(`Requested non-string id. Current id is of type: ${typeof id}`);
   }
   const byId = this._byTypeById.get(type);
-  //if (type === "item" && !byId?.has(id) && this._migrations.has(id))
-    //return this.byIdMaybe(type, this._migrations.get(id)!);
+  if (type === "item" && !byId?.has(id) && this._migrations.has(id))
+    return this.byIdMaybe(type, this._migrations.get(id)!);
   const obj = byId?.get(id);
   if (obj) return this._flatten(obj);
 }
