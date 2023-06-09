@@ -11,6 +11,8 @@ const _context = "Container Info";
 <section>
   <h1>{t("Container", { _context })}</h1>
   <dl>
+    <dt>{t("Contains", { _context })}</dt>
+    <dd>{item.contains ?? 0 ml}</dd>
     <dt>{t("Seals", { _context })}</dt>
     <dd>{item.seals ?? "false"}</dd>
     <dt>{t("Watertight", { _context })}</dt>
