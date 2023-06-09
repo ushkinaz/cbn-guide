@@ -31,6 +31,7 @@ import BookInfo from "./item/BookInfo.svelte";
 import BrewedFrom from "./item/BrewedFrom.svelte";
 import ComestibleInfo from "./item/ComestibleInfo.svelte";
 import ComponentOf from "./item/ComponentOf.svelte";
+import ContainerInfo from "./item/Container.svelte";
 import ConstructionByproduct from "./item/ConstructionByproduct.svelte";
 import Deconstruct from "./item/Deconstruct.svelte";
 import Disassembly from "./item/Disassembly.svelte";
@@ -490,6 +491,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {/if}
 {#if item.type === "TOOL" || item.type === "TOOL_ARMOR"}
   <ToolInfo {item} />
+{/if}
+{#if item.type === "CONTAINER"}
+  <ContainerInfo {item} />
 {/if}
 {#if item.type === "ENGINE" && item.displacement}
   <section>
