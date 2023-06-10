@@ -638,6 +638,7 @@ export type Item =
   | SupportedTypes["BIONIC_ITEM"]
   | SupportedTypes["BOOK"]
   | SupportedTypes["COMESTIBLE"]
+  | SupportedTypes["CONTAINER"]
   | SupportedTypes["ENGINE"]
   | SupportedTypes["GENERIC"]
   | SupportedTypes["GUN"]
@@ -1871,6 +1872,7 @@ export type SupportedTypes = {
   BIONIC_ITEM: { type: "BIONIC_ITEM" } & ItemBasicInfo & BionicSlot;
   BOOK: { type: "BOOK" } & ItemBasicInfo & BookSlot;
   COMESTIBLE: { type: "COMESTIBLE" } & ItemBasicInfo & ComestibleSlot;
+  CONTAINER: { type: "CONTAINER" } & ItemBasicInfo & ContainerSlot;
   ENGINE: { type: "ENGINE" } & ItemBasicInfo & EngineSlot;
   GENERIC: { type: "GENERIC" } & ItemBasicInfo;
   GUN: { type: "GUN" } & ItemBasicInfo & GunSlot;
