@@ -328,6 +328,14 @@ export type AmmoSlot = {
   show_stats?: boolean;
 };
 
+export type ContainerSlot = {
+  contains: volume; // contains volume
+  seals?: boolean; // default: false
+  watertight?: boolean; // default: false
+  preserves?: boolean; // default: false
+  unseals_into?: boolean; // item_id
+};
+
 export type ComestibleSlot = {
   comestible_type?: string; // DRINK, FOOD or MED
   tool?: string; // item_id, needed to consume
