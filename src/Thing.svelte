@@ -72,6 +72,7 @@ const displays: Record<string, typeof SvelteComponent> = {
   TOOL_ARMOR: Item,
   BOOK: Item,
   COMESTIBLE: Item,
+  CONTAINER: Item,
   ENGINE: Item,
   WHEEL: Item,
   GUNMOD: Item,
