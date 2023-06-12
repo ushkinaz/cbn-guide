@@ -12,7 +12,7 @@ const _context = "Container Info";
   <h1>{t("Container", { _context })}</h1>
   <dl>
     <dt>{t("Contains", { _context })}</dt>
-    <dd>{item.contains ?? 0} ml</dd>
+    <dd>{item.contains ?? 0}</dd>
     <dt>{t("Seals", { _context })}</dt>
     <dd>{item.seals ?? "false"}</dd>
     <dt>{t("Watertight", { _context })}</dt>
