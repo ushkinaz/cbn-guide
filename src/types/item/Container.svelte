@@ -19,7 +19,9 @@ const _context = "Container Info";
     <dd>{item.watertight ?? "false"}</dd>
     <dt>{t("Preserves", { _context })}</dt>
     <dd>{item.preserves ?? "false"}</dd>
-    <dt>{t("Unseals Into", { _context })}</dt>
-    <dd>{item.unseals_into ?? "none"}</dd>
+    {#if item.unseals_into}
+      <dt>{t("Unseals Into", { _context })}</dt>
+      <dd><ThingLink id={item.unseals_into} type="item" /></dd>
+    {/if}
   </dl>
 </section>
