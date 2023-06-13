@@ -33,7 +33,7 @@ function getCategory(i: Item) {
   if (i.category) return i.category.toLowerCase();
   if (i.type === "GUN") return "guns";
   if (i.type === "MAGAZINE") return "magazines";
-  if (i.type === "AMMO") return "ammo";
+  if (i.type === "AMMO") return "other";
   if (i.type === "TOOL") return "tools";
   if (i.type === "ARMOR") return "clothing";
   if (i.type === "COMESTIBLE")
