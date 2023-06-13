@@ -30,7 +30,7 @@ const things = data
 
 // Ref https://github.com/CleverRaven/Cataclysm-DDA/blob/658bbe419fb652086fd4d46bf5bbf9e137228464/src/item_factory.cpp#L4774
 function getCategory(i: Item) {
-  //if (i.category) return i.category.toLowerCase();
+  if (i.category) return i.category.toLowerCase();
   if (i.type === "GUN") return "guns";
   if (i.type === "MAGAZINE") return "magazines";
   if (i.type === "AMMO") return "ammo";
