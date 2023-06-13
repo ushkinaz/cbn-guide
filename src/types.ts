@@ -1866,7 +1866,7 @@ export type ProficiencyCategory = {
 // Used for schema validation.
 export type SupportedTypes = {
   // Item types.
-  AMMO: { type: "AMMO" } & ItemBasicInfo & AmmoSlot;
+  AMMO: { type: "AMMO" } & ItemBasicInfo;
   ARMOR: { type: "ARMOR" } & ItemBasicInfo & ArmorSlot;
   BATTERY: { type: "BATTERY" } & ItemBasicInfo;
   BIONIC_ITEM: { type: "BIONIC_ITEM" } & ItemBasicInfo & BionicSlot;
