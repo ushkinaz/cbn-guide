@@ -37,10 +37,6 @@ data.setVersion(version, locale);
 
 const tilesets = [
   {
-    name: "ASCII",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/ASCIITileset",
-  },
-  {
     name: "BrownLikeBears",
     url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/BrownLikeBears",
   },
