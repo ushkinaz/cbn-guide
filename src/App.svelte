@@ -310,7 +310,7 @@ function langHref(lang: string, href: string) {
         placeholder={t("Search...", {
           _comment: "Placeholder text in the search box",
         })}
-        role="search"
+        type="search"
         bind:value={search}
         on:input={clearItem}
         id="search" />
