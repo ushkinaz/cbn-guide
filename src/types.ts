@@ -638,7 +638,7 @@ export type ItemBasicInfo = {
     append?: boolean;
   }[];
   brewable?: {
-    results: string[]; // item_id
+    results: string[] | Record<string, number>; // item_id
     time?: duration;
   };
   milling?: {
