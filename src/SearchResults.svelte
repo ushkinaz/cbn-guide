@@ -40,6 +40,7 @@ type SearchTarget = {
 };
 let targets: SearchTarget[];
 function searchableName(data: CddaData, item: any) {
+  item = data._flatten(item);
   if (item?.type === "vehicle_part" && !item.name && item.item)
     item = data.byId("item", item.item);
   return singularName(item);
