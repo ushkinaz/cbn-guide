@@ -524,7 +524,6 @@ let upgrades =
               <ItemSymbol item={data.byId("item", harvest_entry.drop)} />
               <ThingLink type="item" id={harvest_entry.drop} />
               </li>
-            {/if}
         {/each}
       </ul>
     </section>
