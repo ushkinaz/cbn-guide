@@ -503,7 +503,7 @@ Anyway?`,
     </InterpolatedTranslation>
   {/if}
 
-  <p>
+  <p class="data-options">
     {t("Version:")}
     {#if $data || builds}
       {#if builds}
@@ -633,5 +633,9 @@ nav > .title {
   nav > .search {
     flex: 1;
   }
+}
+
+.data-options select {
+  max-width: 100%;
 }
 </style>
