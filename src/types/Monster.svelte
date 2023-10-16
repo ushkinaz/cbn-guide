@@ -526,6 +526,7 @@ let upgrades =
               </li>
         {/each}
 		{/if}
+		{/each}
       </ul>
     </section>
   {/if}
