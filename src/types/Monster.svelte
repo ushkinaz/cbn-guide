@@ -549,7 +549,6 @@ let upgrades =
             </li>
           {/if}
         {/each}
-      </ul>
     </section>
   {/if}
 </Spoiler>
