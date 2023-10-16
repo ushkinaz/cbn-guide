@@ -525,6 +525,8 @@ let upgrades =
               <ThingLink type="item" id={harvest_entry.drop} />
               </li>
         {/each}
+		{/if}
+      </ul>
     </section>
   {/if}
   {#if dissect && (dissect.entries ?? []).length}
