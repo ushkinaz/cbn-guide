@@ -531,7 +531,7 @@ let upgrades =
         <ThingLink type="item" id={harvest_entry.drop} />
 		</li>
 		{/if}
-		{/each>}
+		{/each}
       </ul>
     </section>
   {/if}
