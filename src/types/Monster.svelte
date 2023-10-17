@@ -546,8 +546,8 @@ let upgrades =
             {/each}
           {:else}
             <li>
-              <ItemSymbol item={data.byId("item", harvest_entry.drop)} />
-              <ThingLink type="item" id={harvest_entry.drop} />
+              <ItemSymbol item={data.byId("item", id)} />
+              <ThingLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)
             </li>
           {/if}
         {/each}
