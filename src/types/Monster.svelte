@@ -521,10 +521,15 @@ let upgrades =
           {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
             {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
               <li>
-              <ItemSymbol item={data.byId("item", harvest_entry.drop)} />
-              <ThingLink type="item" id={harvest_entry.drop} />
+                <ItemSymbol item={data.byId("item", id)} />
+                <ThingLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)
               </li>
         {/each}
+		{:else}
+		<li>
+		<ItemSymbol item={data.byId("item", harvest_entry.drop)} />
+        <ThingLink type="item" id={harvest_entry.drop} />
+		</li>
 		{/if}
 		{/each}
       </ul>
