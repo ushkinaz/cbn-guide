@@ -480,7 +480,12 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     delete ret.proportional;
     for (const k of Object.keys(ret.extend ?? {})) {
       if (Array.isArray(ret.extend[k])) {
-        ret[k] = (ret[k] ?? []).concat(ret.extend[k]);
+        if (k === "flags")
+          // Unique
+          ret[k] = (ret[k] ?? []).concat(
+            ret.extend[k].filter((x: any) => !ret[k]?.includes(x))
+          );
+        else ret[k] = (ret[k] ?? []).concat(ret.extend[k]);
       }
     }
     delete ret.extend;
