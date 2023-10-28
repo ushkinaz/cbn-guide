@@ -1274,7 +1274,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     return breaksIntoGroupFlattened?.map((x) => x.id) ?? [];
   });
   bashFromVehiclePart(item_id: string) {
-    return this.#bashFromVehiclePartIndex.lookup(item_id);
+    return this.#bashFromVehiclePartIndex.lookup(item_id).sort(byName);
   }
 
   #deconstructFromFurnitureIndex = new ReverseIndex(this, "furniture", (f) => {
