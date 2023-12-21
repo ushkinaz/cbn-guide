@@ -1670,6 +1670,7 @@ export type Spell = {
 export type OvermapSpecial = {
   id: string;
   type: "overmap_special" | "city_building";
+  flags?: string[];
   locations?: string[];
 } & (
   | {

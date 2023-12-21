@@ -124,7 +124,9 @@ async function yieldable<T>(
   });
 }
 
-function getMapgensByOmt(data: CddaData) {
+const mapgensByOmtCache = new WeakMap<CddaData, Map<string, raw.Mapgen[]>>();
+function getMapgensByOmt(data: CddaData): Map<string, raw.Mapgen[]> {
+  if (mapgensByOmtCache.has(data)) return mapgensByOmtCache.get(data)!;
   const mapgensByOmt = new Map<string, raw.Mapgen[]>();
   const add = (id: string, mapgen: raw.Mapgen) => {
     if (!mapgensByOmt.has(id)) mapgensByOmt.set(id, []);
@@ -152,40 +154,55 @@ function getMapgensByOmt(data: CddaData) {
       }
     }
   }
+  mapgensByOmtCache.set(data, mapgensByOmt);
   return mapgensByOmt;
 }
 
-const lootByOmSpecialCache = new WeakMap<CddaData, Map<string, Loot>>();
-export async function lootByOmSpecial(
+export function lootForOmt(
   data: CddaData,
+  omt_id: string,
   lootFn: (mapgen: raw.Mapgen) => Loot
 ) {
-  if (lootByOmSpecialCache.has(data)) return lootByOmSpecialCache.get(data)!;
-
   const mapgensByOmt = getMapgensByOmt(data);
-  const overmapSpecials = data.byType("overmap_special");
-
-  const lootByOmSpecial = new Map<string, Loot>();
-  await yieldable(async (relinquish) => {
-    for (const om_special of overmapSpecials) {
-      if (om_special.subtype === "mutable") continue;
-      const loots: Loot[] = [];
-      for (const om of om_special.overmaps ?? []) {
-        const overmap_id = om.overmap.replace(/_(north|east|west|south)$/, "");
-        const mapgens = mapgensByOmt.get(overmap_id) ?? [];
+  const mapgens = mapgensByOmt.get(omt_id) ?? [];
         const loot = mergeLoot(
           mapgens.map((mg) => ({
             weight: mg.weight ?? 1000,
             loot: lootFn(mg),
           }))
         );
-        loots.push(loot);
+  return loot;
+}
+
+export async function lootForOmSpecial(
+  data: CddaData,
+  om_special: raw.OvermapSpecial,
+  lootFn: (mapgen: raw.Mapgen) => Loot
+): Promise<Loot> {
+  if (om_special.subtype === "mutable") return new Map();
+  const loots: Loot[] = [];
+  await yieldable(async (relinquish) => {
+    for (const om of om_special.overmaps ?? []) {
+      const overmap_id = om.overmap.replace(/_(north|east|west|south)$/, "");
+      loots.push(lootForOmt(data, overmap_id, lootFn));
         await relinquish();
       }
-      lootByOmSpecial.set(om_special.id, addLoot(loots));
-    }
   });
-  lootByOmSpecialCache.set(data, lootByOmSpecial);
+  return addLoot(loots);
+    }
+
+export async function lootByOmSpecial(
+  data: CddaData,
+  lootFn: (mapgen: raw.Mapgen) => Loot
+) {
+  const overmapSpecials = data.byType("overmap_special");
+
+  const lootByOmSpecial = new Map<string, Loot>();
+  for (const om_special of overmapSpecials)
+    lootByOmSpecial.set(
+      om_special.id,
+      await lootForOmSpecial(data, om_special, lootFn)
+    );
   return lootByOmSpecial;
 }
 
@@ -236,27 +253,27 @@ function overmapAppearance(
   }
 }
 
-// Showing these is a bit spoilery, and also they are visually large, so hide them.
+// Showing there is a bit spoilery, and also they are visually large, so hide them.
 const hiddenLocations = new Set([
-  "Necropolis",
-  "Isherwood Farms",
-  "lab_mutagen_6_level",
-  "Lab_SECURITY_1x1x6",
-  "Lab_CARGO_Surface",
-  "hub_01",
-  "aircraft_carrier",
-  "airliner_crashed",
-  "farm_abandoned",
-  "ranch_camp",
-  "exodii_base",
-  "Central Lab",
-  "4x4_microlab_vent_shaft",
-  "lab_subway_vent_shaft",
-  "mil_base",
-  "valhalla_cult",
-  "nuclear power plant",
-  "tutorial",
-]);
+      "Necropolis",
+      "Isherwood Farms",
+      "lab_mutagen_6_level",
+      "Lab_SECURITY_1x1x6",
+      "Lab_CARGO_Surface",
+      "hub_01",
+      "aircraft_carrier",
+      "airliner_crashed",
+      "farm_abandoned",
+      "ranch_camp",
+      "exodii_base",
+      "Central Lab",
+      "4x4_microlab_vent_shaft",
+      "lab_subway_vent_shaft",
+      "mil_base",
+      "valhalla_cult",
+      "nuclear power plant",
+      "tutorial",
+    ]);
 const lootByOmAppearanceCache = new WeakMap<
   CddaData,
   Promise<Map<string, { loot: Map<string, number>; ids: string[] }>>
@@ -376,20 +393,33 @@ function addLoot(loots: Loot[]): Loot {
   return ret;
 }
 
+function getMapgenValue(val: raw.MapgenValue): string | undefined {
+  if (typeof val === "string") return val;
+  if (
+    "switch" in val &&
+    typeof val.switch === "object" &&
+    "fallback" in val.switch &&
+    val.switch.fallback
+  )
+    return val.cases[val.switch["fallback"]];
+  // TODO: support distribution, param/fallback?
+}
+
 let onStack = 0;
 function lootForChunks(
   data: CddaData,
-  chunks: (string | [string, number])[]
+  chunks: (raw.MapgenValue | [raw.MapgenValue, number])[]
 ): Loot {
   onStack += 1;
   // TODO: See https://github.com/nornagon/cdda-guide/issues/73
   if (onStack > 4) return new Map();
   const normalizedChunks = (chunks ?? []).map((c) =>
-    typeof c === "string" ? ([c, 100] as [string, number]) : c
+    Array.isArray(c) ? c : ([c, 100] as [raw.MapgenValue, number])
   );
   const loot = mergeLoot(
-    normalizedChunks.map(([chunkId, weight]) => {
-      const chunkMapgens = data.nestedMapgensById(chunkId) ?? [];
+    normalizedChunks.map(([chunkIdValue, weight]) => {
+      const chunkId = getMapgenValue(chunkIdValue);
+      const chunkMapgens = chunkId ? data.nestedMapgensById(chunkId) ?? [] : [];
       const loot = mergeLoot(
         chunkMapgens.map((mg) => {
           const loot = getLootForMapgen(data, mg);
@@ -458,6 +488,7 @@ export function getLootForMapgen(data: CddaData, mapgen: raw.Mapgen): Loot {
   }
   items.push(additional_items);
   const loot = collection(items);
+  loot.delete("null");
   lootForMapgenCache.set(mapgen, loot);
   return loot;
 }
