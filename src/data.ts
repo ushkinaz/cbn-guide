@@ -23,6 +23,8 @@ import type {
   ItemGroupData,
   MapgenValue,
   ItemBasicInfo,
+  ComestibleSlot,
+  OvermapSpecial,
 } from "./types";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
@@ -93,11 +95,14 @@ function getMsgIdPlural(t: Translation): string {
 export function translate(
   t: Translation,
   needsPlural: boolean,
-  n: number
+  n: number,
+  domain?: string
 ): string {
   const sg = getMsgId(t);
   const pl = needsPlural ? getMsgIdPlural(t) : "";
-  return i18n.ngettext(sg, pl, n) || (n === 1 ? sg : pl ?? sg);
+  return (
+    i18n.dcnpgettext(domain, undefined, sg, pl, n) || (n === 1 ? sg : pl ?? sg)
+  );
 }
 
 export const singular = (name: Translation): string =>
@@ -106,14 +111,19 @@ export const singular = (name: Translation): string =>
 export const plural = (name: Translation, n: number = 2): string =>
   translate(name, true, n);
 
-export const singularName = (obj: any): string => pluralName(obj, 1);
+export const singularName = (obj: any, domain?: string): string =>
+  pluralName(obj, 1, domain);
 
-export const pluralName = (obj: any, n: number = 2): string => {
-const name: Translation = obj?.name?.male ?? obj?.name;
+export const pluralName = (
+  obj: any,
+  n: number = 2,
+  domain?: string
+): string => {
+  const name: Translation = obj?.name?.male ?? obj?.name;
   if (name == null) return obj?.id ?? obj?.abstract;
   const txed = Array.isArray(name)
-    ? translate(name[0], needsPlural.includes(obj.type), n)
-    : translate(name, needsPlural.includes(obj.type), n);
+    ? translate(name[0], needsPlural.includes(obj.type), n, domain)
+    : translate(name, needsPlural.includes(obj.type), n, domain);
   if (txed.length === 0) return obj?.id ?? obj?.abstract;
   return txed;
 };
@@ -285,8 +295,11 @@ export class CddaData {
         this._nestedMapgensById.get(obj.nested_mapgen_id)!.push(obj);
       }
     }
+    this._byTypeById
+      .get("item_group")
+      ?.set("EMPTY_GROUP", { id: "EMPTY_GROUP", entries: [] });
   }
-  
+
 byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
   type: TypeName,
   id: string
@@ -389,6 +402,9 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
         ),
         ...obj.vitamins,
       ];
+    }
+    if (obj.type === "vehicle" && parentProps.parts && obj.parts) {
+      ret.parts = [...parentProps.parts, ...obj.parts];
     }
     for (const k of Object.keys(ret.relative ?? {})) {
       if (typeof ret.relative[k] === "number") {
@@ -1309,7 +1325,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       ...this.#deconstructFromTerrainIndex.lookup(item_id).sort(byName),
     ];
   }
-  
+
   allDamageTypes(
     sort_key:
       | "protection_info"
@@ -1469,6 +1485,10 @@ export const getVehiclePartIdAndVariant = (
 ): [string, string] => {
   if (data.byIdMaybe("vehicle_part", compositePartId))
     return [compositePartId, ""];
+  const m = /^(.+)#(.+?)$/.exec(compositePartId);
+  if (m) return [m[1], m[2]];
+
+  // TODO: only check this for releases older than https://github.com/CleverRaven/Cataclysm-DDA/pull/65871
   for (const variant of vpartVariants) {
     if (compositePartId.endsWith("_" + variant)) {
       return [
@@ -1653,14 +1673,14 @@ export const data = {
   async setVersion(version: string, locale: string | null) {
     if (_hasSetVersion) throw new Error("can only set version once");
     _hasSetVersion = true;
-    let totals: [number, number] = [0, 0];
-    let receiveds: [number, number] = [0, 0];
+    let totals = [0, 0, 0];
+    let receiveds = [0, 0, 0];
     const updateProgress = () => {
-      const total = totals[0] + totals[1];
-      const received = receiveds[0] + receiveds[1];
+      const total = totals.reduce((a, b) => a + b, 0);
+      const received = receiveds.reduce((a, b) => a + b, 0);
       loadProgressStore.set([received, total]);
     };
-    const [dataJson, localeJson] = await Promise.all([
+    const [dataJson, localeJson, pinyinNameJson] = await Promise.all([
       retry(() =>
         fetchJson(version, (receivedBytes, totalBytes) => {
           totals[0] = totalBytes;
@@ -1676,10 +1696,26 @@ export const data = {
             updateProgress();
           })
         ),
+      locale?.startsWith("zh_") &&
+        retry(() =>
+          fetchLocaleJson(
+            version,
+            locale + "_pinyin",
+            (receivedBytes, totalBytes) => {
+              totals[2] = totalBytes;
+              receiveds[2] = receivedBytes;
+              updateProgress();
+            }
+          )
+        ),
     ]);
     if (locale && localeJson) {
+      if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
       i18n.loadJSON(localeJson);
       i18n.setLocale(locale);
+      if (pinyinNameJson) {
+        i18n.loadJSON(pinyinNameJson, "pinyin");
+      }
     }
     const cddaData = new CddaData(
       dataJson.data,
@@ -1689,3 +1725,43 @@ export const data = {
     set(cddaData);
   },
 };
+
+export function omsName(data: CddaData, oms: OvermapSpecial): string {
+  if (oms.subtype === "mutable") return oms.id;
+  const ground_level_omts = (oms.overmaps ?? []).filter(
+    (p) => p.point[2] === 0
+  );
+  let minX = Infinity,
+    minY = Infinity;
+  let maxX = -Infinity,
+    maxY = -Infinity;
+  const grid = new Map<string, (typeof ground_level_omts)[0]>();
+  for (const omt of ground_level_omts) {
+    const [x, y] = omt.point;
+    if (
+      !data.byIdMaybe(
+        "overmap_terrain",
+        omt.overmap.replace(/_(north|south|east|west)$/, "")
+      )
+    )
+      continue;
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+    grid.set(`${x}|${y}`, omt);
+  }
+  const centerX = minX + Math.floor((maxX - minX) / 2);
+  const centerY = minY + Math.floor((maxY - minY) / 2);
+  const centerOmt = grid.get(`${centerX}|${centerY}`);
+  if (centerOmt) {
+    const omt = data.byId(
+      "overmap_terrain",
+      centerOmt.overmap.replace(/_(north|south|east|west)$/, "")
+    );
+    if (omt) {
+      return singularName(omt);
+    }
+  }
+  return oms.id;
+}
