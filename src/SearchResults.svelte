@@ -1,10 +1,13 @@
 <script lang="ts">
-import { mapType, singular, singularName } from "./data";
+import { mapType, singular, singularName, loadProgress, i18n } from "./data";
 import type { CddaData } from "./data";
-import { loadProgress } from "./data";
 import * as fuzzysort from "fuzzysort";
 import ItemSymbol from "./types/item/ItemSymbol.svelte";
-import type { SupportedTypeMapped, SupportedTypesWithMapped } from "./types";
+import type {
+  Item,
+  SupportedTypeMapped,
+  SupportedTypesWithMapped,
+} from "./types";
 import { setContext } from "svelte";
 import { t } from "@transifex/native";
 import ThingLink from "./types/ThingLink.svelte";
@@ -21,7 +24,8 @@ const SEARCHABLE_TYPES = new Set<keyof SupportedTypesWithMapped>([
   "mutation_category",
   "vehicle",
   "terrain",
-   "skill",
+  "skill",
+  "overmap_special",
 ]);
 
 type SearchableType = SupportedTypeMapped & {
@@ -39,12 +43,40 @@ type SearchTarget = {
   type: keyof SupportedTypesWithMapped;
 };
 let targets: SearchTarget[];
-function searchableName(data: CddaData, item: any) {
+function searchableName(data: CddaData, item: SupportedTypeMapped) {
   item = data._flatten(item);
+  if (item?.type === "overmap_special" || item?.type === "city_building") {
+    if (item.subtype === "mutable") return item.id;
+    else
+      return (
+        item.overmaps
+          ?.map((omId) => {
+            const normalizedId = omId.overmap.replace(
+              /_(north|south|east|west)$/,
+              ""
+            );
+            const om = data.byIdMaybe("overmap_terrain", normalizedId);
+            return om ? singularName(om) : normalizedId;
+          })
+          .join("\0") ?? item.id
+      );
+  }
   if (item?.type === "vehicle_part" && !item.name && item.item)
     item = data.byId("item", item.item);
+  if (i18n.getLocale().startsWith("zh-"))
+    return singularName(item) + " " + singularName(item, "pinyin");
   return singularName(item);
 }
+
+function isItem(item: SupportedTypeMapped): item is Item {
+  return mapType(item.type) === "item";
+}
+
+function itemVariants(item: SupportedTypeMapped) {
+  if (isItem(item) && "variants" in item && item.variants) return item.variants;
+  else return [];
+}
+
 $: targets = [...(data?.all() ?? [])]
   .filter(
     (x) =>
@@ -52,12 +84,7 @@ $: targets = [...(data?.all() ?? [])]
       typeof x.id === "string" &&
       SEARCHABLE_TYPES.has(mapType(x.type))
   )
-  .filter((x) => {
-    if (x.type === "mutation") {
-      return !/Fake\d$/.test(x.id);
-    }
-    return true;
-  })
+  .filter((x) => (x.type === "mutation" ? !/Fake\d$/.test(x.id) : true))
   .flatMap((x) =>
     [
       {
@@ -66,14 +93,12 @@ $: targets = [...(data?.all() ?? [])]
         type: mapType(x.type),
       },
     ].concat(
-      "variants" in x && x.variants
-        ? x.variants.map((v) => ({
-            id: (x as any).id,
-            variant_id: v.id,
-            name: singular(v.name),
-            type: mapType(x.type),
-          }))
-        : []
+      itemVariants(x).map((v) => ({
+        id: (x as any).id,
+        variant_id: v.id,
+        name: singular(v.name),
+        type: mapType(x.type),
+      }))
     )
   );
 
@@ -124,8 +149,8 @@ $: matchingObjectsList = matchingObjects
 
 {#if matchingObjectsList}
   {#each matchingObjectsList as [type, results]}
-    <h1>{type.replace(/_/g, " ")}</h1>
-     <LimitedList items={results} let:item={result} limit={50}>
+    <h1>{type === "overmap_special" ? "location" : type.replace(/_/g, " ")}</h1>
+    <LimitedList items={results} let:item={result} limit={50}>
       {@const item = data._flatten(result.item)}
       <ItemSymbol {item} />
       <ThingLink
