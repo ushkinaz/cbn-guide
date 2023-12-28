@@ -734,6 +734,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       prob: number;
       count: [number, number];
     }) {
+      if (id === "null") return;
       const {
         prob: prevProb,
         count: prevCount,
