@@ -479,6 +479,7 @@ export type UseFunction =
   | HolsterUseFunction
   | AttachMolleUseFunction
   | DetachMolleUseFunction
+  | MessageUseFunction
   | {
       // TODO
       type:
@@ -550,6 +551,7 @@ export type ConsumeDrugUseFunction = {
 
 export type RepairItemUseFunction = {
   type: "repair_item";
+  item_action_type: string;
   materials: string[];
   skill: string;
   cost_scaling: number;
@@ -573,6 +575,12 @@ export type AttachMolleUseFunction = {
 export type DetachMolleUseFunction = {
   type: "detach_molle";
   moves?: integer;
+};
+
+export type MessageUseFunction = {
+  type: "message";
+  name: Translation;
+  message: Translation;
 };
 
 export type ItemBasicInfo = {
