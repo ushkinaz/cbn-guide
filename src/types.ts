@@ -579,7 +579,7 @@ export type DetachMolleUseFunction = {
 
 export type MessageUseFunction = {
   type: "message";
-  name: Translation;
+  name?: Translation;
   message: Translation;
 };
 
