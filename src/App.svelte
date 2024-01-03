@@ -261,7 +261,9 @@ async function getRandomPage() {
 let randomPage: string | null = null;
 function newRandomPage() {
   getRandomPage().then((r) => {
-    randomPage = `${import.meta.env.BASE_URL}${mapType(r.type)}/${r.id}`;
+    randomPage = `${import.meta.env.BASE_URL}${mapType(r.type)}/${
+      r.id
+    }{location.search}`;
   });
 }
 newRandomPage();
@@ -298,8 +300,10 @@ function langHref(lang: string, href: string) {
     <div class="title">
       <!-- svelte-ignore a11y-invalid-attribute -->
       <strong>
-        <a href={import.meta.env.BASE_URL} on:click={() => (search = "")}
-          ><span class="wide">Hitchhiker's Guide to the Cataclysm (Bright Nights Editon)</span><span
+        <a
+          href={import.meta.env.BASE_URL + location.search}
+          on:click={() => (search = "")}
+          ><span class="wide">Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)</span><span
             class="narrow">HHG</span
           ></a>
       </strong>
@@ -389,9 +393,13 @@ files in the game itself.`,
           >Cataclysm: Bright Nights</a>
         <a slot="2" href="{import.meta.env.BASE_URL}item/flashlight"
           >{t("flashlight", { _comment: "Item name" })}</a>
-        <a slot="3" href="{import.meta.env.BASE_URL}furniture/f_table"
+        <a
+          slot="3"
+          href="{import.meta.env.BASE_URL}furniture/f_table{location.search}"
           >{t("table", { _comment: "Furniture" })}</a>
-        <a slot="4" href="{import.meta.env.BASE_URL}monster/mon_zombie"
+        <a
+          slot="4"
+          href="{import.meta.env.BASE_URL}monster/mon_zombie{location.search}"
           >{t("zombie", { _comment: "Monster name" })}</a>
       </InterpolatedTranslation>
     </p>
@@ -441,25 +449,25 @@ Anyway?`,
           {
             link_github: "{link_github}",
             link_nornagon: "{link_nornagon}",
-			link_mythosmod: "{link_mythosmod}",
+			      link_mythosmod: "{link_mythosmod}",
             link_file_an_issue: "{link_file_an_issue}",
-			link_cdda: "{link_cdda}",
-			link_OG: "{link_OG}",
+			      link_cdda: "{link_cdda}",
+			      link_OG: "{link_OG}",
           }
         )}
         slot0="link_github"
         slot1="link_nornagon"
-		slot2="link_mythosmod"
+        slot2="link_mythosmod"
         slot3="link_file_an_issue"
-		slot4="link_cdda"
-		slot5="link_OG">
+		    slot4="link_cdda"
+		    slot5="link_OG">
         <a slot="0" href="https://github.com/nornagon/cdda-guide">GitHub</a>
         <a slot="1" href="https://www.nornagon.net">nornagon</a>
-		<a slot="2" href="https://github.com/mythosmod/cbn-guide">MythosMod</a>
+		    <a slot="2" href="https://github.com/mythosmod/cbn-guide">MythosMod</a>
         <a slot="3" href="https://github.com/mythosmod/cbn-guide/issues"
           >{t("file an issue")}</a>
         <a slot="4" href="https://cataclysmdda.org/">Cataclysm: Dark Days Ahead</a>
-		<a slot="5" href="https://cdda-guide.nornagon.net/">Original Guide</a>
+		    <a slot="5" href="https://cdda-guide.nornagon.net/">Original Guide</a>
       </InterpolatedTranslation>
     </p>
 
@@ -481,16 +489,16 @@ Anyway?`,
 
     <h2>{t("Catalogs")}</h2>
     <ul>
-      <li><a href="/item">{t("Items")}</a></li>
-      <li><a href="/monster">{t("Monsters")}</a></li>
-      <li><a href="/furniture">{t("Furniture")}</a></li>
-      <li><a href="/terrain">{t("Terrain")}</a></li>
-      <li><a href="/vehicle_part">{t("Vehicle Parts")}</a></li>
-      <li><a href="/tool_quality">{t("Qualities")}</a></li>
-      <li><a href="/mutation">{t("Mutations")}</a></li>
-      <li><a href="/martial_art">{t("Martial Arts")}</a></li>
-      <li><a href="/json_flag">{t("Flags")}</a></li>
-      <li><a href="/achievement">{t("Achievements")}</a></li>
+      <li><a href="/item{location.search}">{t("Items")}</a></li>
+      <li><a href="/monster{location.search}">{t("Monsters")}</a></li>
+      <li><a href="/furniture{location.search}">{t("Furniture")}</a></li>
+      <li><a href="/terrain{location.search}">{t("Terrain")}</a></li>
+      <li><a href="/vehicle_part{location.search}">{t("Vehicle Parts")}</a></li>
+      <li><a href="/tool_quality{location.search}">{t("Qualities")}</a></li>
+      <li><a href="/mutation{location.search}">{t("Mutations")}</a></li>
+      <li><a href="/martial_art{location.search}">{t("Martial Arts")}</a></li>
+      <li><a href="/json_flag{location.search}">{t("Flags")}</a></li>
+      <li><a href="/achievement{location.search}">{t("Achievements")}</a> /
     </ul>
 
     <InterpolatedTranslation
