@@ -458,7 +458,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       ) {
         ret[k] = JSON.parse(JSON.stringify(ret[k]));
         for (const k2 of Object.keys(ret.relative[k])) {
-          ret[k][k2] += ret.relative[k][k2];
+          ret[k][k2] = (ret[k][k2] ?? 0) + ret.relative[k][k2];
         }
       } else if (k === "qualities") {
         ret[k] = JSON.parse(JSON.stringify(ret[k]));
