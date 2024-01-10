@@ -1685,7 +1685,7 @@ export type OvermapSpecial = {
       subtype?: "fixed"; // default fixed
       overmaps?: {
         point: [integer, integer, integer];
-        overmap: string;
+        overmap?: string;
         flags?: string[];
         locations?: string[];
       }[];
