@@ -783,8 +783,15 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       args.forEach(addOne);
     }
 
+    function normalizeContainerItem(id: string | { item: string }) {
+      return typeof id === "string" ? id : id.item;
+    }
     if ("container-item" in group && group["container-item"])
-      add({ id: group["container-item"], prob: 1, count: [1, 1] });
+      add({
+        id: normalizeContainerItem(group["container-item"]),
+        prob: 1,
+        count: [1, 1],
+      });
 
     let normalizedEntries: ItemGroupEntry[] = [];
     for (const entry of "entries" in group && group.entries
@@ -841,8 +848,34 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
         const { prob = 100 } = entry;
         const nProb = Math.min(prob, 100) / 100;
         const nCount = normalizeCount(entry);
-        if (entry["container-item"])
-          add({ id: entry["container-item"], prob: nProb, count: [1, 1] });
+        for (const subrefItem of [
+          "container-item",
+          "ammo-item",
+          "contents-item",
+        ] as const) {
+          const ids = entry[subrefItem];
+          if (ids)
+            for (const id of [ids].flat())
+              add({
+                id: normalizeContainerItem(id),
+                prob: nProb,
+                count: [1, 1],
+              });
+        }
+        for (const subrefGroup of [
+          "container-group",
+          "ammo-group",
+          "contents-group",
+        ] as const) {
+          const ids = entry[subrefGroup];
+          if (ids)
+            for (const id of [ids].flat())
+              add(
+                ...this.flattenTopLevelItemGroup(
+                  this.byId("item_group", id)
+                ).map((p) => prod(p, nProb, nCount))
+              );
+        }
         if ("item" in entry) {
           add({ id: entry.item, prob: nProb, count: nCount });
           const item = this.byIdMaybe("item", entry.item);
@@ -883,8 +916,34 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       for (const entry of normalizedEntries) {
         const nProb = (entry.prob ?? 100) / totalProb;
         const nCount = normalizeCount(entry);
-        if (entry["container-item"])
-          add({ id: entry["container-item"], prob: nProb, count: [1, 1] });
+        for (const subrefItem of [
+          "container-item",
+          "ammo-item",
+          "contents-item",
+        ] as const) {
+          const ids = entry[subrefItem];
+          if (ids)
+            for (const id of [ids].flat())
+              add({
+                id: normalizeContainerItem(id),
+                prob: nProb,
+                count: [1, 1],
+              });
+        }
+        for (const subrefGroup of [
+          "container-group",
+          "ammo-group",
+          "contents-group",
+        ] as const) {
+          const ids = entry[subrefGroup];
+          if (ids)
+            for (const id of [ids].flat())
+              add(
+                ...this.flattenTopLevelItemGroup(
+                  this.byId("item_group", id)
+                ).map((p) => prod(p, nProb, nCount))
+              );
+        }
         if ("item" in entry) {
           add({ id: entry.item, prob: nProb, count: nCount });
         } else if ("group" in entry) {
@@ -1492,6 +1551,22 @@ export function normalizeDamageInstance(
   if (Array.isArray(damageInstance)) return damageInstance;
   else if ("values" in damageInstance) return damageInstance.values;
   else return [damageInstance];
+}
+
+export function normalizeAddictionTypes(
+  comestible: ComestibleSlot
+): { addiction: string; potential: number }[] {
+  const addictionType = comestible.addiction_type;
+  if (typeof addictionType === "string") {
+    return [
+      {
+        addiction: addictionType,
+        potential: comestible.addiction_potential ?? 0,
+      },
+    ];
+  } else {
+    return [];
+  }
 }
 
 const vpartVariants = [

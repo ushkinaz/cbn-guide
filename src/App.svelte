@@ -498,7 +498,7 @@ Anyway?`,
       <li><a href="/mutation{location.search}">{t("Mutations")}</a></li>
       <li><a href="/martial_art{location.search}">{t("Martial Arts")}</a></li>
       <li><a href="/json_flag{location.search}">{t("Flags")}</a></li>
-      <li><a href="/achievement{location.search}">{t("Achievements")}</a> /
+      <li><a href="/achievement{location.search}">{t("Achievements")}</a>
     </ul>
 
     <InterpolatedTranslation
