@@ -3,7 +3,7 @@
   <ShortName>HHG (BN)</ShortName>
   <LongName>The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)</LongName>
   <Description>Search the Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)</Description>
-  <Url type="text/html" method="get" template="https://cbn-guide.pages.dev{searchTerms}?lang={language?}"/>
+  <Url type="text/html" method="get" template="https://cbn-guide.pages.dev{searchTerms}"/>
   <Image height="16" width="16" type="image/png">https://cbn-guide.pages.dev/favicon.png</Image>
   <Image height="192" width="192" type="image/png">https://cbn-guide.pages.dev/icon-192.png</Image>
   <Query role="example" searchTerms="flashlight" />
