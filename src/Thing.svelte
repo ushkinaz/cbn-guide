@@ -32,6 +32,7 @@ import type { SupportedTypes } from "./types";
 import JsonView from "./JsonView.svelte";
 import OvermapSpecial from "./types/OvermapSpecial.svelte";
 import ItemAction from "./types/ItemAction.svelte";
+import Technique from "./types/Technique.svelte";
 
 export let item: { id: string; type: string };
 
@@ -106,6 +107,7 @@ const displays: Record<string, typeof SvelteComponent> = {
   overmap_special: OvermapSpecial,
   city_building: OvermapSpecial,
   item_action: ItemAction,
+  technique: Technique,
 };
 
 const display = (obj && displays[obj.type]) ?? Unknown;
