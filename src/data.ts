@@ -906,7 +906,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
             }).map((p) => prod(p, nProb, nCount))
           );
         } else {
-          throw new Error(`unknown item group entry: ${JSON.stringify(entry)}`);
+          console.warn(`unknown item group entry: ${JSON.stringify(entry)}`);
         }
       }
     } else {
@@ -967,7 +967,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
             }).map((p) => prod(p, nProb, nCount))
           );
         } else {
-          throw new Error(`unknown item group entry: ${JSON.stringify(entry)}`);
+          console.warn(`unknown item group entry: ${JSON.stringify(entry)}`);
         }
       }
     }
