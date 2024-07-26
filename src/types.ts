@@ -275,16 +275,15 @@ export type ToolSlot = {
 };
 
 export type DamageTypeId =
-  | "pure"
-  | "biological"
-  | "bash"
-  | "cut"
   | "acid"
-  | "stab"
+  | "bash"
+  | "bio"
   | "bullet"
-  | "heat"
   | "cold"
-  | "electric"; // TODO maybe no longer static?
+  | "cut"
+  | "electric"
+  | "heat"
+  | "stab";
 
 export type DamageUnit = {
   damage_type: DamageTypeId;
