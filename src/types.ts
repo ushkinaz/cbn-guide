@@ -1212,12 +1212,13 @@ export interface PaletteData {
   sealed_item?: PlaceMapping<MapgenSealedItem>;
 }
 
-export interface Palette {
+export interface Palette extends PaletteData {
   id: string;
   type: "palette";
-  terrain?: any;
-  furniture?: any;
-  nested?: any;
+}
+export interface PaletteData {
+  furniture?: PlaceMappingAlternative<MapgenValue>;
+  terrain?: PlaceMappingAlternative<MapgenValue>;
   //toilets?: ToiletsClass;
   items?: PlaceMapping<MapgenItemGroup>;
   //vendingmachines?: Vendingmachines;
@@ -1231,7 +1232,18 @@ export interface Palette {
   //monsters?: Monsters;
   //gaspumps?: Gaspumps;
   //signs?: Signs;
+  nested?: PlaceMapping<MapgenNested>;
+
+  palettes?: MapgenValue[];
+
+  parameters?: Record<string, MapgenParameter>;
 }
+
+type MapgenParameter = {
+  scope?: "overmap_special" | "omt" | "nest";
+  type: "palette_id"; // TODO: more enum types?
+  default: MapgenValue;
+};
 
 export interface MapgenMapping {
   items?: MapgenItemGroup | MapgenItemGroup[];
