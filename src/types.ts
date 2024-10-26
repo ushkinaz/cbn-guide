@@ -1582,7 +1582,7 @@ export type OvermapTerrain = {
   name: Translation;
 
   sym?: string; // defaults to \u00a0
-  color: string;
+  color?: string;
   // ...
 };
 
