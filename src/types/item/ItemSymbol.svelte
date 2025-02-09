@@ -15,6 +15,9 @@ export let item: {
 let data: CddaData = getContext("data");
 
 $: tile_info = $tileData?.tile_info[0];
+$: if (tile_info) {
+  tile_info.pixelscale = tile_info.pixelscale ?? 1;
+}
 $: tile = typeHasTile(item)
   ? findTileOrLooksLike($tileData, item) ??
     fallbackTile($tileData, item.symbol, item.color ?? "white")
