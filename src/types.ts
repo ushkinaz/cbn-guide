@@ -352,7 +352,7 @@ export type ContainerSlot = {
   seals?: boolean; // default: false
   watertight?: boolean; // default: false
   preserves?: boolean; // default: false
-  unseals_into?: boolean; // item_id
+  unseals_into?: string; // item_id
 };
 
 export type ComestibleSlot = {
@@ -1310,7 +1310,7 @@ export type Monster = {
         age_grow?: integer;
         into_group?: string;
         into?: string;
-		multiple_spawns?: boolean;
+        multiple_spawns?: boolean;
         spawn_range?: integer;
       };
   ascii_picture?: string;
@@ -1509,7 +1509,7 @@ export type BodyPart = {
   side: "left" | "right" | "both";
 
   sub_parts?: string[]; // sub_body_part_id
-  
+
   encumbrance_per_weight?: {
     weight: string;
     encumbrance: integer;
