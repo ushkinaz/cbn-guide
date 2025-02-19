@@ -1,109 +1,109 @@
 <script lang="ts">
-import { setContext, SvelteComponent } from "svelte";
+  import { setContext, SvelteComponent } from "svelte";
 
-import type { CddaData } from "./data";
-import Monster from "./types/Monster.svelte";
-import Item from "./types/Item.svelte";
-import Unknown from "./types/Unknown.svelte";
-import Material from "./types/Material.svelte";
-import AmmunitionType from "./types/AmmunitionType.svelte";
-import ToolQuality from "./types/ToolQuality.svelte";
-import Furniture from "./types/Furniture.svelte";
-import Skill from "./types/Skill.svelte";
-import Proficiency from "./types/Proficiency.svelte";
-import Flag from "./types/Flag.svelte";
-import Fault from "./types/Fault.svelte";
-import Vitamin from "./types/Vitamin.svelte";
-import VehiclePart from "./types/VehiclePart.svelte";
-import MartialArt from "./types/MartialArt.svelte";
-import ErrorBoundary from "./ErrorBoundary.mjs";
-import Mutation from "./types/Mutation.svelte";
-import MutationCategory from "./types/MutationCategory.svelte";
-import MutationType from "./types/MutationType.svelte";
-import Vehicle from "./types/Vehicle.svelte";
-import Terrain from "./types/Terrain.svelte";
-import WeaponCategory from "./types/WeaponCategory.svelte";
-import ConstructionGroup from "./types/ConstructionGroup.svelte";
-import Achievement from "./types/Achievement.svelte";
-import ObsoletionWarning from "./ObsoletionWarning.svelte";
-import Bionic from "./types/Bionic.svelte";
-import * as Sentry from "@sentry/browser";
-import type { SupportedTypes } from "./types";
-import JsonView from "./JsonView.svelte";
+  import type { CddaData } from "./data";
+  import Monster from "./types/Monster.svelte";
+  import Item from "./types/Item.svelte";
+  import Unknown from "./types/Unknown.svelte";
+  import Material from "./types/Material.svelte";
+  import AmmunitionType from "./types/AmmunitionType.svelte";
+  import ToolQuality from "./types/ToolQuality.svelte";
+  import Furniture from "./types/Furniture.svelte";
+  import Skill from "./types/Skill.svelte";
+  import Proficiency from "./types/Proficiency.svelte";
+  import Flag from "./types/Flag.svelte";
+  import Fault from "./types/Fault.svelte";
+  import Vitamin from "./types/Vitamin.svelte";
+  import VehiclePart from "./types/VehiclePart.svelte";
+  import MartialArt from "./types/MartialArt.svelte";
+  import ErrorBoundary from "./ErrorBoundary.mjs";
+  import Mutation from "./types/Mutation.svelte";
+  import MutationCategory from "./types/MutationCategory.svelte";
+  import MutationType from "./types/MutationType.svelte";
+  import Vehicle from "./types/Vehicle.svelte";
+  import Terrain from "./types/Terrain.svelte";
+  import WeaponCategory from "./types/WeaponCategory.svelte";
+  import ConstructionGroup from "./types/ConstructionGroup.svelte";
+  import Achievement from "./types/Achievement.svelte";
+  import ObsoletionWarning from "./ObsoletionWarning.svelte";
+  import Bionic from "./types/Bionic.svelte";
+  import * as Sentry from "@sentry/browser";
+  import type { SupportedTypes } from "./types";
+  import JsonView from "./JsonView.svelte";
 
-export let item: { id: string; type: string };
+  export let item: { id: string; type: string };
 
-export let data: CddaData;
-setContext("data", data);
-let error: Error | null = null;
+  export let data: CddaData;
+  setContext("data", data);
+  let error: Error | null = null;
 
-function onError(e: Error) {
-  error = e;
-  Sentry.captureException(e, {
-    contexts: {
-      item: {
-        type: item.type,
-        id: item.id,
+  function onError(e: Error) {
+    error = e;
+    Sentry.captureException(e, {
+      contexts: {
+        item: {
+          type: item.type,
+          id: item.id,
+        },
       },
-    },
-  });
-}
-
-function defaultItem(id: string, type: string) {
-  if (type === "json_flag") {
-    return { id, type, __filename: "" };
-  } else {
-    return undefined;
+    });
   }
-}
 
-let obj =
-  data.byIdMaybe(item.type as keyof SupportedTypes, item.id) ??
-  defaultItem(item.id, item.type);
+  function defaultItem(id: string, type: string) {
+    if (type === "json_flag") {
+      return { id, type, __filename: "" };
+    } else {
+      return undefined;
+    }
+  }
 
-const displays: Record<string, typeof SvelteComponent> = {
-  MONSTER: Monster,
-  AMMO: Item,
-  GUN: Item,
-  ARMOR: Item,
-  PET_ARMOR: Item,
-  TOOL: Item,
-  TOOLMOD: Item,
-  TOOL_ARMOR: Item,
-  BOOK: Item,
-  COMESTIBLE: Item,
-  CONTAINER: Item,
-  ENGINE: Item,
-  WHEEL: Item,
-  GUNMOD: Item,
-  MAGAZINE: Item,
-  BATTERY: Item,
-  GENERIC: Item,
-  BIONIC_ITEM: Item,
-  material: Material,
-  ammunition_type: AmmunitionType,
-  tool_quality: ToolQuality,
-  furniture: Furniture,
-  skill: Skill,
-  proficiency: Proficiency,
-  json_flag: Flag,
-  fault: Fault,
-  vitamin: Vitamin,
-  vehicle_part: VehiclePart,
-  martial_art: MartialArt,
-  mutation: Mutation,
-  mutation_category: MutationCategory,
-  mutation_type: MutationType,
-  vehicle: Vehicle,
-  terrain: Terrain,
-  weapon_category: WeaponCategory,
-  construction_group: ConstructionGroup,
-  achievement: Achievement,
-  conduct: Achievement,
-  bionic: Bionic,
-};
+  let obj =
+    data.byIdMaybe(item.type as keyof SupportedTypes, item.id) ??
+    defaultItem(item.id, item.type);
 
-const display = (obj && displays[obj.type]) ?? Unknown;
+  const displays: Record<string, typeof SvelteComponent<any>> = {
+    MONSTER: Monster,
+    AMMO: Item,
+    GUN: Item,
+    ARMOR: Item,
+    PET_ARMOR: Item,
+    TOOL: Item,
+    TOOLMOD: Item,
+    TOOL_ARMOR: Item,
+    BOOK: Item,
+    COMESTIBLE: Item,
+    CONTAINER: Item,
+    ENGINE: Item,
+    WHEEL: Item,
+    GUNMOD: Item,
+    MAGAZINE: Item,
+    BATTERY: Item,
+    GENERIC: Item,
+    BIONIC_ITEM: Item,
+    material: Material,
+    ammunition_type: AmmunitionType,
+    tool_quality: ToolQuality,
+    furniture: Furniture,
+    skill: Skill,
+    proficiency: Proficiency,
+    json_flag: Flag,
+    fault: Fault,
+    vitamin: Vitamin,
+    vehicle_part: VehiclePart,
+    martial_art: MartialArt,
+    mutation: Mutation,
+    mutation_category: MutationCategory,
+    mutation_type: MutationType,
+    vehicle: Vehicle,
+    terrain: Terrain,
+    weapon_category: WeaponCategory,
+    construction_group: ConstructionGroup,
+    achievement: Achievement,
+    conduct: Achievement,
+    bionic: Bionic,
+  };
+
+  const display = (obj && displays[obj.type]) ?? Unknown;
 </script>
 
 {#if !obj}
