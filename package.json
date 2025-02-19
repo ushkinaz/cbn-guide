@@ -54,5 +54,8 @@
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^0.29.7",
     "workbox-window": "^7.3.0"
+  },
+  "dependencies": {
+    "@babel/traverse": "7.23"
   }
 }
