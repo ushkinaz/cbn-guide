@@ -56,6 +56,7 @@
     "workbox-window": "^7.3.0"
   },
   "dependencies": {
-    "@babel/traverse": "7.23"
+    "@babel/traverse": "7.23",
+    "braces": "3.0.3"
   }
 }
