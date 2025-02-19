@@ -31,6 +31,8 @@ const fetchJson = async (url: string) => {
       chunk.ny = ny;
     })
   );
+  //Some tilesets doesn't have pixelscale defined
+  json["tile_info"][0].pixelscale = json["tile_info"][0].pixelscale ?? 1
   return json;
 };
 
