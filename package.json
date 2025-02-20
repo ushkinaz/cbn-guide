@@ -20,7 +20,7 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "@fontsource/unifont": "^4.5.5",
+    "@fontsource/unifont": "^5.1.0",
     "@sentry/browser": "^7.119.1",
     "@sentry/tracing": "^7.120.3",
     "@sveltejs/vite-plugin-svelte": "3",
