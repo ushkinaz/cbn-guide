@@ -22,9 +22,14 @@ const compatible = data.byType("item").flatMap((x) => {
 compatible.sort(byName);
 
 const usesAmmoType = (w: Item, t: AmmunitionType): boolean => {
-  // TODO: it might be good to split out things that have this as "ammo" vs.
-  // MAGAZINEs that accept this ammo type.
-  if ("ammo" in w && w.ammo?.includes(t.id)) return true;
+  if ("ammo" in w) {
+    if (Array.isArray(w.ammo)) {
+      return w.ammo.includes(t.id);
+    } else if (typeof w.ammo === "string") {
+      return w.ammo === t.id;
+    }
+  }
+
   return !!w.pocket_data?.some(
     (pocket) =>
       pocket.pocket_type === "MAGAZINE" &&
