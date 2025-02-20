@@ -1198,7 +1198,9 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       : [];
   });
   bashFromFurniture(item_id: string) {
-    return this.#bashFromFurnitureIndex.lookup(item_id).sort(byName);
+    return this.#bashFromFurnitureIndex.lookup(item_id)
+      .filter(isConcreteEntity)
+      .sort(byName);
   }
 
   #bashFromTerrainIndex = new ReverseIndex(this, "terrain", (f) => {
@@ -1213,7 +1215,9 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       : [];
   });
   bashFromTerrain(item_id: string) {
-    return this.#bashFromTerrainIndex.lookup(item_id).sort(byName);
+    return this.#bashFromTerrainIndex.lookup(item_id)
+      .filter(isConcreteEntity)
+      .sort(byName);
   }
 
   #bashFromVehiclePartIndex = new ReverseIndex(this, "vehicle_part", (vp) => {
@@ -1231,7 +1235,9 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     return breaksIntoGroupFlattened?.map((x) => x.id) ?? [];
   });
   bashFromVehiclePart(item_id: string) {
-    return this.#bashFromVehiclePartIndex.lookup(item_id);
+    return this.#bashFromVehiclePartIndex.lookup(item_id)
+      .filter(isConcreteEntity)
+      .sort(byName);
   }
 
   #deconstructFromFurnitureIndex = new ReverseIndex(this, "furniture", (f) => {
@@ -1264,7 +1270,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     return [
       ...this.#deconstructFromFurnitureIndex.lookup(item_id).sort(byName),
       ...this.#deconstructFromTerrainIndex.lookup(item_id).sort(byName),
-    ];
+    ].filter(isConcreteEntity);
   }
   
   allDamageTypes(
@@ -1349,6 +1355,10 @@ function flattenChoices<T>(
     }
   }
   return flatChoices;
+}
+
+function isConcreteEntity<T extends { id?: unknown }>(item: T): item is T & { id: string } {
+  return typeof item.id === 'string';
 }
 
 function expandSubstitutes(
