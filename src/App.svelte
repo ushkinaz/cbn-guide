@@ -305,15 +305,16 @@ function langHref(lang: string, href: string) {
       </strong>
     </div>
     <div class="search">
-      <input
-        style="margin: 0; width: 100%"
-        placeholder={t("Search...", {
-          _comment: "Placeholder text in the search box",
-        })}
-        role="search"
-        bind:value={search}
-        on:input={clearItem}
-        id="search" />
+      <form role="search">
+        <input
+          style="margin: 0; width: 100%"
+          placeholder={t("Search...", {
+            _comment: "Placeholder text in the search box",
+          })}
+          bind:value={search}
+          on:input={clearItem}
+          id="search" />
+      </form>
     </div>
   </nav>
 </header>
