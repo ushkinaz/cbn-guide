@@ -21,10 +21,15 @@ export type ItemGroupEntry = (
 
   // NB! "container-item" isn't greppable in the correct place in the source,
   // it's made up by load_sub_ref(..., "container"), which then looks for
-  // "container-item" and "container-group". rg '"-item"' to find it.
-  // The same is true for ammo{-item,-group} and contents{-item,-group}.
-  "container-item"?: string;
-  // TODO: "container-group"?: string;
+  // "contents-item" and "container-group". rg '"-item"' to find it.
+  // The same is true for ammo{-item,-group}. "container-item" is special since
+  // https://github.com/CleverRaven/Cataclysm-DDA/pull/71041.
+  "container-item"?: string | { item: string; variant: string };
+  "container-group"?: string;
+  "contents-item"?: string | string[];
+  "contents-group"?: string | string[];
+  "ammo-item"?: string;
+  "ammo-group"?: string;
   // TODO: damage, dirt, charges, ammo, contents, snippets?, sealed, custom-flags, etc.
 
   event?: string;
@@ -186,10 +191,9 @@ export type Recipe = {
   // for type: 'recipe' only
   category?: string;
   subcategory?: string;
-  description?: string;
+  description?: Translation;
   reversible?: boolean | { time: duration };
   byproducts?: ([string] | [string, number])[];
-  // TODO: construction_blueprint
   construction_blueprint?: any;
 } & RequirementData;
 
@@ -376,13 +380,23 @@ export type ComestibleSlot = {
     probability: number /* int */;
   }[];
   primary_material?: string; // material_id
-  monotony_penalty?: number; // default 2 unless material is junk, in which case 0
   addiction_type?: string;
-  addiction_potential?: number; // int, default 0
-  calories?: number; // int
-  vitamins?: [string, number /* int */][];
+  addiction_potential?: integer; // default 0
+  calories?: integer;
+  vitamins?: [string, integer][];
   rot_spawn?: string; // mongroup_id
-  rot_spawn_chance?: number; // int, default 10
+  rot_spawn_chance?: integer; // default 10
+};
+
+export type AddictionType = {
+  type: "addiction_type";
+  id: string;
+  name: Translation;
+  type_name: Translation;
+  description: Translation;
+  craving_morale?: string; // morale_type_id
+  effect_on_condition?: string; // effect_on_condition_id
+  builtin?: string;
 };
 
 export type ArmorPortionData = {
@@ -479,6 +493,7 @@ export type UseFunction =
   | HolsterUseFunction
   | AttachMolleUseFunction
   | DetachMolleUseFunction
+  | MessageUseFunction
   | {
       // TODO
       type:
@@ -503,10 +518,10 @@ export type UseFunction =
     }
   | {
       // Technically, the type can be any of the custom iuse functions. In
-      // practice, STRONG_ANTIBIOTIC is the only instance of this. Instead of
-      // using the fully generic |string| type, keep this here so we get a schema
-      // warning when new use actions are added.
-      type: "STRONG_ANTIBIOTIC";
+      // practice, STRONG_ANTIBIOTIC and MUTAGEN_IV are the only instances of
+      // this. Instead of using the fully generic |string| type, keep this here
+      // so we get a schema warning when new use actions are added.
+      type: "STRONG_ANTIBIOTIC" | "MUTAGEN_IV";
     };
 
 type ItemActionUseFunction = {
@@ -550,6 +565,7 @@ export type ConsumeDrugUseFunction = {
 
 export type RepairItemUseFunction = {
   type: "repair_item";
+  item_action_type: string;
   materials: string[];
   skill: string;
   cost_scaling: number;
@@ -573,6 +589,12 @@ export type AttachMolleUseFunction = {
 export type DetachMolleUseFunction = {
   type: "detach_molle";
   moves?: integer;
+};
+
+export type MessageUseFunction = {
+  type: "message";
+  name?: Translation;
+  message: Translation;
 };
 
 export type ItemBasicInfo = {
@@ -626,19 +648,8 @@ export type ItemBasicInfo = {
     | string
     | UseFunction
     | (string | UseFunction | [string] | [string, number])[];
-  variant_type?: "gun" | "generic";
-  variants?: {
-    id: string;
-    name: Translation;
-    description: Translation;
-    symbol?: string;
-    color?: string;
-    ascii_picture?: string; // id
-    weight?: integer;
-    append?: boolean;
-  }[];
   brewable?: {
-    results: string[]; // item_id
+    results: string[] | Record<string, number>; // item_id
     time?: duration;
   };
   milling?: {
@@ -701,7 +712,6 @@ export type PocketData = {
   open_container?: boolean;
   rigid?: boolean;
   holster?: boolean;
-  sealed_data?: { spoil_multiplier?: number };
 };
 
 export type MendingMethod = {
@@ -721,9 +731,7 @@ export type Fault = {
   id: string;
   name: Translation;
   description: Translation;
-
   mending_methods?: MendingMethod[];
-
   flags?: string[];
 };
 
@@ -1065,6 +1073,10 @@ export interface Mapgen {
 }
 
 export type PlaceMapping<T> = Record<string, T | T[]>;
+export type PlaceMappingAlternative<T> = Record<
+  string,
+  T | (T | [T, number])[]
+>;
 type PlaceList<T> = (MapgenPlace & T)[];
 
 interface MapgenPlace {
@@ -1073,12 +1085,21 @@ interface MapgenPlace {
   repeat?: MapgenInt;
 }
 
+export type MapgenPlaceTerrain = {
+  ter: string;
+};
+
+export type MapgenPlaceFurniture = {
+  furn: string;
+};
+
 export interface MapgenObject {
   fill_ter?: string;
   rows?: string[];
-  //terrain?: any; // TODO:
-  //place_terrain?: PlaceTerrain[];
-  //furniture?: any; // TODO:
+  terrain?: PlaceMappingAlternative<MapgenValue>;
+  place_terrain?: PlaceList<MapgenPlaceTerrain>;
+  furniture?: PlaceMappingAlternative<MapgenValue>;
+  place_furniture?: PlaceList<MapgenPlaceFurniture>;
 
   items?: PlaceMapping<MapgenItemGroup>;
   place_items?: PlaceList<MapgenItemGroup>;
@@ -1168,7 +1189,7 @@ export interface MapgenLoot {
 
 export interface MapgenNested {
   neighbors?: any; // TODO:
-  chunks?: Array<[string, number] | string>;
+  chunks?: Array<[MapgenValue, number] | MapgenValue>;
   else_chunks?: Array<[string, number] | string>;
 }
 
@@ -1310,8 +1331,6 @@ export type Monster = {
         age_grow?: integer;
         into_group?: string;
         into?: string;
-        multiple_spawns?: boolean;
-        spawn_range?: integer;
       };
   ascii_picture?: string;
   death_drops?: InlineItemGroup; // distribution
@@ -1482,7 +1501,7 @@ export type BodyPart = {
 
   is_limb?: boolean;
   is_vital?: boolean;
-  limb_type:
+  limb_type?:
     | "head"
     | "torso"
     | "sensor"
@@ -1657,13 +1676,14 @@ export type Spell = {
 export type OvermapSpecial = {
   id: string;
   type: "overmap_special" | "city_building";
+  flags?: string[];
   locations?: string[];
 } & (
   | {
       subtype?: "fixed"; // default fixed
       overmaps?: {
         point: [integer, integer, integer];
-        overmap: string;
+        overmap?: string;
         flags?: string[];
         locations?: string[];
       }[];
@@ -1795,7 +1815,7 @@ export type RotatableSymbol = {
 export type ItemAction = {
   type: "item_action";
   id: string;
-  name: Translation;
+  name?: Translation;
 };
 
 export type Bionic = {
@@ -1826,7 +1846,6 @@ export type Bionic = {
   fake_weapon?: string;
   installable_weapon_flags?: string[];
 
-  spell_on_activation?: string;
   weight_capacity_modifier?: number; // default 1
   exothermic_power_gen?: boolean;
   power_gen_emission?: string;
@@ -1917,6 +1936,7 @@ export type SupportedTypes = {
   MONSTER: Monster;
   SPELL: Spell;
   achievement: Achievement;
+  addiction_type: AddictionType;
   ammunition_type: AmmunitionType;
   ascii_art: AsciiArt;
   bionic: Bionic;

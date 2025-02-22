@@ -1,7 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import type { CddaData } from "../../data";
-import { lootByOMSAppearance } from "./spawnLocations";
+import { furnitureByOMSAppearance } from "./spawnLocations";
 import { t } from "@transifex/native";
 import LocationTable from "./LocationTable.svelte";
 
@@ -12,5 +12,5 @@ const data = getContext<CddaData>("data");
 
 <LocationTable
   id={item_id}
-  loots={lootByOMSAppearance(data)}
-  heading={t("Loot", { _context: "Obtaining" })} />
+  loots={furnitureByOMSAppearance(data)}
+  heading={t("Found In", { _context: "Terrain/Furniture Locations" })} />

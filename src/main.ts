@@ -11,17 +11,12 @@ tx.init({
 
 if (import.meta.env.PROD)
   Sentry.init({
-    dsn: "https://e7e132477a2844118b8f6d045a507e10@o318291.ingest.sentry.io/5665093",
+    dsn: import.meta.env.SENTRY_DSN,
     integrations: [browserTracingIntegration],
     tracesSampleRate: 0.2,
     ...(process.env.GITHUB_SHA && {
       release: `cdda-guide@${process.env.GITHUB_SHA.slice(0, 8)}`,
     }),
-    denyUrls: [
-      // Chrome extensions
-      /^chrome-extension:/,
-      /cdda-guide.aloxaf.com\//,
-    ],
   });
 
 registerSW({});
