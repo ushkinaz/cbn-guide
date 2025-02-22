@@ -51,8 +51,9 @@ let { tools, qualities } =
             {#if count <= 0}
               {#if data.craftingPseudoItem(toolId)}
                 <a
-                  href="{import.meta.env
-                    .BASE_URL}furniture/{data.craftingPseudoItem(toolId)}"
+                  href="/furniture/{data.craftingPseudoItem(
+                    toolId
+                  )}{location.search}"
                   >{singularName(data.byId("item", toolId))}</a>
               {:else}
                 <ThingLink type="item" id={toolId} />
@@ -75,7 +76,9 @@ let { tools, qualities } =
                   {#if data.craftingPseudoItem(toolId)}
                     <a
                       href="{import.meta.env
-                        .BASE_URL}furniture/{data.craftingPseudoItem(toolId)}"
+                        .BASE_URL}furniture/{data.craftingPseudoItem(
+                        toolId
+                      )}{location.search}"
                       >{singularName(data.byId("item", toolId))}</a>
                   {:else}
                     <ThingLink type="item" id={toolId} />

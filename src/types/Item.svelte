@@ -56,6 +56,7 @@ import ThingLink from "./ThingLink.svelte";
 import UsageDescription from "./UsageDescription.svelte";
 import ColorText from "./ColorText.svelte";
 import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
+import SmokedFrom from "./item/SmokedFrom.svelte";
 
 export let item: Item;
 let data: CddaData = getContext("data");
@@ -407,19 +408,21 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dt>{t("Usage", { _context })}</dt>
           <dd>
             <ul class="comma-separated">
-              {#each usage as u}
-                <li><UsageDescription usage={u} /></li>
-              {/each}
+              <!-- prettier-ignore -->
+              {#each usage as u}<li><UsageDescription usage={u} /></li>{/each}
             </ul>
           </dd>
         {/if}
 
         {#if item.brewable}
+          {@const results = Array.isArray(item.brewable.results)
+            ? Object.fromEntries(item.brewable.results.map((r) => [r, 1]))
+            : item.brewable.results}
           <dt>{t("Ferments Into", { _context })}</dt>
           <dd>
             <ul class="comma-separated">
-              {#each item.brewable.results as result_id}
-                <li><ThingLink type="item" id={result_id} /></li>
+              {#each Object.entries(results) as [result_id, count]}
+                <li><ThingLink type="item" id={result_id} {count} /></li>
               {/each}
             </ul>
             ({item.brewable.time ?? "1 turn"})
@@ -464,8 +467,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         {/if}
       </dl>
       {#if item.description}
-        <p style="color: var(--cata-color-gray); margin-bottom: 0;">
-          {singular(item.description)}
+        <p
+          style="color: var(--cata-color-gray); margin-bottom: 0; white-space: pre-wrap;">
+          <ColorText text={singular(item.description)} fgOnly={true} />
         </p>
       {/if}
     </div>
@@ -520,7 +524,8 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         <ul class="comma-separated">
           {#each [item.seed_data.fruit]
             .concat(item.seed_data.byproducts ?? [])
-            .concat(item.seed_data.seeds ?? true ? [item.id] : []) as id}
+            .concat(item.seed_data.seeds ?? true ? [item.id] : [])
+            .filter((x) => x !== "null") as id}
             <li><ThingLink type="item" {id} /></li>
           {/each}
         </ul>
@@ -652,19 +657,20 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 
 <div class="hide-header-if-no-sections">
   <h2>{t("Obtaining", { _context })}</h2>
-  <Recipes item_id={item.id} />
-  <DroppedBy item_id={item.id} />
   <Foraged item_id={item.id} />
   <GrownFrom item_id={item.id} />
   <BrewedFrom item_id={item.id} />
   <HarvestedFrom item_id={item.id} />
   <MilledFrom item_id={item.id} />
+  <SmokedFrom item_id={item.id} />
   <TransformedFrom item_id={item.id} />
   <Disassembly item_id={item.id} />
   <Salvaged item_id={item.id} />
+  <Recipes item_id={item.id} />
   <ConstructionByproduct item_id={item.id} />
   <Deconstruct item_id={item.id} />
   <Bash item_id={item.id} />
+  <DroppedBy item_id={item.id} />
   <SpawnedIn item_id={item.id} />
   <SpawnedInVehicle item_id={item.id} />
 </div>
