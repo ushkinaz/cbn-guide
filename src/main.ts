@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/browser";
 import "@fontsource/unifont";
 import { registerSW } from "virtual:pwa-register";
 import { tx } from "@transifex/native";
+import { browserTracingIntegration } from "@sentry/browser";
 
 tx.init({
   token: "1/1d8c1f9e14b4c21d70dd3f6fccdd0ab16b691105",
@@ -10,8 +11,8 @@ tx.init({
 
 if (import.meta.env.PROD)
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    integrations: [new Sentry.BrowserTracing()],
+    dsn: import.meta.env.SENTRY_DSN,
+    integrations: [browserTracingIntegration],
     tracesSampleRate: 0.2,
     ...(process.env.GITHUB_SHA && {
       release: `cdda-guide@${process.env.GITHUB_SHA.slice(0, 8)}`,
