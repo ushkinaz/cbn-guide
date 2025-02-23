@@ -23,7 +23,10 @@ import type {
   ItemGroupData,
   MapgenValue,
   ItemBasicInfo,
+  ComestibleSlot,
+  OvermapSpecial,
 } from "./types";
+import type { ItemChance, Loot } from "./types/item/spawnLocations";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
   ["AMMO", "item"],
@@ -93,11 +96,14 @@ function getMsgIdPlural(t: Translation): string {
 export function translate(
   t: Translation,
   needsPlural: boolean,
-  n: number
+  n: number,
+  domain?: string
 ): string {
   const sg = getMsgId(t);
   const pl = needsPlural ? getMsgIdPlural(t) : "";
-  return i18n.ngettext(sg, pl, n) || (n === 1 ? sg : pl ?? sg);
+  return (
+    i18n.dcnpgettext(domain, undefined, sg, pl, n) || (n === 1 ? sg : pl ?? sg)
+  );
 }
 
 export const singular = (name: Translation): string =>
@@ -106,14 +112,19 @@ export const singular = (name: Translation): string =>
 export const plural = (name: Translation, n: number = 2): string =>
   translate(name, true, n);
 
-export const singularName = (obj: any): string => pluralName(obj, 1);
+export const singularName = (obj: any, domain?: string): string =>
+  pluralName(obj, 1, domain);
 
-export const pluralName = (obj: any, n: number = 2): string => {
-const name: Translation = obj?.name?.male ?? obj?.name;
+export const pluralName = (
+  obj: any,
+  n: number = 2,
+  domain?: string
+): string => {
+  const name: Translation = obj?.name?.male ?? obj?.name;
   if (name == null) return obj?.id ?? obj?.abstract;
   const txed = Array.isArray(name)
-    ? translate(name[0], needsPlural.includes(obj.type), n)
-    : translate(name, needsPlural.includes(obj.type), n);
+    ? translate(name[0], needsPlural.includes(obj.type), n, domain)
+    : translate(name, needsPlural.includes(obj.type), n, domain);
   if (txed.length === 0) return obj?.id ?? obj?.abstract;
   return txed;
 };
@@ -127,6 +138,7 @@ export function showProbability(prob: number) {
   return ret + "%";
 }
 
+// Returns ml
 export function parseVolume(string: string | number): number {
   if (typeof string === "undefined") return 0;
   if (typeof string === "number") return string * 250;
@@ -135,15 +147,36 @@ export function parseVolume(string: string | number): number {
   throw new Error("unknown volume unit: " + string);
 }
 
+// with g as 1
+const massUnitMultiplier = {
+  μg: 1e-6,
+  ug: 1e-6,
+  mcg: 1e-6,
+  mg: 1e-3,
+  g: 1,
+  kg: 1e3,
+};
+
+// Returns grams
 export function parseMass(string: string | number): number {
   if (typeof string === "undefined") return 0;
   if (typeof string === "number") return string;
-  if (string.endsWith("mg")) return parseInt(string) / 1000;
-  if (string.endsWith("kg")) return parseInt(string) * 1000;
-  if (string.endsWith("g")) return parseInt(string);
-  throw new Error("unknown mass unit: " + string);
+  let m: RegExpExecArray | null;
+  let val = 0;
+  const re = new RegExp(
+    `(\\d+)\\s+(${Object.keys(massUnitMultiplier).join("|")})`,
+    "g"
+  );
+  while ((m = re.exec(string))) {
+    const [_, num, unit] = m;
+    val +=
+      parseInt(num) *
+      massUnitMultiplier[unit as keyof typeof massUnitMultiplier];
+  }
+  return val;
 }
 
+// Returns seconds
 export function parseDuration(duration: string | number): number {
   if (typeof duration === "number") return duration / 100;
   const turns = 1;
@@ -249,6 +282,13 @@ export class CddaData {
         else if (Array.isArray(obj.id))
           for (const id of obj.id)
             this._byTypeById.get(mappedType)!.set(id, obj);
+
+        // TODO: proper alias handling. We want to e.g. be able to collapse them in loot tables.
+        if (Array.isArray(obj.alias))
+          for (const id of obj.alias)
+            this._byTypeById.get(mappedType)!.set(id, obj);
+        else if (typeof obj.alias === "string")
+          this._byTypeById.get(mappedType)!.set(obj.alias, obj);
       }
       // recipes are id'd by their result
       if (
@@ -285,8 +325,11 @@ export class CddaData {
         this._nestedMapgensById.get(obj.nested_mapgen_id)!.push(obj);
       }
     }
+    this._byTypeById
+      .get("item_group")
+      ?.set("EMPTY_GROUP", { id: "EMPTY_GROUP", entries: [] });
   }
-  
+
 byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
   type: TypeName,
   id: string
@@ -390,6 +433,9 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
         ...obj.vitamins,
       ];
     }
+    if (obj.type === "vehicle" && parentProps.parts && obj.parts) {
+      ret.parts = [...parentProps.parts, ...obj.parts];
+    }
     for (const k of Object.keys(ret.relative ?? {})) {
       if (typeof ret.relative[k] === "number") {
         if (k === "melee_damage") {
@@ -431,6 +477,20 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
               (modified.constant_damage_multiplier ?? 0) +
               (rdu.constant_damage_multiplier ?? 0);
           }
+        }
+      } else if (
+        (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
+        ret[k]
+      ) {
+        ret[k] = JSON.parse(JSON.stringify(ret[k]));
+        for (const k2 of Object.keys(ret.relative[k])) {
+          ret[k][k2] = (ret[k][k2] ?? 0) + ret.relative[k][k2];
+        }
+      } else if (k === "qualities") {
+        ret[k] = JSON.parse(JSON.stringify(ret[k]));
+        for (const [q, l] of ret.relative[k]) {
+          const existing = ret[k].find((x: any) => x[0] === q);
+          existing[1] += l;
         }
       }
       // TODO: vitamins, mass, volume, time
@@ -478,13 +538,27 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
               (pdu.constant_damage_multiplier ?? 1);
           }
         }
+      } else if (
+        (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
+        ret[k]
+      ) {
+        ret[k] = JSON.parse(JSON.stringify(ret[k]));
+        for (const k2 of Object.keys(ret.proportional[k])) {
+          ret[k][k2] *= ret.proportional[k][k2];
+          ret[k][k2] = ret[k][k2] | 0; // most things are ints.. TODO: what keys are float?
+        }
       }
       // TODO: mass, volume, time (need to check the base value's type)
     }
     delete ret.proportional;
     for (const k of Object.keys(ret.extend ?? {})) {
       if (Array.isArray(ret.extend[k])) {
-        ret[k] = (ret[k] ?? []).concat(ret.extend[k]);
+        if (k === "flags")
+          // Unique
+          ret[k] = (ret[k] ?? []).concat(
+            ret.extend[k].filter((x: any) => !ret[k]?.includes(x))
+          );
+        else ret[k] = (ret[k] ?? []).concat(ret.extend[k]);
       }
     }
     delete ret.extend;
@@ -508,25 +582,19 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     return ret;
   }
 
-  _cachedDeathDrops: Map<
-    string,
-    { id: string; prob: number; count: [number, number] }[]
-  > = new Map();
-  flatDeathDrops(
-    mon_id: string
-  ): { id: string; prob: number; count: [number, number] }[] {
+  _cachedDeathDrops: Map<string, Loot> = new Map();
+  flatDeathDrops(mon_id: string): Loot {
     if (this._cachedDeathDrops.has(mon_id))
       return this._cachedDeathDrops.get(mon_id)!;
     const mon = this.byId("monster", mon_id);
     const ret = mon.death_drops
-      ? this.flattenItemGroup(
+      ? this.flattenItemGroupLoot(
           this.normalizeItemGroup(mon.death_drops, "distribution") ?? {
             subtype: "collection",
             entries: [],
           }
         )
-      : [];
-    ret.sort((a, b) => b.prob - a.prob);
+      : new Map();
     this._cachedDeathDrops.set(mon_id, ret);
     return ret;
   }
@@ -688,14 +756,21 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
   // This is a WeakMap because flattenItemGroup is sometimes called with temporary objects
   _flattenItemGroupCache = new WeakMap<
     ItemGroupData,
-    { id: string; prob: number; count: [number, number] }[]
+    { id: string; prob: number; expected: number; count: [number, number] }[]
   >();
+  /**
+   * In the result, each |id| will be spawned with probability |prob|. If the item
+   * is spawned, it will be spawned between |count[0]| and |count[1]| times.
+   */
   flattenItemGroup(
     group: ItemGroupData
-  ): { id: string; prob: number; count: [number, number] }[] {
+  ): { id: string; prob: number; expected: number; count: [number, number] }[] {
     if (this._flattenItemGroupCache.has(group))
       return this._flattenItemGroupCache.get(group)!;
-    const retMap = new Map<string, { prob: number; count: [number, number] }>();
+    const retMap = new Map<
+      string,
+      { prob: number; expected: number; count: [number, number] }
+    >();
 
     function addOne({
       id,
@@ -706,16 +781,26 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       prob: number;
       count: [number, number];
     }) {
-      const { prob: prevProb, count: prevCount } = retMap.get(id) ?? {
+      if (id === "null") return;
+      const {
+        prob: prevProb,
+        count: prevCount,
+        expected: prevExpected,
+      } = retMap.get(id) ?? {
         prob: 0,
         count: [0, 0],
+        expected: 0,
       };
       const newProb = 1 - (1 - prevProb) * (1 - prob);
+
       const newCount: [number, number] = [
         count[0] + prevCount[0],
         count[1] + prevCount[1],
       ];
-      retMap.set(id, { prob: newProb, count: newCount });
+
+      const newExpected = prevExpected + (prob * (count[0] + count[1])) / 2;
+
+      retMap.set(id, { prob: newProb, expected: newExpected, count: newCount });
     }
 
     function add(
@@ -724,8 +809,15 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       args.forEach(addOne);
     }
 
+    function normalizeContainerItem(id: string | { item: string }) {
+      return typeof id === "string" ? id : id.item;
+    }
     if ("container-item" in group && group["container-item"])
-      add({ id: group["container-item"], prob: 1, count: [1, 1] });
+      add({
+        id: normalizeContainerItem(group["container-item"]),
+        prob: 1,
+        count: [1, 1],
+      });
 
     let normalizedEntries: ItemGroupEntry[] = [];
     for (const entry of "entries" in group && group.entries
@@ -761,11 +853,16 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       };
     }
 
+    const data = this;
     function normalizeCount(entry: ItemGroupEntry): [number, number] {
       if (entry.count)
         if (typeof entry.count === "number") return [entry.count, entry.count];
         else return entry.count;
-      else if (entry.charges)
+      else if (
+        "item" in entry &&
+        entry.charges &&
+        countsByCharges(data.byId("item", entry.item))
+      )
         if (typeof entry.charges === "number")
           return [entry.charges, entry.charges];
         else return entry.charges;
@@ -777,13 +874,43 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
         const { prob = 100 } = entry;
         const nProb = Math.min(prob, 100) / 100;
         const nCount = normalizeCount(entry);
-        if (entry["container-item"])
-          add({ id: entry["container-item"], prob: nProb, count: [1, 1] });
+        for (const subrefItem of [
+          "container-item",
+          "ammo-item",
+          "contents-item",
+        ] as const) {
+          const ids = entry[subrefItem];
+          if (ids)
+            for (const id of [ids].flat())
+              add({
+                id: normalizeContainerItem(id),
+                prob: nProb,
+                count: [1, 1],
+              });
+        }
+        for (const subrefGroup of [
+          "container-group",
+          "ammo-group",
+          "contents-group",
+        ] as const) {
+          const ids = entry[subrefGroup];
+          if (ids)
+            for (const id of [ids].flat())
+              add(
+                ...this.flattenTopLevelItemGroup(
+                  this.byId("item_group", id)
+                ).map((p) => prod(p, nProb, nCount))
+              );
+        }
         if ("item" in entry) {
           add({ id: entry.item, prob: nProb, count: nCount });
           const item = this.byIdMaybe("item", entry.item);
           if (item && item.container)
-            add({ id: item.container, prob: nProb, count: nCount });
+            add({
+              id: item.container,
+              prob: nProb,
+              count: countsByCharges(item) ? [1, 1] : nCount,
+            });
         } else if ("group" in entry) {
           add(
             ...this.flattenTopLevelItemGroup(
@@ -805,7 +932,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
             }).map((p) => prod(p, nProb, nCount))
           );
         } else {
-          throw new Error(`unknown item group entry: ${JSON.stringify(entry)}`);
+          console.warn(`unknown item group entry: ${JSON.stringify(entry)}`);
         }
       }
     } else {
@@ -815,8 +942,34 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       for (const entry of normalizedEntries) {
         const nProb = (entry.prob ?? 100) / totalProb;
         const nCount = normalizeCount(entry);
-        if (entry["container-item"])
-          add({ id: entry["container-item"], prob: nProb, count: [1, 1] });
+        for (const subrefItem of [
+          "container-item",
+          "ammo-item",
+          "contents-item",
+        ] as const) {
+          const ids = entry[subrefItem];
+          if (ids)
+            for (const id of [ids].flat())
+              add({
+                id: normalizeContainerItem(id),
+                prob: nProb,
+                count: [1, 1],
+              });
+        }
+        for (const subrefGroup of [
+          "container-group",
+          "ammo-group",
+          "contents-group",
+        ] as const) {
+          const ids = entry[subrefGroup];
+          if (ids)
+            for (const id of [ids].flat())
+              add(
+                ...this.flattenTopLevelItemGroup(
+                  this.byId("item_group", id)
+                ).map((p) => prod(p, nProb, nCount))
+              );
+        }
         if ("item" in entry) {
           add({ id: entry.item, prob: nProb, count: nCount });
         } else if ("group" in entry) {
@@ -840,7 +993,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
             }).map((p) => prod(p, nProb, nCount))
           );
         } else {
-          throw new Error(`unknown item group entry: ${JSON.stringify(entry)}`);
+          console.warn(`unknown item group entry: ${JSON.stringify(entry)}`);
         }
       }
     }
@@ -848,6 +1001,15 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     const r = [...retMap.entries()].map(([id, v]) => ({ id, ...v }));
     this._flattenItemGroupCache.set(group, r);
     return r;
+  }
+
+  flattenItemGroupLoot(group: ItemGroupData): Loot {
+    return new Map(
+      this.flattenItemGroup(group).map(({ id, prob, expected }) => [
+        id,
+        { prob, expected },
+      ])
+    );
   }
 
   _flatRequirementCache = new WeakMap<any, { id: string; count: number }[][]>();
@@ -1109,6 +1271,37 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     return this._itemComponentCache;
   }
 
+  _constructionComponentCache: {
+    byTool: Map<string, Set<string>>;
+    byComponent: Map<string, Set<string>>;
+  } | null = null;
+  getConstructionComponents() {
+    if (this._constructionComponentCache)
+      return this._constructionComponentCache;
+    const constructionsByComponent = new Map<string, Set<string>>();
+    const constructionsByTool = new Map<string, Set<string>>();
+    for (const c of this.byType("construction")) {
+      const { components, tools } = this.normalizeRequirements(c);
+      for (const componentOptions of components)
+        for (const [component] of componentOptions) {
+          if (!constructionsByComponent.has(component))
+            constructionsByComponent.set(component, new Set());
+          constructionsByComponent.get(component)!.add(c.id);
+        }
+      for (const toolOptions of tools)
+        for (const [tool] of toolOptions) {
+          if (!constructionsByTool.has(tool))
+            constructionsByTool.set(tool, new Set());
+          constructionsByTool.get(tool)!.add(c.id);
+        }
+    }
+    this._constructionComponentCache = {
+      byTool: constructionsByTool,
+      byComponent: constructionsByComponent,
+    };
+    return this._constructionComponentCache;
+  }
+
   normalizeItemGroup(
     g: undefined | string | ItemGroupData | ItemGroupEntry[],
     subtype: "collection" | "distribution"
@@ -1174,9 +1367,16 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     return this.#grownFromIndex.lookup(item_id);
   }
 
-  #brewedFromIndex = new ReverseIndex(this, "item", (x) =>
-    x.id ? x.brewable?.results ?? [] : []
-  );
+  #brewedFromIndex = new ReverseIndex(this, "item", (x) => {
+    function normalize(
+      results: undefined | string[] | Record<string, number>
+    ): string[] {
+      if (!results) return [];
+      if (Array.isArray(results)) return results;
+      return Object.keys(results);
+    }
+    return x.id ? normalize(x.brewable?.results) : [];
+  });
   brewedFrom(item_id: string) {
     return this.#brewedFromIndex.lookup(item_id);
   }
@@ -1235,7 +1435,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     return breaksIntoGroupFlattened?.map((x) => x.id) ?? [];
   });
   bashFromVehiclePart(item_id: string) {
-    return this.#bashFromVehiclePartIndex.lookup(item_id);
+    return this.#bashFromVehiclePartIndex.lookup(item_id).sort(byName);
   }
 
   #deconstructFromFurnitureIndex = new ReverseIndex(this, "furniture", (f) => {
@@ -1270,7 +1470,7 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
       ...this.#deconstructFromTerrainIndex.lookup(item_id).sort(byName),
     ];
   }
-  
+
   allDamageTypes(
     sort_key:
       | "protection_info"
@@ -1297,6 +1497,7 @@ class ReverseIndex<T extends keyof SupportedTypesWithMapped> {
     if (!this.#_index) {
       this.#_index = new Map();
       for (const item of this.data.byType(this.objType)) {
+        if (!("id" in item || "result" in item)) continue;
         for (const id of this.fn(item)) {
           if (!this.#index.has(id)) this.#index.set(id, []);
           this.#index.get(id)!.push(item);
@@ -1379,6 +1580,22 @@ export function normalizeDamageInstance(
   else return [damageInstance];
 }
 
+export function normalizeAddictionTypes(
+  comestible: ComestibleSlot
+): { addiction: string; potential: number }[] {
+  const addictionType = comestible.addiction_type;
+  if (typeof addictionType === "string") {
+    return [
+      {
+        addiction: addictionType,
+        potential: comestible.addiction_potential ?? 0,
+      },
+    ];
+  } else {
+    return [];
+  }
+}
+
 const vpartVariants = [
   "cover_left",
   "cover_right",
@@ -1430,6 +1647,10 @@ export const getVehiclePartIdAndVariant = (
 ): [string, string] => {
   if (data.byIdMaybe("vehicle_part", compositePartId))
     return [compositePartId, ""];
+  const m = /^(.+)#(.+?)$/.exec(compositePartId);
+  if (m) return [m[1], m[2]];
+
+  // TODO: only check this for releases older than https://github.com/CleverRaven/Cataclysm-DDA/pull/65871
   for (const variant of vpartVariants) {
     if (compositePartId.endsWith("_" + variant)) {
       return [
@@ -1614,14 +1835,14 @@ export const data = {
   async setVersion(version: string, locale: string | null) {
     if (_hasSetVersion) throw new Error("can only set version once");
     _hasSetVersion = true;
-    let totals: [number, number] = [0, 0];
-    let receiveds: [number, number] = [0, 0];
+    let totals = [0, 0, 0];
+    let receiveds = [0, 0, 0];
     const updateProgress = () => {
-      const total = totals[0] + totals[1];
-      const received = receiveds[0] + receiveds[1];
+      const total = totals.reduce((a, b) => a + b, 0);
+      const received = receiveds.reduce((a, b) => a + b, 0);
       loadProgressStore.set([received, total]);
     };
-    const [dataJson, localeJson] = await Promise.all([
+    const [dataJson, localeJson, pinyinNameJson] = await Promise.all([
       retry(() =>
         fetchJson(version, (receivedBytes, totalBytes) => {
           totals[0] = totalBytes;
@@ -1637,10 +1858,26 @@ export const data = {
             updateProgress();
           })
         ),
+      locale?.startsWith("zh_") &&
+        retry(() =>
+          fetchLocaleJson(
+            version,
+            locale + "_pinyin",
+            (receivedBytes, totalBytes) => {
+              totals[2] = totalBytes;
+              receiveds[2] = receivedBytes;
+              updateProgress();
+            }
+          )
+        ),
     ]);
     if (locale && localeJson) {
+      if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
       i18n.loadJSON(localeJson);
       i18n.setLocale(locale);
+      if (pinyinNameJson) {
+        i18n.loadJSON(pinyinNameJson, "pinyin");
+      }
     }
     const cddaData = new CddaData(
       dataJson.data,
@@ -1650,3 +1887,44 @@ export const data = {
     set(cddaData);
   },
 };
+
+export function omsName(data: CddaData, oms: OvermapSpecial): string {
+  if (oms.subtype === "mutable") return oms.id;
+  const ground_level_omts = (oms.overmaps ?? []).filter(
+    (p) => p.point[2] === 0
+  );
+  let minX = Infinity,
+    minY = Infinity;
+  let maxX = -Infinity,
+    maxY = -Infinity;
+  const grid = new Map<string, (typeof ground_level_omts)[0]>();
+  for (const omt of ground_level_omts) {
+    const [x, y] = omt.point;
+    if (!omt.overmap) continue;
+    if (
+      !data.byIdMaybe(
+        "overmap_terrain",
+        omt.overmap.replace(/_(north|south|east|west)$/, "")
+      )
+    )
+      continue;
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+    grid.set(`${x}|${y}`, omt);
+  }
+  const centerX = minX + Math.floor((maxX - minX) / 2);
+  const centerY = minY + Math.floor((maxY - minY) / 2);
+  const centerOmt = grid.get(`${centerX}|${centerY}`);
+  if (centerOmt?.overmap) {
+    const omt = data.byId(
+      "overmap_terrain",
+      centerOmt.overmap.replace(/_(north|south|east|west)$/, "")
+    );
+    if (omt) {
+      return singularName(omt);
+    }
+  }
+  return oms.id;
+}

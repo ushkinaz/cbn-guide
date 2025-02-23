@@ -1,6 +1,5 @@
 import App from "./App.svelte";
 import * as Sentry from "@sentry/browser";
-import { Integrations } from "@sentry/tracing";
 import "@fontsource/unifont";
 import { registerSW } from "virtual:pwa-register";
 import { tx } from "@transifex/native";
@@ -11,17 +10,12 @@ tx.init({
 
 if (location.hostname !== "localhost")
   Sentry.init({
-    dsn: "https://e7e132477a2844118b8f6d045a507e10@o318291.ingest.sentry.io/5665093",
-    integrations: [new Integrations.BrowserTracing()],
+    dsn: process.env.SENTRY_DSN,
+    integrations: [new Sentry.BrowserTracing()],
     tracesSampleRate: 0.2,
     ...(process.env.GITHUB_SHA && {
       release: `cdda-guide@${process.env.GITHUB_SHA.slice(0, 8)}`,
     }),
-    denyUrls: [
-      // Chrome extensions
-      /^chrome-extension:/,
-      /cdda-guide.aloxaf.com\//,
-    ],
   });
 
 registerSW({});

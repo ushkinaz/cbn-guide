@@ -1,7 +1,18 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, countsByCharges, pluralName, singularName } from "../data";
-import type { SupportedTypesWithMapped } from "../types";
+import {
+  CddaData,
+  countsByCharges,
+  pluralName,
+  singularName,
+  mapType,
+  singular,
+} from "../data";
+import type {
+  Item,
+  SupportedTypeMapped,
+  SupportedTypesWithMapped,
+} from "../types";
 import MutationColor from "./MutationColor.svelte";
 
 export let type: keyof SupportedTypesWithMapped;
@@ -9,6 +20,7 @@ export let id: string;
 export let plural: boolean = false;
 export let count: number | [number, number] | undefined = undefined;
 export let variantId: string | undefined = undefined;
+export let overrideText: string | undefined = undefined;
 
 function countToString(count: number | [number, number]): string {
   if (typeof count === "number") return count.toString();
@@ -27,6 +39,10 @@ const data = getContext<CddaData>("data");
 let item = data.byIdMaybe(type, id);
 if (item?.type === "vehicle_part" && !item.name && item.item)
   item = data.byId("item", item.item);
+
+function isItem(item: SupportedTypeMapped): item is Item {
+  return mapType(item.type) === "item";
+}
 </script>
 
 {#if count != null}
@@ -43,10 +59,16 @@ if (item?.type === "vehicle_part" && !item.name && item.item)
       )}){/if}</span>
 {:else}
   {@const nameSource =
-    item && variantId && "variants" in item && item.variants
+    item && variantId && isItem(item) && "variants" in item && item.variants
       ? item.variants.find((v) => v.id === variantId) ?? item
       : item}
-  <a href="{import.meta.env.BASE_URL}{type}/{id}"
-    >{item ? (plural ? pluralName : singularName)(nameSource) : id}</a
+  <a href="{import.meta.env.BASE_URL}{type}/{id}{location.search}"
+    >{overrideText
+      ? overrideText
+      : item
+      ? item.type === "addiction_type"
+        ? singular(item.type_name)
+        : (plural ? pluralName : singularName)(nameSource)
+      : id}</a
   >{#if item?.type === "mutation"}&nbsp;<MutationColor mutation={item} />{/if}
 {/if}

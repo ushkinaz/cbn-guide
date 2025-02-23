@@ -1,0 +1,16 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Purpose:
+# Reference sha1 if GitHub format.
+# Expected repo is very specific
+
+# Path to the commit message file
+COMMIT_MSG_FILE="$1"
+
+# Extract the cherry-picked commit hash
+CHERRY_PICKED_COMMIT=$(sed -nE 's/.*\(cherry picked from commit ([0-9a-f]+)\).*/\1/p' "$COMMIT_MSG_FILE")
+
+if [ -n "$CHERRY_PICKED_COMMIT" ]; then
+    sed -i -E 's/\(cherry picked from commit ([0-9a-f]+)\)/\(Backported from nornagon\/cdda-guide@\1\)/' "$COMMIT_MSG_FILE"
+fi

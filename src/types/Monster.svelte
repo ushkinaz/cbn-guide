@@ -18,6 +18,7 @@ import SpecialAttack from "./monster/SpecialAttack.svelte";
 import LimitedList from "../LimitedList.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ColorText from "./ColorText.svelte";
+import ItemTable from "./item/ItemTable.svelte";
 
 const _context = "Monster";
 
@@ -64,8 +65,8 @@ function difficulty(mon: Monster): number {
   const melee_dmg_total = normalizedMeleeDamage.reduce((acc, { amount = 0, damage_multiplier = 1, constant_damage_multiplier = 1 }) => acc + amount * damage_multiplier * constant_damage_multiplier, 0)
   let armor_diff = 3
   for (const [damageTypeId, amount] of Object.entries(monsterArmor(mon.armor ?? {}))) {
-    const damageType = data.byId("damage_type", damageTypeId)
-    if (damageType.mon_difficulty)
+    const damageType = data.byIdMaybe("damage_type", damageTypeId)
+    if (damageType?.mon_difficulty)
       armor_diff += amount
   }
   let difficulty = ( melee_skill + 1 ) * melee_dice * ( melee_dmg_total + melee_sides ) * 0.04 +
@@ -74,7 +75,7 @@ function difficulty(mon: Monster): number {
   difficulty = Math.floor(difficulty);
   difficulty *= ( (hp ?? 1) + speed - attack_cost + ( morale + agro ) * 0.1 ) * 0.01 +
                 ( vision_day + 2 * vision_night ) * 0.01;
-  return Math.floor(difficulty);
+  return Math.max(1, Math.floor(difficulty));
 }
 
 function difficultyDescription(diff: number) {
@@ -308,7 +309,7 @@ let upgrades =
     {/if}
     {#if item.species && item.species.length}
       <dt>{t("Species", { _context })}</dt>
-      <dd>{(item.species ?? []).join(", ")}</dd>
+      <dd>{[item.species ?? []].flat().join(", ")}</dd>
     {/if}
     <dt>{t("Volume")}</dt>
     <dd>{asLiters(item.volume ?? 0)}</dd>
@@ -504,14 +505,8 @@ let upgrades =
     {/if}
   </dl>
   </section>
-  {#if deathDrops?.length}
-    <section>
-      <h1>{t("Drops", { _context })}</h1>
-      <LimitedList items={deathDrops} let:item>
-        <ItemSymbol item={data.byId("item", item.id)} />
-        <ThingLink type="item" id={item.id} /> ({showProbability(item.prob)})
-      </LimitedList>
-    </section>
+  {#if deathDrops.size}
+    <ItemTable loot={deathDrops} heading={t("Drops")} />
   {/if}
   {#if harvest && (harvest.entries ?? []).length}
     <section>

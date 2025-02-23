@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { byName, CddaData, singularName } from "../data";
+import { byName, CddaData, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -43,7 +43,7 @@ itemsUsingSkill.sort(byName);
 
 <h1>{t("Skill")}: {singularName(item)}</h1>
 <section>
-  <p style="color: var(--cata-color-gray)">{item.description}</p>
+  <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
 </section>
 
 {#if booksWithSkill.length}

@@ -73,7 +73,7 @@ const all = data._raw
 const skipped = new Set<string>([]);
 
 test.each(all)("schema matches %s %s", (type, id, obj) => {
-  if (skipped.has(id)) {
+  if (skipped.has(JSON.stringify(id))) {
     //pending();
     return;
   }

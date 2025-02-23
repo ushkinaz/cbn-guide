@@ -22,7 +22,6 @@
   "devDependencies": {
     "@fontsource/unifont": "^4.5.5",
     "@sentry/browser": "^7.2.0",
-    "@sentry/tracing": "^7.2.0",
     "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
     "@testing-library/svelte": "^3.0.3",
     "@transifex/cli": "^4.2.4",
@@ -35,7 +34,7 @@
     "@types/requestidlecallback": "^0.3.4",
     "ajv": "^8",
     "fuzzysort": "^2.0.1",
-    "gettext.js": "nornagon/gettext.js#bdf27db",
+    "gettext.js": "^2.0.0",
     "husky": "^7.0.4",
     "jest-environment-jsdom": "^28.1.1",
     "lint-staged": "^12.3.2",
@@ -54,5 +53,6 @@
     "vite-plugin-pwa": "^0.14.4",
     "vitest": "^0.29.7",
     "workbox-window": "^6.5.4"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
