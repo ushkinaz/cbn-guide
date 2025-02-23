@@ -398,6 +398,10 @@ byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
           );
           for (const du of di) du.amount = (du.amount ?? 0) + ret.relative[k];
           ret.melee_damage = di;
+        } else if (k === "weight") {
+          ret[k] = (parseMass(ret[k]) ?? 0) + ret.relative[k];
+        } else if (k === "volume") {
+          ret[k] = (parseVolume(ret[k]) ?? 0) + ret.relative[k];
         } else {
           ret[k] = (ret[k] ?? 0) + ret.relative[k];
         }
