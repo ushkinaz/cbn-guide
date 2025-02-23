@@ -211,7 +211,7 @@ const grantedByMutation = data
   .filter((m) => m.id && m.integrated_armor?.some((x) => x === item.id));
 
 function normalizeStackVolume(item: Item): (string | number) | undefined {
-  if (item.type === "AMMO" && item.ammunition_type!== "components") {
+  if (item.type === "AMMO" && item.ammo_type !== "components") {
     const { count } = item;
     return `${parseVolume(item.volume ?? "1 ml") / (count ?? 1)} ml`;
   }
