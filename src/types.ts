@@ -1326,7 +1326,7 @@ export type Monster = {
   fear_triggers?: string[];
   special_when_hit?: [
     "NONE" | "ZAPBACK" | "ACIDSPLASH" | "RETURN_FIRE",
-    integer
+    integer,
   ];
   morale?: number;
   aggression?: number;

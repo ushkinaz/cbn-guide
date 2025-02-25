@@ -6,7 +6,7 @@ const fetchJson = async (url: string) => {
   });
   if (!res.ok)
     throw new Error(
-      `Error ${res.status} (${res.statusText}) fetching tile data`
+      `Error ${res.status} (${res.statusText}) fetching tile data`,
     );
   const json = await res.json();
   await Promise.all(
@@ -29,10 +29,10 @@ const fetchJson = async (url: string) => {
         (img.height / (chunk.sprite_height ?? json.tile_info[0].height)) | 0;
       chunk.nx = nx;
       chunk.ny = ny;
-    })
+    }),
   );
   //Some tilesets doesn't have pixelscale defined
-  json["tile_info"][0].pixelscale = json["tile_info"][0].pixelscale ?? 1
+  json["tile_info"][0].pixelscale = json["tile_info"][0].pixelscale ?? 1;
   return json;
 };
 
@@ -47,7 +47,7 @@ export const tileData = {
         },
         (err) => {
           console.error("Error fetching tiles", err);
-        }
+        },
       );
     } else {
       set(null);

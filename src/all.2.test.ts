@@ -16,7 +16,7 @@ import {
 } from "./types/item/spawnLocations";
 
 const json = JSON.parse(
-  fs.readFileSync(__dirname + "/../_test/all.json", "utf8")
+  fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
 );
 let data: CddaData = new CddaData(json.data);
 const types = [
@@ -54,7 +54,7 @@ const all = data._raw
       x.id &&
       types.includes(mapType(x.type)) &&
       (!process.env.TEST_ONLY ||
-        process.env.TEST_ONLY === `${mapType(x.type)}/${x.id}`)
+        process.env.TEST_ONLY === `${mapType(x.type)}/${x.id}`),
   )
   .map((x) => [mapType(x.type), x.id]);
 all.length = 20;
@@ -87,5 +87,5 @@ test.each(all.filter((_, i) => i % numChunks === chunkIdx))(
   {
     // The first test sometimes times out on CI with the default 5sec timeout.
     timeout: 20000,
-  }
+  },
 );

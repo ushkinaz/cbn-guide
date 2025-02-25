@@ -4,7 +4,7 @@ import * as crypto from "crypto";
 import * as url from "url";
 import fetch from "node-fetch";
 const { buildNum, sha } = JSON.parse(
-  readFileSync("./_test/all.meta.json", "utf8")
+  readFileSync("./_test/all.meta.json", "utf8"),
 );
 const update = process.argv[2] === "latest";
 const dataUrl = `https://raw.githubusercontent.com/mythosmod/cbn-data/main/data/${
@@ -32,7 +32,7 @@ async function matchesSha(file, sha) {
   if (
     !(await fs.access(filename).then(
       () => true,
-      () => false
+      () => false,
     ))
   ) {
     console.log("Test data not present, fetching...");
@@ -48,11 +48,11 @@ async function matchesSha(file, sha) {
   res.body.on("end", async () => {
     const sha = await computeSha(filename);
     const buildNum = JSON.parse(
-      await fs.readFile(filename, "utf8")
+      await fs.readFile(filename, "utf8"),
     ).build_number;
     await fs.writeFile(
       __dirname + "/_test/all.meta.json",
-      JSON.stringify({ buildNum, sha })
+      JSON.stringify({ buildNum, sha }),
     );
   });
 })();
