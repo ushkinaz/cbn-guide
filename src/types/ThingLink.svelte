@@ -19,7 +19,6 @@ export let type: keyof SupportedTypesWithMapped;
 export let id: string;
 export let plural: boolean = false;
 export let count: number | [number, number] | undefined = undefined;
-export let variantId: string | undefined = undefined;
 export let overrideText: string | undefined = undefined;
 
 function countToString(count: number | [number, number]): string {
@@ -58,17 +57,13 @@ function isItem(item: SupportedTypeMapped): item is Item {
         count
       )}){/if}</span>
 {:else}
-  {@const nameSource =
-    item && variantId && isItem(item) && "variants" in item && item.variants
-      ? item.variants.find((v) => v.id === variantId) ?? item
-      : item}
   <a href="{import.meta.env.BASE_URL}{type}/{id}{location.search}"
     >{overrideText
       ? overrideText
       : item
       ? item.type === "addiction_type"
         ? singular(item.type_name)
-        : (plural ? pluralName : singularName)(nameSource)
+        : (plural ? pluralName : singularName)(item)
       : id}</a
   >{#if item?.type === "mutation"}&nbsp;<MutationColor mutation={item} />{/if}
 {/if}

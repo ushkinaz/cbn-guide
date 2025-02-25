@@ -24,7 +24,7 @@ export type ItemGroupEntry = (
   // "contents-item" and "container-group". rg '"-item"' to find it.
   // The same is true for ammo{-item,-group}. "container-item" is special since
   // https://github.com/CleverRaven/Cataclysm-DDA/pull/71041.
-  "container-item"?: string | { item: string; variant: string };
+  "container-item"?: string;
   "container-group"?: string;
   "contents-item"?: string | string[];
   "contents-group"?: string | string[];

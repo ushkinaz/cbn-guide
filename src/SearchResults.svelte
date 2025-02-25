@@ -1,7 +1,6 @@
 <script lang="ts">
 import {
   mapType,
-  singular,
   singularName,
   loadProgress,
   i18n,
@@ -11,7 +10,6 @@ import type { CddaData } from "./data";
 import * as fuzzysort from "fuzzysort";
 import ItemSymbol from "./types/item/ItemSymbol.svelte";
 import type {
-  Item,
   OvermapSpecial,
   SupportedTypeMapped,
   SupportedTypesWithMapped,
@@ -52,7 +50,6 @@ $: setContext("data", data);
 
 type SearchTarget = {
   id: string;
-  variant_id?: string;
   name: string;
   type: keyof SupportedTypesWithMapped;
 };
@@ -83,15 +80,6 @@ function searchableName(data: CddaData, item: SupportedTypeMapped) {
   return singularName(item);
 }
 
-function isItem(item: SupportedTypeMapped): item is Item {
-  return mapType(item.type) === "item";
-}
-
-function itemVariants(item: SupportedTypeMapped) {
-  if (isItem(item) && "variants" in item && item.variants) return item.variants;
-  else return [];
-}
-
 $: targets = [...(data?.all() ?? [])]
   .filter(
     (x) =>
@@ -107,25 +95,17 @@ $: targets = [...(data?.all() ?? [])]
         name: searchableName(data, x),
         type: mapType(x.type),
       },
-    ].concat(
-      itemVariants(x).map((v) => ({
-        id: (x as any).id,
-        variant_id: v.id,
-        name: singular(v.name),
-        type: mapType(x.type),
-      }))
-    )
+    ]
   );
 
 export let search: string;
 
 type SearchResult = {
   item: SearchableType;
-  variant?: { name: string; id: string };
 };
 function filter(text: string): Map<string, SearchResult[]> {
   const results = fuzzysort.go(text, targets, {
-    keys: ["id", "name", "variant_id"],
+    keys: ["id", "name"],
     threshold: -10000,
   });
   const byType = new Map<string, SearchResult[]>();
@@ -135,13 +115,7 @@ function filter(text: string): Map<string, SearchResult[]> {
     if (!byType.has(mappedType)) byType.set(mappedType, []);
     if (byType.get(mappedType)!.some((x) => x.item.id === item.id)) continue;
     const obj = data.byId(mappedType, item.id) as SearchableType;
-    const variant = item.variant_id
-      ? {
-          id: item.variant_id,
-          name: item.name,
-        }
-      : undefined;
-    byType.get(mappedType)!.push({ item: obj, variant });
+    byType.get(mappedType)!.push({ item: obj });
   }
   return byType;
 }
@@ -202,7 +176,7 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
         <ThingLink
           type={mapType(result.item.type)}
           id={result.item.id}
-          variantId={result.variant?.id} />
+          />
         {#if /obsolet/.test(result.item.__filename ?? "")}
           <em style="color: var(--cata-color-gray)"
             >({t("obsolete", { _context: "Search Results" })})</em>
