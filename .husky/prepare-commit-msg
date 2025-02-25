@@ -1,6 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 # Purpose:
 # Reference sha1 if GitHub format.
 # Expected repo is very specific
