@@ -5,7 +5,6 @@ import ThingLink from "../ThingLink.svelte";
 import {
   CddaData,
   parseDuration,
-  parseMass,
 } from "../../data";
 import { getContext } from "svelte";
 
@@ -45,22 +44,9 @@ const data = getContext<CddaData>("data");
         <dl style="font-variant: tabular-nums">
           {#each item.vitamins as [vitamin, rdapct]}
             {@const v = data.byId("vitamin", vitamin)}
-            {@const massPerUnit = v.weight_per_unit
-              ? parseMass(v.weight_per_unit)
-              : null}
             {@const unitsPerDay = (24 * 60 * 60) / parseDuration(v.rate)}
-            {@const mass =
-              typeof rdapct === "string"
-                ? parseMass(rdapct)
-                : massPerUnit
-                ? (rdapct / 100) * unitsPerDay * massPerUnit
-                : null}
-            {@const rda =
-              typeof rdapct === "number"
-                ? rdapct
-                : mass && massPerUnit
-                ? (mass / massPerUnit / unitsPerDay) * 100
-                : null}
+            {@const mass = (rdapct / 100) * unitsPerDay}
+            {@const rda =(mass / unitsPerDay) * 100}
             <dt>
               <ThingLink id={vitamin} type="vitamin" />
             </dt>
