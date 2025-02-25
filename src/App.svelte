@@ -6,6 +6,7 @@ import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
 import dontPanic from "./assets/dont_panic.png";
 import InterpolatedTranslation from "./InterpolatedTranslation.svelte";
+import { GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import type { SupportedTypeMapped } from "./types";
 import throttle from "lodash/throttle";
@@ -120,13 +121,11 @@ function load() {
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
-  document.title = `${singularName(
-    it
-  )} - The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)`;
+  document.title = `${singularName( it ) } - `;
 } else if (item && !item.id && item.type) {
-  document.title = `${item.type} - The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)`;
+  document.title = `${item.type} - {GUIDE_NAME}` + GUIDE_NAME;
 } else {
-  document.title = "The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)";
+  document.title = GUIDE_NAME;
 }
 
 let search: string = "";
@@ -307,7 +306,7 @@ function langHref(lang: string, href: string) {
         <a
           href={import.meta.env.BASE_URL + location.search}
           on:click={() => (search = "")}
-          ><span class="wide">Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)</span><span
+          ><span class="wide">{GUIDE_NAME}</span><span
             class="narrow">HHG</span
           ></a>
       </strong>
@@ -394,7 +393,7 @@ files in the game itself.`,
         slot2="link_flashlight"
         slot3="link_table"
         slot4="link_zombie">
-        <strong slot="0">Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)</strong>
+        <strong slot="0">{GUIDE_NAME}</strong>
         <a slot="1" href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
           >Cataclysm: Bright Nights</a>
         <a slot="2" href="{import.meta.env.BASE_URL}item/flashlight"

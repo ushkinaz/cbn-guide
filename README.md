@@ -1,4 +1,4 @@
-# The Hitchhiker's Guide to the Cataclysm (Bright Nights Edition)
+# The Hitchhiker's Guide to the Cataclysm: Bright Nights
 
 <img src="src/assets/dont_panic.png" width=300 align="right" />
 
