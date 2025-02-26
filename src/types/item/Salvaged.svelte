@@ -20,7 +20,7 @@ function itemsWithOnlyMaterial(soughtMat: Material): Item[] {
     .filter((it) => it.id)
     .filter((it) => {
       const mat =
-        typeof it.material === "string" ? [it.material] : it.material ?? [];
+        typeof it.material === "string" ? [it.material] : (it.material ?? []);
       return mat.length === 1 && mat[0] === soughtMat.id;
     });
 }

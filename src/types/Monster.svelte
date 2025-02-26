@@ -110,7 +110,7 @@ function damage(mon: Monster) {
   //melee_damage = melee_damage ?? [ { damage_type: "bash", amount: `${melee_dice}d${melee_dice_sides}` } ]
   return (
     `${melee_dice}d${melee_dice_sides} ${singularName(
-      data.byIdMaybe("damage_type", "bash") ?? { id: "bash" }
+      data.byIdMaybe("damage_type", "bash") ?? { id: "bash" },
     )}` +
     du
       .map(
@@ -118,8 +118,8 @@ function damage(mon: Monster) {
           ` + ${u.amount} ${singularName(
             data.byIdMaybe("damage_type", u.damage_type) ?? {
               id: u.damage_type,
-            }
-          )}`
+            },
+          )}`,
       )
       .join("")
   );
@@ -294,8 +294,8 @@ let upgrades =
         monsters: item.upgrades.into
           ? [item.upgrades.into]
           : item.upgrades.into_group
-          ? flattenGroup(data.byId("monstergroup", item.upgrades.into_group))
-          : [],
+            ? flattenGroup(data.byId("monstergroup", item.upgrades.into_group))
+            : [],
       }
     : null;
 </script>
@@ -431,14 +431,14 @@ let upgrades =
       {#if item.anger_triggers?.length}
         <dt>{t("Anger Triggers", { _context })}</dt>
         <dd>
- <ul class="comma-separated">
+          <ul class="comma-separated">
             {#each item.anger_triggers as t}
               <li><abbr title={trigger_descriptions[t]}>{t}</abbr></li>
             {/each}
           </ul>
         </dd>
       {/if}
-          {#if item.placate_triggers?.length}
+      {#if item.placate_triggers?.length}
         <dt>{t("Placate Triggers", { _context })}</dt>
         <dd>
           <ul class="comma-separated">
@@ -448,7 +448,7 @@ let upgrades =
           </ul>
         </dd>
       {/if}
-       {#if item.fear_triggers?.length}
+      {#if item.fear_triggers?.length}
         <dt>{t("Fear Triggers", { _context })}</dt>
         <dd>
           <ul class="comma-separated">
@@ -458,7 +458,7 @@ let upgrades =
           </ul>
         </dd>
       {/if}
-       {#if item.flags?.length}
+      {#if item.flags?.length}
         <dt>{t("Flags")}</dt>
         <dd>
           <ul class="comma-separated">
@@ -473,7 +473,7 @@ let upgrades =
         <dd>
           {#if item.death_function.effect?.id && data.byIdMaybe("SPELL", item.death_function.effect.id)}
             {singularName(data.byId("SPELL", item.death_function.effect.id))} ({singular(
-              data.byId("SPELL", item.death_function.effect.id).description
+              data.byId("SPELL", item.death_function.effect.id).description,
             )})
           {:else}
             {item.death_function.effect?.id ??
@@ -489,21 +489,21 @@ let upgrades =
             <!-- prettier-ignore -->
             {#each upgrades.monsters as mon}
 			<li><ThingLink type="monster" id={mon} /></li>{/each}
-        </ul>
-        {#if upgrades.age_grow}
-                      {t("in {days} {days, plural, =1 {day} other {days}}", {
+          </ul>
+          {#if upgrades.age_grow}
+            {t("in {days} {days, plural, =1 {day} other {days}}", {
               _context,
               days: upgrades.age_grow,
             })}
-        {:else if upgrades.half_life}
-                      {t(
+          {:else if upgrades.half_life}
+            {t(
               "with a half-life of {half_life} {half_life, plural, =1 {day} other {days}}",
-              { _context, half_life: upgrades.half_life }
+              { _context, half_life: upgrades.half_life },
             )}
-        {/if}
-      </dd>
-    {/if}
-  </dl>
+          {/if}
+        </dd>
+      {/if}
+    </dl>
   </section>
   {#if deathDrops.size}
     <ItemTable loot={deathDrops} heading={t("Drops")} />
@@ -519,14 +519,14 @@ let upgrades =
                 <ItemSymbol item={data.byId("item", id)} />
                 <ThingLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)
               </li>
+            {/each}
+          {:else}
+            <li>
+              <ItemSymbol item={data.byId("item", harvest_entry.drop)} />
+              <ThingLink type="item" id={harvest_entry.drop} />
+            </li>
+          {/if}
         {/each}
-		{:else}
-		<li>
-		<ItemSymbol item={data.byId("item", harvest_entry.drop)} />
-        <ThingLink type="item" id={harvest_entry.drop} />
-		</li>
-		{/if}
-		{/each}
       </ul>
     </section>
   {/if}

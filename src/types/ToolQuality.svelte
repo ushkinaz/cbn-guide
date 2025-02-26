@@ -34,7 +34,7 @@ for (const it of data.byType("item")) {
   }
 }
 const toolsWithQualityByLevelList = [...toolsWithQualityByLevel.entries()].sort(
-  (a, b) => a[0] - b[0]
+  (a, b) => a[0] - b[0],
 );
 toolsWithQualityByLevelList.forEach(([, tools]) => {
   tools.sort(byName);
@@ -83,13 +83,13 @@ for (const [level, set] of recipesUsingQualitySet)
     level,
     [...set].sort((a, b) =>
       singularName(data.byId("item", a)).localeCompare(
-        singularName(data.byId("item", b))
-      )
-    )
+        singularName(data.byId("item", b)),
+      ),
+    ),
   );
 
 const recipesUsingQualityList = [...recipesUsingQuality.entries()].sort(
-  (a, b) => a[0] - b[0]
+  (a, b) => a[0] - b[0],
 );
 
 const constructionsUsingQualityByLevel = new Map<number, Construction[]>();
@@ -111,8 +111,8 @@ const constructionsUsingQualityByLevelList = [
 constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
   constructions.sort((a, b) =>
     singularName(data.byId("construction_group", a.group)).localeCompare(
-      singularName(data.byId("construction_group", b.group))
-    )
+      singularName(data.byId("construction_group", b.group)),
+    ),
   );
 });
 </script>

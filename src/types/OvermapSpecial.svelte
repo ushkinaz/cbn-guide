@@ -21,12 +21,12 @@ export let item: OvermapSpecial;
 const mevels =
   item.subtype === "mutable"
     ? [0]
-    : item.overmaps?.map((om) => om.point[2]) ?? [0];
+    : (item.overmaps?.map((om) => om.point[2]) ?? [0]);
 const minLevel = Math.min(...mevels);
 const maxLevel = Math.max(...mevels);
 const levels = Array.from(
   { length: maxLevel - minLevel + 1 },
-  (_, i) => i + minLevel
+  (_, i) => i + minLevel,
 );
 
 const lookalikeIds = (
@@ -134,7 +134,7 @@ onMount(() => {
 <ItemTable
   type="furniture"
   loot={lootForOmSpecial(data, item, (mg) =>
-    getFurnitureForMapgen(data, mg)
+    getFurnitureForMapgen(data, mg),
   )} />
 
 <style>

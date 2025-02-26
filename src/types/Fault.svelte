@@ -17,15 +17,15 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
     typeof mm.requirements === "string"
       ? [[data.byId("requirement", mm.requirements), 1]]
       : Array.isArray(mm.requirements)
-      ? mm.requirements.map(
-          ([id, num]) =>
-            [data.byId("requirement", id), num] as [RequirementData, number]
-        )
-      : [[mm.requirements, 1]];
+        ? mm.requirements.map(
+            ([id, num]) =>
+              [data.byId("requirement", id), num] as [RequirementData, number],
+          )
+        : [[mm.requirements, 1]];
   const requirement = data.normalizeRequirementUsing(requirements);
   const components = data.flattenRequirement(
     requirement.components,
-    (r) => r.components
+    (r) => r.components,
   );
   return { mending_method: mm, components, requirement };
 });
@@ -99,7 +99,7 @@ const fault_flag_descriptions: Record<string, string> = {
           <ul>
             {#each components as componentChoices}
               <li>
-                {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }) ) as { id, count }, i}
+                {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}
                   {#if i !== 0}{i18n.__(" OR ")}{/if}
                   <ThingLink {id} {count} type="item" />
                 {/each}

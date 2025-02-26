@@ -26,10 +26,10 @@ let itemsWithMaterial = data
       i.material == null
         ? []
         : typeof i.material === "string"
-        ? [i.material]
-        : isStrings(i.material)
-        ? i.material
-        : i.material.map((m) => m.type);
+          ? [i.material]
+          : isStrings(i.material)
+            ? i.material
+            : i.material.map((m) => m.type);
     return i.id && normalizedMaterial.some((m) => m === item.id);
   })
   .sort(byName);

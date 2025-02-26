@@ -25,7 +25,7 @@ const requiredBy = data
   .filter(
     (m) =>
       (m.prereqs ?? []).includes(item.id) ||
-      (m.prereqs2 ?? []).includes(item.id)
+      (m.prereqs2 ?? []).includes(item.id),
   )
   .sort(byName);
 
@@ -47,7 +47,7 @@ const conflictsWithBionics = data
 
 <h1>
   {item.threshold ? t("Threshold Mutation") : t("Mutation")}: {singularName(
-    item
+    item,
   )}
 </h1>
 <section>
@@ -76,7 +76,7 @@ const conflictsWithBionics = data
       </dd>
     {/if}
     <dt>{t("Purifiable", { _context })}</dt>
-    <dd>{item.purifiable ?? true ? t("Yes") : t("No")}</dd>
+    <dd>{(item.purifiable ?? true) ? t("Yes") : t("No")}</dd>
     <dt>{t("Visibility", { _context })}</dt>
     <dd>{item.visibility ?? 0}</dd>
     <dt>{t("Ugliness", { _context })}</dt>
@@ -104,7 +104,7 @@ const conflictsWithBionics = data
     {#if item.restricts_gear?.length}
       <dt
         title={t(
-          "Gear worn on this body part must be large enough to accommodate abnormally large mutated anatomy."
+          "Gear worn on this body part must be large enough to accommodate abnormally large mutated anatomy.",
         )}>
         {t("Restricts Gear", { _context })}
       </dt>

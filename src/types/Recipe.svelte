@@ -15,7 +15,7 @@ const data = getContext<CddaData>("data");
 const _context = "Recipe";
 
 function normalizeSkillsRequired(
-  skills_required: [string, number] | [string, number][] | undefined
+  skills_required: [string, number] | [string, number][] | undefined,
 ): [string, number][] {
   if (skills_required === undefined) return [];
   if (skills_required.length === 0) return [];
@@ -29,7 +29,7 @@ let skillsRequired = normalizeSkillsRequired(recipe.skills_required);
 const writtenIn = Array.isArray(recipe.book_learn)
   ? [...recipe.book_learn]
   : [...Object.entries((recipe.book_learn ?? {}) as Record<string, any>)].map(
-      ([k, v]) => [k, v.skill_level]
+      ([k, v]) => [k, v.skill_level],
     );
 writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
 
@@ -92,7 +92,7 @@ function activityLevelName(level: number) {
             _context,
             _comment:
               "This is a basecamp recipe or other utility recipe that isn't directly usable by the player.",
-          }
+          },
         )}
       </section>
     {/if}
@@ -140,7 +140,7 @@ function activityLevelName(level: number) {
               prof.learning_time_multiplier !== 1
                 ? `${prof.learning_time_multiplier}× ${t(
                     "learning speed",
-                    ctx
+                    ctx,
                   )}`
                 : null,
             ].filter((x) => x)}
@@ -160,8 +160,8 @@ function activityLevelName(level: number) {
     <dd>
       {t(
         activityLevelName(
-          activityLevels[recipe.activity_level ?? "MODERATE_EXERCISE"]
-        )
+          activityLevels[recipe.activity_level ?? "MODERATE_EXERCISE"],
+        ),
       )}
     </dd>
     <dt>{t("Batch Time Savings", { _context })}</dt>

@@ -19,12 +19,12 @@ export let includeTitle: boolean = false;
 const using =
   typeof construction.using === "string"
     ? [[construction.using, 1] as [string, number]]
-    : construction.using ?? [];
+    : (construction.using ?? []);
 
 const requirements = using
   .map(
     ([id, count]) =>
-      [data.byId("requirement", id) as RequirementData, count] as const
+      [data.byId("requirement", id) as RequirementData, count] as const,
   )
   .concat([[construction, 1]]);
 
@@ -35,7 +35,7 @@ const components = requirements.flatMap(([req, count]) => {
 });
 
 const byproducts = data.flattenItemGroup(
-  data.normalizeItemGroup(construction.byproducts, "collection")
+  data.normalizeItemGroup(construction.byproducts, "collection"),
 );
 
 const preFlags: { flag: string; force_terrain?: boolean }[] = [];
@@ -73,7 +73,7 @@ function terrainOrFurniture(id: string) {
     <dd>
       {typeof construction.time === "number"
         ? `${construction.time} m`
-        : construction.time ?? "0 m"}
+        : (construction.time ?? "0 m")}
     </dd>
     {#if construction.pre_terrain}
       <dt>{t("Requires", { _context })}</dt>
@@ -103,7 +103,7 @@ function terrainOrFurniture(id: string) {
         <ul>
           {#each components as componentChoices}
             <li>
-              {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }) ) as { id, count }, i}
+              {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}
                 {#if i !== 0}{i18n.__(" OR ")}{/if}
                 <ThingLink {id} {count} type="item" />
               {/each}

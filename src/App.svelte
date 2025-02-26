@@ -92,7 +92,7 @@ function saveTileset(url: string) {
 let tilesetUrlTemplate = loadTileset();
 $: saveTileset(tilesetUrlTemplate);
 $: tilesetUrl = $data
-  ? tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null
+  ? (tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null)
   : null;
 $: tileData.setURL(tilesetUrl);
 
@@ -121,7 +121,7 @@ function load() {
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
-  document.title = `${singularName( it ) } - `;
+  document.title = `${singularName(it)} - `;
 } else if (item && !item.id && item.type) {
   document.title = `${item.type} - {GUIDE_NAME}` + GUIDE_NAME;
 } else {
@@ -147,7 +147,7 @@ const clearItem = () => {
       "",
       import.meta.env.BASE_URL +
         (search ? "search/" + encodeURIComponent(search) : "") +
-        location.search
+        location.search,
     );
   else
     replaceState(
@@ -155,7 +155,7 @@ const clearItem = () => {
       "",
       import.meta.env.BASE_URL +
         (search ? "search/" + encodeURIComponent(search) : "") +
-        location.search
+        location.search,
     );
   item = null;
 };
@@ -256,7 +256,7 @@ async function getRandomPage() {
   const items = d
     .all()
     .filter(
-      (x) => "id" in x && randomableItemTypes.has(mapType(x.type))
+      (x) => "id" in x && randomableItemTypes.has(mapType(x.type)),
     ) as (SupportedTypeMapped & { id: string })[];
   return items[(Math.random() * items.length) | 0];
 }
@@ -289,7 +289,7 @@ function langHref(lang: string, href: string) {
   {#if builds}
     {@const build_number =
       version === "latest" ? builds[0].build_number : version}
-    {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b) ) as lang}
+    {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
       <link
         rel="alternate"
         hreflang={lang}
@@ -306,8 +306,7 @@ function langHref(lang: string, href: string) {
         <a
           href={import.meta.env.BASE_URL + location.search}
           on:click={() => (search = "")}
-          ><span class="wide">{GUIDE_NAME}</span><span
-            class="narrow">HHG</span
+          ><span class="wide">{GUIDE_NAME}</span><span class="narrow">HHG</span
           ></a>
       </strong>
     </div>
@@ -386,7 +385,7 @@ files in the game itself.`,
             link_flashlight: "{link_flashlight}",
             link_table: "{link_table}",
             link_zombie: "{link_zombie}",
-          }
+          },
         )}
         slot0="hhg"
         slot1="link_cbn"
@@ -394,7 +393,9 @@ files in the game itself.`,
         slot3="link_table"
         slot4="link_zombie">
         <strong slot="0">{GUIDE_NAME}</strong>
-        <a slot="1" href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+        <a
+          slot="1"
+          href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
           >Cataclysm: Bright Nights</a>
         <a slot="2" href="{import.meta.env.BASE_URL}item/flashlight"
           >{t("flashlight", { _comment: "Item name" })}</a>
@@ -417,7 +418,7 @@ access, as long as you've visited it once before.`)}
         <InterpolatedTranslation
           str={t(
             `It's also {installable_button}, so you can pop it out of your browser and use it like a regular app.`,
-            { installable_button: "{installable_button}" }
+            { installable_button: "{installable_button}" },
           )}
           slot0="installable_button">
           <button
@@ -444,7 +445,7 @@ Anyway?`,
         {
           _comment:
             "This is a quote from the Hitchhiker's Guide to the Galaxy, by Douglas Adams",
-        }
+        },
       )}
     </p>
     <p>
@@ -454,25 +455,26 @@ Anyway?`,
           {
             link_github: "{link_github}",
             link_nornagon: "{link_nornagon}",
-			      link_mythosmod: "{link_mythosmod}",
+            link_mythosmod: "{link_mythosmod}",
             link_file_an_issue: "{link_file_an_issue}",
-			      link_cdda: "{link_cdda}",
-			      link_OG: "{link_OG}",
-          }
+            link_cdda: "{link_cdda}",
+            link_OG: "{link_OG}",
+          },
         )}
         slot0="link_github"
         slot1="link_nornagon"
         slot2="link_mythosmod"
         slot3="link_file_an_issue"
-		    slot4="link_cdda"
-		    slot5="link_OG">
+        slot4="link_cdda"
+        slot5="link_OG">
         <a slot="0" href="https://github.com/nornagon/cdda-guide">GitHub</a>
         <a slot="1" href="https://www.nornagon.net">nornagon</a>
-		    <a slot="2" href="https://github.com/mythosmod/cbn-guide">MythosMod</a>
+        <a slot="2" href="https://github.com/mythosmod/cbn-guide">MythosMod</a>
         <a slot="3" href="https://github.com/mythosmod/cbn-guide/issues"
           >{t("file an issue")}</a>
-        <a slot="4" href="https://cataclysmdda.org/">Cataclysm: Dark Days Ahead</a>
-		    <a slot="5" href="https://cdda-guide.nornagon.net/">Original Guide</a>
+        <a slot="4" href="https://cataclysmdda.org/"
+          >Cataclysm: Dark Days Ahead</a>
+        <a slot="5" href="https://cdda-guide.nornagon.net/">Original Guide</a>
       </InterpolatedTranslation>
     </p>
 
@@ -481,7 +483,7 @@ Anyway?`,
         <InterpolatedTranslation
           str={t(
             `You can help translate the Guide into your language on {link_transifex}.`,
-            { link_transifex: "{link_transifex}" }
+            { link_transifex: "{link_transifex}" },
           )}
           slot0="link_transifex">
           <a
@@ -503,7 +505,7 @@ Anyway?`,
       <li><a href="/mutation{location.search}">{t("Mutations")}</a></li>
       <li><a href="/martial_art{location.search}">{t("Martial Arts")}</a></li>
       <li><a href="/json_flag{location.search}">{t("Flags")}</a></li>
-      <li><a href="/achievement{location.search}">{t("Achievements")}</a>
+      <li><a href="/achievement{location.search}">{t("Achievements")}</a></li>
     </ul>
 
     <InterpolatedTranslation
@@ -581,7 +583,7 @@ Anyway?`,
             location.href = url.toString();
           }}>
           <option value="en">English</option>
-          {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b) ) as lang}
+          {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
             <option value={lang}>{getLanguageName(lang)}</option>
           {/each}
         </select>

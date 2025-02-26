@@ -11,7 +11,7 @@ export let mutations: Mutation[];
 const allPrereqs = (m: Mutation) =>
   (m.prereqs ?? []).concat(m.prereqs2 ?? []).concat(m.threshreq ?? []);
 let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>
-  allPrereqs(m).map((x) => data.byId("mutation", x))
+  allPrereqs(m).map((x) => data.byId("mutation", x)),
 ).sort((a, b) => singularName(a[0][0]).localeCompare(singularName(b[0][0])));
 </script>
 
@@ -21,7 +21,8 @@ let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>
       {#each rank as mg, i}
         {#if i > 0}&nbsp;→{/if}
         {#each mg as m, i}
-          {#if i > 0}, {/if}
+          {#if i > 0},
+          {/if}
           <ThingLink id={m.id} type="mutation" />
         {/each}
       {/each}

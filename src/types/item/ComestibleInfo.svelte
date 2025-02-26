@@ -2,10 +2,7 @@
 import { t } from "@transifex/native";
 import type { ComestibleSlot } from "../../types";
 import ThingLink from "../ThingLink.svelte";
-import {
-  CddaData,
-  parseDuration,
-} from "../../data";
+import { CddaData, parseDuration } from "../../data";
 import { getContext } from "svelte";
 
 export let item: ComestibleSlot;
@@ -46,7 +43,7 @@ const data = getContext<CddaData>("data");
             {@const v = data.byId("vitamin", vitamin)}
             {@const unitsPerDay = (24 * 60 * 60) / parseDuration(v.rate)}
             {@const mass = (rdapct / 100) * unitsPerDay}
-            {@const rda =(mass / unitsPerDay) * 100}
+            {@const rda = (mass / unitsPerDay) * 100}
             <dt>
               <ThingLink id={vitamin} type="vitamin" />
             </dt>
