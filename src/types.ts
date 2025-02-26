@@ -611,7 +611,6 @@ export type ItemBasicInfo = {
   material?: string | string[] | { type: string; portion?: integer }[]; // material_id
   flags?: string | string[];
   faults?: string[];
-  pocket_data?: PocketData[];
   container?:
     | string
     | null
@@ -678,40 +677,6 @@ export type Item =
   | SupportedTypes["TOOLMOD"]
   | SupportedTypes["TOOL_ARMOR"]
   | SupportedTypes["WHEEL"];
-
-export type PocketData = {
-  pocket_type?:
-    | "CONTAINER"
-    | "MAGAZINE"
-    | "MAGAZINE_WELL"
-    | "MOD"
-    | "CORPSE"
-    | "SOFTWARE"
-    | "EBOOK"
-    | "MIGRATION";
-  description?: Translation;
-  name?: Translation;
-  ammo_restriction?: Record<string, number>;
-  item_restriction?: Array<string>;
-  flag_restriction?: Array<string>;
-  allowed_speedloaders?: Array<string>;
-  min_item_volume?: string;
-  max_item_volume?: string;
-  max_contains_volume?: string;
-  max_contains_weight?: string;
-  max_item_length?: string;
-  spoil_multiplier?: number; // float
-  weight_multiplier?: number; // float
-  volume_multiplier?: number; // float
-  magazine_well?: string; // volume
-  moves?: number;
-  fire_protection?: boolean;
-  watertight?: boolean;
-  airtight?: boolean;
-  open_container?: boolean;
-  rigid?: boolean;
-  holster?: boolean;
-};
 
 export type MendingMethod = {
   id: string;

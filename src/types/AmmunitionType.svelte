@@ -30,18 +30,13 @@ const usesAmmoType = (w: Item, t: AmmunitionType): boolean => {
     }
   }
 
-  return !!w.pocket_data?.some(
-    (pocket) =>
-      pocket.pocket_type === "MAGAZINE" &&
-      pocket.ammo_restriction &&
-      Object.prototype.hasOwnProperty.call(pocket.ammo_restriction, t.id)
-  );
+  return false;
 };
 
 const usedBy = data.byType("item").filter((w) => w.id && usesAmmoType(w, item));
 function composeSort<T>(
   fa: (a: T, b: T) => number,
-  fb: (a: T, b: T) => number
+  fb: (a: T, b: T) => number,
 ) {
   return (a: T, b: T) => {
     const r = fa(a, b);

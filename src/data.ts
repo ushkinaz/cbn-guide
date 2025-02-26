@@ -1334,34 +1334,19 @@ export class CddaData {
     );
   }
 
-  #compatibleItemsIdIndex = new ReverseIndex(this, "item", (item) => {
-    const ret: string[] = [];
-    for (const pd of item.pocket_data ?? []) {
-      if (pd.pocket_type === "MAGAZINE" || pd.pocket_type === "MAGAZINE_WELL") {
-        ret.push(...(pd.item_restriction ?? []));
-        ret.push(...(pd.allowed_speedloaders ?? []));
-      }
-    }
-    return ret;
-  });
   #compatibleItemsFlagIndex = new ReverseIndex(this, "item", (item) => {
+    //TODO: find compatible mags, ammo
     const ret: string[] = [];
-    for (const pd of item.pocket_data ?? []) {
-      if (pd.pocket_type === "MAGAZINE" || pd.pocket_type === "MAGAZINE_WELL") {
-        ret.push(...(pd.flag_restriction ?? []));
-      }
-    }
     return ret;
   });
   compatibleItems(item: ItemBasicInfo): Item[] {
-    const byId = this.#compatibleItemsIdIndex.lookup(item.id);
     const byFlag = item.flags
       ? [item.flags]
           .flat()
           .flatMap((f) => this.#compatibleItemsFlagIndex.lookup(f))
       : [];
 
-    return [...new Set([...byId, ...byFlag])];
+    return [...new Set([...byFlag])];
   }
 
   #grownFromIndex = new ReverseIndex(this, "item", (item) => {

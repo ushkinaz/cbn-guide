@@ -85,62 +85,27 @@ const materials =
   item.material == null
     ? []
     : typeof item.material === "string"
-    ? [{ type: item.material, portion: 1 }]
-    : isStrings(item.material)
-    ? item.material.map((s) => ({ type: s, portion: 1 }))
-    : item.material.map((s) => ({ type: s.type, portion: s.portion ?? 1 }));
+      ? [{ type: item.material, portion: 1 }]
+      : isStrings(item.material)
+        ? item.material.map((s) => ({ type: s, portion: 1 }))
+        : item.material.map((s) => ({ type: s.type, portion: s.portion ?? 1 }));
 const totalMaterialPortion = materials.reduce((m, o) => m + o.portion, 0);
 const primaryMaterial = materials.reduce(
   (m, o) => (!m || o.portion > m.portion ? o : m),
-  null as { type: string; portion: number } | null
+  null as { type: string; portion: number } | null,
 );
 let flags = [item.flags ?? []]
   .flat()
   .map((id) => data.byIdMaybe("json_flag", id) ?? { id });
 let faults = (item.faults ?? []).map((f) => data.byId("fault", f));
 
-const defaultPocketData = {
-  pocket_type: "CONTAINER",
-  min_item_volume: "0 ml",
-  moves: 100,
-  fire_protection: false,
-  watertight: false,
-  airtight: false,
-  open_container: false,
-  rigid: false,
-  holster: false,
-};
-let pockets = (item.pocket_data ?? []).map((pocket) => {
-  return { ...defaultPocketData, ...pocket };
-});
-let magazine_compatible = pockets
-  .filter((p) => p.pocket_type === "MAGAZINE_WELL")
-  .flatMap(
-    (p) =>
-      p.item_restriction?.map((id) => ({
-        type: "item" as keyof SupportedTypesWithMapped,
-        id,
-      })) ??
-      p.flag_restriction?.map((id) => ({
-        type: "json_flag" as keyof SupportedTypesWithMapped,
-        id,
-      })) ??
-      []
-  );
+//TODO: find magazines with ite
+let magazine_compatible: {
+  type: keyof SupportedTypesWithMapped;
+  id: string;
+}[] = [];
 
-function maxCharges(ammo_id: string) {
-  let ret = 0;
-  for (const p of pockets)
-    if (p.pocket_type === "MAGAZINE" && p.ammo_restriction)
-      ret += p.ammo_restriction[ammo_id] ?? 0;
-  return ret;
-}
-
-let ammo = pockets.flatMap((pocket) =>
-  pocket.pocket_type === "MAGAZINE"
-    ? Object.keys(pocket.ammo_restriction ?? {})
-    : []
-);
+let ammo: string[] = [];
 
 const uncraftRecipe = data.uncraftRecipe(item.id);
 const uncraft = uncraftRecipe
@@ -173,7 +138,7 @@ const fuelForVPs = data
   .byType("vehicle_part")
   .filter(
     (vp) =>
-      vp.id && (vp.fuel_options?.includes(item.id) || vp.fuel_type === item.id)
+      vp.id && (vp.fuel_options?.includes(item.id) || vp.fuel_type === item.id),
   );
 const fuelForBionics = primaryMaterial?.type
   ? data
@@ -181,7 +146,7 @@ const fuelForBionics = primaryMaterial?.type
       .filter((b) => b.id && b.fuel_options?.includes(primaryMaterial?.type))
   : [];
 const fuelForItems = (fuelForVPs.sort(byName) as SupportedTypeMapped[]).concat(
-  fuelForBionics.sort(byName)
+  fuelForBionics.sort(byName),
 );
 
 const usedToRepair = data.byType("fault").filter((f) => {
@@ -190,20 +155,23 @@ const usedToRepair = data.byType("fault").filter((f) => {
       typeof mm.requirements === "string"
         ? [[data.byId("requirement", mm.requirements), 1]]
         : Array.isArray(mm.requirements)
-        ? mm.requirements.map(
-            ([id, num]) =>
-              [data.byId("requirement", id), num] as [RequirementData, number]
-          )
-        : [[mm.requirements, 1]];
+          ? mm.requirements.map(
+              ([id, num]) =>
+                [data.byId("requirement", id), num] as [
+                  RequirementData,
+                  number,
+                ],
+            )
+          : [[mm.requirements, 1]];
     const requirement = data.normalizeRequirementUsing(requirements);
     const components = data.flattenRequirement(
       requirement.components,
-      (r) => r.components
+      (r) => r.components,
     );
     return { mending_method: mm, components, requirement };
   });
   return mendingMethods.some((mm) =>
-    mm.components.some((c) => c.some((i) => i.id === item.id))
+    mm.components.some((c) => c.some((i) => i.id === item.id)),
   );
 });
 
@@ -257,12 +225,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dt>{t("Ammo", { _context })}</dt>
           <dd>
             <ul class="no-bullets">
-              {#each ammo.map( (id) => ({ id, max_charges: maxCharges(id) }) ) as { id: ammo_id, max_charges }}
+              {#each ammo.map((id) => ({ id })) as { id: ammo_id }}
                 <li>
-                  {max_charges}
-                  {item.type === "GUN" ? "round" : "charge"}{max_charges === 1
-                    ? ""
-                    : "s"} of
+                  round(s) of
                   <ThingLink type="ammunition_type" id={ammo_id} />
                 </li>
               {/each}
@@ -340,7 +305,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                       .gettext(
                         "Has level <color_cyan>%1$d %2$s</color> quality",
                         "{level}",
-                        "{quality}"
+                        "{quality}",
                       )
                       .replace(/\$[ds]|<\/?color[^>]*>/g, "")}
                     slot0="level"
@@ -437,7 +402,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 
         {#if item.nanofab_template_group}
           {@const items = data.flattenTopLevelItemGroup(
-            data.byId("item_group", item.nanofab_template_group)
+            data.byId("item_group", item.nanofab_template_group),
           )}
           <dt>{t("Possible Recipes", { _context })}</dt>
           <dd>
@@ -511,7 +476,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         <ul class="comma-separated">
           {#each [item.seed_data.fruit]
             .concat(item.seed_data.byproducts ?? [])
-            .concat(item.seed_data.seeds ?? true ? [item.id] : [])
+            .concat((item.seed_data.seeds ?? true) ? [item.id] : [])
             .filter((x) => x !== "null") as id}
             <li><ThingLink type="item" {id} /></li>
           {/each}
@@ -531,97 +496,6 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
       <AmmoInfo {item} />
     {/if}
   </div>
-{/if}
-{#if pockets.filter((p) => p.pocket_type === "CONTAINER").length}
-  <section>
-    <h1>{t("Pockets", { _context })}</h1>
-    {#each pockets.filter((p) => p.pocket_type === "CONTAINER") as pocket}
-      <dl>
-        {#if pocket.name}
-          <dt>{t("Name", { _context })}</dt>
-          <dd>{pocket.name}</dd>
-        {/if}
-        {#if pocket.description}
-          <dt>{t("Description", { _context })}</dt>
-          <dd>{pocket.description}</dd>
-        {/if}
-        {#if pocket.max_contains_volume != null}
-          <dt>{t("Volume Capacity", { _context })}</dt>
-          <dd>{pocket.max_contains_volume}</dd>
-        {/if}
-        {#if pocket.max_contains_weight != null}
-          <dt>{t("Weight Capacity", { _context })}</dt>
-          <dd>{pocket.max_contains_weight}</dd>
-        {/if}
-        {#if pocket.ammo_restriction}
-          <dt>
-            {t("Ammo Restriction", { _context, _comment: "For a pocket" })}
-          </dt>
-          <dd>
-            <ul>
-              {#each [...Object.entries(pocket.ammo_restriction)] as [id, count]}
-                <li>
-                  {count} round{count === 1 ? "" : "s"} of <ThingLink
-                    {id}
-                    type="ammunition_type" />
-                </li>
-              {/each}
-            </ul>
-          </dd>
-        {/if}
-        {#if pocket.max_item_length}
-          <dt>{t("Max Item Length", { _context })}</dt>
-          <dd>{pocket.max_item_length}</dd>
-        {/if}
-        {#if pocket.min_item_volume !== "0 ml"}
-          <dt>{t("Min Item Volume", { _context })}</dt>
-          <dd>{pocket.min_item_volume}</dd>
-        {/if}
-        <dt>{t("Moves to Remove Item", { _context })}</dt>
-        <dd>{pocket.moves}</dd>
-        {#if pocket.holster}
-          <dt>
-            {t("Max Items", {
-              _context,
-              _comment:
-                "Maximum number of items allowed in the pocket. 1 for holsters, not shown for anything else.",
-            })}
-          </dt>
-          <dd>1</dd>
-        {/if}
-        {#if pocket.sealed_data && (pocket.sealed_data.spoil_multiplier ?? 1) !== 1.0}
-          <dt>
-            {t("Spoil Multiplier", {
-              _context,
-              _comment:
-                "Items contained in this pocket will spoil faster or slower according to this multiplier.",
-            })}
-          </dt>
-          <dd>{pocket.sealed_data.spoil_multiplier}</dd>
-        {/if}
-        {#if pocket.flag_restriction}
-          <dt>{t("Flag Restriction", { _context })}</dt>
-          <dd>
-            <ul class="comma-separated">
-              {#each pocket.flag_restriction as flag}
-                <li><ThingLink type="json_flag" id={flag} /></li>
-              {/each}
-            </ul>
-          </dd>
-        {/if}
-        {#if pocket.item_restriction}
-          <dt>{t("Item Restriction", { _context })}</dt>
-          <dd>
-            <ul class="comma-separated">
-              {#each pocket.item_restriction as item}
-                <li><ThingLink type="item" id={item} /></li>
-              {/each}
-            </ul>
-          </dd>
-        {/if}
-      </dl>
-    {/each}
-  </section>
 {/if}
 {#if fuelForItems.length}
   <section>
