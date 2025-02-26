@@ -11,22 +11,27 @@ const _context = "Item Book Info";
 
 let data = getContext<CddaData>("data");
 
-const bookRecipes = new Map<string, number>();
-function add(recipe_id: string, level: number) {
-  bookRecipes.set(
-    recipe_id,
-    Math.min(level, bookRecipes.get(recipe_id) ?? Infinity),
-  );
+const bookRecipes = new Map<string, { recipe_name: string; level: number }>();
+function add(recipe_id: string, recipe_name: string, level: number) {
+  let recipe_data = bookRecipes.get(recipe_id) ?? { recipe_name, level };
+  bookRecipes.set(recipe_id, {
+    recipe_name,
+    level: Math.min(level, recipe_data.level ?? Infinity),
+  });
 }
+
 for (const recipe of data.byType("recipe")) {
-  if (recipe.result && Array.isArray(recipe.book_learn))
-    for (const [id, level = 0] of recipe.book_learn)
-      if (id === item.id) add(recipe.result, level);
-      else if (recipe.book_learn)
-        for (const [id, obj] of Object.entries(
-          recipe.book_learn as Record<string, any>,
-        ))
-          if (id === item.id) add(recipe.result, obj.skill_level ?? 0);
+  if (!recipe.result || !Array.isArray(recipe.book_learn)) continue;
+
+  for (const [
+    id,
+    level = 0,
+    recipe_name = recipe.result,
+  ] of recipe.book_learn) {
+    if (id === item.id) {
+      add(recipe.result, recipe_name, level);
+    }
+  }
 }
 </script>
 
@@ -60,9 +65,8 @@ for (const recipe of data.byType("recipe")) {
       <dd>
         <ul>
           {#each [...bookRecipes.entries()].sort((a, b) => {
-            if (a[1] !== b[1]) return a[1] - b[1];
-            return a[0].localeCompare(b[0]);
-          }) as [id, level]}
+            return a[1].level - b[1].level || a[1].recipe_name.localeCompare(b[1].recipe_name);
+          }) as [id, { recipe_name, level }]}
             <li><ThingLink {id} type="item" /> ({level})</li>
           {/each}
         </ul>

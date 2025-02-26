@@ -168,12 +168,7 @@ export type Recipe = {
   autolearn?: boolean | [string, number][];
   never_learn?: boolean;
   decomp_learn?: number | [string, number][];
-  book_learn?:
-    | ([string] | [string, number])[]
-    | Record<
-        string,
-        { skill_level?: number; recipe_name?: string; hidden?: boolean }
-      >;
+  book_learn?: ([string, number] | [string, number, string])[];
 
   activity_level?:
     | "SLEEP_EXERCISE"
