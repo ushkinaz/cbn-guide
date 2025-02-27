@@ -480,10 +480,8 @@ export type WheelSlot = {
 
 export type UseFunction =
   | ItemActionUseFunction
-  | AttachMolleUseFunction
   | ConsumeDrugUseFunction
   | DelayedTransformUseFunction
-  | DetachMolleUseFunction
   | HolsterUseFunction
   | MessageUseFunction
   | RepairItemUseFunction
@@ -492,30 +490,43 @@ export type UseFunction =
       // TODO
       type:
         | "ammobelt"
-        | "cast_spell"
+        | "bandolier"
+        | "cauterize"
         | "change_scent"
+        | "countdown"
         | "deploy_furn"
         | "deploy_tent"
-        | "effect_on_conditions"
+        | "enzlave"
         | "explosion"
+        | "extended_firestarter"
         | "firestarter"
+        | "fireweapon_off"
+        | "fireweapon_on"
         | "heal"
         | "inscribe"
-        | "link_up"
         | "manualnoise"
         | "musical_instrument"
+        | "mutagen"
+        | "mutagen_iv"
         | "place_monster"
+        | "place_npc"
         | "place_trap"
         | "reveal_map"
+        | "salvage"
+        | "set_transform"
+        | "set_transformed"
+        | "sew_advanced"
+        | "unfold_vehicle"
         | "unpack"
+        | "ups_based_armor"
         | "weigh_self";
     }
   | {
       // Technically, the type can be any of the custom iuse functions. In
-      // practice, STRONG_ANTIBIOTIC and MUTAGEN_IV are the only instances of
+      // practice, STRONG_ANTIBIOTIC is the only instances of
       // this. Instead of using the fully generic |string| type, keep this here
       // so we get a schema warning when new use actions are added.
-      type: "STRONG_ANTIBIOTIC" | "MUTAGEN_IV";
+      type: "STRONG_ANTIBIOTIC";
     };
 
 type ItemActionUseFunction = {
@@ -572,17 +583,6 @@ export type HolsterUseFunction = {
   type: "holster";
   holster_prompt?: Translation;
   holster_msg?: Translation;
-};
-
-export type AttachMolleUseFunction = {
-  type: "attach_molle";
-  size?: integer;
-  moves?: integer;
-};
-
-export type DetachMolleUseFunction = {
-  type: "detach_molle";
-  moves?: integer;
 };
 
 export type MessageUseFunction = {
