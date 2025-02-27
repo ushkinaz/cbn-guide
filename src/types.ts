@@ -1647,7 +1647,7 @@ export type MartialArt = {
   description: Translation;
 
   learn_difficulty?: integer;
-  autolearn?: [string, integer][];
+  autolearn?: [string, integer | string][];
 
   static_buffs?: MartialArtBuff[];
   onmove_buffs?: MartialArtBuff[];
