@@ -128,12 +128,10 @@ const display = (obj && displays[obj.type]) ?? Unknown;
           "There was a problem displaying this page. Not all versions of Cataclysm are supported by the Guide currently. Try selecting a different build.",
         )}
       </p>
-      <p>
-        <details>
-          <summary>{error.message}</summary>
-          <pre>{error.stack}</pre>
-        </details>
-      </p>
+      <details>
+        <summary>{error.message}</summary>
+        <pre>{error.stack}</pre>
+      </details>
     </section>
   {:else if typeof globalThis !== "undefined" && globalThis.process}
     <!-- running in tests -->
