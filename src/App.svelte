@@ -33,6 +33,7 @@ fetch("https://raw.githubusercontent.com/mythosmod/cbn-data/main/builds.json")
 
 const url = new URL(location.href);
 const version = url.searchParams.get("v") ?? "latest";
+const tilesetParam = url.searchParams.get("t");
 const locale = url.searchParams.get("lang");
 data.setVersion(version, locale);
 
@@ -42,19 +43,19 @@ const tilesets = [
     url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/BrownLikeBears",
   },
   {
-    name: "ChestHole16Tileset",
+    name: "ChestHole16",
     url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/ChestHole16Tileset",
   },
   {
-    name: "HitButton_iso",
+    name: "HitButton iso",
     url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/HitButton_iso",
   },
   {
-    name: "Hoder",
+    name: "Hoder's",
     url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/HoderTileset",
   },
   {
-    name: "MSX++UnDeadPeopleEdition",
+    name: "UNDEAD_PEOPLE",
     url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/MSX%2B%2BUnDeadPeopleEdition",
   },
   {
@@ -72,25 +73,42 @@ const tilesets = [
 ];
 
 const normalizeTemplate = (t: string) => (t === "null" || !t ? "" : t);
-function loadTileset(): string {
+function loadTileset(
+  tilesetParamOverride: string | null,
+): { tileset: string; tilesetUrlTemplate: string } | null {
   try {
-    const templ = localStorage.getItem("cdda-guide:tileset");
-    if (!templ) return "";
-    return normalizeTemplate(templ);
+    if (tilesetParamOverride === "-") return null;
+    let sanitizedTilesetID =
+      tilesets.find((t) => t.name === tilesetParamOverride)?.name || null;
+    const tilesetIDStorage =
+      sanitizedTilesetID ?? localStorage.getItem("cdda-guide:tileset");
+    if (!tilesetIDStorage) return null;
+    return {
+      tileset: tilesetIDStorage,
+      tilesetUrlTemplate: normalizeTemplate(
+        tilesets.find((t) => t.name === tilesetIDStorage)?.url ?? "",
+      ),
+    };
   } catch (e) {
-    return "";
+    return null;
   }
 }
-function saveTileset(url: string) {
+function saveTileset(tileset: string | null) {
   try {
-    if (!url) localStorage.removeItem("cdda-guide:tileset");
-    else localStorage.setItem("cdda-guide:tileset", normalizeTemplate(url));
+    let sanitizedTilesetID =
+      tilesets.find((t) => t.name === tileset)?.name || null;
+    if (!tileset || !sanitizedTilesetID)
+      localStorage.removeItem("cdda-guide:tileset");
+    else localStorage.setItem("cdda-guide:tileset", sanitizedTilesetID);
   } catch (e) {
     /* swallow security errors, which can happen when in incognito mode */
   }
 }
-let tilesetUrlTemplate = loadTileset();
-$: saveTileset(tilesetUrlTemplate);
+let { tileset, tilesetUrlTemplate } = loadTileset(tilesetParam) ?? {
+  tileset: null,
+  tilesetUrlTemplate: null,
+};
+$: saveTileset(tileset);
 $: tilesetUrl = $data
   ? (tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null)
   : null;
@@ -558,13 +576,17 @@ Anyway?`,
       {t("Tileset:")}
       <!-- svelte-ignore a11y-no-onchange -->
       <select
-        value={tilesetUrlTemplate}
+        value={tileset}
         on:change={(e) => {
-          tilesetUrlTemplate = e.currentTarget.value;
+          const url = new URL(location.href);
+          const tileset = e.currentTarget.value ?? "";
+          url.searchParams.set("t", tileset);
+          location.href = url.toString();
+          //tilesetUrlTemplate = tilesets.find(t => t.name === tileset)?.url??"";
         }}>
-        <option value="">None (ASCII)</option>
+        <option value="-">None (ASCII)</option>
         {#each tilesets as { name, url }}
-          <option value={url}>{name}</option>
+          <option value={name}>{name}</option>
         {/each}
       </select>
     </span>
