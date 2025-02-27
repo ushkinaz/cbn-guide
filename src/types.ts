@@ -1457,18 +1457,18 @@ export type BodyPart = {
   accusative: Translation;
   accusative_multiple?: Translation;
   heading: Translation;
-  heading_multiple: Translation;
+  heading_multiple?: Translation;
   hp_bar_ui_text?: Translation;
-  encumbrance_text: Translation;
+  encumbrance_text?: Translation;
 
-  hit_size: number;
-  hit_difficulty: number;
-  // hit_size_relative: [number, number, number];
+  hit_size?: number;
+  hit_difficulty?: number;
+  hit_size_relative?: [number, number, number];
 
-  base_hp: integer;
+  base_hp?: integer;
   stat_hp_mods?: any; // TODO
 
-  drench_capacity: integer;
+  drench_capacity?: integer;
 
   is_limb?: boolean;
   is_vital?: boolean;
@@ -1487,16 +1487,16 @@ export type BodyPart = {
 
   fire_warmth_bonus?: integer;
 
-  main_part: string; // bodypart_id
+  main_part?: string; // bodypart_id
   connected_to?: string; // bodypart_id
 
-  opposite_part: string; // bodypart_id
+  opposite_part?: string; // bodypart_id
 
   bionic_slots?: integer;
 
   flags?: string[];
 
-  side: "left" | "right" | "both";
+  side?: "left" | "right" | "both";
 
   sub_parts?: string[]; // sub_body_part_id
 

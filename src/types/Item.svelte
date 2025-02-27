@@ -436,11 +436,8 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <BookInfo {item} />
 {/if}
 {#if item.type === "ARMOR" || item.type === "TOOL_ARMOR"}
-  {#if data.build_number?.startsWith("0.F")}
-    <ArmorInfo0F {item} />
-  {:else}
-    <ArmorInfo {item} />
-  {/if}
+  <!--BN Uses 0.F format-->
+  <ArmorInfo0F {item} />
 {/if}
 {#if item.type === "BIONIC_ITEM"}
   <BionicInfo {item} />
