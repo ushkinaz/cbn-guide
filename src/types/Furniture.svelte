@@ -1,5 +1,5 @@
 <script lang="ts">
-import { CddaData, i18n, singular, singularName } from "../data";
+import { CddaData, singular, singularName } from "../data";
 import type { Furniture } from "../types";
 import ThingLink from "./ThingLink.svelte";
 import { getContext } from "svelte";
@@ -9,6 +9,7 @@ import { t } from "@transifex/native";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
 import LimitedList from "../LimitedList.svelte";
+import HarvestedTo from "./item/HarvestedTo.svelte";
 
 const data = getContext<CddaData>("data");
 const _context = "Terrain / Furniture";
@@ -48,18 +49,6 @@ const constructions = data
 const bashedFrom = data
   .byType("furniture")
   .filter((f) => f.id && f.bash?.furn_set === item.id);
-
-const harvestBySeason: Map<string, string> = new Map();
-for (const { seasons, id } of item.harvest_by_season ?? []) {
-  for (const season of seasons) {
-    harvestBySeason.set(season, id);
-  }
-}
-const seasonOrder = ["winter", "spring", "summer", "autumn"];
-const harvestBySeasonList = [...harvestBySeason.entries()];
-harvestBySeasonList.sort(
-  (a, b) => seasonOrder.indexOf(a[0]) - seasonOrder.indexOf(b[0]),
-);
 
 const pseudo_items: string[] = item.crafting_pseudo_item
   ? Array.isArray(item.crafting_pseudo_item)
@@ -172,40 +161,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
         </dl>
       </dd>
     {/if}
-    {#if harvestBySeasonList.length}
-      <dt>{t("Harvest", { _context })}</dt>
-      <dd>
-        <dl>
-          {#each harvestBySeasonList as [season, harvestId]}
-            <dt>{i18n.__(season.replace(/^(.)/, (x) => x.toUpperCase()))}</dt>
-            <dd>
-              {#each [data.byId("harvest", harvestId)] as harvest}
-                <ul>
-                  {#each harvest.entries as harvest_entry}
-                    {#if harvest_entry.type === "bionic_group"}
-                      {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
-                        <li>
-                          <ItemSymbol item={data.byId("item", id)} />
-                          <ThingLink type="item" {id} /> ({(prob * 100).toFixed(
-                            2,
-                          )}%)
-                        </li>
-                      {/each}
-                    {:else}
-                      <li>
-                        <ItemSymbol
-                          item={data.byId("item", harvest_entry.drop)} />
-                        <ThingLink type="item" id={harvest_entry.drop} />
-                      </li>
-                    {/if}
-                  {/each}
-                </ul>
-              {/each}
-            </dd>
-          {/each}
-        </dl>
-      </dd>
-    {/if}
+    <HarvestedTo {item} />
     <dt>{t("Flags")}</dt>
     <dd>
       <ul class="comma-separated">

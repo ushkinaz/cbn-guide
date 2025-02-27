@@ -3,19 +3,14 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import {
-  CddaData,
-  i18n,
-  showProbability,
-  singular,
-  singularName,
-} from "../data";
+import { CddaData, showProbability, singular, singularName } from "../data";
 import type { Terrain } from "../types";
 import Construction from "./Construction.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import ThingLink from "./ThingLink.svelte";
 import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
+import HarvestedTo from "./item/HarvestedTo.svelte";
 
 const data = getContext<CddaData>("data");
 const _context = "Terrain / Furniture";
@@ -46,18 +41,6 @@ const bits = [
   [t("Deconstruct", { _context }), deconstruct],
   [t("Bash", { _context }), bash],
 ] as const;
-
-const harvestBySeason: Map<string, string> = new Map();
-for (const { seasons, id } of item.harvest_by_season ?? []) {
-  for (const season of seasons) {
-    harvestBySeason.set(season, id);
-  }
-}
-const seasonOrder = ["winter", "spring", "summer", "autumn"];
-const harvestBySeasonList = [...harvestBySeason.entries()];
-harvestBySeasonList.sort(
-  (a, b) => seasonOrder.indexOf(a[0]) - seasonOrder.indexOf(b[0]),
-);
 
 const constructions = data
   .byType("construction")
@@ -121,40 +104,7 @@ const constructions = data
         </dd>
       {/if}
     {/each}
-    {#if harvestBySeasonList.length}
-      <dt>{t("Harvest", { _context })}</dt>
-      <dd>
-        <dl>
-          {#each harvestBySeasonList as [season, harvestId]}
-            <dt>{i18n.__(season.replace(/^(.)/, (x) => x.toUpperCase()))}</dt>
-            <dd>
-              {#each [data.byId("harvest", harvestId)] as harvest}
-                <ul>
-                  {#each harvest.entries as harvest_entry}
-                    {#if harvest_entry.type === "bionic_group"}
-                      {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
-                        <li>
-                          <ItemSymbol item={data.byId("item", id)} />
-                          <ThingLink type="item" {id} /> ({(prob * 100).toFixed(
-                            2,
-                          )}%)
-                        </li>
-                      {/each}
-                    {:else}
-                      <li>
-                        <ItemSymbol
-                          item={data.byId("item", harvest_entry.drop)} />
-                        <ThingLink type="item" id={harvest_entry.drop} />
-                      </li>
-                    {/if}
-                  {/each}
-                </ul>
-              {/each}
-            </dd>
-          {/each}
-        </dl>
-      </dd>
-    {/if}
+    <HarvestedTo {item} />
     <dt>{t("Flags")}</dt>
     <dd>
       <ul class="comma-separated">

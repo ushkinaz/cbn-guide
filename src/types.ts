@@ -766,7 +766,16 @@ export type MapDataCommon = {
   // examine_action
   harvest_by_season?: {
     seasons: string[];
-    id: string;
+    id?: string;
+    entries: {
+      drop: string;
+      base_num?: number[];
+      scale_num?: number[];
+      max?: number;
+      type?: string;
+      flags?: string[];
+      faults?: string[];
+    }[];
   }[];
   // curtain_transform
 };

@@ -15,6 +15,13 @@ const harvestedFrom = (data.byType("terrain") as (Terrain | Furniture)[])
   .concat(data.byType("furniture"))
   .filter((ter) =>
     (ter.harvest_by_season ?? []).some((h) => {
+      if (ter.harvest_by_season && Array.isArray(ter.harvest_by_season)) {
+        for (const harvestDef of ter.harvest_by_season) {
+          for (const h of harvestDef.entries ?? []) {
+            if (h.drop === item_id) return true;
+          }
+        }
+      }
       if (!h.id) return false;
       const harvest = data.byId("harvest", h.id);
       return harvest.entries.some((e) => {
