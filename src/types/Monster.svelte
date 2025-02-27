@@ -471,15 +471,11 @@ let upgrades =
       {#if item.death_function}
         <dt>{t("On Death", { _context })}</dt>
         <dd>
-          {#if item.death_function.effect?.id && data.byIdMaybe("SPELL", item.death_function.effect.id)}
-            {singularName(data.byId("SPELL", item.death_function.effect.id))} ({singular(
-              data.byId("SPELL", item.death_function.effect.id).description,
-            )})
-          {:else}
-            {item.death_function.effect?.id ??
-              item.death_function.corpse_type ??
-              "NORMAL"}
-          {/if}
+          <ul class="comma-separated">
+            {#each item.death_function as f}
+              <li>{f ?? "NORMAL"}</li>
+            {/each}
+          </ul>
         </dd>
       {/if}
       {#if upgrades}

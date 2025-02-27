@@ -1285,16 +1285,48 @@ export type Monster = {
   placate_triggers?: string[];
   fear_triggers?: string[];
   special_when_hit?: [
-    "NONE" | "ZAPBACK" | "ACIDSPLASH" | "RETURN_FIRE",
+    "ACID" | "AMIGARA" | "ACIDSPLASH" | "RETURN_FIRE",
     integer,
   ];
   morale?: number;
   aggression?: number;
-  death_function?: {
-    message?: Translation;
-    effect?: SpellData;
-    corpse_type?: "NORMAL" | "SPLATTER" | "BROKEN" | "NO_CORPSE";
-  };
+  death_function?: (
+    | "ACID"
+    | "AMIGARA"
+    | "BLOBSPLIT"
+    | "BOOMER"
+    | "BOOMER_GLOW"
+    | "BRAINBLOB"
+    | "BROKEN"
+    | "BROKEN_AMMO"
+    | "CONFLAGRATION"
+    | "DARKMAN"
+    | "DETONATE"
+    | "DISAPPEAR"
+    | "DISINTEGRATE"
+    | "EXPLODE"
+    | "FIREBALL"
+    | "FOCUSEDBEAM"
+    | "FUNGALBURST"
+    | "FUNGUS"
+    | "GAMEOVER"
+    | "GAS"
+    | "GUILT"
+    | "JABBERWOCKY"
+    | "JACKSON"
+    | "KILL_BREATHERS"
+    | "KILL_VINES"
+    | "MELT"
+    | "NORMAL"
+    | "PREG_ROACH"
+    | "RATKING"
+    | "SMOKEBURST"
+    | "SPLATTER"
+    | "THING"
+    | "TRIFFID_HEART"
+    | "VINE_CUT"
+    | "WORM"
+  )[];
   upgrades?:
     | false
     | {
