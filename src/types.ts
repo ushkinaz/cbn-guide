@@ -480,14 +480,14 @@ export type WheelSlot = {
 
 export type UseFunction =
   | ItemActionUseFunction
-  | TransformUseFunction
-  | DelayedTransformUseFunction
-  | ConsumeDrugUseFunction
-  | RepairItemUseFunction
-  | HolsterUseFunction
   | AttachMolleUseFunction
+  | ConsumeDrugUseFunction
+  | DelayedTransformUseFunction
   | DetachMolleUseFunction
+  | HolsterUseFunction
   | MessageUseFunction
+  | RepairItemUseFunction
+  | TransformUseFunction
   | {
       // TODO
       type:
@@ -501,14 +501,14 @@ export type UseFunction =
         | "firestarter"
         | "heal"
         | "inscribe"
+        | "link_up"
         | "manualnoise"
         | "musical_instrument"
         | "place_monster"
         | "place_trap"
         | "reveal_map"
         | "unpack"
-        | "weigh_self"
-        | "link_up";
+        | "weigh_self";
     }
   | {
       // Technically, the type can be any of the custom iuse functions. In
