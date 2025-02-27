@@ -817,7 +817,7 @@ export type Furniture = MapDataCommon & {
   keg_capacity?: number | string; // volume, default: 0 ml
   max_volume?: number | string; // volume, default: 1000 L
 
-  crafting_pseudo_item?: string; // item_id
+  crafting_pseudo_item?: string | string[]; // item_id
   deployed_item?: string; // item_id
 
   light_emitted?: number; // default: 0

@@ -317,7 +317,11 @@ export class CddaData {
       }
 
       if (Object.hasOwnProperty.call(obj, "crafting_pseudo_item")) {
-        this._craftingPseudoItems.set(obj.crafting_pseudo_item, obj.id);
+        if (Array.isArray(obj.crafting_pseudo_item)) {
+          for (const pseudo_id of obj.crafting_pseudo_item) {
+            this._craftingPseudoItems.set(pseudo_id, obj.id);
+          }
+        } else this._craftingPseudoItems.set(obj.crafting_pseudo_item, obj.id);
       }
 
       if (Object.hasOwnProperty.call(obj, "nested_mapgen_id")) {

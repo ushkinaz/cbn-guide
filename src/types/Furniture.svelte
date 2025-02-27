@@ -60,6 +60,12 @@ const harvestBySeasonList = [...harvestBySeason.entries()];
 harvestBySeasonList.sort(
   (a, b) => seasonOrder.indexOf(a[0]) - seasonOrder.indexOf(b[0]),
 );
+
+const pseudo_items: string[] = item.crafting_pseudo_item
+  ? Array.isArray(item.crafting_pseudo_item)
+    ? item.crafting_pseudo_item
+    : [item.crafting_pseudo_item]
+  : [];
 </script>
 
 <h1><ItemSymbol {item} /> {singularName(item)}</h1>
@@ -84,9 +90,15 @@ harvestBySeasonList.sort(
       <dt>{t("Max Volume", { _context })}</dt>
       <dd>{item.max_volume}</dd>
     {/if}
-    {#if item.crafting_pseudo_item}
+    {#if pseudo_items}
       <dt>{t("Provides", { _context })}</dt>
-      <dd><ThingLink type="item" id={item.crafting_pseudo_item} /></dd>
+      <dd>
+        <ul class="comma-separated">
+          {#each pseudo_items as pseudo_item}
+            <li><ThingLink type="item" id={pseudo_item} /></li>
+          {/each}
+        </ul>
+      </dd>
     {/if}
     {#if item.boltcut}
       <dt><ThingLink type="item_action" id="BOLTCUTTERS" /></dt>
