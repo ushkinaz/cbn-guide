@@ -346,7 +346,7 @@ export type AmmoSlot = {
 };
 
 export type ContainerSlot = {
-  contains: volume; // contains volume
+  contains?: volume; // contains volume
   seals?: boolean; // default: false
   watertight?: boolean; // default: false
   preserves?: boolean; // default: false
@@ -610,7 +610,7 @@ export type ItemBasicInfo = {
     | string
     | null
     | any /* this is to appease json-schema, which doesn't generate a correct schema for just string | null */;
-
+  container_data?: ContainerSlot;
   /* O.G */
   bashing?: number;
   cutting?: number;
