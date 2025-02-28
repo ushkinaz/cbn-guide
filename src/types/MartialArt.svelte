@@ -101,7 +101,7 @@ const buffMap = new Map(
           </ul>
         </dd>
       {/if}
-      {#if (item.arm_block ?? 99) != 99 || item.arm_block_with_bio_armor_arms}
+      {#if (item.arm_block ?? 99) !== 99 || item.arm_block_with_bio_armor_arms}
         <dt>{t("Arm Block", { _context })}</dt>
         <dd>
           {#if item.arm_block_with_bio_armor_arms}

@@ -15,7 +15,6 @@ import ThingLink from "./ThingLink.svelte";
 import type { Harvest, Monster, MonsterGroup, Resistances } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
-import LimitedList from "../LimitedList.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ColorText from "./ColorText.svelte";
 import ItemTable from "./item/ItemTable.svelte";

@@ -1,11 +1,10 @@
 import * as TJS from "ts-json-schema-generator";
 import * as fs from "fs";
 import * as util from "util";
-import Ajv from "ajv";
 import type { ValidateFunction } from "ajv";
+import Ajv from "ajv";
 import { CddaData } from "./data";
-import { test, expect } from "vitest";
-import { SchemaGenerator } from "ts-json-schema-generator";
+import { expect, test } from "vitest";
 
 declare global {
   namespace jest {

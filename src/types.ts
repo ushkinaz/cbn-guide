@@ -373,12 +373,6 @@ export type AddictionType = {
   builtin?: string;
 };
 
-export type PartMaterial = {
-  type: string; // material_id
-  covered_by_mat?: integer; // %, default 100
-  thickness?: number; // default 0
-};
-
 export type CoveredPart =
   | "arm_either"
   | "arm_l"

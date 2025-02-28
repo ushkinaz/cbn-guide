@@ -147,7 +147,7 @@ const requestIdleCallback: typeof window.requestIdleCallback =
   typeof window !== "undefined" && "requestIdleCallback" in window
     ? window.requestIdleCallback
     : function (cb: (deadline: IdleDeadline) => void): number {
-        var start = Date.now();
+        const start = Date.now();
         return setTimeout(function () {
           cb({
             didTimeout: false,
