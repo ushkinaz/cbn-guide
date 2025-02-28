@@ -393,74 +393,65 @@ export type AddictionType = {
   builtin?: string;
 };
 
-export type ArmorPortionData = {
-  encumbrance?: integer | [integer, integer];
-  encumbrance_modifiers?: (
-    | "IMBALANCED"
-    | "RESTRICTS_NECK"
-    | "WELL_SUPPORTED"
-    | "NONE"
-  )[];
-  coverage?: integer;
-  breathability?:
-    | "IMPERMEABLE"
-    | "POOR"
-    | "AVERAGE"
-    | "GOOD"
-    | "MOISTURE_WICKING"
-    | "SECOND_SKIN";
-  cover_melee?: integer; // default = coverage
-  cover_ranged?: integer; // default = coverage
-  cover_vitals?: integer; // default 0
-  rigid_layer_only?: boolean;
-  covers?: string[]; // bp_id
-  specifically_covers?: string[]; // sub_bodypart_str_id
-  sided?: boolean;
-  material_thickness?: number; // default to parent thickness
-  environmental_protection?: integer; // default 0
-  environmental_protection_with_filter?: integer;
-  volume_encumber_modifier?: number; // default 1
-
-  material?: PartMaterial[] | string[];
-
-  layers?: LayerLevel[];
-};
-
 export type PartMaterial = {
   type: string; // material_id
   covered_by_mat?: integer; // %, default 100
   thickness?: number; // default 0
 };
 
-export type LayerLevel =
-  | "PERSONAL"
-  | "SKINTIGHT"
-  | "NORMAL"
-  | "WAIST"
-  | "OUTER"
-  | "BELTED"
-  | "AURA";
+export type CoveredPart =
+  | "arm_either"
+  | "arm_l"
+  | "arm_r"
+  | "arms"
+  | "eyes"
+  | "feet"
+  | "foot_either"
+  | "foot_l"
+  | "foot_r"
+  | "hand_either"
+  | "hand_l"
+  | "hand_r"
+  | "hands"
+  | "head"
+  | "leg_either"
+  | "leg_l"
+  | "leg_r"
+  | "legs"
+  | "mouth"
+  | "torso";
+
+export type ArmorPortionData = {
+  covers: CoveredPart[];
+  encumbrance?: integer;
+  coverage?: integer;
+};
 
 export type ArmorSlot = {
-  covers?: string[];
-  armor?: ArmorPortionData[];
-  sided?: boolean;
-  flags?: string[];
-  warmth?: number;
   environmental_protection?: number;
   environmental_protection_with_filter?: number;
   material_thickness?: number;
-  non_functional?: string;
   weight_capacity_modifier?: number; // default 1.0
   weight_capacity_bonus?: mass;
-  power_armor?: boolean;
   valid_mods?: string[];
-
-  // For 0.F
-  coverage?: number;
-  encumbrance?: number;
+  sided?: boolean;
   max_encumbrance?: number;
-};
+  warmth?: number;
+  storage?: volume;
+  resistance?: {
+    acid?: integer;
+    bash?: integer;
+    biological?: integer;
+    bullet?: integer;
+    cold?: integer;
+    cut?: integer;
+    electric?: integer;
+    heat?: integer;
+    stab?: integer;
+    true?: integer;
+  };
+  armor_portion_data?: ArmorPortionData[];
+} & ArmorPortionData;
 
 export type BionicSlot = {
   bionic_id?: string;
@@ -1501,52 +1492,25 @@ export type BodyPart = {
   heading_multiple?: Translation;
   hp_bar_ui_text?: Translation;
   encumbrance_text?: Translation;
+  sort_order?: integer;
 
   hit_size?: number;
   hit_difficulty?: number;
   hit_size_relative?: [number, number, number];
 
-  base_hp?: integer;
-  stat_hp_mods?: any; // TODO
-
   drench_capacity?: integer;
+  stylish_bonus?: number;
+  hot_morale_mod?: number;
+  cold_morale_mod?: number;
+  squeamish_penalty?: number;
 
-  is_limb?: boolean;
-  is_vital?: boolean;
-  limb_type?:
-    | "head"
-    | "torso"
-    | "sensor"
-    | "mouth"
-    | "arm"
-    | "hand"
-    | "leg"
-    | "foot"
-    | "wing"
-    | "tail"
-    | "other";
-
-  fire_warmth_bonus?: integer;
-
-  main_part?: string; // bodypart_id
-  connected_to?: string; // bodypart_id
-
-  opposite_part?: string; // bodypart_id
-
+  main_part?: string;
+  opposite_part?: string;
   bionic_slots?: integer;
 
   flags?: string[];
 
   side?: "left" | "right" | "both";
-
-  sub_parts?: string[]; // sub_body_part_id
-
-  encumbrance_per_weight?: {
-    weight: string;
-    encumbrance: integer;
-  }[];
-
-  // ...
 };
 
 export type SubBodyPart = {

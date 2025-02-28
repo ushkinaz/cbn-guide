@@ -7,23 +7,22 @@ import {
   asKilograms,
   asLiters,
   CddaData,
+  i18n,
   normalizeUseAction,
   parseVolume,
   singular,
   singularName,
-  i18n,
 } from "../data";
 import type {
-  ItemBasicInfo,
   Item,
+  ItemBasicInfo,
+  RequirementData,
+  SupportedTypeMapped,
   SupportedTypesWithMapped,
   UseFunction,
-  SupportedTypeMapped,
-  RequirementData,
 } from "../types";
 import AsciiPicture from "./AsciiPicture.svelte";
 import AmmoInfo from "./item/AmmoInfo.svelte";
-import ArmorInfo from "./item/ArmorInfo.svelte";
 import ArmorInfo0F from "./item/ArmorInfo0F.svelte";
 import Bash from "./item/Bash.svelte";
 import BionicInfo from "./item/BionicInfo.svelte";

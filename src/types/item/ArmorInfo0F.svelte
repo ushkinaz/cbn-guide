@@ -1,7 +1,12 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import { CddaData, singular } from "../../data";
-import type { ArmorPortionData, ArmorSlot, ItemBasicInfo } from "../../types";
+import type {
+  ArmorPortionData,
+  ArmorSlot,
+  CoveredPart,
+  ItemBasicInfo,
+} from "../../types";
 
 export let item: ItemBasicInfo & ArmorSlot;
 let data = getContext<CddaData>("data");
@@ -28,32 +33,166 @@ const totalMaterialPortion = materials.reduce(
   0,
 );
 
-function covers(body_part_id: string): boolean {
-  return (
-    (item.covers ?? []).includes(body_part_id) ||
-    (item.armor ?? []).some((apd) => (apd.covers ?? []).includes(body_part_id))
-  );
+/**
+ * Contains all armor parts from all sources
+ */
+const armor: ArmorPortionData[] = [
+  ...(item.armor_portion_data ?? []),
+  ...(Array.isArray(item.covers) ? [item] : []),
+];
+
+/**
+ * Needed for correct mapping.
+ * All body parts not present in the mapping are used as is.
+ * Key is in fact an alias for value parts.
+ */
+const bodyPartsMapping: Map<CoveredPart, Coverage> = new Map([
+  [
+    "arm_either",
+    { alias: "arm_either", either: false, parts: ["arm_l", "arm_r"] },
+  ],
+  ["arms", { alias: "arms", either: false, parts: ["arm_l", "arm_r"] }],
+  [
+    "foot_either",
+    { alias: "foot_either", either: true, parts: ["foot_l", "foot_r"] },
+  ],
+  ["feet", { alias: "feet", either: true, parts: ["foot_l", "foot_r"] }],
+  [
+    "hand_either",
+    { alias: "hand_either", either: true, parts: ["hand_l", "hand_r"] },
+  ],
+  ["hands", { alias: "hands", either: false, parts: ["hand_l", "hand_r"] }],
+  [
+    "leg_either",
+    { alias: "leg_either", either: true, parts: ["leg_l", "leg_r"] },
+  ],
+  ["legs", { alias: "legs", either: false, parts: ["leg_l", "leg_r"] }],
+]);
+
+const { expandedCoverage, allParts } = calculateMergedCoverage();
+
+function covers(bodyPart: CoveredPart): boolean {
+  return allParts.has(bodyPart);
 }
-let covers_anything = (item.covers ?? []).length || (item.armor ?? []).length;
 
-const armor =
-  item.armor ?? ((item as any).armor_portion_data as ArmorPortionData[]);
+let covers_anything =
+  (item.covers ?? []).length || (item.armor_portion_data ?? []).length;
 
-function coverageLabel(apd: ArmorPortionData): string[] {
-  const covered = new Set();
-  const labels: string[] = [];
-  for (const bp_id of apd.covers ?? []) {
-    if (covered.has(bp_id)) continue;
-    const bp = data.byId("body_part", bp_id);
-    if (bp.opposite_part && apd.covers!.includes(bp.opposite_part)) {
-      labels.push(singular(bp.heading_multiple ?? bp.heading));
-      covered.add(bp.opposite_part);
-    } else {
-      labels.push(singular(bp.heading));
+type Coverage = {
+  /**
+   * 'legs', 'leg_either' etc
+   */
+  alias?: string;
+  /**
+   * cover either left or right but not both
+   */
+  either: boolean;
+  parts: CoveredPart[];
+};
+
+function calculateMergedCoverage(): {
+  expandedCoverage: Coverage[];
+  allParts: Set<CoveredPart>;
+} {
+  const coversExpanded: Coverage[] = [];
+  let coversMerged = new Set<CoveredPart>();
+
+  for (const armorPortion of armor) {
+    for (const coveredPart of armorPortion.covers) {
+      const { expandedCoverage: parts, allParts: mergedParts } =
+        expandCoverage(coveredPart);
+      coversExpanded.push(parts);
+      coversMerged = new Set([...coversMerged, ...mergedParts]);
     }
-    covered.add(bp_id);
+  }
+
+  // At this point coversExpanded might have duplicates with different "either"
+  // we need to deduplicate
+  const dedupedCoversExpanded: Coverage[] = [];
+  for (const cover of coversExpanded) {
+    // No way there are two armor parts covering same part "either" and "and".
+    // Therefore, no need to dedupe such entries
+
+    if (cover.parts.length > 1) {
+      dedupedCoversExpanded.push(cover);
+    } else {
+      let found = false;
+      for (const innerCover of coversExpanded) {
+        //At this point cover.parts.length == 1
+        if (innerCover.parts.includes(cover.parts[0])) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        dedupedCoversExpanded.push(cover);
+      }
+    }
+  }
+  return { expandedCoverage: dedupedCoversExpanded, allParts: coversMerged };
+}
+
+/**
+ *
+ * @param bp_id
+ * @returns {expandedCoverage} an actual low-level parts
+ * @returns {allParts} an array of all possible names of covered parts. ['arms', 'arm_l', 'arm_r']
+ *
+ */
+function expandCoverage(bp_id: CoveredPart): {
+  expandedCoverage: Coverage;
+  allParts: Set<CoveredPart>;
+} {
+  let compositeCoverage = bodyPartsMapping.get(bp_id);
+  if (compositeCoverage) {
+    return {
+      expandedCoverage: compositeCoverage,
+      allParts: new Set([bp_id, ...compositeCoverage.parts]),
+    };
+  } else {
+    return {
+      expandedCoverage: {
+        either: false,
+        parts: [bp_id],
+      },
+      allParts: new Set([bp_id]),
+    };
+  }
+}
+
+function coverageLabel(apd: ArmorPortionData): Set<string> {
+  const covered = new Set();
+  const labels = new Set<string>();
+
+  for (const bp_id of apd.covers) {
+    if (covered.has(bp_id)) continue;
+    const { expandedCoverage: coveredComposite } = expandCoverage(bp_id);
+    let composite = coveredComposite.parts.length > 1;
+
+    for (const coversPart of coveredComposite.parts) {
+      const bp = data.byId("body_part", coversPart);
+      labels.add(safeName(coversPart, composite));
+      if (composite) {
+        covered.add(bp.opposite_part);
+      }
+      covered.add(bp_id);
+    }
   }
   return labels;
+}
+
+function safeName(bodyPartId: string, composite: boolean): string {
+  const bp = data.byId("body_part", bodyPartId);
+  if (composite) {
+    return singular(bp.heading_multiple ?? bp.heading);
+  } else {
+    return singular(bp.heading);
+  }
+}
+function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
+  return "max_encumbrance" in apd
+    ? ((apd as ArmorSlot).max_encumbrance ?? null)
+    : null;
 }
 </script>
 
@@ -67,15 +206,13 @@ function coverageLabel(apd: ArmorPortionData): string[] {
       {#if covers("mouth")}The <strong>mouth</strong>.{/if}
       {#if covers("torso")}The <strong>torso</strong>.{/if}
 
-      {#each [["arm", "arms"], ["hand", "hands"], ["leg", "legs"], ["foot", "feet"]] as [sg, pl]}
-        {#if item.sided && (covers(`${sg}_l`) || covers(`${sg}_r`))}
-          Either <strong>{sg}</strong>.
-        {:else if covers(`${sg}_l`) && covers(`${sg}_r`)}
-          The <strong>{pl}</strong>.
-        {:else if covers(`${sg}_l`)}
-          The <strong>left {sg}</strong>.
-        {:else if covers(`${sg}_r`)}
-          The <strong>right {sg}</strong>.
+      {#each expandedCoverage as coverage}
+        {#if coverage.either}
+          Either <strong>{safeName(coverage.parts[0], true)}</strong>.
+        {:else if coverage.alias}
+          The <strong>{safeName(coverage.parts[0], true)}</strong>.
+        {:else}
+          The <strong>{safeName(coverage.parts[0], false)}</strong>.
         {/if}
         {" "}
       {/each}
@@ -104,14 +241,9 @@ function coverageLabel(apd: ArmorPortionData): string[] {
               {#each coverageLabel(apd) as label, i}{#if i !== 0}{", "}{/if}{label}{/each}
             </dt>
             <dd>
-              {#if Array.isArray(apd.encumbrance)}
-                {apd.encumbrance[0]}
-                {#if apd.encumbrance[1] !== apd.encumbrance[0]}
-                  ({apd.encumbrance[1]} when full)
-                {/if}
-              {:else}
-                {apd.encumbrance ?? 0}
-              {/if}
+              {apd.encumbrance ??
+                0}{#if safeMaxEncumbrance(apd)}{" "}({safeMaxEncumbrance(apd)} when
+                full){/if}
             </dd>
           {/each}
         </dl>
@@ -125,9 +257,9 @@ function coverageLabel(apd: ArmorPortionData): string[] {
       Coverage
     </dt>
     <dd>
-      {#if item.armor}
+      {#if armor}
         <dl>
-          {#each item.armor as apd}
+          {#each armor as apd}
             <dt>
               {#each coverageLabel(apd) as label, i}{#if i !== 0}{", "}{/if}{label}{/each}
             </dt>
