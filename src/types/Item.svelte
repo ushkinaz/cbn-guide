@@ -23,7 +23,7 @@ import type {
 } from "../types";
 import AsciiPicture from "./AsciiPicture.svelte";
 import AmmoInfo from "./item/AmmoInfo.svelte";
-import ArmorInfo0F from "./item/ArmorInfo0F.svelte";
+import ArmorInfo from "./item/ArmorInfo.svelte";
 import Bash from "./item/Bash.svelte";
 import BionicInfo from "./item/BionicInfo.svelte";
 import BookInfo from "./item/BookInfo.svelte";
@@ -435,8 +435,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <BookInfo {item} />
 {/if}
 {#if item.type === "ARMOR" || item.type === "TOOL_ARMOR"}
-  <!--BN Uses 0.F format-->
-  <ArmorInfo0F {item} />
+  <ArmorInfo {item} />
 {/if}
 {#if item.type === "BIONIC_ITEM"}
   <BionicInfo {item} />
