@@ -1322,9 +1322,6 @@ export type MonsterGroup = {
     pack_size?: [integer, integer];
     starts?: integer;
     ends?: integer;
-    spawn_data?: {
-      ammo?: { ammo_id: string; qty: integer }[];
-    };
     conditions?: string[];
   }[];
   replacement_time?: duration;
