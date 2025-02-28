@@ -31,8 +31,6 @@ export type ItemGroupEntry = (
   "ammo-item"?: string;
   "ammo-group"?: string;
   // TODO: damage, dirt, charges, ammo, contents, snippets?, sealed, custom-flags, etc.
-
-  event?: string;
 };
 
 export type ItemGroupEntryOrShortcut = ItemGroupEntry | [string, number]; // item_id, prob (or item_group_id, prob if in 'groups' array)
