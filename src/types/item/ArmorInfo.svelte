@@ -1,9 +1,14 @@
 <script lang="ts">
-  import { getContext } from "svelte";
-  import { CddaData, singular } from "../../data";
-  import type { ArmorPortionData, ArmorSlot, CoveredPart, ItemBasicInfo } from "../../types";
+import { getContext } from "svelte";
+import { CddaData, singular } from "../../data";
+import type {
+  ArmorPortionData,
+  ArmorSlot,
+  CoveredPart,
+  ItemBasicInfo,
+} from "../../types";
 
-  export let item: ItemBasicInfo & ArmorSlot;
+export let item: ItemBasicInfo & ArmorSlot;
 let data = getContext<CddaData>("data");
 
 function isStrings<T>(array: string[] | T[]): array is string[] {
@@ -93,7 +98,7 @@ function calculateMergedCoverage(): {
   let coversMerged = new Set<CoveredPart>();
 
   for (const armorPortion of armor) {
-    for (const coveredPart of armorPortion.covers) {
+    for (const coveredPart of armorPortion.covers ?? []) {
       const { expandedCoverage: parts, allParts: mergedParts } =
         expandCoverage(coveredPart);
       coversExpanded.push(parts);
@@ -159,7 +164,7 @@ function coverageLabel(apd: ArmorPortionData): Set<string> {
   const covered = new Set();
   const labels = new Set<string>();
 
-  for (const bp_id of apd.covers) {
+  for (const bp_id of apd.covers ?? []) {
     if (covered.has(bp_id)) continue;
     const { expandedCoverage: coveredComposite } = expandCoverage(bp_id);
     let composite = coveredComposite.parts.length > 1;

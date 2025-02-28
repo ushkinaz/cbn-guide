@@ -422,7 +422,7 @@ export type CoveredPart =
   | "torso";
 
 export type ArmorPortionData = {
-  covers: CoveredPart[];
+  covers?: CoveredPart[];
   encumbrance?: integer;
   coverage?: integer;
 };
