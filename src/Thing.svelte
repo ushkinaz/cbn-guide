@@ -101,7 +101,6 @@ const displays: Record<string, typeof SvelteComponent<any>> = {
   weapon_category: WeaponCategory,
   construction_group: ConstructionGroup,
   achievement: Achievement,
-  conduct: Achievement,
   bionic: Bionic,
   overmap_special: OvermapSpecial,
   city_building: OvermapSpecial,

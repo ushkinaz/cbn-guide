@@ -259,7 +259,6 @@ const randomableItemTypes = new Set([
   "martial_art",
   "json_flag",
   "achivement",
-  "conduct",
 ]);
 async function getRandomPage() {
   const d = await new Promise<CddaData>((resolve) => {

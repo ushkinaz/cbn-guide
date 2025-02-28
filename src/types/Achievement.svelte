@@ -19,9 +19,7 @@ const unlocks = data
 </script>
 
 <h1>
-  {item.type === "achievement" ? "Achievement" : "Conduct"}: {singularName(
-    item,
-  )}
+  "Achievement": {singularName(item)}
 </h1>
 
 <section>

@@ -1732,7 +1732,7 @@ export type AchievementRequirement = {
 };
 
 export type Achievement = {
-  type: "achievement" | "conduct";
+  type: "achievement";
   id: string;
   name: Translation;
   description?: Translation;
@@ -1873,7 +1873,6 @@ export type SupportedTypes = {
   bionic: Bionic;
   body_part: BodyPart;
   city_building: { type: "city_building" } & OvermapSpecial;
-  conduct: Achievement;
   construction: Construction;
   construction_group: ConstructionGroup;
   damage_info_order: DamageInfoOrder;
