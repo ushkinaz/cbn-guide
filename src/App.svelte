@@ -390,7 +390,7 @@ function langHref(lang: string, href: string) {
     <p>
       <InterpolatedTranslation
         str={t(
-          `The {hhg} is a guide to the zombie survival roguelike game {link_cbn}. You can
+          `{hhg} is a guide to the zombie survival roguelike game {link_cbn}. You can
 search for things in the game, like items (e.g. a {link_flashlight}), furniture
 (e.g. a {link_table}), or monsters (e.g. a {link_zombie}), and find useful
 information about them. The data in the Guide comes directly from the JSON
