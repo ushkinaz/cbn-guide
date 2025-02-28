@@ -260,7 +260,6 @@ const randomableItemTypes = new Set([
   "json_flag",
   "achivement",
   "conduct",
-  "proficiency",
 ]);
 async function getRandomPage() {
   const d = await new Promise<CddaData>((resolve) => {

@@ -11,7 +11,6 @@ import AmmunitionType from "./types/AmmunitionType.svelte";
 import ToolQuality from "./types/ToolQuality.svelte";
 import Furniture from "./types/Furniture.svelte";
 import Skill from "./types/Skill.svelte";
-import Proficiency from "./types/Proficiency.svelte";
 import Flag from "./types/Flag.svelte";
 import Fault from "./types/Fault.svelte";
 import Vitamin from "./types/Vitamin.svelte";
@@ -89,7 +88,6 @@ const displays: Record<string, typeof SvelteComponent<any>> = {
   tool_quality: ToolQuality,
   furniture: Furniture,
   skill: Skill,
-  proficiency: Proficiency,
   json_flag: Flag,
   fault: Fault,
   vitamin: Vitamin,

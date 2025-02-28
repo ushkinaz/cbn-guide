@@ -33,21 +33,6 @@ const writtenIn = Array.isArray(recipe.book_learn)
     );
 writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
 
-const proficiencies = (recipe.proficiencies ?? []).map((prof) => {
-  const proficiency = data.byId("proficiency", prof.proficiency);
-  const skill_penalty =
-    prof.skill_penalty ?? proficiency.default_skill_penalty ?? 0;
-  const fail_multiplier =
-    prof.fail_multiplier ?? proficiency.default_fail_multiplier ?? 1;
-  return {
-    skill_penalty,
-    fail_multiplier,
-    time_multiplier: proficiency.default_time_multiplier ?? 2,
-    learning_time_multiplier: 1,
-    ...prof,
-  };
-});
-
 const activityLevels = {
   SLEEP_EXERCISE: 0.85,
   NO_EXERCISE: 1.0,
@@ -119,39 +104,6 @@ function activityLevelName(level: number) {
         {:else}
           {t("none")}
         {/each}
-      </dd>
-    {/if}
-    {#if proficiencies.length}
-      <dt>{t("Proficiencies", { _context })}</dt>
-      <dd>
-        <ul>
-          {#each proficiencies as prof}
-            {@const ctx = { _context, _comment: "proficiency multiplier" }}
-            {@const multipliers = [
-              prof.time_multiplier !== 1
-                ? `${prof.time_multiplier}× ${t("time", ctx)}`
-                : null,
-              prof.fail_multiplier != null && prof.fail_multiplier !== 1
-                ? `${prof.fail_multiplier}× ${t("fail", ctx)}`
-                : null,
-              prof.skill_penalty != null && prof.skill_penalty !== 0
-                ? `${prof.skill_penalty} ${t("skill bonus", ctx)}`
-                : null,
-              prof.learning_time_multiplier !== 1
-                ? `${prof.learning_time_multiplier}× ${t(
-                    "learning speed",
-                    ctx,
-                  )}`
-                : null,
-            ].filter((x) => x)}
-            <li>
-              <ThingLink type="proficiency" id={prof.proficiency} />
-              {#if multipliers.length}
-                ({multipliers.join(", ")})
-              {/if}
-            </li>
-          {/each}
-        </ul>
       </dd>
     {/if}
     <dt>{t("Time to Complete")}</dt>

@@ -1,9 +1,9 @@
 /**
  * @vitest-environment jsdom
  */
-import { render, cleanup, act } from "@testing-library/svelte";
+import { act, cleanup, render } from "@testing-library/svelte";
 import { screen } from "@testing-library/dom";
-import { expect, test, afterEach } from "vitest";
+import { afterEach, expect, test } from "vitest";
 import * as fs from "fs";
 
 import { CddaData, mapType } from "./data";
@@ -20,32 +20,29 @@ const json = JSON.parse(
 );
 let data: CddaData = new CddaData(json.data);
 const types = [
-  "item",
-  "furniture",
-  "monster",
-  "technique",
   "ammunition_type",
+  "bionic",
+  "construction_group",
   "fault",
+  "furniture",
+  "item",
+  "item_action",
   "json_flag",
+  "martial_art",
   "material",
-  "proficiency",
-  "tool_quality",
+  "monster",
+  "mutation",
+  "mutation_category",
+  "mutation_type",
+  "overmap_special",
   "skill",
+  "technique",
+  "terrain",
+  "tool_quality",
+  "vehicle",
   "vehicle_part",
   "vitamin",
-  "martial_art",
-  "mutation",
-  "mutation_type",
-  "mutation_category",
-  "vehicle",
-  "terrain",
   "weapon_category",
-  "construction_group",
-  "bionic",
-  "proficiency",
-  "overmap_special",
-  "item_action",
-  "technique",
 ];
 
 const all = data._raw

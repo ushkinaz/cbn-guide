@@ -152,17 +152,6 @@ export type Recipe = {
 
   skills_required?: [string, number] | [string, number][]; // skill_id, level
 
-  proficiencies?: {
-    proficiency: string; // proficiency_id
-    required?: boolean;
-    time_multiplier?: number; // default to proficiency multiplier
-    skill_penalty?: number; // default to proficiency penalty
-    learning_time_multiplier?: number; // default 1.0
-    max_experience?: duration;
-
-    // Removed shortly after 0.G
-    fail_multiplier?: number; // default to proficiency multiplier
-  }[];
   autolearn?: boolean | [string, number][];
   never_learn?: boolean;
   decomp_learn?: number | [string, number][];
@@ -234,12 +223,6 @@ export type DamageInfoOrder = {
   verb?: Translation;
 };
 
-export type BookProficiencyBonus = {
-  proficiency: string; // proficiency_id
-  fail_factor?: number; // default: 0.5
-  time_factor?: number; // default: 0.5
-  include_prereqs?: boolean; // default: true
-};
 export type BookSlot = {
   max_level?: number; // default: 0
   required_level?: number; // default: 0
@@ -251,7 +234,6 @@ export type BookSlot = {
   skill?: string; // skill_id
   martial_art?: string; // matype_id
   chapters?: number; // default: 0
-  proficiencies?: BookProficiencyBonus[];
 };
 
 export type ToolSlot = {
@@ -835,24 +817,6 @@ export type Furniture = MapDataCommon & {
   // workbench
   // plant_data
   // surgery_skill_multiplier
-};
-
-export type Proficiency = {
-  type: "proficiency";
-  id: string;
-  description: string;
-  category: string; // proficiency_category_id
-  name: Translation;
-  can_learn: boolean;
-  time_to_learn?: string; // duration, default: 9999 h
-
-  default_time_multiplier?: number; // default: 2
-  default_skill_penalty?: number; // default: 1
-
-  required_proficiencies?: string[]; // proficiency_id[]
-
-  // Removed shortly after 0.G
-  default_fail_multiplier?: number; // default: 2
 };
 
 export type Skill = {
@@ -1877,13 +1841,6 @@ export type ItemCategory = {
   // TODO: zones
 };
 
-export type ProficiencyCategory = {
-  id: string;
-  type: "proficiency_category";
-  name: Translation;
-  description?: Translation;
-};
-
 // Used for schema validation.
 export type SupportedTypes = {
   // Item types.
@@ -1940,8 +1897,6 @@ export type SupportedTypes = {
   overmap_special: { type: "overmap_special" } & OvermapSpecial;
   overmap_terrain: OvermapTerrain;
   palette: Palette;
-  proficiency: Proficiency;
-  proficiency_category: ProficiencyCategory;
   recipe: { type: "recipe" } & Recipe;
   requirement: Requirement;
   rotatable_symbol: RotatableSymbol;
