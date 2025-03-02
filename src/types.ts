@@ -899,7 +899,6 @@ export type Vitamin = {
   vit_type: "vitamin" | "toxin" | "drug" | "counter";
   disease?: [number, number][];
   disease_excess?: [number, number][];
-  decays_into?: [string, number][];
   flags?: string[];
 };
 

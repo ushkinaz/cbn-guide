@@ -104,7 +104,7 @@ const deficiencyNames = item.deficiency
     <dd>{item.min ?? 0}</dd>
     <dt>{t("Max", { _context })}</dt>
     <dd>{item.max ?? 0}</dd>
-    {#if parseDuration(item.rate ?? "0 m") > 0}
+    {#if parseDuration(item.rate) > 0}
       <dt>{t("Decay Rate", { _context })}</dt>
       <dd>–1 / {item.rate ?? "0 m"}</dd>
     {:else if parseDuration(item.rate ?? "0 m") < 0}
@@ -112,18 +112,7 @@ const deficiencyNames = item.deficiency
       <dd>
         1 / {typeof item.rate === "string"
           ? item.rate.replace(/-/, "")
-          : (-(item.rate ?? 0) ?? "0 m")}
-      </dd>
-    {/if}
-    {#if item.decays_into?.length}
-      <dt>{t("Decays Into", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated and">
-          {#each item.decays_into as decay}
-            <!-- prettier-ignore -->
-            <li><ThingLink id={decay[0]} type="vitamin" />{#if decay[1] !== 1}&times;{decay[1]}{/if}</li>
-          {/each}
-        </ul>
+          : -item.rate}
       </dd>
     {/if}
   </dl>
