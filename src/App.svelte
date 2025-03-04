@@ -6,6 +6,10 @@ import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
 import dontPanic from "./assets/dont_panic.png";
 import InterpolatedTranslation from "./InterpolatedTranslation.svelte";
+import redditIcon from "./assets/icons/link-reddit.svg";
+import bnIcon from "./assets/icons/link-bn.svg";
+import discordIcon from "./assets/icons/link-discord.svg";
+import catapultIcon from "./assets/icons/link-catapult.svg";
 import { GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import type { SupportedTypeMapped } from "./types";
@@ -73,6 +77,7 @@ const tilesets = [
 ];
 
 const normalizeTemplate = (t: string) => (t === "null" || !t ? "" : t);
+
 function loadTileset(
   tilesetParamOverride: string | null,
 ): { tileset: string; tilesetUrlTemplate: string } | null {
@@ -93,6 +98,7 @@ function loadTileset(
     return null;
   }
 }
+
 function saveTileset(tileset: string | null) {
   try {
     let sanitizedTilesetID =
@@ -104,6 +110,7 @@ function saveTileset(tileset: string | null) {
     /* swallow security errors, which can happen when in incognito mode */
   }
 }
+
 let { tileset, tilesetUrlTemplate } = loadTileset(tilesetParam) ?? {
   tileset: null,
   tilesetUrlTemplate: null,
@@ -260,6 +267,7 @@ const randomableItemTypes = new Set([
   "json_flag",
   "achivement",
 ]);
+
 async function getRandomPage() {
   const d = await new Promise<CddaData>((resolve) => {
     const unsubscribe = data.subscribe((v) => {
@@ -278,6 +286,7 @@ async function getRandomPage() {
 }
 
 let randomPage: string | null = null;
+
 function newRandomPage() {
   getRandomPage().then((r) => {
     randomPage = `${import.meta.env.BASE_URL}${mapType(r.type)}/${r.id}${
@@ -285,6 +294,7 @@ function newRandomPage() {
     }`;
   });
 }
+
 newRandomPage();
 
 // This is one character behind the actual search value, because
@@ -341,6 +351,7 @@ function langHref(lang: string, href: string) {
     </div>
   </nav>
 </header>
+
 <main>
   {#if item}
     {#if $data}
@@ -381,136 +392,32 @@ function langHref(lang: string, href: string) {
       </span>
     {/if}
   {:else}
-    <img
-      src={dontPanic}
-      height="200"
-      width="343"
-      style="float:right"
-      alt="The words 'Don't Panic' in big friendly letters" />
-    <p>
+    <aside style="float:right">
+      <img
+        src={dontPanic}
+        height="200"
+        width="343"
+        alt="The words 'Don't Panic' in big friendly letters" />
+    </aside>
+    <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
-          `{hhg} is a guide to the zombie survival roguelike game {link_cbn}. You can
-search for things in the game, like items (e.g. a {link_flashlight}), furniture
-(e.g. a {link_table}), or monsters (e.g. a {link_zombie}), and find useful
-information about them. The data in the Guide comes directly from the JSON
-files in the game itself.`,
+          `Your offline companion to the world of {link_cbn}. Instantly find details on recipes, loot sources, and survival info — all in one place.`,
           {
             hhg: "{hhg}",
             link_cbn: "{link_cbn}",
-            link_flashlight: "{link_flashlight}",
-            link_table: "{link_table}",
-            link_zombie: "{link_zombie}",
           },
         )}
         slot0="hhg"
-        slot1="link_cbn"
-        slot2="link_flashlight"
-        slot3="link_table"
-        slot4="link_zombie">
-        <strong slot="0">{GUIDE_NAME}</strong>
+        slot1="link_cbn">
+        <span slot="0">{GUIDE_NAME}</span>
         <a
           slot="1"
           href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
-          >Cataclysm: Bright Nights</a>
-        <a slot="2" href="{import.meta.env.BASE_URL}item/flashlight"
-          >{t("flashlight", { _comment: "Item name" })}</a>
-        <a
-          slot="3"
-          href="{import.meta.env.BASE_URL}furniture/f_table{location.search}"
-          >{t("table", { _comment: "Furniture" })}</a>
-        <a
-          slot="4"
-          href="{import.meta.env.BASE_URL}monster/mon_zombie{location.search}"
-          >{t("zombie", { _comment: "Monster name" })}</a>
-      </InterpolatedTranslation>
-    </p>
-    <p>
-      {t(`The Guide stores all its data locally and is offline-capable, so you can
-take it with you whereever you go. There's nothing to do to make the Guide
-work offline, just visit the page and it will work even without internet
-access, as long as you've visited it once before.`)}
-      {#if deferredPrompt}
-        <InterpolatedTranslation
-          str={t(
-            `It's also {installable_button}, so you can pop it out of your browser and use it like a regular app.`,
-            { installable_button: "{installable_button}" },
-          )}
-          slot0="installable_button">
-          <button
-            slot="0"
-            class="disclosure"
-            on:click={(e) => {
-              e.preventDefault();
-              deferredPrompt.prompt();
-            }}
-            >{t("installable", {
-              _context: "Front page",
-              _comment: "Meaning, install the Hitchhiker's Guide app itself.",
-            })}</button>
-        </InterpolatedTranslation>
-      {/if}
-    </p>
-    <p style="font-style: italic; color: var(--cata-color-gray)">
-      {t(
-        `More popular than the Celestial Home Care Omnibus, better selling than
-Fifty-three More Things to do in Zero Gravity, and more controversial than
-Oolon Colluphid's trilogy of philosophical blockbusters Where God Went
-Wrong, Some More of God's Greatest Mistakes and Who is this God Person
-Anyway?`,
-        {
-          _comment:
-            "This is a quote from the Hitchhiker's Guide to the Galaxy, by Douglas Adams",
-        },
-      )}
-    </p>
-    <p>
-      <InterpolatedTranslation
-        str={t(
-          `The {link_OG} for {link_cdda} is developed on {link_github} by {link_nornagon}, this version is a Bright Nights specific fork by {link_mythosmod}. If you notice any problems with this version, please {link_file_an_issue}!`,
-          {
-            link_github: "{link_github}",
-            link_nornagon: "{link_nornagon}",
-            link_mythosmod: "{link_mythosmod}",
-            link_file_an_issue: "{link_file_an_issue}",
-            link_cdda: "{link_cdda}",
-            link_OG: "{link_OG}",
-          },
-        )}
-        slot0="link_github"
-        slot1="link_nornagon"
-        slot2="link_mythosmod"
-        slot3="link_file_an_issue"
-        slot4="link_cdda"
-        slot5="link_OG">
-        <a slot="0" href="https://github.com/nornagon/cdda-guide">GitHub</a>
-        <a slot="1" href="https://www.nornagon.net">nornagon</a>
-        <a slot="2" href="https://github.com/mythosmod/cbn-guide">MythosMod</a>
-        <a slot="3" href="https://github.com/mythosmod/cbn-guide/issues"
-          >{t("file an issue")}</a>
-        <a slot="4" href="https://cataclysmdda.org/"
-          >Cataclysm: Dark Days Ahead</a>
-        <a slot="5" href="https://cdda-guide.nornagon.net/">Original Guide</a>
+          style="text-wrap: nowrap">Cataclysm: Bright Nights</a>
       </InterpolatedTranslation>
     </p>
 
-    {#if locale}
-      <p style="font-weight: bold">
-        <InterpolatedTranslation
-          str={t(
-            `You can help translate the Guide into your language on {link_transifex}.`,
-            { link_transifex: "{link_transifex}" },
-          )}
-          slot0="link_transifex">
-          <a
-            slot="0"
-            href="https://www.transifex.com/nornagon/the-hitchhikers-guide-to-the-cataclysm/"
-            >Transifex</a>
-        </InterpolatedTranslation>
-      </p>
-    {/if}
-
-    <h2>{t("Catalogs")}</h2>
     <ul>
       <li><a href="/item{location.search}">{t("Items")}</a></li>
       <li><a href="/monster{location.search}">{t("Monsters")}</a></li>
@@ -533,47 +440,54 @@ Anyway?`,
         >{t("random page")}</a>
     </InterpolatedTranslation>
   {/if}
-
-  <p class="data-options">
-    {t("Version:")}
-    {#if $data || builds}
-      {#if builds}
-        <!-- svelte-ignore a11y-no-onchange -->
-        <select
-          value={$data?.build_number ??
-            (version === "latest" ? builds[0].build_number : version)}
-          on:change={(e) => {
-            const url = new URL(location.href);
-            const buildNumber = e.currentTarget.value;
-            if (buildNumber === builds?.[0].build_number)
-              url.searchParams.delete("v");
-            else url.searchParams.set("v", buildNumber);
-            location.href = url.toString();
-          }}>
-          <optgroup label="Stable">
-            {#each builds.filter((b) => !b.prerelease) as build}
-              <option value={build.build_number}>{build.build_number}</option>
-            {/each}
-          </optgroup>
-          <optgroup label="Experimental">
-            {#each builds.filter((b) => b.prerelease) as build, i}
-              <option value={build.build_number}
-                >{build.build_number}{#if i === 0}&nbsp;(latest){/if}</option>
-            {/each}
-          </optgroup>
-        </select>
-      {:else if $data}
-        <select disabled>
-          <option>{$data.build_number}</option>
-        </select>
+</main>
+<footer>
+  <div class="data-options">
+    <div class="select-group">
+      <label for="version_select">{t("Version:")}</label>
+      {#if $data || builds}
+        {#if builds}
+          <!-- svelte-ignore a11y-no-onchange -->
+          <select
+            id="version_select"
+            value={$data?.build_number ??
+              (version === "latest" ? builds[0].build_number : version)}
+            on:change={(e) => {
+              const url = new URL(location.href);
+              const buildNumber = e.currentTarget.value;
+              if (buildNumber === builds?.[0].build_number)
+                url.searchParams.delete("v");
+              else url.searchParams.set("v", buildNumber);
+              location.href = url.toString();
+            }}>
+            <optgroup label="Stable">
+              {#each builds.filter((b) => !b.prerelease) as build}
+                <option value={build.build_number}>{build.build_number}</option>
+              {/each}
+            </optgroup>
+            <optgroup label="Experimental">
+              {#each builds.filter((b) => b.prerelease) as build, i}
+                <option value={build.build_number}
+                  >{build.build_number}
+                  {#if i === 0}&nbsp;(latest){/if}
+                </option>
+              {/each}
+            </optgroup>
+          </select>
+        {:else if $data}
+          <select disabled>
+            <option>{$data.build_number}</option>
+          </select>
+        {/if}
+      {:else}
+        <em style="color: var(--cata-color-gray)">({t("Loading...")})</em>
       {/if}
-    {:else}
-      <em style="color: var(--cata-color-gray)">({t("Loading...")})</em>
-    {/if}
-    <span style="white-space: nowrap">
-      {t("Tileset:")}
+    </div>
+    <div class="select-group">
+      <label for="tileset_select">{t("Tileset:")}</label>
       <!-- svelte-ignore a11y-no-onchange -->
       <select
+        id="tileset_select"
         value={tileset}
         on:change={(e) => {
           const url = new URL(location.href);
@@ -587,13 +501,14 @@ Anyway?`,
           <option value={name}>{name}</option>
         {/each}
       </select>
-    </span>
-    <span style="white-space: nowrap">
-      {t("Language:")}
+    </div>
+    <div class="select-group">
+      <label for="language_select">{t("Language:")}</label>
       {#if builds}
         {@const build_number =
           version === "latest" ? builds[0].build_number : version}
         <select
+          id="language_select"
           value={locale || "en"}
           on:change={(e) => {
             const url = new URL(location.href);
@@ -610,18 +525,121 @@ Anyway?`,
       {:else}
         <select disabled><option>{t("Loading...")}</option></select>
       {/if}
+    </div>
+  </div>
+
+  <div id="links">
+    <span class="link">
+      <img
+        src={bnIcon}
+        width="16"
+        height="16"
+        alt="Cataclysm BN icon"
+        class="icon" />
+      <a
+        href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+        target="_blank"
+        rel="noopener noreferrer">Cataclysm BN</a>
     </span>
-  </p>
-</main>
+    <span class="link">
+      <img
+        src={discordIcon}
+        width="16"
+        height="16"
+        alt="Cataclysm BN icon"
+        class="icon" />
+      <a
+        href="https://discord.gg/XW7XhXuZ89"
+        target="_blank"
+        rel="noopener noreferrer">Discord</a>
+    </span>
+    <span class="link">
+      <img
+        src={redditIcon}
+        width="16"
+        height="16"
+        alt="Cataclysm BN icon"
+        class="icon" />
+      <a
+        href="https://www.reddit.com/r/cataclysmbn/"
+        target="_blank"
+        rel="noopener noreferrer">Reddit</a>
+    </span>
+    <spin class="link">
+      <img
+        src={catapultIcon}
+        width="16"
+        height="16"
+        alt="Cataclysm BN icon"
+        class="icon" />
+      <a
+        href="https://github.com/qrrk/Catapult"
+        target="_blank"
+        rel="noopener noreferrer">Catapult Launcher</a>
+    </spin>
+  </div>
+  <div id="credits">
+    <InterpolatedTranslation
+      str={t(
+        `Based on {link_original} by {link_nornagon}, updated for BN by {link_mythosmod}. Currently maintained by {link_ushkinaz} on {link_github}.
+        If you notice any problems with this version, please {link_file_an_issue}!`,
+        {
+          link_original: "{link_original}",
+          link_nornagon: "{link_nornagon}",
+          link_mythosmod: "{link_mythosmod}",
+          link_ushkinaz: "{link_ushkinaz}",
+          link_github: "{link_github}",
+          link_file_an_issue: "{link_file_an_issue}",
+        },
+      )}
+      slot0="link_original"
+      slot1="link_nornagon"
+      slot2="link_mythosmod"
+      slot3="link_ushkinaz"
+      slot4="link_github"
+      slot5="link_file_an_issue">
+      Based on the .
+      <a
+        slot="0"
+        href="https://cdda-guide.nornagon.net/"
+        target="_blank"
+        rel="noopener noreferrer">C:DDA guide</a>
+      <a
+        slot="1"
+        href="https://www.nornagon.net"
+        target="_blank"
+        rel="noopener noreferrer">nornagon</a>
+      <a
+        slot="2"
+        href="https://github.com/mythosmod/cbn-guide"
+        target="_blank"
+        rel="noopener noreferrer">MythosMod</a>
+      <a
+        slot="3"
+        href="https://github.com/ushkinaz"
+        target="_blank"
+        rel="noopener noreferrer">ushkinaz</a>
+      <a
+        slot="4"
+        href="https://github.com/ushkinaz/cbn-guide/"
+        target="_blank"
+        rel="noopener noreferrer">GitHub</a>
+      <a
+        slot="5"
+        href="https://github.com/ushkinaz/cbn-guide/issues/new?type=bug"
+        >{t("file an issue")}</a>
+    </InterpolatedTranslation>
+  </div>
+</footer>
 
 <style>
 main {
   text-align: left;
   padding: 1em;
   max-width: 980px;
-  margin: 0 auto;
-  margin-top: 4rem;
+  margin: 4rem auto 0;
 }
+
 header {
   position: fixed;
   top: 0;
@@ -670,7 +688,69 @@ nav > .title {
   }
 }
 
-.data-options select {
-  max-width: 100%;
+footer {
+  text-align: left;
+  padding: 1em;
+  max-width: 980px;
+  margin: 2rem auto 0;
+}
+
+footer #links {
+  text-decoration: none;
+  padding-top: 1em;
+  text-align: center;
+}
+
+footer .link {
+  text-wrap: nowrap;
+}
+
+footer #links .icon {
+  text-decoration: none;
+  padding-left: 1em;
+  padding-right: 0.2em;
+}
+
+footer #credits {
+  font-size: 0.6em;
+  color: var(--cata-color-dark_gray);
+  margin: 1rem auto 0;
+}
+
+footer #credits a {
+  text-decoration: none;
+  color: var(--cata-color-gray);
+}
+
+footer #credits a:hover {
+  text-decoration: underline;
+}
+
+.data-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Space between select groups */
+  align-items: center;
+  justify-content: center;
+}
+
+.select-group {
+  display: flex;
+  align-items: center; /* Aligns label and select in one row */
+  gap: 8px; /* Space between label and select */
+}
+
+.select-group label {
+  font-size: 0.8rem; /* Match label font size with select */
+  white-space: nowrap;
+}
+
+.select-group select {
+  flex: 1; /* Ensures equal width for selects */
+  min-width: 180px;
+  max-width: 220px;
+  font-size: 0.9rem; /* Ensure it matches the label */
+  height: 2rem; /* Adjust height to make sure it aligns well */
+  padding: 2px 8px; /* Prevents select from looking too large */
 }
 </style>
