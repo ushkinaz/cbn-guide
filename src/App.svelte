@@ -37,7 +37,6 @@ fetch("https://raw.githubusercontent.com/mythosmod/cbn-data/main/builds.json")
 
 const url = new URL(location.href);
 const version = url.searchParams.get("v") ?? "latest";
-const tilesetParam = url.searchParams.get("t");
 const locale = url.searchParams.get("lang");
 data.setVersion(version, locale);
 
@@ -78,24 +77,12 @@ const tilesets = [
 
 const normalizeTemplate = (t: string) => (t === "null" || !t ? "" : t);
 
-function loadTileset(
-  tilesetParamOverride: string | null,
-): { tileset: string; tilesetUrlTemplate: string } | null {
+function loadTileset(): string {
   try {
-    if (tilesetParamOverride === "-") return null;
-    let sanitizedTilesetID =
-      tilesets.find((t) => t.name === tilesetParamOverride)?.name || null;
-    const tilesetIDStorage =
-      sanitizedTilesetID ?? localStorage.getItem("cdda-guide:tileset");
-    if (!tilesetIDStorage) return null;
-    return {
-      tileset: tilesetIDStorage,
-      tilesetUrlTemplate: normalizeTemplate(
-        tilesets.find((t) => t.name === tilesetIDStorage)?.url ?? "",
-      ),
-    };
+    const tilesetIDStorage = localStorage.getItem("cdda-guide:tileset");
+    return tilesetIDStorage ?? "-";
   } catch (e) {
-    return null;
+    return "-";
   }
 }
 
@@ -111,11 +98,13 @@ function saveTileset(tileset: string | null) {
   }
 }
 
-let { tileset, tilesetUrlTemplate } = loadTileset(tilesetParam) ?? {
-  tileset: null,
-  tilesetUrlTemplate: null,
-};
+let tileset: string = loadTileset();
+let tilesetUrlTemplate: string = "";
+
 $: saveTileset(tileset);
+$: tilesetUrlTemplate = normalizeTemplate(
+  tilesets.find((t) => t.name === tileset)?.url ?? "",
+);
 $: tilesetUrl = $data
   ? (tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null)
   : null;
@@ -490,11 +479,7 @@ function langHref(lang: string, href: string) {
         id="tileset_select"
         value={tileset}
         on:change={(e) => {
-          const url = new URL(location.href);
-          const tileset = e.currentTarget.value ?? "";
-          url.searchParams.set("t", tileset);
-          location.href = url.toString();
-          //tilesetUrlTemplate = tilesets.find(t => t.name === tileset)?.url??"";
+          tileset = e.currentTarget.value ?? "";
         }}>
         <option value="-">None (ASCII)</option>
         {#each tilesets as { name, url }}
