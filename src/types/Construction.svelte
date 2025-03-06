@@ -3,8 +3,7 @@ import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 
 import { getContext } from "svelte";
-import { CddaData, i18n, singular } from "../data";
-import { singularName } from "../data";
+import { CddaData, i18n, singular, singularName } from "../data";
 import type { Construction, RequirementData } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
@@ -60,13 +59,6 @@ function terrainOrFurniture(id: string) {
     <dd>
       {#each construction.required_skills ?? [] as [id, level], i}
         <ThingLink type="skill" {id} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
-      {:else}
-        {#if construction.skill}
-          <ThingLink type="skill" id={construction.skill} /> ({construction.difficulty ??
-            0})
-        {:else}
-          <em>{t("none")}</em>
-        {/if}
       {/each}
     </dd>
     <dt>{t("Time", { _context })}</dt>

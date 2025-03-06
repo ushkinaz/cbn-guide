@@ -65,14 +65,10 @@ export type Construction = {
   type: "construction";
   id: string;
   group: string; // construction_group_id
-  required_skills?: [string /* skill_id */, number /* level */][];
+  required_skills: [string /* skill_id */, number /* level */][];
 
-  // legacy, superceded by required_skills
-  skill?: string;
-  difficulty?: number;
-
-  category?: string; // construction_category_id, default: OTHER
-  time?: string | number /* minutes */;
+  category: string; // construction_category_id, default: OTHER
+  time: string | number /* minutes */;
 
   using?:
     | string
@@ -85,18 +81,13 @@ export type Construction = {
   pre_terrain?: string; // if starts with f_, then furniture_id, else terrain_id
   post_terrain?: string; // as above
 
-  pre_flags?:
-    | string
-    | string[]
-    | { flag: string; force_terrain: boolean }
-    | { flag: string; force_terrain: boolean }[];
+  pre_flags?: string | string[];
   post_flags?: string[];
 
   byproducts?: InlineItemGroup;
 
   pre_special?: string;
   post_special?: string;
-  explain_failure?: string;
 
   vehicle_start?: boolean;
   on_display?: boolean; // default: true
