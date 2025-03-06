@@ -1208,43 +1208,57 @@ export type Resistances = Record<string /* damage_type_id */, number>;
 export type Monster = {
   id: string;
   type: "MONSTER";
-  color?: string; // default "white"
-  symbol?: string;
-  material?: string | string[];
+  color: string; // default "white"
+  symbol: string;
+  material?: string[];
   description?: Translation;
-  volume?: string | number;
+  categories?: string[];
+  phase?: "SOLID" | "LIQUID" | "GAS" | "PLASMA" | "NULL";
+  volume?: string;
+  size?: string;
   weight?: string;
+  mountable_weight_ratio?: number;
+  scent_tracked?: string[];
+  scent_ignored?: string[];
   flags?: string[];
   harvest?: string; // harvest_id
-  dissect?: string; // harvest_id
+  emit_field?: any; //todo
   bodytype?: string;
-  species?: string | string[];
+  species?: string[];
   speed?: number;
   melee_skill?: integer;
   melee_dice?: integer;
   melee_dice_sides?: integer;
   melee_cut?: integer;
   melee_damage?: DamageInstance;
+  grab_strength?: integer;
   diff?: integer;
   emit_fields?: { emit_id: string; delay: string }[];
   attack_cost?: integer; // default: 100
+  attack_effs?: object[]; // default: 100
   special_attacks?: SpecialAttack[];
-  hp?: integer;
+  hp: integer;
   regenerates?: integer;
-  dodge?: number;
-  armor?: Resistances;
-  vision_day?: number;
-  vision_night?: number;
-  default_faction?: string;
+  regeneration_modifiers?: object[]; //todo
+  regenerates_in_dark?: boolean;
+  regen_morale?: boolean;
+  dodge?: integer;
+  vision_day?: integer;
+  vision_night?: integer;
+  luminance?: integer;
+  default_faction: string;
   anger_triggers?: string[];
   placate_triggers?: string[];
   fear_triggers?: string[];
+  revert_to_itype?: string;
+  starting_ammo?: object;
   special_when_hit?: [
     "ACIDSPLASH" | "NONE" | "RETURN_FIRE" | "REVENGE_AGGRO" | "ZAPBACK",
     integer,
   ];
-  morale?: number;
+  morale?: integer;
   aggression?: number;
+  aggro_character?: boolean;
   death_function?: (
     | "ACID"
     | "AMIGARA"
@@ -1290,16 +1304,20 @@ export type Monster = {
         into_group?: string;
         into?: string;
       };
+  reproduction?: object; //TODO
+  baby_flags?: string[];
   ascii_picture?: string;
   death_drops?: InlineItemGroup; // distribution
+  on_death?: any; //TODO
 
-  // 0.G
-  armor_bash?: number;
-  armor_stab?: number;
-  armor_cut?: number;
-  armor_bullet?: number;
   armor_acid?: number;
+  armor_bash?: number;
+  armor_bullet?: number;
+  armor_cold?: number;
+  armor_cut?: number;
+  armor_electric?: number;
   armor_fire?: number;
+  armor_stab?: number;
 };
 
 export type MonsterGroup = {

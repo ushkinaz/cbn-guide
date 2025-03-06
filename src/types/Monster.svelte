@@ -63,11 +63,7 @@ function difficulty(mon: Monster): number {
   const normalizedMeleeDamage = normalizeDamageInstance(melee_damage)
   const melee_dmg_total = normalizedMeleeDamage.reduce((acc, { amount = 0, damage_multiplier = 1, constant_damage_multiplier = 1 }) => acc + amount * damage_multiplier * constant_damage_multiplier, 0)
   let armor_diff = 3
-  for (const [damageTypeId, amount] of Object.entries(monsterArmor(mon.armor ?? {}))) {
-    const damageType = data.byIdMaybe("damage_type", damageTypeId)
-    if (damageType?.mon_difficulty)
-      armor_diff += amount
-  }
+
   let difficulty = ( melee_skill + 1 ) * melee_dice * ( melee_dmg_total + melee_sides ) * 0.04 +
                ( sk_dodge + 1 ) * armor_diff * 0.04 +
                ( difficulty_base + special_attacks.length + 8 * emit_fields.length );
@@ -267,10 +263,6 @@ let harvest: Harvest | undefined = item.harvest
   ? data.byId("harvest", item.harvest)
   : undefined;
 
-let dissect: Harvest | undefined = item.dissect
-  ? data.byId("harvest", item.dissect)
-  : undefined;
-
 function showProbability(prob: number) {
   const ret = (prob * 100).toFixed(2);
   if (ret === "0.00") return "< 0.01%";
@@ -383,25 +375,21 @@ let upgrades =
         <dd>
           <dl>
             <dt>{t("Bash", { _context: "Damage Type" })}</dt>
-            <dd>{item.armor_bash ?? item.armor?.bash ?? 0}</dd>
+            <dd>{item.armor_bash ?? 0}</dd>
             <dt>{t("Cut", { _context: "Damage Type" })}</dt>
-            <dd>{item.armor_cut ?? item.armor?.cut ?? 0}</dd>
+            <dd>{item.armor_cut ?? 0}</dd>
             <dt>{t("Stab", { _context: "Damage Type" })}</dt>
             <dd>
-              {item.armor_stab ??
-                item.armor?.stab ??
-                Math.floor((item.armor_cut ?? item.armor?.cut ?? 0) * 0.8)}
+              {item.armor_stab ?? Math.floor((item.armor_cut ?? 0) * 0.8)}
             </dd>
             <dt>{t("Ballistic", { _context: "Damage Type" })}</dt>
-            <dd>{item.armor_bullet ?? item.armor?.bullet ?? 0}</dd>
+            <dd>{item.armor_bullet ?? 0}</dd>
             <dt>{t("Acid", { _context: "Damage Type" })}</dt>
             <dd>
-              {item.armor_acid ??
-                item.armor?.acid ??
-                Math.floor((item.armor_cut ?? item.armor?.cut ?? 0) * 0.5)}
+              {item.armor_acid ?? Math.floor((item.armor_cut ?? 0) * 0.5)}
             </dd>
             <dt>{t("Heat", { _context: "Damage Type" })}</dt>
-            <dd>{item.armor_fire ?? item.armor?.heat ?? 0}</dd>
+            <dd>{item.armor_fire ?? 0}</dd>
           </dl>
         </dd>
         {#if item.special_when_hit}
@@ -513,30 +501,6 @@ let upgrades =
         {#each harvest.entries as harvest_entry}
           {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
             {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
-              <li>
-                <ItemSymbol item={data.byId("item", id)} />
-                <ThingLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)
-              </li>
-            {/each}
-          {:else}
-            <li>
-              <ItemSymbol item={data.byId("item", harvest_entry.drop)} />
-              <ThingLink type="item" id={harvest_entry.drop} />
-            </li>
-          {/if}
-        {/each}
-      </ul>
-    </section>
-  {/if}
-  {#if dissect && (dissect.entries ?? []).length}
-    <section>
-      <h1>{t("Dissection Results", { _context })}</h1>
-      <ul>
-        {#each dissect.entries as harvest_entry}
-          {#if (harvest_entry.type && data.byId("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
-            {#each data
-              .flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop))
-              .sort((a, b) => b.prob - a.prob) as { id, prob }}
               <li>
                 <ItemSymbol item={data.byId("item", id)} />
                 <ThingLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)

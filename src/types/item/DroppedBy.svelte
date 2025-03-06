@@ -37,9 +37,6 @@ const harvests = data
 const harvestableFrom = data
   .byType("monster")
   .filter((m) => m.id && harvests.some((h) => h.id === m.harvest));
-const dissectableFrom = data
-  .byType("monster")
-  .filter((m) => m.id && harvests.some((h) => h.id === m.dissect));
 </script>
 
 <ItemTable
@@ -51,16 +48,6 @@ const dissectableFrom = data
   <section>
     <h1>{t("Butcher", { _context: "Obtaining" })}</h1>
     <LimitedList items={harvestableFrom} let:item={m}>
-      <ItemSymbol item={m} />
-      <ThingLink id={m.id} type="monster" />
-    </LimitedList>
-  </section>
-{/if}
-
-{#if dissectableFrom.length}
-  <section>
-    <h1>{t("Dissect", { _context: "Obtaining" })}</h1>
-    <LimitedList items={dissectableFrom} let:item={m}>
       <ItemSymbol item={m} />
       <ThingLink id={m.id} type="monster" />
     </LimitedList>
