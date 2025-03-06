@@ -494,6 +494,7 @@ function langHref(lang: string, href: string) {
         {@const build_number =
           version === "latest" ? builds[0].build_number : version}
         <select
+          disabled
           id="language_select"
           value={locale || "en"}
           on:change={(e) => {
