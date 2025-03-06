@@ -722,21 +722,21 @@ footer #credits a:hover {
 
 .select-group {
   display: flex;
-  align-items: center; /* Aligns label and select in one row */
-  gap: 8px; /* Space between label and select */
+  align-items: center;
+  gap: 8px;
+  margin: 0;
 }
 
-.select-group label {
-  font-size: 0.8rem; /* Match label font size with select */
-  white-space: nowrap;
+.select-group label,
+.select-group select {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 .select-group select {
-  flex: 1; /* Ensures equal width for selects */
+  padding: 4px 8px;
   min-width: 180px;
   max-width: 220px;
-  font-size: 0.9rem; /* Ensure it matches the label */
-  height: 2rem; /* Adjust height to make sure it aligns well */
-  padding: 2px 8px; /* Prevents select from looking too large */
 }
 </style>
