@@ -185,6 +185,7 @@ export function parseDuration(duration: string | number): number {
   const minutes = 60;
   const hours = minutes * 60;
   const days = hours * 24;
+  // noinspection PointlessArithmeticExpressionJS
   const units: [string, number][] = [
     ["turns", 1 * turns],
     ["turn", 1 * turns],
@@ -1467,19 +1468,6 @@ export class CddaData {
       ...this.#deconstructFromTerrainIndex.lookup(item_id).sort(byName),
     ];
   }
-
-  allDamageTypes(
-    sort_key:
-      | "protection_info"
-      | "bionic_info"
-      | "pet_prot_info"
-      | "melee_combat_info"
-      | "ablative_info" = "protection_info",
-  ) {
-    return this.byType("damage_info_order")
-      .sort((a, b) => (a[sort_key]?.order ?? -1) - (b[sort_key]?.order ?? -1))
-      .map((x) => this.byId("damage_type", x.id));
-  }
 }
 
 class ReverseIndex<T extends keyof SupportedTypesWithMapped> {
@@ -1489,7 +1477,9 @@ class ReverseIndex<T extends keyof SupportedTypesWithMapped> {
     private fn: (x: SupportedTypesWithMapped[T]) => string[],
   ) {}
 
+  // noinspection JSUnusedLocalSymbols
   #_index: Map<string, SupportedTypesWithMapped[T][]> | null = null;
+  // noinspection JSUnusedLocalSymbols
   get #index() {
     if (!this.#_index) {
       this.#_index = new Map();
