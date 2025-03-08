@@ -22,12 +22,19 @@ const damage = Array.isArray(item.damage)
       });
 
 function computeLoudness(item: AmmoSlot): number {
-  // https://github.com/CleverRaven/Cataclysm-DDA/blob/5612551d1e4e4babfe4ae0dab81f8d8b49991783/src/item_factory.cpp#L264-L271
+  // https://github.com/cataclysmbnteam/Cataclysm-BN/blob/1d32ac54067ac6dd004189d95aa5039f9ab1fc54/src/item_factory.cpp#L290
   if ((item.loudness ?? -1) >= 0) return item.loudness ?? 0;
-  return (
-    (item.range ?? 0) * 2 +
-    (damage.amount ?? 0) * (damage.armor_penetration ?? 0)
-  );
+  let damages: DamageUnit[] = [];
+  let aggregateLoudness = 0;
+  if (Array.isArray(item.damage)) {
+    damages = item.damage;
+  } else if (typeof item.damage === "object") {
+    damages = [item.damage as DamageUnit];
+  }
+  for (const du of damages) {
+    aggregateLoudness += (du.amount ?? 0) * 2 + (du.armor_penetration ?? 0);
+  }
+  return aggregateLoudness;
 }
 </script>
 
