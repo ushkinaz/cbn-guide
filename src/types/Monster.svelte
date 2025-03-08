@@ -12,7 +12,7 @@ import {
   singularName,
 } from "../data";
 import ThingLink from "./ThingLink.svelte";
-import type { Harvest, Monster, MonsterGroup, Resistances } from "../types";
+import type { Harvest, Monster, MonsterGroup } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
@@ -24,22 +24,6 @@ const _context = "Monster";
 export let item: Monster;
 
 let data = getContext<CddaData>("data");
-
-function monsterArmor(armor: Resistances): Record<string, number> {
-  if (armor) {
-    const ret: Record<string, number> = {};
-    for (const damageType of data.allDamageTypes()) {
-      let value = armor[damageType.id];
-      if (!value && damageType.derived_from) {
-        const [derived_from, multiplier] = damageType.derived_from;
-        value = armor[derived_from] * multiplier;
-      }
-      if (value) ret[damageType.id] = value;
-    }
-    return ret;
-  }
-  return {};
-}
 
 // prettier-ignore
 function difficulty(mon: Monster): number {
@@ -262,12 +246,6 @@ let deathDrops = data.flatDeathDrops(item.id);
 let harvest: Harvest | undefined = item.harvest
   ? data.byId("harvest", item.harvest)
   : undefined;
-
-function showProbability(prob: number) {
-  const ret = (prob * 100).toFixed(2);
-  if (ret === "0.00") return "< 0.01%";
-  return ret + "%";
-}
 
 function flattenGroup(mg: MonsterGroup): string[] {
   const results = new Set<string>();

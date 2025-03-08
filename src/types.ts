@@ -1194,8 +1194,6 @@ export type Harvest = {
   butchery_requirements?: string; // butchery_requirement id, default "default"
 };
 
-export type Resistances = Record<string /* damage_type_id */, number>;
-
 export type Monster = {
   id: string;
   type: "MONSTER";
@@ -1518,9 +1516,6 @@ export type Material = {
   name: Translation;
 
   density: number; // default 1
-
-  // 0.H
-  resist?: Resistances;
 
   // 0.G
   bash_resist?: number;
