@@ -4,15 +4,10 @@ import {
   CddaData,
   countsByCharges,
   pluralName,
-  singularName,
-  mapType,
   singular,
+  singularName,
 } from "../data";
-import type {
-  Item,
-  SupportedTypeMapped,
-  SupportedTypesWithMapped,
-} from "../types";
+import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 
 export let type: keyof SupportedTypesWithMapped;
@@ -38,10 +33,6 @@ const data = getContext<CddaData>("data");
 let item = data.byIdMaybe(type, id);
 if (item?.type === "vehicle_part" && !item.name && item.item)
   item = data.byId("item", item.item);
-
-function isItem(item: SupportedTypeMapped): item is Item {
-  return mapType(item.type) === "item";
-}
 </script>
 
 {#if count != null}

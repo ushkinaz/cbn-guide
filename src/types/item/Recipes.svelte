@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
 import type { Recipe as RecipeType } from "../../types";
+import { singularName } from "../../data";
 // Lazily compute the recipe index.
 let recipeIndex: Record<string, RecipeType[]>;
 export function getRecipeIndex(data: CddaData) {
@@ -49,7 +50,7 @@ export function getByproductsIndex(data: CddaData) {
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { CddaData, singularName } from "../../data";
+import { CddaData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import Recipe from "../Recipe.svelte";
 import ThingLink from "../ThingLink.svelte";

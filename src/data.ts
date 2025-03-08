@@ -1757,40 +1757,6 @@ async function fetchGzippedJsonForGoogleBot(url: string): Promise<any> {
   return JSON.parse(text);
 }
 
-// Sigh, the fetch spec has a bug: https://github.com/whatwg/fetch/issues/1358
-const fetchJsonWithIncorrectProgress = async (
-  url: string,
-  progress: (receivedBytes: number, totalBytes: number) => void,
-) => {
-  const res = await fetch(url, { mode: "cors" });
-  if (!res.ok)
-    throw new Error(`Error ${res.status} (${res.statusText}) fetching ${url}`);
-  if (!res.body)
-    throw new Error(`No body in response from ${url} (status ${res.status})`);
-  const reader = res.body.getReader();
-  const contentLength = +(res.headers.get("Content-Length") ?? 0);
-  let receivedBytes = 0;
-  progress(receivedBytes, contentLength);
-  const chunks: Uint8Array[] = [];
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done || !value) break;
-    chunks.push(value);
-    receivedBytes += value.length;
-    progress(receivedBytes, contentLength);
-  }
-  // Wait a tick to allow the 100% progress value to get through
-  await new Promise((resolve) => setTimeout(resolve));
-  const chunksAll = new Uint8Array(receivedBytes); // (4.1)
-  let position = 0;
-  for (const chunk of chunks) {
-    chunksAll.set(chunk, position); // (4.2)
-    position += chunk.length;
-  }
-  const result = new TextDecoder("utf-8").decode(chunksAll);
-  return JSON.parse(result);
-};
-
 const fetchJson = async (
   version: string,
   progress: (receivedBytes: number, totalBytes: number) => void,
