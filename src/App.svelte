@@ -36,7 +36,7 @@ fetch("https://raw.githubusercontent.com/mythosmod/cbn-data/main/builds.json")
   });
 
 const url = new URL(location.href);
-const version = url.searchParams.get("v") ?? "latest";
+const version = url.searchParams.get("v") ?? loadVersion() ?? "latest";
 const locale = url.searchParams.get("lang");
 data.setVersion(version, locale);
 
@@ -98,10 +98,28 @@ function saveTileset(tileset: string | null) {
   }
 }
 
+function loadVersion(): string {
+  try {
+    return localStorage.getItem("cdda-guide:version") ?? "latest";
+  } catch (e) {
+    return "latest";
+  }
+}
+
+function saveVersion(version: string | null) {
+  try {
+    if (!version) localStorage.removeItem("cdda-guide:version");
+    else localStorage.setItem("cdda-guide:version", version);
+  } catch (e) {
+    /* swallow security errors, which can happen when in incognito mode */
+  }
+}
+
 let tileset: string = loadTileset();
 let tilesetUrlTemplate: string = "";
 
 $: saveTileset(tileset);
+$: saveVersion(version);
 $: tilesetUrlTemplate = normalizeTemplate(
   tilesets.find((t) => t.name === tileset)?.url ?? "",
 );
@@ -444,10 +462,10 @@ function langHref(lang: string, href: string) {
               (version === "latest" ? builds[0].build_number : version)}
             on:change={(e) => {
               const url = new URL(location.href);
-              const buildNumber = e.currentTarget.value;
+              let buildNumber = e.currentTarget.value;
               if (buildNumber === builds?.[0].build_number)
-                url.searchParams.delete("v");
-              else url.searchParams.set("v", buildNumber);
+                buildNumber = "latest";
+              url.searchParams.set("v", buildNumber);
               location.href = url.toString();
             }}>
             <optgroup label="Stable">
