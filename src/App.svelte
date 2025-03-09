@@ -135,9 +135,9 @@ function load() {
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
-  document.title = `${singularName(it)} - `;
+  document.title = `${singularName(it)} - ` + GUIDE_NAME;
 } else if (item && !item.id && item.type) {
-  document.title = `${item.type} - {GUIDE_NAME}` + GUIDE_NAME;
+  document.title = `${item.type} - ` + GUIDE_NAME;
 } else {
   document.title = GUIDE_NAME;
 }
