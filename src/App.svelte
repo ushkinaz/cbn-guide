@@ -470,7 +470,11 @@ function langHref(lang: string, href: string) {
             }}>
             <optgroup label="Stable">
               {#each builds.filter((b) => !b.prerelease) as build}
-                <option value={build.build_number}>{build.build_number}</option>
+                <!--TODO: versions below 0.7 are not exactly supported, do a better job at dynamically finding latest supported versions.  -->
+                {#if build.build_number === "v0.7.0"}
+                  <option value={build.build_number}
+                    >{build.build_number}</option>
+                {/if}
               {/each}
             </optgroup>
             <optgroup label="Experimental">
