@@ -1,6 +1,7 @@
 # Project specific
 dev-dist
 _test/
+schema.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/jetbrains,node,yarn,svelte,macos,windows,linux,zsh,visualstudiocode,visualstudio,sublimetext
 # Edit at https://www.toptal.com/developers/gitignore?templates=jetbrains,node,yarn,svelte,macos,windows,linux,zsh,visualstudiocode,visualstudio,sublimetext
