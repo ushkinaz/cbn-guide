@@ -315,6 +315,12 @@ function langHref(lang: string, href: string) {
   u.searchParams.set("lang", lang);
   return u.toString();
 }
+function isSupportedVersion(buildNumber: string): boolean {
+  const match = /^v?(\d+)\.(\d+)(?:\.(\d+))?/.exec(buildNumber);
+  if (!match) return false;
+  const [, major, minor] = match;
+  return parseInt(major) > 0 || (parseInt(major) === 0 && parseInt(minor) >= 7);
+}
 </script>
 
 <svelte:window on:click={maybeNavigate} on:keydown={maybeFocusSearch} />
@@ -469,12 +475,8 @@ function langHref(lang: string, href: string) {
               location.href = url.toString();
             }}>
             <optgroup label="Stable">
-              {#each builds.filter((b) => !b.prerelease) as build}
-                <!--TODO: versions below 0.7 are not exactly supported, do a better job at dynamically finding latest supported versions.  -->
-                {#if build.build_number === "v0.7.0"}
-                  <option value={build.build_number}
-                    >{build.build_number}</option>
-                {/if}
+              {#each builds.filter((b) => !b.prerelease && isSupportedVersion(b.build_number)) as build}
+                <option value={build.build_number}>{build.build_number}</option>
               {/each}
             </optgroup>
             <optgroup label="Experimental">
