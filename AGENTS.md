@@ -32,30 +32,39 @@ This document provides context, conventions, and guidelines for AI agents workin
 ## Development Workflow
 
 ### Installation
+
 ```bash
 yarn install
 ```
 
 ### Running Locally
+
 To start the development server:
+
 ```bash
 yarn dev
 ```
+
 Access at `http://localhost:3000`.
 
 ### Building
+
 To build for production:
+
 ```bash
 yarn build
 ```
 
 ### Testing & Validation
+
 Run all tests and checks (lint, validate, unit tests):
+
 ```bash
 yarn test
 ```
 
 Specific checks:
+
 - **Type Check**: `yarn validate` (Runs `svelte-check` and `tsc`)
 - **Unit Tests**: `yarn vitest src` (or via `yarn test`)
 - **Linting**: `yarn lint` / `yarn lint:fix`
@@ -72,10 +81,10 @@ Specific checks:
 ## Common Tasks for Agents
 
 - **Adding a new feature**:
-    1.  Understand the data source (`src/data.ts`).
-    2.  Create/Update Svelte components.
-    3.  Add types in `src/types.ts` if needed.
-    4.  Verify with `yarn validate` and `yarn test`.
+  1.  Understand the data source (`src/data.ts`).
+  2.  Create/Update Svelte components.
+  3.  Add types in `src/types.ts` if needed.
+  4.  Verify with `yarn validate` and `yarn test`.
 - **Refactoring**:
-    - Ensure no regressions by running tests.
-    - Maintain Svelte reactivity best practices (avoid side effects in `render`, etc.).
+  - Ensure no regressions by running tests.
+  - Maintain Svelte reactivity best practices (avoid side effects in `render`, etc.).
