@@ -2430,9 +2430,9 @@ call-bound@^1.0.2, call-bound@^1.0.3:
     get-intrinsic "^1.2.6"
 
 caniuse-lite@^1.0.30001449, caniuse-lite@^1.0.30001688:
-  version "1.0.30001700"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001700.tgz#26cd429cf09b4fd4e745daf4916039c794d720f6"
-  integrity sha512-2S6XIXwaE7K7erT8dY+kLQcpa5ms63XlRkMkReXjle+kf6c5g38vyMl+Z5y8dSxOFDhcFe+nxnn261PLxBSQsQ==
+  version "1.0.30001760"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001760.tgz"
+  integrity sha512-7AAMPcueWELt1p3mi13HR/LHH0TJLT11cnwDJEs3xA4+CK/PLKeO9Kl1oru24htkyUKtkGCvAx4ohB0Ttry8Dw==
 
 cardinal@^2.1.1:
   version "2.1.1"
