@@ -420,13 +420,15 @@ function isSupportedVersion(buildNumber: string): boolean {
       </span>
     {/if}
   {:else}
-    <aside style="float:right">
-      <img
-        src={dontPanic}
-        height="200"
-        width="343"
-        alt="The words 'Don't Panic' in big friendly letters" />
-    </aside>
+    <a href="/item/towel?v={version}&t={tileset}">
+      <aside style="float:right">
+        <img
+          src={dontPanic}
+          height="200"
+          width="343"
+          alt="The words 'Don't Panic' in big friendly letters" />
+      </aside>
+    </a>
     <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
