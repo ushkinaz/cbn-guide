@@ -119,7 +119,7 @@ let tileset: string = loadTileset();
 let tilesetUrlTemplate: string = "";
 
 $: saveTileset(tileset);
-$: saveVersion(version);
+
 $: tilesetUrlTemplate = normalizeTemplate(
   tilesets.find((t) => t.name === tileset)?.url ?? "",
 );
@@ -471,6 +471,7 @@ function isSupportedVersion(buildNumber: string): boolean {
               let buildNumber = e.currentTarget.value;
               if (buildNumber === builds?.[0].build_number)
                 buildNumber = "latest";
+              saveVersion(buildNumber);
               url.searchParams.set("v", buildNumber);
               location.href = url.toString();
             }}>
