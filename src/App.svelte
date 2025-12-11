@@ -118,8 +118,6 @@ function saveVersion(version: string | null) {
 let tileset: string = loadTileset();
 let tilesetUrlTemplate: string = "";
 
-$: saveTileset(tileset);
-
 $: tilesetUrlTemplate = normalizeTemplate(
   tilesets.find((t) => t.name === tileset)?.url ?? "",
 );
@@ -506,6 +504,7 @@ function isSupportedVersion(buildNumber: string): boolean {
         value={tileset}
         on:change={(e) => {
           tileset = e.currentTarget.value ?? "";
+          saveTileset(tileset);
         }}>
         <option value="-">None (ASCII)</option>
         {#each tilesets as { name, url }}
