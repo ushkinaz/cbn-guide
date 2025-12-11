@@ -75,15 +75,21 @@ const tilesets = [
   },
 ];
 
+const DEFAULT_TILESET = "UNDEAD_PEOPLE";
+
 const normalizeTemplate = (t: string) => (t === "null" || !t ? "" : t);
 
 function loadTileset(): string {
   try {
-    const tilesetIDStorage = localStorage.getItem("cdda-guide:tileset");
-    return tilesetIDStorage ?? "-";
+    const tilesetIDStorage =
+      localStorage.getItem("cdda-guide:tileset") || DEFAULT_TILESET;
+    if (isValidTileset(tilesetIDStorage)) {
+      return tilesetIDStorage;
+    }
   } catch (e) {
-    return "-";
+    /* swallow security errors, which can happen when in incognito mode */
   }
+  return DEFAULT_TILESET;
 }
 
 function saveTileset(tileset: string | null) {
@@ -96,6 +102,13 @@ function saveTileset(tileset: string | null) {
   } catch (e) {
     /* swallow security errors, which can happen when in incognito mode */
   }
+}
+
+function isValidTileset(tilesetID: string | null) {
+  return (
+    (tilesetID && tilesetID === "-") ||
+    tilesets.some((t) => t.name === tilesetID)
+  );
 }
 
 function loadVersion(): string {
@@ -115,7 +128,10 @@ function saveVersion(version: string | null) {
   }
 }
 
-let tileset: string = loadTileset();
+const tilesetParam = url.searchParams.get("t");
+
+let tileset: string =
+  (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
 let tilesetUrlTemplate: string = "";
 
 $: tilesetUrlTemplate = normalizeTemplate(
@@ -505,6 +521,10 @@ function isSupportedVersion(buildNumber: string): boolean {
         on:change={(e) => {
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
+          const url = new URL(location.href);
+          if (tileset === "-") url.searchParams.delete("t");
+          else url.searchParams.set("t", tileset);
+          location.href = url.toString();
         }}>
         <option value="-">None (ASCII)</option>
         {#each tilesets as { name, url }}
