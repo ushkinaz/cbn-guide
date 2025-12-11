@@ -62,11 +62,6 @@ let data: CddaData = getContext("data");
 
 const _context = "Item Basic Info";
 
-function length(item: ItemBasicInfo) {
-  if (item.longest_side) return item.longest_side;
-  return `${Math.round(Math.cbrt(parseVolume(item.volume ?? "1 ml")))} cm`;
-}
-
 let qualities = (item.qualities ?? []).map(([id, level]) => ({
   quality: data.byId("tool_quality", id),
   level,
@@ -217,8 +212,6 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         <dd>{asLiters(normalizeStackVolume(item) ?? "1 ml")}</dd>
         <dt>{t("Weight")}</dt>
         <dd>{asKilograms(item.weight ?? 0)}</dd>
-        <dt>{t("Length")}</dt>
-        <dd>{length(item)}</dd>
 
         {#if ammo.length}
           <dt>{t("Ammo", { _context })}</dt>
