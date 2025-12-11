@@ -63,7 +63,7 @@ export default defineConfig({
           },
           {
             // Use saved translations if possible, update in the background.
-            urlPattern: /^https:\/\/cds.svc.transifex.net\//,
+            urlPattern: /^https:\/\/cds\.svc\.transifex\.net\//,
             handler: "StaleWhileRevalidate",
           },
         ],
