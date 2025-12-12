@@ -5,7 +5,7 @@
   X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: run-ad-auction=(), browsing-topics=(), interest-cohort=(), camera=(), microphone=(), geolocation=()
+  Permissions-Policy: run-ad-auction=(), browsing-topics=(), camera=(), microphone=(), geolocation=()
   X-Robots-Tag: all
 
 /assets/*
