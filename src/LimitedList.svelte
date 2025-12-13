@@ -12,11 +12,14 @@ export let grace = 4;
 const isTesting =
   typeof globalThis !== undefined && (globalThis as any)?.__isTesting__;
 
-let realLimit = isTesting
+$: initialLimit = isTesting
   ? Infinity
   : items.length <= limit + grace
     ? limit + grace
     : limit;
+
+let expanded = false;
+$: realLimit = expanded ? Infinity : initialLimit;
 </script>
 
 <ul>
@@ -24,14 +27,23 @@ let realLimit = isTesting
     <li><slot {item} /></li>
   {/each}
 </ul>
-{#if items.length > realLimit}
-  <button
-    class="disclosure"
-    on:click={(e) => {
-      e.preventDefault();
-      realLimit = Infinity;
-    }}
-    >{t("See all {n}...", {
-      n: Number(items.length).toLocaleString(),
-    })}</button>
+{#if items.length > initialLimit}
+  {#if !expanded}
+    <button
+      class="disclosure"
+      on:click={(e) => {
+        e.preventDefault();
+        expanded = true;
+      }}
+      >{t("See all {n}...", {
+        n: Number(items.length).toLocaleString(),
+      })}</button>
+  {:else}
+    <button
+      class="disclosure"
+      on:click={(e) => {
+        e.preventDefault();
+        expanded = false;
+      }}>{t("Show less")}</button>
+  {/if}
 {/if}
