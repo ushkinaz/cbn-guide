@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Dev server",
+      "runtimeArgs": [
+        "dev"
+      ],
+      "runtimeExecutable": "yarn",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome against localhost",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Test",
+      "runtimeArgs": [
+        "test"
+      ],
+      "runtimeExecutable": "yarn",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+    }
+  ]
+}
