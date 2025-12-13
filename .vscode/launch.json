@@ -5,13 +5,9 @@
       "type": "node",
       "request": "launch",
       "name": "Dev server",
-      "runtimeArgs": [
-        "dev"
-      ],
+      "runtimeArgs": ["dev"],
       "runtimeExecutable": "yarn",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "type": "chrome",
@@ -24,13 +20,9 @@
       "type": "node",
       "request": "launch",
       "name": "Test",
-      "runtimeArgs": [
-        "test"
-      ],
+      "runtimeArgs": ["test"],
       "runtimeExecutable": "yarn",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
