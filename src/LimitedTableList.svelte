@@ -12,34 +12,51 @@ export let grace = 4;
 const isTesting =
   typeof globalThis !== undefined && (globalThis as any)?.__isTesting__;
 
-let realLimit = isTesting
+$: initialLimit = isTesting
   ? Infinity
   : items.length <= limit + grace
     ? limit + grace
     : limit;
+
+let expanded = false;
+$: realLimit = expanded ? Infinity : initialLimit;
 </script>
 
-<table>
-  <slot name="header" />
-  <tbody>
-    {#each items.slice(0, realLimit) as item}
-      <slot name="item" {item} />
-    {/each}
-  </tbody>
-</table>
-{#if items.length > realLimit}
-  <button
-    class="disclosure"
-    on:click={(e) => {
-      e.preventDefault();
-      realLimit = Infinity;
-    }}
-    >{t("See all {n}...", {
-      n: Number(items.length).toLocaleString(),
-    })}</button>
+<div class="table-container">
+  <table>
+    <slot name="header" />
+    <tbody>
+      {#each items.slice(0, realLimit) as item}
+        <slot name="item" {item} />
+      {/each}
+    </tbody>
+  </table>
+</div>
+{#if items.length > initialLimit}
+  {#if !expanded}
+    <button
+      class="disclosure"
+      on:click={(e) => {
+        e.preventDefault();
+        expanded = true;
+      }}
+      >{t("See all {n}...", {
+        n: Number(items.length).toLocaleString(),
+      })}</button>
+  {:else}
+    <button
+      class="disclosure"
+      on:click={(e) => {
+        e.preventDefault();
+        expanded = false;
+      }}>{t("Show less")}</button>
+  {/if}
 {/if}
 
 <style>
+.table-container {
+  overflow-x: auto;
+}
 table {
   border-collapse: collapse;
 }
