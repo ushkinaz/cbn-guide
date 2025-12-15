@@ -598,7 +598,7 @@ function isSupportedVersion(buildNumber: string): boolean {
         target="_blank"
         rel="noopener noreferrer">Reddit</a>
     </span>
-    <spin class="link">
+    <span class="link">
       <img
         src={catapultIcon}
         width="16"
@@ -609,7 +609,7 @@ function isSupportedVersion(buildNumber: string): boolean {
         href="https://github.com/qrrk/Catapult"
         target="_blank"
         rel="noopener noreferrer">Catapult Launcher</a>
-    </spin>
+    </span>
   </div>
   <div id="credits">
     <InterpolatedTranslation
