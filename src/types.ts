@@ -888,8 +888,9 @@ export type Vitamin = {
   max?: number; // int, default 0
   rate: string; // duration
   vit_type: "vitamin" | "toxin" | "drug" | "counter";
-  disease?: [number, number][];
-  disease_excess?: [number, number][];
+  // The third element (if present) is ignored by the C++ parser.
+  disease?: ([number, number] | [number, number, number])[];
+  disease_excess?: ([number, number] | [number, number, number])[];
   flags?: string[];
 };
 
@@ -1060,7 +1061,10 @@ export type MapgenValue =
   | string
   | { param: string; fallback?: string }
   | { distribution: WeightedList<string> }
-  | { switch: MapgenValue; cases: Record<string, string> };
+  | { switch: MapgenValue; cases: Record<string, string> }
+  | { ter: string }
+  | { furn: string }
+  | MapgenValue[];
 
 export interface MapgenItemGroup {
   item: InlineItemGroup /* subtype collection */;
@@ -1543,7 +1547,9 @@ export type Material = {
   salvaged_into?: string; // item_id
   repaired_with?: string; // item_id
 
-  vitamins?: [string, number][];
+  // C++ parser only reads the first two elements of each inner array;
+  // any additional elements (e.g. from flattened lists in JSON) are ignored.
+  vitamins?: (string | number)[][];
 };
 
 export type MartialArtBuff = {

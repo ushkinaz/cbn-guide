@@ -482,6 +482,19 @@ function getMapgenValue(val: raw.MapgenValue): string | undefined {
 
 function getMapgenValueDistribution(val: raw.MapgenValue): Map<string, number> {
   if (typeof val === "string") return new Map([[val, 1]]);
+  if (Array.isArray(val)) {
+    const totalProb = val.length;
+    const dist = new Map<string, number>();
+    for (const v of val) {
+      const d = getMapgenValueDistribution(v);
+      for (const [id, p] of d) {
+        dist.set(id, (dist.get(id) ?? 0) + p / totalProb);
+      }
+    }
+    return dist;
+  }
+  if ("ter" in val) return new Map([[val.ter, 1]]);
+  if ("furn" in val) return new Map([[val.furn, 1]]);
   if (
     "switch" in val &&
     typeof val.switch === "object" &&
@@ -532,7 +545,9 @@ function lootForChunks(
   // TODO: See https://github.com/nornagon/cdda-guide/issues/73
   if (onStack > 4) return new Map();
   const normalizedChunks = (chunks ?? []).map((c) =>
-    Array.isArray(c) ? c : ([c, 100] as [raw.MapgenValue, number]),
+    Array.isArray(c) && c.length === 2 && typeof c[1] === "number"
+      ? (c as [raw.MapgenValue, number])
+      : ([c, 100] as [raw.MapgenValue, number]),
   );
   const loot = mergeLoot(
     normalizedChunks.map(([chunkIdValue, weight]) => {
