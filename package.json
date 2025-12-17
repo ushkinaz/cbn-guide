@@ -26,7 +26,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "validate": "svelte-check && tsc --noEmit",
-    "test": "yarn update-test-data && yarn lint && yarn validate && vitest run src",
+    "test": "yarn lint && yarn validate && vitest run src",
     "test:latest": "yarn update-test-data:latest && yarn test",
     "test:watch": "yarn update-test-data && yarn lint && yarn validate && vitest run src --watch",
     "update-test-data": "node fetch-fixtures.js",
