@@ -47,11 +47,31 @@ let description =
       : "%"})
   {/each})
 {:else if usage.type === "gps_device"}
-  {" "}({t("Range: {radius} tiles", {
+  {" "}({t("Range {radius}", {
     radius: usage.radius,
   })}
   {#if usage.additional_charges_per_tile},
     {t("cost: {cost} charges/tile", {
       cost: usage.additional_charges_per_tile,
     })}{/if})
+{:else if usage.type === "train_skill"}
+  {" "}(
+  <ThingLink type="skill" id={usage.training_skill} />
+  {" "}{t("({min}-{max})", {
+    min: usage.training_skill_min_level,
+    max: usage.training_skill_max_level,
+  })}:
+  {t("{chance}% to {xp} XP/hr", {
+    chance: usage.training_skill_xp_chance,
+    xp: Math.round(
+      usage.training_skill_xp * (60 / usage.training_skill_interval),
+    ),
+  })}
+  {#if usage.training_skill_fatigue}, {t("fatigue {fatigue}", {
+      fatigue: usage.training_skill_fatigue,
+    })}{/if})
+{:else if usage.type === "prospect_pick"}
+  {" "}({t("Range {radius}", {
+    radius: usage.radius,
+  })})
 {/if}

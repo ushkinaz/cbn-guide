@@ -249,7 +249,8 @@ export type DamageTypeId =
   | "cut"
   | "electric"
   | "heat"
-  | "stab";
+  | "stab"
+  | "dark";
 
 export type DamageUnit = {
   damage_type: DamageTypeId;
@@ -430,8 +431,8 @@ export type EngineSlot = {
 };
 
 export type WheelSlot = {
-  diameter: integer;
-  width: integer;
+  diameter?: integer;
+  width?: integer;
 };
 
 export type UseFunction =
@@ -444,6 +445,12 @@ export type UseFunction =
   | MessageUseFunction
   | RepairItemUseFunction
   | TransformUseFunction
+  | TrainSkillUseFunction
+  | MusicPlayerUseFunction
+  | ProspectPickUseFunction
+  | MulticookerUseFunction
+  | SexToyUseFunction
+  | RevealContentsUseFunction
   | {
       // TODO
       type:
@@ -487,6 +494,54 @@ export type UseFunction =
       type: "STRONG_ANTIBIOTIC";
     };
 
+export type TrainSkillUseFunction = {
+  type: "train_skill";
+  training_msg: Translation;
+  training_skill: string; // skill_id
+  training_skill_min_level: integer;
+  training_skill_xp: integer;
+  training_skill_max_level: integer;
+  training_skill_interval: integer;
+  training_skill_xp_chance: integer;
+  training_skill_fatigue?: integer;
+};
+
+export type MusicPlayerUseFunction = {
+  type: "music_player";
+  target: string;
+  msg: Translation;
+  moves: integer;
+  need_charges?: integer;
+};
+
+export type ProspectPickUseFunction = {
+  type: "prospect_pick";
+  radius?: integer;
+};
+
+export type MulticookerUseFunction = {
+  type: "multicooker";
+  do_hallu?: boolean;
+  charges_to_start?: integer;
+  charges_per_minute?: integer;
+  time_mult?: number;
+  recipes?: string[]; // recipe_id
+  subcategories?: string[];
+  temporary_tools?: string[]; // item_id
+};
+
+export type SexToyUseFunction = {
+  type: "sex_toy";
+  moves: integer;
+};
+
+export type RevealContentsUseFunction = {
+  type: "reveal_contents";
+  group: string;
+  open_message?: Translation;
+  moves?: integer;
+};
+
 type ItemActionUseFunction = {
   type: "__item_action__";
   id: string;
@@ -496,6 +551,11 @@ export type TransformUseFunction = {
   type: "transform";
   target: string;
   menu_text?: string;
+  msg?: Translation;
+  active?: boolean;
+  need_charges?: integer;
+  transform_charges?: integer;
+  need_charges_msg?: Translation;
 };
 
 export type DelayedTransformUseFunction = {
@@ -741,8 +801,8 @@ export type MapDataCommon = {
     id?: string;
     entries: {
       drop: string;
-      base_num?: number[];
-      scale_num?: number[];
+      base_num?: number | number[];
+      scale_num?: number | number[];
       max?: number;
       type?: string;
       flags?: string[];
@@ -1127,8 +1187,8 @@ export interface MapgenSet {
   y: [number, number] | number;
   repeat?: [number, number];
   chance?: number;
-  x2?: number;
-  y2?: number;
+  x2?: number | [number, number];
+  y2?: number | [number, number];
   amount?: [number, number] | number;
 }
 
