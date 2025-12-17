@@ -435,6 +435,8 @@ export type WheelSlot = {
 };
 
 export type UseFunction =
+  | CastSpellUseFunction
+  | GpsDeviceUseFunction
   | ItemActionUseFunction
   | ConsumeDrugUseFunction
   | DelayedTransformUseFunction
@@ -545,6 +547,20 @@ export type MessageUseFunction = {
   type: "message";
   name?: Translation;
   message: Translation;
+};
+
+// Used in mods (e.g. Magiclysm) and test data (e.g. fake.json)
+export type CastSpellUseFunction = {
+  type: "cast_spell";
+  spell_id: string;
+  no_fail?: boolean;
+  level?: integer;
+};
+
+export type GpsDeviceUseFunction = {
+  type: "gps_device";
+  radius?: number;
+  additional_charges_per_tile?: number;
 };
 
 export type ItemBasicInfo = {
