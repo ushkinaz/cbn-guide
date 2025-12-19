@@ -6,6 +6,7 @@ import type { ItemBasicInfo, MagazineSlot } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
 import { t } from "@transifex/native";
+import CompatibleItems from "./CompatibleItems.svelte";
 
 export let item: ItemBasicInfo & MagazineSlot;
 const data = getContext<CddaData>("data");
@@ -22,17 +23,6 @@ const compatibleGuns = data
       gun.magazines?.some(([, magList]) => magList.includes(item.id)),
   )
   .map((gun) => data.byId("item", gun.id))
-  .sort(byName);
-
-const compatibleAmmo = data
-  .byType("item")
-  .filter(
-    (ammo) =>
-      ammo.id &&
-      ammo.type === "AMMO" &&
-      ammo.ammo_type &&
-      [item.ammo_type].flat().includes(ammo.ammo_type),
-  )
   .sort(byName);
 </script>
 
@@ -79,13 +69,7 @@ const compatibleAmmo = data
     </section>
   {/if}
 
-  {#if compatibleAmmo.length}
-    <section>
-      <h1>{t("Ammo", { _context: "Item Magazine Info" })}</h1>
-      <LimitedList items={compatibleAmmo} let:item>
-        <ItemSymbol {item} />
-        <ThingLink type="item" id={item.id} />
-      </LimitedList>
-    </section>
-  {/if}
+  {#each ammo_types as at}
+    <CompatibleItems ammo_type={at} type="AMMO" />
+  {/each}
 </div>

@@ -12,7 +12,7 @@ import type {
 import ThingLink from "../ThingLink.svelte";
 import { getContext } from "svelte";
 import LimitedList from "../../LimitedList.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import CompatibleItems from "./CompatibleItems.svelte";
 
 export let item: AmmoSlot;
 const _context = "Item Ammo Info";
@@ -44,40 +44,6 @@ function computeLoudness(item: AmmoSlot): number {
     aggregateLoudness += (du.amount ?? 0) * 2 + (du.armor_penetration ?? 0);
   }
   return aggregateLoudness;
-}
-
-// Find specific magazines that use this ammo's ammo_type
-let compatibleMagazines: (ItemBasicInfo & MagazineSlot)[] = [];
-if (item.ammo_type) {
-  compatibleMagazines = data
-    .byType("item")
-    .filter(
-      (i) =>
-        i.id &&
-        i.type === "MAGAZINE" &&
-        i.ammo_type &&
-        (Array.isArray(i.ammo_type)
-          ? i.ammo_type.includes(item.ammo_type)
-          : i.ammo_type === item.ammo_type),
-    )
-    .sort(byName) as SupportedTypesWithMapped["MAGAZINE"][];
-}
-
-// Find guns that use this ammo's ammo_type
-let compatibleGuns: (ItemBasicInfo & GunSlot)[] = [];
-if (item.ammo_type) {
-  compatibleGuns = data
-    .byType("item")
-    .filter(
-      (i) =>
-        i.id &&
-        i.type === "GUN" &&
-        i.ammo &&
-        (Array.isArray(i.ammo)
-          ? i.ammo.includes(item.ammo_type)
-          : i.ammo === item.ammo_type),
-    )
-    .sort(byName) as SupportedTypesWithMapped["GUN"][];
 }
 </script>
 
@@ -122,23 +88,8 @@ if (item.ammo_type) {
 {/if}
 
 <div class="side-by-side">
-  {#if compatibleGuns.length}
-    <section>
-      <h1>{t("Weapons", { _context })}</h1>
-      <LimitedList items={compatibleGuns} let:item>
-        <ItemSymbol {item} />
-        <ThingLink type="item" id={item.id} />
-      </LimitedList>
-    </section>
-  {/if}
-
-  {#if compatibleMagazines.length}
-    <section>
-      <h1>{t("Magazines", { _context })}</h1>
-      <LimitedList items={compatibleMagazines} let:item>
-        <ItemSymbol {item} />
-        <ThingLink type="item" id={item.id} />
-      </LimitedList>
-    </section>
+  {#if item.ammo_type}
+    <CompatibleItems ammo_type={item.ammo_type} type="GUN" />
+    <CompatibleItems ammo_type={item.ammo_type} type="MAGAZINE" />
   {/if}
 </div>
