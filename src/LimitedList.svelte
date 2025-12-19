@@ -22,7 +22,7 @@ let expanded = false;
 $: realLimit = expanded ? Infinity : initialLimit;
 </script>
 
-<ul>
+<ul class="no-bullets">
   {#each items.slice(0, realLimit) as item}
     <li><slot {item} /></li>
   {/each}
