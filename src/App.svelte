@@ -82,7 +82,7 @@ const normalizeTemplate = (t: string) => (t === "null" || !t ? "" : t);
 function loadTileset(): string {
   try {
     const tilesetIDStorage =
-      localStorage.getItem("cdda-guide:tileset") || DEFAULT_TILESET;
+      localStorage.getItem("cbn-guide:tileset") || DEFAULT_TILESET;
     if (isValidTileset(tilesetIDStorage)) {
       return tilesetIDStorage;
     }
@@ -97,8 +97,8 @@ function saveTileset(tileset: string | null) {
     let sanitizedTilesetID =
       tilesets.find((t) => t.name === tileset)?.name || null;
     if (!tileset || !sanitizedTilesetID)
-      localStorage.removeItem("cdda-guide:tileset");
-    else localStorage.setItem("cdda-guide:tileset", sanitizedTilesetID);
+      localStorage.removeItem("cbn-guide:tileset");
+    else localStorage.setItem("cbn-guide:tileset", sanitizedTilesetID);
   } catch (e) {
     /* swallow security errors, which can happen when in incognito mode */
   }
@@ -113,7 +113,7 @@ function isValidTileset(tilesetID: string | null) {
 
 function loadVersion(): string {
   try {
-    return localStorage.getItem("cdda-guide:version") ?? "latest";
+    return localStorage.getItem("cbn-guide:version") ?? "latest";
   } catch (e) {
     return "latest";
   }
@@ -121,8 +121,8 @@ function loadVersion(): string {
 
 function saveVersion(version: string | null) {
   try {
-    if (!version) localStorage.removeItem("cdda-guide:version");
-    else localStorage.setItem("cdda-guide:version", version);
+    if (!version) localStorage.removeItem("cbn-guide:version");
+    else localStorage.setItem("cbn-guide:version", version);
   } catch (e) {
     /* swallow security errors, which can happen when in incognito mode */
   }

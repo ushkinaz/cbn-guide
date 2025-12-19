@@ -52,7 +52,7 @@ jobs:
         if: github.event_name == 'push' && false
         uses: cloudflare/pages-action@v1
         with:
-          accountId: 38542b72de6483a07c984652797f04e1
-          projectName: cdda-guide
+          accountId: 6f45d2e990c24e26aafd1513de56d82d
+          projectName: cbn-guide
           directory: dist
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

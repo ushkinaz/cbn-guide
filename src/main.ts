@@ -18,7 +18,7 @@ if (import.meta.env.PROD) {
     integrations: [browserTracingIntegration],
     tracesSampleRate: 0.2,
     ...(commitSHA && {
-      release: `cdda-guide@${commitSHA.slice(0, 8)}`,
+      release: `cbn-guide@${commitSHA.slice(0, 8)}`,
     }),
   });
 }
