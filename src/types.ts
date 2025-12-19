@@ -293,6 +293,8 @@ export type GunSlot = {
 
   valid_mod_locations?: [string, number][]; // [gunmod_location, count]
 
+  magazines?: [string, string[]][];
+
   modes?: (
     | [string, string, number]
     | [string, string, number, string[] | string]
@@ -628,6 +630,7 @@ export type ItemBasicInfo = {
   category?: string; // item_category_id
   color?: string;
   symbol?: string;
+  looks_like?: string;
   description?: Translation;
   qualities?: [string, number][];
   charged_qualities?: [string, number][];
@@ -636,6 +639,7 @@ export type ItemBasicInfo = {
   weight?: mass;
   longest_side?: string;
   material?: string | string[] | { type: string; portion?: integer }[]; // material_id
+  rigid?: boolean;
   flags?: string | string[];
   faults?: string[];
   container?:
@@ -1918,6 +1922,16 @@ export type ItemCategory = {
 };
 
 // Used for schema validation.
+export type MagazineSlot = {
+  ammo_type: string | string[];
+  capacity: number; //0
+  count?: number; //0
+  default_ammo?: string; //null
+  reliability?: number; //0
+  reload_time?: number; //100
+  linkage?: string;
+};
+
 export type SupportedTypes = {
   // Item types.
   AMMO: { type: "AMMO" } & ItemBasicInfo & AmmoSlot;
@@ -1931,7 +1945,7 @@ export type SupportedTypes = {
   GENERIC: { type: "GENERIC" } & ItemBasicInfo;
   GUN: { type: "GUN" } & ItemBasicInfo & GunSlot;
   GUNMOD: { type: "GUNMOD" } & ItemBasicInfo;
-  MAGAZINE: { type: "MAGAZINE" } & ItemBasicInfo;
+  MAGAZINE: { type: "MAGAZINE" } & ItemBasicInfo & MagazineSlot;
   PET_ARMOR: { type: "PET_ARMOR" } & ItemBasicInfo;
   TOOL: { type: "TOOL" } & ItemBasicInfo & ToolSlot;
   TOOLMOD: { type: "TOOLMOD" } & ItemBasicInfo;

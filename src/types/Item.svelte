@@ -15,10 +15,8 @@ import {
 } from "../data";
 import type {
   Item,
-  ItemBasicInfo,
   RequirementData,
   SupportedTypeMapped,
-  SupportedTypesWithMapped,
   UseFunction,
 } from "../types";
 import AsciiPicture from "./AsciiPicture.svelte";
@@ -37,7 +35,6 @@ import Disassembly from "./item/Disassembly.svelte";
 import DroppedBy from "./item/DroppedBy.svelte";
 import Foraged from "./item/Foraged.svelte";
 import GrownFrom from "./item/GrownFrom.svelte";
-import GunInfo from "./item/GunInfo.svelte";
 import HarvestedFrom from "./item/HarvestedFrom.svelte";
 import MilledFrom from "./item/MilledFrom.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -56,6 +53,7 @@ import UsageDescription from "./UsageDescription.svelte";
 import ColorText from "./ColorText.svelte";
 import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
+import GunInfo from "./item/GunInfo.svelte";
 
 export let item: Item;
 let data: CddaData = getContext("data");
@@ -92,14 +90,6 @@ let flags = [item.flags ?? []]
   .flat()
   .map((id) => data.byIdMaybe("json_flag", id) ?? { id });
 let faults = (item.faults ?? []).map((f) => data.byId("fault", f));
-
-//TODO: find magazines with ite
-let magazine_compatible: {
-  type: keyof SupportedTypesWithMapped;
-  id: string;
-}[] = [];
-
-let ammo: string[] = [];
 
 const uncraftRecipe = data.uncraftRecipe(item.id);
 const uncraft = uncraftRecipe
@@ -212,31 +202,6 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         <dd>{asLiters(normalizeStackVolume(item) ?? "1 ml")}</dd>
         <dt>{t("Weight")}</dt>
         <dd>{asKilograms(item.weight ?? 0)}</dd>
-
-        {#if ammo.length}
-          <dt>{t("Ammo", { _context })}</dt>
-          <dd>
-            <ul class="no-bullets">
-              {#each ammo.map((id) => ({ id })) as { id: ammo_id }}
-                <li>
-                  round(s) of
-                  <ThingLink type="ammunition_type" id={ammo_id} />
-                </li>
-              {/each}
-            </ul>
-          </dd>
-        {/if}
-
-        {#if magazine_compatible.length}
-          <dt>{t("Compatible Magazines", { _context })}</dt>
-          <dd>
-            <ul class="comma-separated">
-              {#each magazine_compatible as { type, id }}
-                <li><ThingLink {type} {id} /></li>
-              {/each}
-            </ul>
-          </dd>
-        {/if}
 
         {#if item.weapon_category?.length}
           <dt>
@@ -454,7 +419,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {#if item.type === "WHEEL"}
   <WheelInfo {item} />
 {/if}
-<MagazineInfo {item} />
+{#if item.type === "MAGAZINE"}
+  <MagazineInfo {item} />
+{/if}
 {#if item.seed_data}
   <section>
     <h1>{t("Grows Into", { _context: "Seed Data" })}</h1>
@@ -475,15 +442,13 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
     </dl>
   </section>
 {/if}
-{#if item.bashing || item.cutting || item.melee_damage || item.type === "GUN" || (item.type === "AMMO" && (item.show_stats || item.damage))}
-  <div class="side-by-side">
-    <MeleeInfo {item} />
-    {#if item.type === "GUN"}
-      <GunInfo {item} />
-    {:else if item.type === "AMMO"}
-      <AmmoInfo {item} />
-    {/if}
-  </div>
+{#if item.bashing || item.cutting || item.melee_damage || item.type === "GUN" || item.type === "AMMO"}
+  {#if item.type === "GUN"}
+    <GunInfo {item} />
+  {:else if item.type === "AMMO"}
+    <AmmoInfo {item} />
+  {/if}
+  <MeleeInfo {item} />
 {/if}
 {#if fuelForItems.length}
   <section>

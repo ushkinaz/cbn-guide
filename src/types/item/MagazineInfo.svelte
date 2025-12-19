@@ -2,25 +2,90 @@
 import LimitedList from "../../LimitedList.svelte";
 import { getContext } from "svelte";
 import { byName, CddaData } from "../../data";
-import type { ItemBasicInfo } from "../../types";
+import type { ItemBasicInfo, MagazineSlot } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
 import { t } from "@transifex/native";
 
-export let item: ItemBasicInfo;
+export let item: ItemBasicInfo & MagazineSlot;
 const data = getContext<CddaData>("data");
 
-const compatibleItems = data.compatibleItems(item);
+let ammo_types = [item.ammo_type].flat();
 
-compatibleItems.sort(byName);
+const compatibleGuns = data
+  .byType("item")
+  .filter(
+    (gun) =>
+      gun.id &&
+      gun.type === "GUN" &&
+      gun.ammo &&
+      gun.magazines?.some(([, magList]) => magList.includes(item.id)),
+  )
+  .map((gun) => data.byId("item", gun.id))
+  .sort(byName);
+
+const compatibleAmmo = data
+  .byType("item")
+  .filter(
+    (ammo) =>
+      ammo.id &&
+      ammo.type === "AMMO" &&
+      ammo.ammo_type &&
+      [item.ammo_type].flat().includes(ammo.ammo_type),
+  )
+  .sort(byName);
 </script>
 
-{#if compatibleItems.length}
-  <section>
-    <h1>{t("Compatible Items", { _context: "Item Magazine Info" })}</h1>
-    <LimitedList items={compatibleItems} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
-    </LimitedList>
-  </section>
-{/if}
+<section>
+  <h1>{t("Magazine", { _context: "Item Magazine Info" })}</h1>
+  <dl>
+    {#if ammo_types.length}
+      <dt>{t("Ammo Type")}</dt>
+      <dd>
+        <ul class="comma-separated inline" style="display: inline; padding: 0;">
+          {#each ammo_types as at}
+            <li><ThingLink type="ammunition_type" id={at} /></li>
+          {/each}
+        </ul>
+      </dd>
+    {/if}
+    {#if item.capacity}
+      <dt>{t("Capacity")}</dt>
+      <dd>{item.capacity}</dd>
+    {/if}
+    {#if item.reliability}
+      <dt>{t("Reliability")}</dt>
+      <dd>{item.reliability}</dd>
+    {/if}
+    {#if item.reload_time}
+      <dt>{t("Reload Time")}</dt>
+      <dd>{item.reload_time}</dd>
+    {/if}
+    {#if item.linkage}
+      <dt>{t("Linkage")}</dt>
+      <dd><ThingLink type="item" id={item.linkage} /></dd>
+    {/if}
+  </dl>
+</section>
+
+<div class="side-by-side">
+  {#if compatibleGuns.length}
+    <section>
+      <h1>{t("Weapons", { _context: "Item Magazine Info" })}</h1>
+      <LimitedList items={compatibleGuns} let:item>
+        <ItemSymbol {item} />
+        <ThingLink type="item" id={item.id} />
+      </LimitedList>
+    </section>
+  {/if}
+
+  {#if compatibleAmmo.length}
+    <section>
+      <h1>{t("Ammo", { _context: "Item Magazine Info" })}</h1>
+      <LimitedList items={compatibleAmmo} let:item>
+        <ItemSymbol {item} />
+        <ThingLink type="item" id={item.id} />
+      </LimitedList>
+    </section>
+  {/if}
+</div>

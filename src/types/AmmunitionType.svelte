@@ -14,18 +14,26 @@ const _context = "Ammunition Type";
 
 const data = getContext<CddaData>("data");
 
-const compatible = data.byType("item").flatMap((x) => {
-  if (x.type !== "AMMO" || !x.id) return [];
-  if (x.ammo_type === item.id) return [x];
-  return [];
-});
-compatible.sort(byName);
+const compatibleAmmo = data
+  .byType("item")
+  .filter(
+    (ammo) =>
+      ammo.id &&
+      ammo.type === "AMMO" &&
+      //TODO reuse useAmmoType
+      ammo.ammo_type === item.id,
+  )
+  .sort(byName);
 
 const usesAmmoType = (w: Item, t: AmmunitionType): boolean => {
-  if ("ammo" in w) {
+  if (w.type === "MAGAZINE" && w.ammo_type) {
+    const types = Array.isArray(w.ammo_type) ? w.ammo_type : [w.ammo_type];
+    return types.includes(t.id);
+  }
+  if ("ammo" in w && w.ammo) {
     if (Array.isArray(w.ammo)) {
       return w.ammo.includes(t.id);
-    } else if (typeof w.ammo === "string") {
+    } else {
       return w.ammo === t.id;
     }
   }
@@ -34,6 +42,7 @@ const usesAmmoType = (w: Item, t: AmmunitionType): boolean => {
 };
 
 const usedBy = data.byType("item").filter((w) => w.id && usesAmmoType(w, item));
+
 function composeSort<T>(
   fa: (a: T, b: T) => number,
   fb: (a: T, b: T) => number,
@@ -54,7 +63,7 @@ usedBy.sort(composeSort(byType, byName));
 <section>
   <h1>{t("Compatible Variants", { _context })}</h1>
   <ul>
-    {#each compatible as ammo}
+    {#each compatibleAmmo as ammo}
       <li>
         <ItemSymbol item={ammo} />
         <ThingLink type="item" id={ammo.id} />

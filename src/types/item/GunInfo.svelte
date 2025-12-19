@@ -5,6 +5,7 @@ import type { DamageUnit, GunSlot, ItemBasicInfo } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import { CddaData, singularName } from "../../data";
 import { getContext } from "svelte";
+import GunAmmoInfo from "./GunAmmoInfo.svelte";
 
 export let item: GunSlot & ItemBasicInfo;
 export const _context = "Item Gun Info";
@@ -81,3 +82,5 @@ const ranged_damage = Array.isArray(item.ranged_damage)
     <dd>{item.durability ?? 0}</dd>
   </dl>
 </section>
+
+<GunAmmoInfo {item} />
