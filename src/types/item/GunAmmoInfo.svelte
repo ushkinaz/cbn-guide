@@ -34,8 +34,8 @@ const ammoData = ammo_types.map((ammo_type) => {
 });
 </script>
 
-<div class="side-by-side">
-  {#each ammoData as { id: ammoTypeId, magazines }}
+{#each ammoData as { id: ammoTypeId, magazines }}
+  <div class="side-by-side">
     <section>
       <h1>{t("Ammunition")}</h1>
       <dl>
@@ -61,5 +61,5 @@ const ammoData = ammo_types.map((ammo_type) => {
       </dl>
     </section>
     <CompatibleItems ammo_type={ammoTypeId} type="AMMO" />
-  {/each}
-</div>
+  </div>
+{/each}
