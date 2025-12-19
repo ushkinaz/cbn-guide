@@ -9,11 +9,17 @@ This document provides context, conventions, and guidelines for AI agents workin
 The goal is to provide players with a quick reference for in-game information, mirroring the semantics from the upstream C:BN codebase and JSON data.
 When behavior or terminology is unclear, cross-reference the official Cataclysm-BN source, which may already be checked out in ../Cataclysm-BN.
 
+## Additional guidelines
+
+Use `./.agent/rules/*.md` for additional guidelines and rules.
+
+Use `./.agent/workflows/*.md` for additional workflows.
+
 ## Technology Stack
 
 - **Framework**: [Svelte 4](https://svelte.dev/)
 - **Build Tool**: [Vite](https://vitejs.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/), JS language version ES2023
 - **Testing**: [Vitest](https://vitest.dev/)
 - **Styling**: Vanilla CSS / Svelte scoped styles.
 - **Package Manager**: Yarn, do not use npm.
