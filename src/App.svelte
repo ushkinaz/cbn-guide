@@ -94,11 +94,11 @@ function loadTileset(): string {
 
 function saveTileset(tileset: string | null) {
   try {
-    let sanitizedTilesetID =
-      tilesets.find((t) => t.name === tileset)?.name || null;
-    if (!tileset || !sanitizedTilesetID)
+    if (isValidTileset(tileset)) {
+      localStorage.setItem("cbn-guide:tileset", tileset!);
+    } else {
       localStorage.removeItem("cbn-guide:tileset");
-    else localStorage.setItem("cbn-guide:tileset", sanitizedTilesetID);
+    }
   } catch (e) {
     /* swallow security errors, which can happen when in incognito mode */
   }
@@ -524,8 +524,7 @@ function isSupportedVersion(buildNumber: string): boolean {
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
           const url = new URL(location.href);
-          if (tileset === "-") url.searchParams.delete("t");
-          else url.searchParams.set("t", tileset);
+          url.searchParams.set("t", tileset);
           location.href = url.toString();
         }}>
         <option value="-">None (ASCII)</option>
