@@ -4,7 +4,7 @@ import { CddaData, data, loadProgress, mapType, singularName } from "./data";
 import { tileData } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
-import dontPanic from "./assets/dont_panic.png";
+// import dontPanic from "./assets/dont_panic.png"; // Removed for ASCII art
 import InterpolatedTranslation from "./InterpolatedTranslation.svelte";
 import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
@@ -14,6 +14,8 @@ import { GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import type { SupportedTypeMapped } from "./types";
 import throttle from "lodash/throttle";
+
+import Logo from "./Logo.svelte";
 
 let item: { type: string; id: string } | null = null;
 
@@ -420,15 +422,7 @@ function isSupportedVersion(buildNumber: string): boolean {
       </span>
     {/if}
   {:else}
-    <a href="/item/towel?v={version}&t={tileset}">
-      <aside style="float:right">
-        <img
-          src={dontPanic}
-          height="200"
-          width="343"
-          alt="The words 'Don't Panic' in big friendly letters" />
-      </aside>
-    </a>
+    <Logo />
     <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
