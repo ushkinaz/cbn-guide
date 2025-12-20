@@ -426,7 +426,7 @@ function isSupportedVersion(buildNumber: string): boolean {
     <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
-          `Your offline companion to the world of {link_cbn}. Instantly find details on recipes, loot sources, and survival info — all in one place.`,
+          `Your comprehensive offline wiki and database for {link_cbn}, updated daily from the latest game builds. Instantly find fresh details on items, crafting recipes, monsters, mutations, bionics, and loot sources.`,
           {
             hhg: "{hhg}",
             link_cbn: "{link_cbn}",
