@@ -23,7 +23,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 22.x
 
       - name: Fetch Dependencies
         run: yarn install --frozen-lockfile
@@ -33,7 +33,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" != "push" ]; then
             yarn test:latest
           else
-            yarn test
+            yarn update-test-data && yarn test
           fi
 
       - name: Build
