@@ -1,10 +1,9 @@
 <script lang="ts">
 import Thing from "./Thing.svelte";
-import { CddaData, data, loadProgress, mapType, singularName } from "./data";
+import { data, loadProgress, singularName } from "./data";
 import { tileData } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
-// import dontPanic from "./assets/dont_panic.png"; // Removed for ASCII art
 import InterpolatedTranslation from "./InterpolatedTranslation.svelte";
 import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
@@ -12,10 +11,10 @@ import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
 import { GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
-import type { SupportedTypeMapped } from "./types";
 import throttle from "lodash/throttle";
 
 import Logo from "./Logo.svelte";
+import CategoryGrid from "./CategoryGrid.svelte";
 
 let item: { type: string; id: string } | null = null;
 
@@ -279,48 +278,6 @@ function getLanguageName(code: string) {
   );
 }
 
-const randomableItemTypes = new Set([
-  "item",
-  "monster",
-  "furniture",
-  "terrain",
-  "vehicle_part",
-  "tool_quality",
-  "mutation",
-  "martial_art",
-  "json_flag",
-  "achivement",
-]);
-
-async function getRandomPage() {
-  const d = await new Promise<CddaData>((resolve) => {
-    const unsubscribe = data.subscribe((v) => {
-      if (v) {
-        resolve(v);
-        setTimeout(() => unsubscribe());
-      }
-    });
-  });
-  const items = d
-    .all()
-    .filter(
-      (x) => "id" in x && randomableItemTypes.has(mapType(x.type)),
-    ) as (SupportedTypeMapped & { id: string })[];
-  return items[(Math.random() * items.length) | 0];
-}
-
-let randomPage: string | null = null;
-
-function newRandomPage() {
-  getRandomPage().then((r) => {
-    randomPage = `${import.meta.env.BASE_URL}${mapType(r.type)}/${r.id}${
-      location.search
-    }`;
-  });
-}
-
-newRandomPage();
-
 // This is one character behind the actual search value, because
 // of the throttle, but eh, it's good enough.
 let currentHref = location.href;
@@ -473,22 +430,7 @@ function isSupportedVersion(buildNumber: string): boolean {
       {/if}
     </p>
 
-    <ul>
-      <li><a href="/item{location.search}">{t("Items")}</a></li>
-      <li><a href="/monster{location.search}">{t("Monsters")}</a></li>
-      <li><a href="/furniture{location.search}">{t("Furniture")}</a></li>
-      <li><a href="/terrain{location.search}">{t("Terrain")}</a></li>
-      <li><a href="/vehicle_part{location.search}">{t("Vehicle Parts")}</a></li>
-      <li><a href="/tool_quality{location.search}">{t("Qualities")}</a></li>
-      <li><a href="/mutation{location.search}">{t("Mutations")}</a></li>
-      <li><a href="/martial_art{location.search}">{t("Martial Arts")}</a></li>
-      <li><a href="/json_flag{location.search}">{t("Flags")}</a></li>
-      <li><a href="/achievement{location.search}">{t("Achievements")}</a></li>
-      <li>
-        <a href={randomPage} on:click={() => setTimeout(newRandomPage)}
-          >{t("Random Page")}</a>
-      </li>
-    </ul>
+    <CategoryGrid />
   {/if}
 </main>
 <footer>
