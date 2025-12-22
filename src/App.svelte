@@ -484,16 +484,11 @@ function isSupportedVersion(buildNumber: string): boolean {
       <li><a href="/martial_art{location.search}">{t("Martial Arts")}</a></li>
       <li><a href="/json_flag{location.search}">{t("Flags")}</a></li>
       <li><a href="/achievement{location.search}">{t("Achievements")}</a></li>
+      <li>
+        <a href={randomPage} on:click={() => setTimeout(newRandomPage)}
+          >{t("Random Page")}</a>
+      </li>
     </ul>
-
-    <InterpolatedTranslation
-      str={t(`Or visit a {link_random_page}.`, {
-        link_random_page: "{link_random_page}",
-      })}
-      slot0="link_random_page">
-      <a slot="0" href={randomPage} on:click={() => setTimeout(newRandomPage)}
-        >{t("random page")}</a>
-    </InterpolatedTranslation>
   {/if}
 </main>
 <footer>
