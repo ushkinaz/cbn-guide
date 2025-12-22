@@ -43,6 +43,7 @@ itemsUsingSkill.sort(byName);
 const itemsTrainingSkill = data.byType("item").filter((i) => {
   if (!i.use_action) return false;
   const actions = Array.isArray(i.use_action) ? i.use_action : [i.use_action];
+  if (!i.id) return false; //Abstract entity
   return actions.some((a) => {
     if (typeof a !== "object" || Array.isArray(a)) return false;
     return (
