@@ -8,6 +8,24 @@ export default defineConfig({
   base: "/",
   build: {
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("@sentry")) return "sentry";
+            if (id.includes("@transifex") || id.includes("gettext.js"))
+              return "i18n";
+            if (
+              id.includes("svelte") ||
+              id.includes("vite") ||
+              id.includes("workbox")
+            )
+              return "framework";
+            return "vendor";
+          }
+        },
+      },
+    },
   },
   server: {
     port: 3000,
@@ -51,14 +69,14 @@ export default defineConfig({
         navigateFallback: "index.html",
         runtimeCaching: [
           {
-            // latest/all.json updates regularly, so try the network first.
+            // the latest / all.json updates regularly, so try the network first.
             urlPattern:
               /^https:\/\/raw\.githubusercontent\.com\/.*\/latest\/all\.json$/,
             handler: "NetworkFirst",
           },
           {
-            // the other all.json files are the same forever, so if we have
-            // them from the cache they are fine.
+            // all the other all.json files are the same forever, so if we have
+            // them from the cache, they are fine.
             urlPattern:
               /^https:\/\/raw\.githubusercontent\.com\/.*\/all\.json$/,
             handler: "CacheFirst",
@@ -69,7 +87,7 @@ export default defineConfig({
             handler: "StaleWhileRevalidate",
           },
         ],
-        // Without this, a stale service worker can be alive for a long time,
+        // Without this, a stale service worker can be alive for a long time
         // and get out of date with the server.
         skipWaiting: true,
       },
