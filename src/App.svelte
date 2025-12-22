@@ -523,54 +523,54 @@ function isSupportedVersion(buildNumber: string): boolean {
   </div>
 
   <div id="links">
-    <span class="link">
+    <a
+      href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="link">
       <img
         src={bnIcon}
         width="16"
         height="16"
         alt="Cataclysm BN icon"
         class="icon" />
-      <a
-        href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
-        target="_blank"
-        rel="noopener noreferrer">Cataclysm BN</a>
-    </span>
-    <span class="link">
+      Cataclysm BN</a>
+    <a
+      href="https://discord.gg/XW7XhXuZ89"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="link">
       <img
         src={discordIcon}
         width="16"
         height="16"
         alt="Cataclysm BN icon"
         class="icon" />
-      <a
-        href="https://discord.gg/XW7XhXuZ89"
-        target="_blank"
-        rel="noopener noreferrer">Discord</a>
-    </span>
-    <span class="link">
+      Discord</a>
+    <a
+      href="https://www.reddit.com/r/cataclysmbn/"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="link">
       <img
         src={redditIcon}
         width="16"
         height="16"
         alt="Cataclysm BN icon"
         class="icon" />
-      <a
-        href="https://www.reddit.com/r/cataclysmbn/"
-        target="_blank"
-        rel="noopener noreferrer">Reddit</a>
-    </span>
-    <span class="link">
+      Reddit</a>
+    <a
+      href="https://github.com/qrrk/Catapult"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="link">
       <img
         src={catapultIcon}
         width="16"
         height="16"
         alt="Cataclysm BN icon"
         class="icon" />
-      <a
-        href="https://github.com/qrrk/Catapult"
-        target="_blank"
-        rel="noopener noreferrer">Catapult Launcher</a>
-    </span>
+      Catapult Launcher</a>
   </div>
   <div id="credits">
     <InterpolatedTranslation
@@ -691,24 +691,40 @@ footer {
 
 footer #links {
   text-decoration: none;
-  padding-top: 1em;
-  text-align: center;
+  padding-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 footer .link {
-  text-wrap: nowrap;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--cata-color-light_gray);
+  padding: 0.5em 0.75em;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
-footer #links .icon {
+footer .link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
   text-decoration: none;
-  padding-left: 1em;
-  padding-right: 0.2em;
+  color: var(--cata-color-white);
+}
+
+footer .link .icon {
+  margin-right: 0.5em;
+  display: block;
 }
 
 footer #credits {
   font-size: 0.6em;
   color: var(--cata-color-dark_gray);
   margin: 1rem auto 0;
+  text-align: center;
 }
 
 footer #credits a {
@@ -745,6 +761,5 @@ footer #credits a:hover {
 .select-group select {
   padding: 4px 8px;
   min-width: 180px;
-  max-width: 220px;
 }
 </style>
