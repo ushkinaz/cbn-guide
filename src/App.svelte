@@ -281,7 +281,7 @@ function getLanguageName(code: string) {
 // This is one character behind the actual search value, because
 // of the throttle, but eh, it's good enough.
 let currentHref = location.href;
-$: item, search, (currentHref = location.href);
+$: (item, search, (currentHref = location.href));
 
 function langHref(lang: string, href: string) {
   const u = new URL(href);
