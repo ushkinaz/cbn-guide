@@ -49,7 +49,7 @@
     "@tsconfig/svelte": "^5.0.4",
     "@types/gettext.js": "^1.0.3",
     "@types/lodash.throttle": "^4.1.9",
-    "@types/node": "^18.19.76",
+    "@types/node": "^22.19.3",
     "@types/requestidlecallback": "^0.3.7",
     "ajv": "^8.17.1",
     "braces": "^3.0.3",
