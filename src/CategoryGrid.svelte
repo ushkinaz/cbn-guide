@@ -44,7 +44,7 @@ const categories = [
   {
     label: "Mutations",
     href: "mutation",
-    id: "mon_mutant_experimental",
+    id: "mon_twisted_body",
     type: "monster",
   },
   {
@@ -126,7 +126,9 @@ newRandomPage();
     class="category-card random"
     on:click={() => setTimeout(newRandomPage)}>
     <div class="icon-wrapper">
-      <div class="random-icon">?</div>
+      <div class="scaler">
+        <ItemSymbol item={{ id: "plastic_six_dice", type: "item" }} />
+      </div>
     </div>
     <span class="label">{t("Random Page")}</span>
   </a>
@@ -186,6 +188,7 @@ newRandomPage();
   margin-bottom: 1rem;
   pointer-events: none;
   flex-shrink: 0; /* Prevent shrinking */
+  z-index: 1;
 }
 
 .scaler {
@@ -198,14 +201,8 @@ newRandomPage();
   pointer-events: none;
 }
 
-.random-icon {
-  font-size: 48px;
-  font-weight: bold;
-  color: hsl(185deg, 45%, 45%); /* Matches global link color */
-  line-height: 1;
-}
-
 .label {
+  z-index: 5;
   /* Fixed height container for 2 lines of text ensures alignment */
   height: 1rem;
   width: 100%;
