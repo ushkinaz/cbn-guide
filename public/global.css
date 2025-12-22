@@ -143,7 +143,7 @@ button.disclosure {
 	padding: 0;
 	margin: 0;
 	font-family: inherit;
-	color: hsl(122deg, 44%, 61%);
+	color: hsl(185deg, 45%, 45%);
 	cursor: pointer;
 }
 button.disclosure:hover {

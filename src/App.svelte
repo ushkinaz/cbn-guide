@@ -426,7 +426,7 @@ function isSupportedVersion(buildNumber: string): boolean {
     <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
-          `Your comprehensive offline wiki and database for {link_cbn}, updated daily from the latest game builds. Instantly find fresh details on items, crafting recipes, monsters, mutations, bionics, and loot sources.`,
+          `{hhg} is a comprehensive, offline-capable wiki for {link_cbn}.`,
           {
             hhg: "{hhg}",
             link_cbn: "{link_cbn}",
@@ -440,6 +440,37 @@ function isSupportedVersion(buildNumber: string): boolean {
           href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
           style="text-wrap: nowrap">Cataclysm: Bright Nights</a>
       </InterpolatedTranslation>
+    </p>
+    <p style="text-wrap: pretty">
+      <InterpolatedTranslation
+        str={t(
+          `Updated daily, it features full tileset support and data for both Stable and Experimental versions.
+          Instantly search and cross-reference items, crafting recipes, drop rates, mutations, and bionics.`,
+        )}>
+      </InterpolatedTranslation>
+    </p>
+    <p style="text-wrap: pretty">
+      <InterpolatedTranslation
+        str={t(
+          `The Guide stores all its data locally—just visit the page once and it will work even without internet access.`,
+        )}>
+      </InterpolatedTranslation>
+      {#if deferredPrompt}
+        <InterpolatedTranslation
+          str={t(
+            `It is also {installable_button}, so you can pop it out of your browser and use it like a regular app on your home screen or desktop.`,
+            { installable_button: "{installable_button}" },
+          )}
+          slot0="installable_button">
+          <button
+            slot="0"
+            class="disclosure"
+            on:click={(e) => {
+              e.preventDefault();
+              deferredPrompt.prompt();
+            }}>{t("installable")}</button>
+        </InterpolatedTranslation>
+      {/if}
     </p>
 
     <ul>
