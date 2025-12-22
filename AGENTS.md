@@ -4,7 +4,7 @@ This document provides context, conventions, and guidelines for AI agents workin
 
 ## Project Overview
 
-**Project Name**: hhg-bn (cbn-guide)
+**Project Name**: cbn-guide
 **Description**: Web-based guide for Cataclysm: Bright Nights that presents searchable, browsable data about game entities such as items and monsters.
 The goal is to provide players with a quick reference for in-game information, mirroring the semantics from the upstream C:BN codebase and JSON data.
 When behavior or terminology is unclear, cross-reference the official Cataclysm-BN source, which may already be checked out in ../Cataclysm-BN.
