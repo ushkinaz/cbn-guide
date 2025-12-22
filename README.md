@@ -2,13 +2,19 @@
 
 <img src="src/assets/dont_panic.png" width=300 style=float:right  alt="Don't panic"/>
 
-The Hitchhiker's Guide to the Cataclysm is a guide to the zombie survival roguelike game [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN#readme). You can search for things in the game, like items, or monsters, and find useful information about them. The data in the Guide comes directly from the JSON files in the game itself.
+**The Hitchhiker's Guide to the Cataclysm** is the essential, comprehensive companion to the zombie survival roguelike [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN#readme). 
 
-The Guide stores all its data locally and is offline-capable, so you can take it with you wherever you go. There's nothing to do to make the Guide work offline, just visit the page, and it will work even without internet access, as long as you've visited it once before. It's also installable, so you can pop it out of your browser and use it like a regular app.
-
-_More popular than the Celestial Home Care Omnibus, better selling than Fifty-three More Things to do in Zero Gravity, and more controversial than Oolon Colluphid's trilogy of philosophical blockbusters Where God Went Wrong, Some More of God's Greatest Mistakes and Who is this God Person Anyway?_
+Whether you're looking for the exact calorie count of a tainted lung or trying to figure out which bionic will stop you from being dissolved by acid, the Guide has you covered. Data is extracted directly from the game's JSON files, ensuring accuracy down to the last milliliter of mutagen.
 
 [📕 **Open the Guide**](https://cbn-guide.pages.dev/)
+
+## Features
+
+- 🛠 **Up-to-Date**: Daily updates covering both **Stable** and **Experimental** builds.
+- 🎨 **Visual Survival**: Full tileset support (UltiCa, UndeadPeople, RetroDays, and more) to see exactly what's about to bite you.
+- 🛰 **Offline First**: PWA support means it works deep in a lab or a bunker. Visit it once, and it's yours forever—even without internet.
+- 🔍 **Instant Search**: Cross-reference items, recipes, monsters, mutations, and bionics at terminal velocity.
+- 🌍 **Multilingual**: Support for a vast array of languages, localized directly from the game's community translations.
 
 ## Acknowledgements
 
