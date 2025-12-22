@@ -150,7 +150,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
         <dl>
           <dt>{t("Strength Required", { _context })}</dt>
           <dd>{item.bash?.str_min ?? 0}</dd>
-          {#if item.bash?.furn_set}
+          {#if item.bash?.furn_set && item.bash?.furn_set !== "f_null"}
             {@const becomes = item.bash.furn_set}
             <dt>{t("Becomes", { _context })}</dt>
             <dd>

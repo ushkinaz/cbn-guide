@@ -44,7 +44,7 @@ const _comment = "activity (prying, hacksawing, etc.)";
     <dt>{t("Breakable", { _context, _comment })}</dt>
     <dd>{act.prying_data.breakable ? t("Yes") : t("No")}</dd>
   {/if}
-  {#if act.result}
+  {#if act.result && act.result !== "t_null"}
     <dt>{t("Result", { _context, _comment })}</dt>
     <dd>
       <ItemSymbol item={data.byId(resultType, act.result)} />
