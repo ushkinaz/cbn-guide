@@ -9,7 +9,13 @@ import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
-import { GUIDE_NAME } from "./constants";
+import {
+  GUIDE_NAME,
+  BUILDS_URL,
+  GAME_REPO_URL,
+  getTilesetUrl,
+  TILESETS,
+} from "./constants";
 import { t } from "@transifex/native";
 import throttle from "lodash/throttle";
 
@@ -27,7 +33,7 @@ let builds:
     }[]
   | null = null;
 
-fetch("https://raw.githubusercontent.com/mythosmod/cbn-data/main/builds.json")
+fetch(BUILDS_URL)
   .then((d) => d.json())
   .then((b) => {
     builds = b;
@@ -41,40 +47,7 @@ const version = url.searchParams.get("v") ?? loadVersion() ?? "latest";
 const locale = url.searchParams.get("lang");
 data.setVersion(version, locale);
 
-const tilesets = [
-  {
-    name: "BrownLikeBears",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/BrownLikeBears",
-  },
-  {
-    name: "ChestHole16",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/ChestHole16Tileset",
-  },
-  {
-    name: "HitButton iso",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/HitButton_iso",
-  },
-  {
-    name: "Hoder's",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/HoderTileset",
-  },
-  {
-    name: "UNDEAD_PEOPLE",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/MSX%2B%2BUnDeadPeopleEdition",
-  },
-  {
-    name: "RetroDays+",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/RetroDays%2BTileset",
-  },
-  {
-    name: "RetroDays",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/RetroDaysTileset",
-  },
-  {
-    name: "UltiCa",
-    url: "https://raw.githubusercontent.com/cataclysmbnteam/Cataclysm-BN/{version}/gfx/UltimateCataclysm",
-  },
-];
+const tilesets = TILESETS;
 
 const DEFAULT_TILESET = "UNDEAD_PEOPLE";
 
@@ -136,7 +109,10 @@ let tileset: string =
 let tilesetUrlTemplate: string = "";
 
 $: tilesetUrlTemplate = normalizeTemplate(
-  tilesets.find((t) => t.name === tileset)?.url ?? "",
+  (() => {
+    const t = tilesets.find((t) => t.name === tileset);
+    return t ? getTilesetUrl("{version}", t.path) : "";
+  })(),
 );
 $: tilesetUrl = $data
   ? (tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null)
@@ -490,7 +466,7 @@ function isSupportedVersion(buildNumber: string): boolean {
           location.href = url.toString();
         }}>
         <option value="-">None (ASCII)</option>
-        {#each tilesets as { name, url }}
+        {#each tilesets as { name }}
           <option value={name}>{name}</option>
         {/each}
       </select>
@@ -524,7 +500,7 @@ function isSupportedVersion(buildNumber: string): boolean {
 
   <div id="links">
     <a
-      href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+      href="{GAME_REPO_URL}#readme"
       target="_blank"
       rel="noopener noreferrer"
       class="link">

@@ -3,6 +3,7 @@ import { t } from "@transifex/native";
 export let obj: any;
 export let buildNumber: string | undefined;
 const _context = "View/Edit on GitHub";
+import { GAME_REPO_URL } from "./constants";
 </script>
 
 <pre>{JSON.stringify(
@@ -12,13 +13,11 @@ const _context = "View/Edit on GitHub";
   )}</pre>
 {#if obj.__filename}
   <a
-    href={`https://github.com/cataclysmbnteam/Cataclysm-BN/blob/${
-      buildNumber ?? "upload"
-    }/${obj.__filename}`}
+    href={`${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`}
     target="_blank">{t("View", { _context })}</a>
   /
   <a
-    href={`https://github.dev/cataclysmbnteam/Cataclysm-BN/blob/${
+    href={`${GAME_REPO_URL.replace("github.com", "github.dev")}/blob/${
       buildNumber ?? "upload"
     }/${obj.__filename}`}
     target="_blank">{t("Edit on GitHub", { _context })}</a>

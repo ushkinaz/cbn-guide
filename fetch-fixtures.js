@@ -3,6 +3,7 @@ import { createReadStream, createWriteStream, readFileSync } from "fs";
 import * as crypto from "crypto";
 import * as url from "url";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
+import { getDataJsonUrl } from "./src/constants.js";
 
 const envHttpProxyAgent = new EnvHttpProxyAgent();
 setGlobalDispatcher(envHttpProxyAgent);
@@ -11,9 +12,7 @@ const { buildNum, sha } = JSON.parse(
   readFileSync("./_test/all.meta.json", "utf8"),
 );
 const update = process.argv[2] === "latest";
-const dataUrl = `https://raw.githubusercontent.com/mythosmod/cbn-data/main/data/${
-  update ? "latest" : buildNum
-}/all.json`;
+const dataUrl = getDataJsonUrl(update ? "latest" : buildNum, "all.json");
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 function computeSha(file) {

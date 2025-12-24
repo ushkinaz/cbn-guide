@@ -27,6 +27,7 @@ import type {
   Vehicle,
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
+import { getDataJsonUrl } from "./constants";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
   ["AMMO", "item"],
@@ -1751,10 +1752,7 @@ const fetchJson = async (
   version: string,
   progress: (receivedBytes: number, totalBytes: number) => void,
 ) => {
-  return fetchJsonWithProgress(
-    `https://raw.githubusercontent.com/mythosmod/cbn-data/main/data/${version}/all.json`,
-    progress,
-  );
+  return fetchJsonWithProgress(getDataJsonUrl(version, "all.json"), progress);
 };
 
 const fetchLocaleJson = async (
@@ -1763,7 +1761,7 @@ const fetchLocaleJson = async (
   progress: (receivedBytes: number, totalBytes: number) => void,
 ) => {
   return fetchJsonWithProgress(
-    `https://raw.githubusercontent.com/mythosmod/cbn-data/main/data/${version}/lang/${locale}.json`,
+    getDataJsonUrl(version, `lang/${locale}.json`),
     progress,
   );
 };
