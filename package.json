@@ -31,6 +31,7 @@
     "test:watch": "yarn update-test-data && yarn lint && yarn validate && vitest run src --watch",
     "update-test-data": "tsx fetch-fixtures.ts",
     "update-test-data:latest": "tsx fetch-fixtures.ts latest",
+    "generate-css": "tsx generate-color-css.ts",
     "transifex-push": "txjs-cli push dist",
     "lint": "prettier -c .",
     "lint:fix": "prettier -w .",
