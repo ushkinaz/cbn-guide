@@ -65,20 +65,23 @@ export default defineConfig({
         display: "standalone",
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png}"],
+        globPatterns: ["**/*.{js,css,html,png,woff2}"],
         navigateFallback: "index.html",
         runtimeCaching: [
           {
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/builds\.json$/,
+            handler: "NetworkFirst",
+          },
+          {
             // the latest / all.json updates regularly, so try the network first.
             urlPattern:
-              /^https:\/\/raw\.githubusercontent\.com\/.*\/latest\/all\.json$/,
+              /^https:\/\/cbn-data\.pages\.dev\/.*\/latest\/all\.json$/,
             handler: "NetworkFirst",
           },
           {
             // all the other all.json files are the same forever, so if we have
             // them from the cache, they are fine.
-            urlPattern:
-              /^https:\/\/raw\.githubusercontent\.com\/.*\/all\.json$/,
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/.*\/all\.json$/,
             handler: "CacheFirst",
           },
           {

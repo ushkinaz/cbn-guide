@@ -1,8 +1,7 @@
 export const GUIDE_NAME =
   "The Hitchhiker's Guide to the Cataclysm: Bright Nights";
 
-const CBN_DATA_BASE_URL =
-  "https://raw.githubusercontent.com/mythosmod/cbn-data/main";
+const CBN_DATA_BASE_URL = "https://cbn-data.pages.dev";
 
 export const BUILDS_URL = `${CBN_DATA_BASE_URL}/builds.json`;
 
