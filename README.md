@@ -2,7 +2,7 @@
 
 <img src="src/assets/dont_panic.png" width=300 style=float:right  alt="Don't panic"/>
 
-**The Hitchhiker's Guide to the Cataclysm** is the essential, comprehensive companion to the zombie survival roguelike [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN#readme). 
+**The Hitchhiker's Guide to the Cataclysm** is the essential, comprehensive companion to the zombie survival roguelike [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN#readme).
 
 Whether you're looking for the exact calorie count of a tainted lung or trying to figure out which bionic will stop you from being dissolved by acid, the Guide has you covered. Data is extracted directly from the game's JSON files, ensuring accuracy down to the last milliliter of mutagen.
 
