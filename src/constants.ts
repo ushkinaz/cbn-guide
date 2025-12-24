@@ -11,7 +11,7 @@ export const BUILDS_URL = `${CBN_DATA_BASE_URL}/builds.json`;
  * @param {string} path
  * @returns {string}
  */
-export const getDataJsonUrl = (version, path) =>
+export const getDataJsonUrl = (version: string, path: string): string =>
   `${CBN_DATA_BASE_URL}/data/${version}/${path}`;
 
 const GAME_REPO_PATH = "cataclysmbn/Cataclysm-BN";
@@ -23,7 +23,7 @@ export const GAME_REPO_URL = `https://github.com/${GAME_REPO_PATH}`;
  * @param {string} path
  * @returns {string}
  */
-export const getTilesetUrl = (version, path) =>
+export const getTilesetUrl = (version: string, path: string): string =>
   `https://raw.githubusercontent.com/${GAME_REPO_PATH}/${version}/gfx/${path}`;
 
 export const TILESETS = [
