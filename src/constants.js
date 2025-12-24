@@ -14,7 +14,7 @@ export const BUILDS_URL = `${CBN_DATA_BASE_URL}/builds.json`;
 export const getDataJsonUrl = (version, path) =>
   `${CBN_DATA_BASE_URL}/data/${version}/${path}`;
 
-const GAME_REPO_PATH = "cataclysmbnteam/Cataclysm-BN";
+const GAME_REPO_PATH = "cataclysmbn/Cataclysm-BN";
 
 export const GAME_REPO_URL = `https://github.com/${GAME_REPO_PATH}`;
 
