@@ -95,11 +95,36 @@ fetch(BUILDS_URL)
     } else {
       version = requestedVersion;
     }
+
+    // Verify if the version actually exists in the build list
+    const versionExists = b.some(
+      (build: any) => build.build_number === version,
+    );
+    if (!versionExists) {
+      console.warn(
+        `Version ${version} not found in builds list, falling back to stable.`,
+      );
+      version =
+        b.find((build: any) => !build.prerelease)?.build_number ??
+        b[0].build_number;
+      // Also fix the URL if we are falling back
+      const newPath =
+        import.meta.env.BASE_URL +
+        stableVersion +
+        "/" +
+        segments.slice(1).join("/") +
+        location.search;
+      history.replaceState(null, "", newPath);
+      versionSlug.set(stableVersion);
+    }
+
     data.setVersion(version, locale);
   })
   .catch((e) => {
     console.error(e);
-    // Fallback if builds list fails
+    // Fallback if builds list fails to load entirely
+    // We can't really validate against the list if we don't have it.
+    // But we can try to proceed or just default.
     version = requestedVersion;
     data.setVersion(version, locale);
   });
