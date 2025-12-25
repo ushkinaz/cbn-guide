@@ -10,10 +10,10 @@ import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
 import {
-  GUIDE_NAME,
   BUILDS_URL,
   GAME_REPO_URL,
   getTilesetUrl,
+  GUIDE_NAME,
   TILESETS,
 } from "./constants";
 import { t } from "@transifex/native";
@@ -477,7 +477,6 @@ function isSupportedVersion(buildNumber: string): boolean {
         {@const build_number =
           version === "latest" ? builds[0].build_number : version}
         <select
-          disabled
           id="language_select"
           value={locale || "en"}
           on:change={(e) => {
