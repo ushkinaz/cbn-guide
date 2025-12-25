@@ -1,8 +1,9 @@
 <script lang="ts">
 import ItemSymbol from "./types/item/ItemSymbol.svelte";
 import { t } from "@transifex/native";
-import { CddaData, data, mapType } from "./data";
+import { CddaData, data, mapType, versionSlug } from "./data";
 import type { SupportedTypeMapped } from "./types";
+import { get } from "svelte/store";
 
 const categories = [
   {
@@ -101,7 +102,8 @@ let randomPage: string | null = null;
 
 function newRandomPage() {
   getRandomPage().then((r) => {
-    randomPage = `${import.meta.env.BASE_URL}${mapType(r.type)}/${r.id}${
+    const ver = get(versionSlug);
+    randomPage = `${import.meta.env.BASE_URL}${ver}/${mapType(r.type)}/${r.id}${
       location.search
     }`;
   });
@@ -112,7 +114,10 @@ newRandomPage();
 
 <div class="category-grid">
   {#each categories as cat}
-    <a href="/{cat.href}{location.search}" class="category-card">
+    <a
+      href="{import.meta.env
+        .BASE_URL}{$versionSlug}/{cat.href}{location.search}"
+      class="category-card">
       <div class="icon-wrapper">
         <div class="scaler">
           <ItemSymbol item={{ id: cat.id, type: cat.type }} />

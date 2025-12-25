@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
 import { getContext } from "svelte";
-import { CddaData, i18n, singularName } from "../../data";
+import { CddaData, i18n, singularName, versionSlug } from "../../data";
 
 import type { Recipe, RequirementData } from "../../types";
 import ThingLink from "../ThingLink.svelte";
@@ -51,7 +51,8 @@ let { tools, qualities } =
             {#if count <= 0}
               {#if data.craftingPseudoItem(toolId)}
                 <a
-                  href="/furniture/{data.craftingPseudoItem(
+                  href="{import.meta.env
+                    .BASE_URL}{$versionSlug}/furniture/{data.craftingPseudoItem(
                     toolId,
                   )}{location.search}"
                   >{singularName(data.byId("item", toolId))}</a>
@@ -76,7 +77,7 @@ let { tools, qualities } =
                   {#if data.craftingPseudoItem(toolId)}
                     <a
                       href="{import.meta.env
-                        .BASE_URL}furniture/{data.craftingPseudoItem(
+                        .BASE_URL}{$versionSlug}/furniture/{data.craftingPseudoItem(
                         toolId,
                       )}{location.search}"
                       >{singularName(data.byId("item", toolId))}</a>

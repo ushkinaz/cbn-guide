@@ -29,6 +29,8 @@ import type {
 import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
 
+export const versionSlug = writable<string>("stable");
+
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
   ["AMMO", "item"],
   ["GUN", "item"],

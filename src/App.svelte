@@ -1,6 +1,6 @@
 <script lang="ts">
 import Thing from "./Thing.svelte";
-import { data, loadProgress, singularName } from "./data";
+import { data, loadProgress, singularName, versionSlug } from "./data";
 import { tileData } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
@@ -34,21 +34,63 @@ let builds:
   | null = null;
 
 const url = new URL(location.href);
-const versionParam = url.searchParams.get("v") ?? loadVersion() ?? "stable";
-// Map legacy "latest" to "nightly"
-const requestedVersion = versionParam === "latest" ? "nightly" : versionParam;
-let version = "stable"; // Default for initial reactive state
+
+// helper to get path segments relative to BASE_URL
+function getPathSegments(): string[] {
+  const path = location.pathname.slice(import.meta.env.BASE_URL.length - 1);
+  // remove the leading slash if present
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  if (!cleanPath) return [];
+  return cleanPath.split("/").map(decodeURIComponent);
+}
+
+const stableVersion = "stable";
+const nightlyVersion = "nightly";
+const latestVersion = "latest";
+
+function isValidVersionSlug(s: string): boolean {
+  if (!s) return false;
+  if ([stableVersion, nightlyVersion, latestVersion].includes(s)) return true;
+  return /^\d/.test(s) || /^v\d/.test(s);
+}
+
+// A valid version might be 'stable', 'nightly', or a build number.
+let segments = getPathSegments();
+let versionParam = segments[0];
+
+// If the first segment looks like a version, use it.
+// Otherwise, assume the user omitted the version and wants stable.
+if (versionParam && !isValidVersionSlug(versionParam)) {
+  // Redirect to /stable/...
+  const newPath =
+    import.meta.env.BASE_URL + "stable/" + segments.join("/") + location.search;
+  location.replace(newPath);
+  // Stop processing (the reload will happen momentarily)
+  versionParam = stableVersion; // failsafe
+} else {
+  versionParam = versionParam || stableVersion;
+}
+
+function getCurrentVersionSlug(): string {
+  const s = getPathSegments();
+  return s[0] || stableVersion;
+}
+
+// Map "latest" to "nightly"
+const requestedVersion =
+  versionParam === latestVersion ? nightlyVersion : versionParam;
+let version = stableVersion; // Default for initial reactive state
 
 fetch(BUILDS_URL)
   .then((d) => d.json())
   .then((b) => {
     builds = b;
     // Resolve version aliases
-    if (requestedVersion === "stable") {
+    if (requestedVersion === stableVersion) {
       version =
         b.find((build: any) => !build.prerelease)?.build_number ??
         b[0].build_number;
-    } else if (requestedVersion === "nightly") {
+    } else if (requestedVersion === nightlyVersion) {
       version = b[0].build_number;
     } else {
       version = requestedVersion;
@@ -102,25 +144,6 @@ function isValidTileset(tilesetID: string | null) {
   );
 }
 
-function loadVersion(): string {
-  try {
-    const v = localStorage.getItem("cbn-guide:version");
-    if (v === "latest") return "nightly";
-    return v ?? "stable";
-  } catch (e) {
-    return "stable";
-  }
-}
-
-function saveVersion(version: string | null) {
-  try {
-    if (!version) localStorage.removeItem("cbn-guide:version");
-    else localStorage.setItem("cbn-guide:version", version);
-  } catch (e) {
-    /* swallow security errors, which can happen when in incognito mode */
-  }
-}
-
 const tilesetParam = url.searchParams.get("t");
 
 let tileset: string =
@@ -143,22 +166,35 @@ function decodeQueryParam(p: string) {
 }
 
 function load() {
-  const path = location.pathname.slice(import.meta.env.BASE_URL.length - 1);
-  let m: RegExpExecArray | null;
-  if ((m = /^\/([^\/]+)(?:\/(.+))?$/.exec(path))) {
-    const [, type, id] = m;
-    if (type === "search") {
-      item = null;
-      search = decodeQueryParam(id ?? "");
-    } else {
-      item = { type, id: id ? decodeURIComponent(id) : "" };
-    }
+  const segs = getPathSegments();
+  // Expected structure: [version, type, id] or [version, 'search', query]
+  // or just [version]
 
-    window.scrollTo(0, 0);
+  // Set version slug
+  const newVersionParam = getCurrentVersionSlug();
+  versionSlug.set(newVersionParam);
+
+  // If we simply have a version, we might want to reload data if it changed?
+  // The initial fetch above handles the initial load.
+  // If navigation happens between versions, we might need to trigger data reload.
+  // However, for now, let's just handle parsing.
+
+  // We assume the first segment is the version.
+  const type = segs[1];
+  const id = segs[2];
+
+  if (type === "search") {
+    item = null;
+    search = id ? decodeQueryParam(id) : "";
+  } else if (type) {
+    item = { type, id: id ? decodeQueryParam(id) : "" };
   } else {
+    // Home page
     item = null;
     search = "";
   }
+
+  window.scrollTo(0, 0);
 }
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
@@ -183,22 +219,17 @@ const replaceState = throttle
   : history.replaceState.bind(history);
 
 const clearItem = () => {
-  if (item)
-    history.pushState(
-      null,
-      "",
-      import.meta.env.BASE_URL +
-        (search ? "search/" + encodeURIComponent(search) : "") +
-        location.search,
-    );
-  else
-    replaceState(
-      null,
-      "",
-      import.meta.env.BASE_URL +
-        (search ? "search/" + encodeURIComponent(search) : "") +
-        location.search,
-    );
+  // The current version is used in the path
+  const currentVer = getCurrentVersionSlug();
+
+  // Construct a new path
+  let newPath = import.meta.env.BASE_URL + currentVer + "/";
+  if (search) {
+    newPath += "search/" + encodeURIComponent(search);
+  }
+
+  if (item) history.pushState(null, "", newPath + location.search);
+  else replaceState(null, "", newPath + location.search);
   item = null;
 };
 
@@ -438,25 +469,29 @@ function isSupportedVersion(buildNumber: string): boolean {
             id="version_select"
             value={requestedVersion}
             on:change={(e) => {
-              const url = new URL(location.href);
-              let v = e.currentTarget.value;
-              saveVersion(v);
-              url.searchParams.set("v", v);
-              location.href = url.toString();
+              const v = e.currentTarget.value;
+              // Redirect to a new version
+              const segs = getPathSegments();
+              segs[0] = v;
+              // If we were on the home page (segs length 1 or 0), just go to version root
+              if (segs.length === 0) segs.push(v);
+
+              const newPath = import.meta.env.BASE_URL + segs.join("/");
+              location.href = newPath + location.search;
             }}>
-            <optgroup label="Latest">
-              <option value="stable"
+            <optgroup label={t("Branch")}>
+              <option value={stableVersion}
                 >Stable ({builds.find((b) => !b.prerelease)?.build_number ??
                   "N/A"})</option>
-              <option value="nightly"
+              <option value={nightlyVersion}
                 >Nightly ({builds[0].build_number})</option>
             </optgroup>
-            <optgroup label="Stable">
+            <optgroup label={t("Stable")}>
               {#each builds.filter((b) => !b.prerelease && isSupportedVersion(b.build_number)) as build}
                 <option value={build.build_number}>{build.build_number}</option>
               {/each}
             </optgroup>
-            <optgroup label="Nightly">
+            <optgroup label={t("Nightly")}>
               {#each builds.filter((b) => b.prerelease) as build}
                 <option value={build.build_number}>{build.build_number}</option>
               {/each}
