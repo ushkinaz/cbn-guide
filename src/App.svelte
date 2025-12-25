@@ -17,7 +17,7 @@ import {
   TILESETS,
 } from "./constants";
 import { t } from "@transifex/native";
-import throttle from "lodash/throttle";
+import debounce from "lodash/debounce";
 
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
@@ -236,14 +236,14 @@ let search: string = "";
 load();
 
 // Throttle replaceState to avoid browser warnings.
-// |throttle| isn't defined when running tests for some reason.
-const replaceState = throttle
-  ? throttle(history.replaceState.bind(history), 100, {
+// |debounce| isn't defined when running tests for some reason.
+const replaceState = debounce
+  ? debounce(history.replaceState.bind(history), 400, {
       trailing: true,
     })
   : history.replaceState.bind(history);
 
-const clearItem = () => {
+const handleSearchInput = () => {
   // The current version is used in the path
   const currentVer = getCurrentVersionSlug();
 
@@ -410,7 +410,7 @@ function isSupportedVersion(buildNumber: string): boolean {
           })}
           type="search"
           bind:value={search}
-          on:input={clearItem}
+          on:input={handleSearchInput}
           id="search" />
       </form>
     </div>
