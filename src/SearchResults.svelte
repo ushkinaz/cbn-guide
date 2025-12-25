@@ -1,6 +1,6 @@
 <script lang="ts">
-import { mapType, singularName, loadProgress, i18n, omsName } from "./data";
 import type { CddaData } from "./data";
+import { i18n, loadProgress, mapType, omsName, singularName } from "./data";
 import * as fuzzysort from "fuzzysort";
 import ItemSymbol from "./types/item/ItemSymbol.svelte";
 import type {
@@ -69,7 +69,7 @@ function searchableName(data: CddaData, item: SupportedTypeMapped) {
   }
   if (item?.type === "vehicle_part" && !item.name && item.item)
     item = data.byId("item", item.item);
-  if (i18n.getLocale().startsWith("zh-"))
+  if (i18n.getLocale().startsWith("zh_"))
     return singularName(item) + " " + singularName(item, "pinyin");
   return singularName(item);
 }
