@@ -1,5 +1,5 @@
 /_test/
-/agent/
+/.agent/
 /dist/
 /dev-dist/
 /generate-color-css.js
