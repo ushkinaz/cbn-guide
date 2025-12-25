@@ -390,7 +390,7 @@ function isSupportedVersion(buildNumber: string): boolean {
       {#each [...(currentBuild.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
         <link
           rel="alternate"
-          hreflang={lang}
+          hreflang={lang.replace("_", "-")}
           href={getCleanUrl($versionSlug, item, search, lang)} />
       {/each}
     {/if}
