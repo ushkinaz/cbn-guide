@@ -65,24 +65,61 @@ export default defineConfig({
         display: "standalone",
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,woff2}"],
+        globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: "index.html",
+
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/cbn-data\.pages\.dev\/builds\.json$/,
-            handler: "NetworkFirst",
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "builds-cache",
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 60 * 60 * 12, // 12 hours, matches schedule of data puller
+              },
+            },
           },
           {
-            // the latest / all.json updates regularly, so try the network first.
+            // the latest / all.json updates regularly
             urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/.*\/latest\/all\.json$/,
-            handler: "NetworkFirst",
+              /^https:\/\/cbn-data\.pages\.dev\/data\/latest\/all\.json$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "latest-cache",
+              expiration: {
+                maxEntries: 1,
+                maxAgeSeconds: 60 * 60 * 12, // 12 hours, matches schedule of data puller
+              },
+            },
+          },
+          // all the other all.json files are the same forever, so if we have
+          {
+            // Stable releases
+            urlPattern:
+              /^https:\/\/cbn-data\.pages\.dev\/data\/v.*\/all\.json$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "stable-data-cache",
+              expiration: {
+                maxEntries: 3,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 1 month
+              },
+            },
           },
           {
-            // all the other all.json files are the same forever, so if we have
-            // them from the cache, they are fine.
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/.*\/all\.json$/,
+            // Nightly releases
+            urlPattern:
+              /^https:\/\/cbn-data\.pages\.dev\/data\/20.*\/all\.json$/,
             handler: "CacheFirst",
+            options: {
+              cacheName: "nightly-data-cache",
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+              },
+            },
           },
           {
             // Use saved translations if possible, update in the background.
