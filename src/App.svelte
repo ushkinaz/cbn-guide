@@ -311,9 +311,41 @@ $: (item, search, (currentHref = location.href));
 
 function langHref(lang: string, href: string) {
   const u = new URL(href);
-  u.searchParams.set("lang", lang);
+  if (lang === "en") u.searchParams.delete("lang");
+  else u.searchParams.set("lang", lang);
   return u.toString();
 }
+
+function getCleanUrl(
+  _ver: string,
+  _item: typeof item,
+  _search: string,
+  _locale: string | null,
+): string {
+  let path = import.meta.env.BASE_URL + _ver + "/";
+
+  if (_item) {
+    if (_item.type && _item.id) {
+      path +=
+        encodeURIComponent(_item.type) + "/" + encodeURIComponent(_item.id);
+    } else if (_item.type) {
+      path += encodeURIComponent(_item.type);
+    }
+  } else if (_search) {
+    path += "search/" + encodeURIComponent(_search);
+  }
+
+  const u = new URL(path, location.origin);
+
+  if (_locale && _locale !== "en") {
+    u.searchParams.set("lang", _locale);
+  }
+
+  return u.toString();
+}
+
+$: canonicalUrl = getCleanUrl(stableVersion, item, search, locale);
+
 function isSupportedVersion(buildNumber: string): boolean {
   const match = /^v?(\d+)\.(\d+)(?:\.(\d+))?/.exec(buildNumber);
   if (!match) return false;
@@ -326,13 +358,17 @@ function isSupportedVersion(buildNumber: string): boolean {
 
 <svelte:head>
   {#if builds}
-    {@const build_number = version}
-    {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
-      <link
-        rel="alternate"
-        hreflang={lang}
-        href={langHref(lang, currentHref)} />
-    {/each}
+    {@const stableBuild = builds.find((b) => !b.prerelease) ?? builds[0]}
+    <link rel="canonical" href={canonicalUrl} />
+    {@const currentBuild = builds.find((b) => b.build_number === version)}
+    {#if currentBuild}
+      {#each [...(currentBuild.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
+        <link
+          rel="alternate"
+          hreflang={lang}
+          href={getCleanUrl($versionSlug, item, search, lang)} />
+      {/each}
+    {/if}
   {/if}
 </svelte:head>
 
