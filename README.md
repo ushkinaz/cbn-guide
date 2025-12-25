@@ -10,7 +10,7 @@ Whether you're looking for the exact calorie count of a tainted lung or trying t
 
 ## Features
 
-- 🛠 **Up-to-Date**: Daily updates covering both **Stable** and **Experimental** builds.
+- 🛠 **Up-to-Date**: Daily updates covering both **Stable** and **Nightly** builds.
 - 🎨 **Visual Survival**: Full tileset support (UltiCa, UndeadPeople, RetroDays, and more) to see exactly what's about to bite you.
 - 🛰 **Offline First**: PWA support means it works deep in a lab or a bunker. Visit it once, and it's yours forever—even without internet.
 - 🔍 **Instant Search**: Cross-reference items, recipes, monsters, mutations, and bionics at terminal velocity.

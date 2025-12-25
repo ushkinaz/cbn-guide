@@ -33,19 +33,36 @@ let builds:
     }[]
   | null = null;
 
+const url = new URL(location.href);
+const versionParam = url.searchParams.get("v") ?? loadVersion() ?? "stable";
+// Map legacy "latest" to "nightly"
+const requestedVersion = versionParam === "latest" ? "nightly" : versionParam;
+let version = "stable"; // Default for initial reactive state
+
 fetch(BUILDS_URL)
   .then((d) => d.json())
   .then((b) => {
     builds = b;
+    // Resolve version aliases
+    if (requestedVersion === "stable") {
+      version =
+        b.find((build: any) => !build.prerelease)?.build_number ??
+        b[0].build_number;
+    } else if (requestedVersion === "nightly") {
+      version = b[0].build_number;
+    } else {
+      version = requestedVersion;
+    }
+    data.setVersion(version, locale);
   })
   .catch((e) => {
     console.error(e);
+    // Fallback if builds list fails
+    version = requestedVersion;
+    data.setVersion(version, locale);
   });
 
-const url = new URL(location.href);
-const version = url.searchParams.get("v") ?? loadVersion() ?? "latest";
 const locale = url.searchParams.get("lang");
-data.setVersion(version, locale);
 
 const tilesets = TILESETS;
 
@@ -87,9 +104,11 @@ function isValidTileset(tilesetID: string | null) {
 
 function loadVersion(): string {
   try {
-    return localStorage.getItem("cbn-guide:version") ?? "latest";
+    const v = localStorage.getItem("cbn-guide:version");
+    if (v === "latest") return "nightly";
+    return v ?? "stable";
   } catch (e) {
-    return "latest";
+    return "stable";
   }
 }
 
@@ -276,8 +295,7 @@ function isSupportedVersion(buildNumber: string): boolean {
 
 <svelte:head>
   {#if builds}
-    {@const build_number =
-      version === "latest" ? builds[0].build_number : version}
+    {@const build_number = version}
     {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
       <link
         rel="alternate"
@@ -377,7 +395,7 @@ function isSupportedVersion(buildNumber: string): boolean {
     <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
-          `Updated daily, it features full tileset support and data for both Stable and Experimental versions.
+          `Updated daily, it features full tileset support and data for both Stable and Nightly versions.
           Instantly search and cross-reference items, crafting recipes, drop rates, mutations, and bionics.`,
         )}>
       </InterpolatedTranslation>
@@ -418,28 +436,29 @@ function isSupportedVersion(buildNumber: string): boolean {
           <!-- svelte-ignore a11y-no-onchange -->
           <select
             id="version_select"
-            value={$data?.build_number ??
-              (version === "latest" ? builds[0].build_number : version)}
+            value={requestedVersion}
             on:change={(e) => {
               const url = new URL(location.href);
-              let buildNumber = e.currentTarget.value;
-              if (buildNumber === builds?.[0].build_number)
-                buildNumber = "latest";
-              saveVersion(buildNumber);
-              url.searchParams.set("v", buildNumber);
+              let v = e.currentTarget.value;
+              saveVersion(v);
+              url.searchParams.set("v", v);
               location.href = url.toString();
             }}>
+            <optgroup label="Latest">
+              <option value="stable"
+                >Stable ({builds.find((b) => !b.prerelease)?.build_number ??
+                  "N/A"})</option>
+              <option value="nightly"
+                >Nightly ({builds[0].build_number})</option>
+            </optgroup>
             <optgroup label="Stable">
               {#each builds.filter((b) => !b.prerelease && isSupportedVersion(b.build_number)) as build}
                 <option value={build.build_number}>{build.build_number}</option>
               {/each}
             </optgroup>
-            <optgroup label="Experimental">
-              {#each builds.filter((b) => b.prerelease) as build, i}
-                <option value={build.build_number}
-                  >{build.build_number}
-                  {#if i === 0}&nbsp;(latest){/if}
-                </option>
+            <optgroup label="Nightly">
+              {#each builds.filter((b) => b.prerelease) as build}
+                <option value={build.build_number}>{build.build_number}</option>
               {/each}
             </optgroup>
           </select>
@@ -474,8 +493,7 @@ function isSupportedVersion(buildNumber: string): boolean {
     <div class="select-group">
       <label for="language_select">{t("Language:")}</label>
       {#if builds}
-        {@const build_number =
-          version === "latest" ? builds[0].build_number : version}
+        {@const build_number = version}
         <select
           id="language_select"
           value={locale || "en"}
