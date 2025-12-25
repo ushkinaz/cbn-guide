@@ -334,13 +334,6 @@ function getLanguageName(code: string) {
 let currentHref = location.href;
 $: (item, search, (currentHref = location.href));
 
-function langHref(lang: string, href: string) {
-  const u = new URL(href);
-  if (lang === "en") u.searchParams.delete("lang");
-  else u.searchParams.set("lang", lang);
-  return u.toString();
-}
-
 function getCleanUrl(
   _ver: string,
   _item: typeof item,
@@ -383,7 +376,6 @@ function isSupportedVersion(buildNumber: string): boolean {
 
 <svelte:head>
   {#if builds}
-    {@const stableBuild = builds.find((b) => !b.prerelease) ?? builds[0]}
     <link rel="canonical" href={canonicalUrl} />
     {@const currentBuild = builds.find((b) => b.build_number === version)}
     {#if currentBuild}
