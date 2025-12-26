@@ -32,6 +32,7 @@
     "update-test-data": "tsx fetch-fixtures.ts",
     "update-test-data:latest": "tsx fetch-fixtures.ts latest",
     "generate-css": "tsx generate-color-css.ts",
+    "icons:items": "tsx scripts/download-item-icons.ts",
     "transifex-push": "txjs-cli push dist",
     "lint": "prettier -c .",
     "lint:fix": "prettier -w .",
@@ -64,7 +65,8 @@
     "vite-plugin-environment": "^1.1.3",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.16",
-    "workbox-build": "^7.3.0"
+    "workbox-build": "^7.3.0",
+    "sharp": "^0.33.5"
   },
   "dependencies": {
     "@fontsource/unifont": "^5.2.5",
