@@ -133,7 +133,8 @@ const locale = url.searchParams.get("lang");
 
 const tilesets = TILESETS;
 
-const DEFAULT_TILESET = "UNDEAD_PEOPLE";
+const ASCII_TILESET = "-";
+const DEFAULT_TILESET = ASCII_TILESET;
 
 const normalizeTemplate = (t: string) => (t === "null" || !t ? "" : t);
 
@@ -164,7 +165,7 @@ function saveTileset(tileset: string | null) {
 
 function isValidTileset(tilesetID: string | null) {
   return (
-    (tilesetID && tilesetID === "-") ||
+    (tilesetID && tilesetID === ASCII_TILESET) ||
     tilesets.some((t) => t.name === tilesetID)
   );
 }
@@ -322,9 +323,9 @@ function getLanguageName(code: string) {
       zh_TW: "中文 (台灣)",
     }[code] ??
     (Intl?.DisplayNames
-      ? new Intl.DisplayNames([code.replace(/_/, "-")], {
+      ? new Intl.DisplayNames([code.replace(/_/, ASCII_TILESET)], {
           type: "language",
-        }).of(code.replace(/_/, "-"))
+        }).of(code.replace(/_/, ASCII_TILESET))
       : code)
   );
 }
@@ -574,7 +575,7 @@ function isSupportedVersion(buildNumber: string): boolean {
           url.searchParams.set("t", tileset);
           location.href = url.toString();
         }}>
-        <option value="-">None (ASCII)</option>
+        <option value={ASCII_TILESET}>None (ASCII)</option>
         {#each tilesets as { name }}
           <option value={name}>{name}</option>
         {/each}
