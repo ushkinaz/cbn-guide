@@ -537,7 +537,8 @@ function isSupportedVersion(buildNumber: string): boolean {
                 >Stable ({builds.find((b) => !b.prerelease)?.build_number ??
                   "N/A"})</option>
               <option value={nightlyVersion}
-                >Nightly ({builds[0].build_number})</option>
+                >Nightly ({builds.find((b) => b.prerelease)?.build_number ??
+                  "N/A"})</option>
             </optgroup>
             <optgroup label={t("Stable")}>
               {#each builds.filter((b) => !b.prerelease && isSupportedVersion(b.build_number)) as build}
