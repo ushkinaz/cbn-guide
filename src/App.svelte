@@ -368,6 +368,7 @@ function isSupportedVersion(buildNumber: string): boolean {
   const match = /^v?(\d+)\.(\d+)(?:\.(\d+))?/.exec(buildNumber);
   if (!match) return false;
   const [, major, minor] = match;
+  //0.7.0 or later
   return parseInt(major) > 0 || (parseInt(major) === 0 && parseInt(minor) >= 7);
 }
 </script>
