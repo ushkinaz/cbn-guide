@@ -1,5 +1,26 @@
 <script lang="ts">
-import ItemSymbol from "./types/item/ItemSymbol.svelte";
+//https://game-icons.net/1x1/skoll/achievement.html
+import achievementsIcon from "./assets/category-icons/achievements.svg";
+//https://game-icons.net/1x1/delapouite/price-tag.html
+import flagsIcon from "./assets/category-icons/flags.svg";
+//https://game-icons.net/1x1/delapouite/sofa.html
+import furnitureIcon from "./assets/category-icons/furniture.svg";
+//https://game-icons.net/1x1/john-colburn/pistol-gun.html
+import itemsIcon from "./assets/category-icons/items.svg";
+//https://game-icons.net/1x1/john-colburn/pistol-gun.html
+import martialArtsIcon from "./assets/category-icons/martial-arts.svg";
+//https://game-icons.net/1x1/delapouite/shambling-zombie.html
+import monstersIcon from "./assets/category-icons/monsters.svg";
+//https://game-icons.net/1x1/lorc/dna1.html
+import mutationsIcon from "./assets/category-icons/mutations.svg";
+//https://game-icons.net/1x1/delapouite/stake-hammer.html
+import qualitiesIcon from "./assets/category-icons/qualities.svg";
+//https://game-icons.net/1x1/delapouite/rolling-dices.html
+import randomIcon from "./assets/category-icons/random.svg";
+//https://game-icons.net/1x1/delapouite/high-grass.html
+import terrainIcon from "./assets/category-icons/terrain.svg";
+//https://game-icons.net/1x1/delapouite/car-wheel.html
+import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import { t } from "@transifex/native";
 import { CddaData, data, mapType, versionSlug } from "./data";
 import type { SupportedTypeMapped } from "./types";
@@ -9,62 +30,52 @@ const categories = [
   {
     label: "Items",
     href: "item",
-    id: "glock_17",
-    type: "item",
+    icon: itemsIcon,
   },
   {
     label: "Monsters",
     href: "monster",
-    id: "mon_zombie",
-    type: "monster",
+    icon: monstersIcon,
   },
   {
     label: "Furniture",
     href: "furniture",
-    id: "f_locker",
-    type: "furniture",
+    icon: furnitureIcon,
   },
   {
     label: "Terrain",
     href: "terrain",
-    id: "t_shrub_strawberry",
-    type: "terrain",
+    icon: terrainIcon,
   },
   {
     label: "Vehicle Parts",
     href: "vehicle_part",
-    id: "wheel",
-    type: "vehicle_part",
+    icon: vehiclePartsIcon,
   },
   {
     label: "Qualities",
     href: "tool_quality",
-    id: "hammer",
-    type: "item",
+    icon: qualitiesIcon,
   },
   {
     label: "Mutations",
     href: "mutation",
-    id: "mon_twisted_body",
-    type: "monster",
+    icon: mutationsIcon,
   },
   {
     label: "Martial Arts",
     href: "martial_art",
-    id: "tonfa_wood",
-    type: "item",
+    icon: martialArtsIcon,
   },
   {
     label: "Flags",
     href: "json_flag",
-    id: "textbook_computer",
-    type: "item",
+    icon: flagsIcon,
   },
   {
     label: "Achievements",
     href: "achievement",
-    id: "badge_marshal",
-    type: "item",
+    icon: achievementsIcon,
   },
 ];
 
@@ -119,9 +130,12 @@ newRandomPage();
         .BASE_URL}{$versionSlug}/{cat.href}{location.search}"
       class="category-card">
       <div class="icon-wrapper">
-        <div class="scaler">
-          <ItemSymbol item={{ id: cat.id, type: cat.type }} />
-        </div>
+        <img
+          src={cat.icon}
+          alt={t(cat.label)}
+          class="category-icon"
+          loading="eager"
+          decoding="async" />
       </div>
       <span class="label">{t(cat.label)}</span>
     </a>
@@ -131,9 +145,12 @@ newRandomPage();
     class="category-card random"
     on:click={() => setTimeout(newRandomPage)}>
     <div class="icon-wrapper">
-      <div class="scaler">
-        <ItemSymbol item={{ id: "plastic_six_dice", type: "item" }} />
-      </div>
+      <img
+        src={randomIcon}
+        alt={t("Random Page")}
+        class="category-icon"
+        loading="eager"
+        decoding="async" />
     </div>
     <span class="label">{t("Random Page")}</span>
   </a>
@@ -172,9 +189,9 @@ newRandomPage();
     box-shadow 0.2s;
   aspect-ratio: 1;
   box-shadow:
-    0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-    0px 1px 1px 0px rgba(0, 0, 0, 0.14),
-    0px 1px 3px 0px rgba(0, 0, 0, 0.12); /* Matches section shadow */
+    0 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0 1px 1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 3px 0 rgba(0, 0, 0, 0.12); /* Matches section shadow */
 }
 
 .category-card:hover {
@@ -196,14 +213,15 @@ newRandomPage();
   z-index: 1;
 }
 
-.scaler {
-  transform: scale(3);
-  image-rendering: pixelated;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Ensure the scaler doesn't capture events */
-  pointer-events: none;
+.category-icon {
+  width: 188px;
+  height: 88px;
+  object-fit: contain;
+}
+
+.category-card:hover .category-icon,
+.category-card:focus-visible .category-icon {
+  transform: scale(1.03);
 }
 
 .label {
@@ -219,7 +237,7 @@ newRandomPage();
   line-height: 1.2;
 
   /* Section Header Styling */
-  color: #ccc; /* standard UI gray, readable on dark */
+  color: #ccc;
   text-transform: uppercase;
   font-size: 1rem;
   font-weight: bold;

@@ -22,4 +22,6 @@ The Original Hitchhiker's Guide to the Cataclysm is maintained by [@nornagon](ht
 
 This version is forked from the original and adapted for Cataclysm: Bright Nights by [@mythosmod](https://github.com/mythosmod), continued by [@ushkinaz](https://github.com/ushkinaz).
 
+SVG icons are provided by [game-icons.net](https://game-icons.net/) under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+
 Further, thanks to everyone who files bugs and feature requests in the issue tracker. You all help make the Guide what it is!
