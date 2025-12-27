@@ -279,11 +279,6 @@ window.addEventListener("popstate", () => {
   load();
 });
 
-let deferredPrompt: any;
-window.addEventListener("beforeinstallprompt", (e) => {
-  deferredPrompt = e;
-});
-
 function maybeFocusSearch(e: KeyboardEvent) {
   if (e.key === "/" && document.activeElement?.id !== "search") {
     document.getElementById("search")?.focus();
@@ -492,22 +487,6 @@ function isSupportedVersion(buildNumber: string): boolean {
           `The Guide stores all its data locally—just visit the page once and it will work even without internet access.`,
         )}>
       </InterpolatedTranslation>
-      {#if deferredPrompt}
-        <InterpolatedTranslation
-          str={t(
-            `It is also {installable_button}, so you can pop it out of your browser and use it like a regular app on your home screen or desktop.`,
-            { installable_button: "{installable_button}" },
-          )}
-          slot0="installable_button">
-          <button
-            slot="0"
-            class="disclosure"
-            on:click={(e) => {
-              e.preventDefault();
-              deferredPrompt.prompt();
-            }}>{t("installable")}</button>
-        </InterpolatedTranslation>
-      {/if}
     </p>
 
     <CategoryGrid />
