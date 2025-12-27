@@ -1,4 +1,6 @@
 <script lang="ts">
+import { versionSlug } from "./data";
+
 const asciiArt = `
    @@@@@@@    @@@@@@   @@@  @@@  @@@  @@@@@@@
    @@@@@@@@  @@@@@@@@  @@@@ @@@   @@  @@@@@@@
@@ -40,7 +42,7 @@ const asciiArtSmall = `
 `;
 </script>
 
-<a href="/item/towel" class="logo-link">
+<a href="{versionSlug}/item/towel" class="logo-link">
   <aside class="ascii-art-container large">
     <pre class="ascii-art">{asciiArt}</pre>
   </aside>
