@@ -46,9 +46,9 @@ const asciiArtSmall = `
   <aside class="ascii-art-container large">
     <pre class="ascii-art">{asciiArt}</pre>
   </aside>
-  <div class="ascii-art-container small">
+  <aside class="ascii-art-container small">
     <pre class="ascii-art">{asciiArtSmall}</pre>
-  </div>
+  </aside>
 </a>
 
 <style>
@@ -68,23 +68,19 @@ const asciiArtSmall = `
   text-decoration: none;
 }
 
-.ascii-art-container.large {
+.ascii-art-container {
+  margin-bottom: 1em;
+  margin-left: 1em;
   float: right;
 }
 
-.ascii-art-container.small {
-  text-align: center;
-  margin-bottom: 1em;
-  margin-left: 1em;
-}
-
-@media (max-width: 600px) {
+@media (max-width: 400px) {
   .ascii-art-container.large {
     display: none;
   }
 }
 
-@media (min-width: 601px) {
+@media (min-width: 401px) {
   .ascii-art-container.small {
     display: none;
   }
