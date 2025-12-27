@@ -1,16 +1,12 @@
 ---
 trigger: model_decision
-description: When investigating game data, debugging content issues, or generating new test cases.
+description: Use when debugging game content, investigating data values, updating data schema,or creating new test cases using the _test/all.json source of truth.
 ---
 
-# Data Source and Test Cases
-
-**Rule**:
-
-- The file `_test/all.json` is the designated source of truth for "actual JSON data".
-- Use this file to find real-world examples and test cases.
-- This file is large (~30MB). Use strict filters with `jq` or `grep` to read it.
-  - Example: `jq '.data[] | select(.id=="<id>")' _test/all.json`
-
-**Reasoning**:
-The project handles complex game data including inheritance (`copy-from`). The raw data in `all.json` provides the ground truth for what the application consumes.
+- **Truth**: `_test/all.json`.
+- **Large File**: ~30MB. Use `jq` or `grep` filters.
+  - `jq '.data[] | select(.id=="<id>" and .type=="<type>")' _test/all.json`
+- Raw JSON uses `copy-from` inheritance.
+- Always use `src/data.ts` (`CddaData` / `_flatten`) to resolve values.
+- If data is "missing" in raw JSON, it's likely inherited.
+- **Tests** `yarn vitest --run schema.test.ts --bail 1`
