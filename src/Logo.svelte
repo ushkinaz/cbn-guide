@@ -42,7 +42,7 @@ const asciiArtSmall = `
 `;
 </script>
 
-<a href="{$versionSlug}/item/towel" class="logo-link">
+<a href="{import.meta.env.BASE_URL}{$versionSlug}/item/towel" class="logo-link">
   <aside class="ascii-art-container large">
     <pre class="ascii-art">{asciiArt}</pre>
   </aside>
