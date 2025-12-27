@@ -241,8 +241,6 @@ const trigger_descriptions: Record<string, string> = {
 
 let materials = item.material ?? [];
 
-let deathDrops = data.flatDeathDrops(item.id);
-
 let harvest: Harvest | undefined = item.harvest
   ? data.byId("harvest", item.harvest)
   : undefined;
@@ -469,9 +467,11 @@ let upgrades =
       {/if}
     </dl>
   </section>
-  {#if deathDrops.size}
-    <ItemTable loot={deathDrops} heading={t("Drops")} />
+
+  {#if item.death_drops}
+    <ItemTable loot={() => data.flatDeathDrops(item.id)} heading={t("Drops")} />
   {/if}
+
   {#if harvest && (harvest.entries ?? []).length}
     <section>
       <h1>{t("Butchering Results", { _context })}</h1>

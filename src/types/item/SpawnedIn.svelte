@@ -12,5 +12,5 @@ const data = getContext<CddaData>("data");
 
 <LocationTable
   id={item_id}
-  loots={lootByOMSAppearance(data)}
+  loots={() => lootByOMSAppearance(data)}
   heading={t("Loot", { _context: "Obtaining" })} />
