@@ -70,7 +70,7 @@ function filterLocations(
             </td>
             <td>
               <a
-                href="{versionSlug}/overmap_special/{loc
+                href="{$versionSlug}/overmap_special/{loc
                   .ids[0]}{location.search}"
                 >{omsName(data, loc.overmap_special)}</a>
               {#if loc.ids.length > 1}
