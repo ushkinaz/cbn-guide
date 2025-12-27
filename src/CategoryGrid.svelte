@@ -189,10 +189,6 @@ newRandomPage();
     background-color 0.2s,
     box-shadow 0.2s;
   aspect-ratio: 1;
-  box-shadow:
-    0 2px 1px -1px rgba(0, 0, 0, 0.2),
-    0 1px 1px 0 rgba(0, 0, 0, 0.14),
-    0 1px 3px 0 rgba(0, 0, 0, 0.12); /* Matches section shadow */
 }
 
 .category-card:hover {
@@ -215,7 +211,7 @@ newRandomPage();
 }
 
 .category-icon {
-  width: 188px;
+  width: 88px;
   height: 88px;
   object-fit: contain;
 }
