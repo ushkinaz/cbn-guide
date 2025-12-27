@@ -22,7 +22,7 @@ function stripType(x: any): any {
   return x;
 }
 
-let showData = false;
+let showData = (globalThis as any).__isTesting__;
 
 const data = getContext<CddaData>("data");
 </script>

@@ -14,7 +14,7 @@ export let loots:
   | (() => Promise<Map<string, { loot: Loot; ids: string[] }>>);
 export let heading: string;
 
-let showData = false;
+let showData = (globalThis as any).__isTesting__;
 
 const data = getContext<CddaData>("data");
 
