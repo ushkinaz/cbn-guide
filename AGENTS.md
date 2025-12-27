@@ -38,9 +38,9 @@ Use `./.agent/workflows/*.md` for additional workflows.
   - **`assets/`** – bundled images
   - **`*.test.ts`** – unit tests
   - **`public/`**: Static assets.
-- **`fetch-fixtures.js`**: Script to fetch test/game data, used to populate `src/_test/`.
+- **`scripts/fetch-fixtures.ts`**: Script to fetch test/game data, used to populate `_test/`.
 - **`_test/`** – downloaded test fixtures (`all.meta.json` is tracked, `all.json` is fetched on demand)
-- **`_test/all.meta.json`** determines game data version for `fetch-fixtures.js` script.
+- **`_test/all.meta.json`** determines game data version for `scripts/fetch-fixtures.ts` script.
 - **`_test/all.json`** contains game data, transient file.
 - **`_test/builds.json`** contains list of available game data versions, transient file.
 
@@ -78,7 +78,7 @@ Run all tests and checks (lint, validate, unit tests):
 yarn test
 ```
 
-`yarn test` fetches data into `_test/all.json` if needed via `fetch-fixtures.js`.
+`yarn test` fetches data into `_test/all.json` if needed via `scripts/fetch-fixtures.ts`.
 
 Specific checks:
 

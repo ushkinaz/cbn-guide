@@ -1,3 +1,15 @@
+/**
+ * @file generate-color-css.ts
+ * @description Generates CSS variables and classes based on Cataclysm: Dark Days Ahead (CDDA)
+ * color definitions. This includes standard colors, highlighted, inverted, and background-specific pairs.
+ * The output is written to stdout as CSS.
+ *
+ * @usage
+ * ```bash
+ * npx tsx scripts/generate-color-css.ts > src/cata-colors.css
+ * ```
+ */
+
 // jerry rigged from various cdda sources
 
 const black = 0x00; // RGB{0; 0; 0}

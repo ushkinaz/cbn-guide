@@ -1,9 +1,25 @@
+/**
+ * @file fetch-fixtures.ts
+ * @description This script fetches the latest or a specific build of the game data (all.json)
+ * and saves it for local development and testing purposes. It also updates the
+ * metadata file (_test/all.meta.json) with the new build number and SHA.
+ *
+ * @usage
+ * ```bash
+ * # Fetch the build specified in _test/all.meta.json
+ * npx tsx scripts/fetch-fixtures.ts
+ *
+ * # Fetch the latest build and update metadata
+ * npx tsx scripts/fetch-fixtures.ts latest
+ * ```
+ */
+
 import * as fs from "fs/promises";
 import { createReadStream, createWriteStream, readFileSync } from "fs";
 import * as crypto from "crypto";
 import * as url from "url";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
-import { getDataJsonUrl } from "./src/constants";
+import { getDataJsonUrl } from "../src/constants";
 
 const envHttpProxyAgent = new EnvHttpProxyAgent();
 setGlobalDispatcher(envHttpProxyAgent);

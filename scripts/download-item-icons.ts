@@ -1,3 +1,19 @@
+/**
+ * @file download-item-icons.ts
+ * @description Extracts and renders icons for game entities (items, monsters, terrain, furniture, and vehicle parts)
+ * using a specified tileset. It fetches the tileset and game data, resolves sprites,
+ * and composes the final icons as PNG files.
+ *
+ * @usage
+ * ```bash
+ * # Basic usage
+ * npx tsx scripts/download-item-icons.ts
+ *
+ * # With custom parameters
+ * TILESET=UNDEAD_PEOPLE GAME_VERSION=v0.9.1 ICON_CONCURRENCY=16 npx tsx scripts/download-item-icons.ts --force
+ * ```
+ */
+
 import path from "node:path";
 import fs from "node:fs/promises";
 import { createWriteStream } from "node:fs";
