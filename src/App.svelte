@@ -1,6 +1,6 @@
 <script lang="ts">
 import Thing from "./Thing.svelte";
-import { data, loadProgress, singularName, versionSlug } from "./data";
+import { data, singularName, versionSlug } from "./data";
 import { tileData } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
@@ -21,6 +21,7 @@ import debounce from "lodash/debounce";
 
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
+import Loading from "./Loading.svelte";
 
 let item: { type: string; id: string } | null = null;
 
@@ -425,16 +426,9 @@ function isSupportedVersion(buildNumber: string): boolean {
         {/if}
       {/key}
     {:else}
-      <span style="color: var(--cata-color-gray)">
-        <em>{t("Loading...")}</em>
-        {#if $loadProgress}
-          ({($loadProgress[0] / 1024 / 1024).toFixed(1)}/{(
-            $loadProgress[1] /
-            1024 /
-            1024
-          ).toFixed(1)} MB)
-        {/if}
-      </span>
+      <Loading
+        fullScreen={true}
+        text={t("Loading {version} game data...", { version })} />
     {/if}
   {:else if search}
     {#if $data}
@@ -442,16 +436,9 @@ function isSupportedVersion(buildNumber: string): boolean {
         <SearchResults data={$data} {search} />
       {/key}
     {:else}
-      <span style="color: var(--cata-color-gray)">
-        <em>{t("Loading...")}</em>
-        {#if $loadProgress}
-          ({($loadProgress[0] / 1024 / 1024).toFixed(1)}/{(
-            $loadProgress[1] /
-            1024 /
-            1024
-          ).toFixed(1)} MB)
-        {/if}
-      </span>
+      <Loading
+        fullScreen={true}
+        text={t("Loading {version} game data...", { version })} />
     {/if}
   {:else}
     <Logo />
