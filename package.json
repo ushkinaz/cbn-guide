@@ -33,6 +33,7 @@
     "update-test-data:latest": "tsx scripts/fetch-fixtures.ts latest",
     "generate-css": "tsx scripts/generate-color-css.ts",
     "icons:items": "tsx scripts/download-item-icons.ts",
+    "generate:sitemap": "tsx scripts/generate-sitemap.ts",
     "transifex-push": "txjs-cli push dist",
     "lint": "prettier -c .",
     "lint:fix": "prettier -w .",
