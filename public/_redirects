@@ -1,0 +1,19 @@
+# Primary Landing
+/ /stable 302
+
+# Version Aliases
+/latest/* /nightly/:splat 302
+/main/* /nightly/:splat 302
+
+# Legacy Paths (redirecting to nightly, could be coming from the game)
+/item/* /nightly/item/:splat 302
+/monster/* /nightly/monster/:splat 302
+/furniture/* /nightly/furniture/:splat 302
+/terrain/* /nightly/terrain/:splat 302
+/vehicle_part/* /nightly/vehicle_part/:splat 302
+/tool_quality/* /nightly/tool_quality/:splat 302
+/mutation/* /nightly/mutation/:splat 302
+/martial_art/* /nightly/martial_art/:splat 302
+/json_flag/* /nightly/json_flag/:splat 302
+/achievement/* /nightly/achievement/:splat 302
+/search/* /nightly/search/:splat 302
