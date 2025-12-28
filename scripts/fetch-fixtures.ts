@@ -18,6 +18,7 @@ import * as fs from "fs/promises";
 import { createReadStream, createWriteStream, readFileSync } from "fs";
 import * as crypto from "crypto";
 import * as url from "url";
+import * as path from "path";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
 import { getDataJsonUrl } from "../src/constants";
 
@@ -29,11 +30,13 @@ interface MetaData {
   sha: string;
 }
 
-const metaPath = "./_test/all.meta.json";
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const projectRoot = path.resolve(__dirname, "..");
+
+const metaPath = path.join(projectRoot, "_test", "all.meta.json");
 const { buildNum, sha }: MetaData = JSON.parse(readFileSync(metaPath, "utf8"));
 const update = process.argv[2] === "latest";
 const dataUrl = getDataJsonUrl(update ? "latest" : buildNum, "all.json");
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 function computeSha(file: string): Promise<string> {
   return new Promise((resolve) => {
@@ -51,7 +54,7 @@ async function matchesSha(file: string, expectedSha: string): Promise<boolean> {
 }
 
 (async () => {
-  const filename = __dirname + "/_test/all.json";
+  const filename = path.join(projectRoot, "_test", "all.json");
 
   const exists = await fs
     .access(filename)

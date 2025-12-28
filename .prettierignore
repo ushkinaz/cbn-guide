@@ -2,7 +2,7 @@
 /.agent/
 /dist/
 /dev-dist/
-/generate-color-css.js
+/scripts/generate-color-css.ts
 /public/global.css
 /schema.json
 /tmp/
