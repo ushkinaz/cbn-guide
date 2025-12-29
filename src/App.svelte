@@ -482,12 +482,12 @@ function isSupportedVersion(buildNumber: string): boolean {
 <footer>
   <div class="data-options">
     <div class="select-group">
-      <label for="version_select">{t("Version:")}</label>
       {#if $data || builds}
         {#if builds}
           <!-- svelte-ignore a11y-no-onchange -->
           <select
             id="version_select"
+            aria-label={t("Version")}
             value={requestedVersion}
             on:change={(e) => {
               const v = e.currentTarget.value;
@@ -525,14 +525,14 @@ function isSupportedVersion(buildNumber: string): boolean {
           </select>
         {/if}
       {:else}
-        <em style="color: var(--cata-color-gray)">({t("Loading...")})</em>
+        <select disabled><option>{t("Loading...")}</option></select>
       {/if}
     </div>
     <div class="select-group">
-      <label for="tileset_select">{t("Tileset:")}</label>
       <!-- svelte-ignore a11y-no-onchange -->
       <select
         id="tileset_select"
+        aria-label={t("Tileset")}
         value={tileset}
         on:change={(e) => {
           tileset = e.currentTarget.value ?? "";
@@ -548,11 +548,11 @@ function isSupportedVersion(buildNumber: string): boolean {
       </select>
     </div>
     <div class="select-group">
-      <label for="language_select">{t("Language:")}</label>
       {#if builds}
         {@const build_number = version}
         <select
           id="language_select"
+          aria-label={t("Language")}
           value={locale || "en"}
           on:change={(e) => {
             const url = new URL(location.href);
@@ -810,6 +810,6 @@ footer #credits a:hover {
 
 .select-group select {
   padding: 4px 8px;
-  min-width: 180px;
+  min-width: 15rem;
 }
 </style>
