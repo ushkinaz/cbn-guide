@@ -2,13 +2,13 @@
 description: Fix Schema Validation Errors
 ---
 
-This workflow guides you through resolving schema validation errors in `cbn-guide-ushkinaz`, typically caused by upstream changes in `Cataclysm-BN`.
+This workflow guides you through resolving schema validation errors, typically caused by upstream changes in `Cataclysm-BN`.
 
 1. **Run Tests to Identify Failure**
    Run the schema validation tests to isolate the failure.
 
    ```bash
-   yarn test
+   yarn vitest --run schema.test.ts --bail 2
    ```
 
    - Look for errors like `schema matches <type> <id>`.
@@ -20,18 +20,9 @@ This workflow guides you through resolving schema validation errors in `cbn-guid
    - Use a script or `jq` on `_test/all.json`.
    - Example script pattern (create as `debug_find.cjs`):
 
-   ```javascript
-   const fs = require('fs');
-   const data = JSON.parse(fs.readFileSync('./_test/all.json', 'utf8')).data;
-   // Filter by type and look for suspicious structure
-   const found = data.filter(i => i.type === 'TARGET_TYPE' && /* condition */);
-   console.log(JSON.stringify(found[0], null, 2));
-   ```
-
-   // turbo
-
    ```bash
-   node debug_find.cjs
+   jq  -r '.data[] | select(.type? == "item_type" and .category == "category_id" and .id="book") ' _test/all.json
+
    ```
 
 3. **Check TypeScript Definition**
@@ -64,12 +55,5 @@ This workflow guides you through resolving schema validation errors in `cbn-guid
    // turbo
 
    ```bash
-   yarn lint:fix && yarn test
-   ```
-
-8. **Clean Up**
-   Remove any temporary debug scripts.
-   // turbo
-   ```bash
-   rm debug_find.cjs
+   yarn lint:fix && yarn vitest --run schema.test.ts --bail 2
    ```
