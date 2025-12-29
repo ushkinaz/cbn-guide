@@ -1,6 +1,7 @@
 <script lang="ts">
 import { versionSlug } from "./data";
 
+//https://patorjk.com/software/taag/#p=display&f=Poison&t=Don%27t%0APanic%21&x=none&v=4&h=0&w=80&we=false
 const asciiArt = `
    @@@@@@@    @@@@@@   @@@  @@@  @@@  @@@@@@@
    @@@@@@@@  @@@@@@@@  @@@@ @@@   @@  @@@@@@@
@@ -26,6 +27,7 @@ const asciiArt = `
     :         :   : :  ::    :   :     :: :: :  :::
 `;
 
+//
 const asciiArtSmall = `
 @@@@@@@   @@@@@@  @@@  @@@ @@@ @@@@@@@
 @@!  @@@ @@!  @@@ @@!@!@@@ !@    @!!
@@ -53,9 +55,9 @@ const asciiArtSmall = `
 
 <style>
 .ascii-art {
-  font-family: UnifontSubset, monospace;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 8px;
-  line-height: 1;
+  line-height: 0.9;
   color: var(--cata-color-light_cyan);
   background: transparent;
   border: none;
