@@ -1,7 +1,7 @@
 import App from "./App.svelte";
 import * as Sentry from "@sentry/browser";
 import { browserTracingIntegration } from "@sentry/browser";
-import "@fontsource/unifont";
+import "./fonts.css";
 import { registerSW } from "virtual:pwa-register";
 import { tx } from "@transifex/native";
 

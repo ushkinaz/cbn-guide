@@ -101,7 +101,7 @@ function omtAppearance(
 
 <style>
 .appearance-grid {
-  font-family: Unifont, monospace;
+  font-family: UnifontSubset, monospace;
   line-height: 1;
   white-space: pre;
 }

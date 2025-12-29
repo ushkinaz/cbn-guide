@@ -217,7 +217,7 @@ partsCounted.sort((a, b) => {
 
 <section>
   <pre
-    style="font-family: Unifont, monospace; line-height: 1">{#each grid as row}{#each row as part}{#if part}<span
+    style="font-family: UnifontSubset, monospace; line-height: 1">{#each grid as row}{#each row as part}{#if part}<span
             title={`${part.partId}_${part.variant}`}
             class={`c_${colorForVehiclePart(part.partId)}`}
             >{symbolForVehiclePartVariant(part.partId, part.variant)}</span

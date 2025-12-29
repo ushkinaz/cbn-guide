@@ -34,6 +34,7 @@
     "generate-css": "tsx scripts/generate-color-css.ts",
     "icons:items": "tsx scripts/download-item-icons.ts",
     "generate:sitemap": "tsx scripts/generate-sitemap.ts",
+    "generate:unifont": "sh scripts/generate-unifont-subset.sh",
     "transifex-push": "txjs-cli push dist",
     "lint": "prettier -c .",
     "lint:fix": "prettier -w .",
@@ -56,6 +57,7 @@
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.2",
     "prettier-plugin-svelte": "^3.3.3",
+    "sharp": "^0.33.5",
     "svelte": "^4.2.19",
     "svelte-check": "^4.1.4",
     "ts-json-schema-generator": "^2.3.0",
@@ -66,11 +68,9 @@
     "vite-plugin-environment": "^1.1.3",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.16",
-    "workbox-build": "^7.3.0",
-    "sharp": "^0.33.5"
+    "workbox-build": "^7.3.0"
   },
   "dependencies": {
-    "@fontsource/unifont": "^5.2.5",
     "@sentry/browser": "^10.32.1",
     "@sentry/tracing": "^7.120.4",
     "@transifex/native": "^7.1.5",

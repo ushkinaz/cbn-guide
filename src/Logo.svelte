@@ -53,7 +53,7 @@ const asciiArtSmall = `
 
 <style>
 .ascii-art {
-  font-family: Unifont, monospace;
+  font-family: UnifontSubset, monospace;
   font-size: 8px;
   line-height: 1;
   color: var(--cata-color-light_cyan);
