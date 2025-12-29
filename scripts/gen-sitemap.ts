@@ -1,17 +1,17 @@
 /**
- * @file generate-sitemap.ts
+ * @file gen-sitemap.ts
  * @description Generates a static sitemap.xml for the specified (or latest stable) version of the guide.
  *
  * @usage
  * ```bash
  * # Basic usage (generates sitemap for latest stable)
- * npx tsx scripts/generate-sitemap.ts
+ * npx tsx scripts/gen-sitemap.ts
  *
  * # For a specific version
- * GAME_VERSION=v0.9.1 npx tsx scripts/generate-sitemap.ts
+ * GAME_VERSION=v0.9.1 npx tsx scripts/gen-sitemap.ts
  *
  * # Using npm script
- * npm run generate:sitemap
+ * npm run gen:sitemap
  * ```
  */
 

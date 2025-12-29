@@ -19,7 +19,7 @@ Focused rules for AI agents. Keep this open while working.
 - Svelte 4 + Vite, TypeScript (ES2023), Vitest, scoped CSS. Prettier formatting.
 - App mirrors Cataclysm: Bright Nights data; upstream checkout may live at `../Cataclysm-BN` for cross-reference.
 - Core files: `src/App.svelte`, `src/Thing.svelte`, `src/data.ts`, `src/colors.ts`, `src/types.ts`, `src/types/*`, assets in `src/assets`, tests as `*.test.ts`, static files in `public/`.
-- Test fixtures: `_test/all.meta.json` (tracked), `_test/all.json` (downloaded), `_test/builds.json` (downloaded). `scripts/fetch-fixtures.js` populates `_test/all.json`.
+- Test fixtures: `_test/all.meta.json` (tracked), `_test/all.json` (downloaded), `_test/builds.json` (downloaded). `yarn fetch:fixtures` populates `_test/all.json`.
 - Developer primers live in `README.md` and `DEVELOPMENT.md`; keep agent-facing rules here.
 
 ## Commands you actually need
@@ -28,8 +28,8 @@ Focused rules for AI agents. Keep this open while working.
 - Dev server: `yarn dev` (http://localhost:3000)
 - Build: `yarn build`
 - Full check (downloads fixtures if missing): `yarn test --bail 2`
-- Type checks: `yarn validate`
-- Lint / format: `yarn lint`, `yarn lint:fix` (run before committing)
+- Type checks: `yarn check`
+- Lint / format: `yarn check:format`, `yarn fix:format` (run before committing)
 
 ## Data handling (always-on truthiness)
 

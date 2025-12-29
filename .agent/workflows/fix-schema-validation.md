@@ -55,5 +55,5 @@ This workflow guides you through resolving schema validation errors, typically c
    // turbo
 
    ```bash
-   yarn lint:fix && yarn vitest --run schema.test.ts --bail 2
+   yarn fix:format && yarn vitest --run schema.test.ts --bail 2
    ```

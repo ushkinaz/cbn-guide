@@ -60,13 +60,37 @@ This project uses `vitest` for testing. The tests cover a range of functionality
 ### Running Tests
 
 - **Run all tests**: `yarn test`
-  - This runs linting (`yarn lint`), validation (`yarn validate`), and then `vitest run src`.
+  - Runs formatting checks (`yarn check:format`), type validation (`yarn check:types`), and unit tests.
 - **Run tests with latest data**: `yarn test:latest`
-  - Updates test data fixtures to the latest version of game data before running tests.
+  - Fetches latest fixtures (`yarn fetch:fixtures:latest`) and runs tests.
 - **Watch mode**: `yarn test:watch`
-  - Runs tests in watch mode for development.
-- **Type Checking**: `yarn validate`
+  - Fetches fixtures, runs type checks, and starts Vitest in watch mode.
+- **Type Checking**: `yarn check:types`
   - Runs `svelte-check` and `tsc` to ensure type safety.
+
+### Project Scripts
+
+The project uses a semantic naming convention (`scope:action`) for NPM scripts:
+
+#### Code Quality
+
+- `yarn check`: Run all static checks (formatting & types).
+- `yarn check:format`: Check code formatting.
+- `yarn check:types`: Run type checking.
+- `yarn fix:format`: Auto-fix formatting issues.
+
+#### Data & Assets
+
+- `yarn fetch:fixtures`: Download test data fixtures (default version).
+- `yarn fetch:fixtures:latest`: Download latest test data fixtures.
+- `yarn fetch:icons`: Download item icons.
+- `yarn gen:css`: Generate `colors.css` from game data.
+- `yarn gen:sitemap`: Generate `sitemap.xml`.
+- `yarn gen:unifont`: Generate a subset of Unifont for the specific game data.
+
+#### Deployment
+
+- `yarn i18n:push`: Upload source strings to Transifex.
 
 ### Test Files Overview
 

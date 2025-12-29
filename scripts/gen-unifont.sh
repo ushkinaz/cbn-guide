@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# generate-unifont-subset.sh
+# gen-unifont.sh
 #
 # This script optimizes the Unifont usage by creating a minimal subset containing only
 # the characters used in the game's ASCII art and common UI symbols.
@@ -14,8 +14,8 @@
 # 5. Verification: Use --verify to check if current game data requires regeneration (CI ready).
 #
 # USAGE:
-#   sh scripts/generate-unifont-subset.sh          # Regenerate subset and tracking file
-#   sh scripts/generate-unifont-subset.sh --verify # Check if subset covers current data
+#   sh scripts/gen-unifont.sh          # Regenerate subset and tracking file
+#   sh scripts/gen-unifont.sh --verify # Check if subset covers current data
 #
 # DEPENDENCIES:
 #   - pyftsubset (from fonttools python package)
@@ -75,7 +75,7 @@ if [ "$VERIFY_MODE" = true ]; then
     CURRENT_DATA_CHARS=$(get_data_chars)
     
     if [ ! -f "$CHARS_FILE" ]; then
-        echo "Error: $CHARS_FILE missing. Run 'yarn generate:unifont' to create it."
+        echo "Error: $CHARS_FILE missing. Run 'yarn gen:unifont' to create it."
         exit 1
     fi
     
@@ -89,7 +89,7 @@ if [ "$VERIFY_MODE" = true ]; then
     if [ -n "$MISSING_CHARS" ]; then
         echo "Error: New characters found in game data! They are not covered by the current subset."
         echo "Missing characters: $MISSING_CHARS"
-        echo "Please run 'yarn generate:unifont' to update the font subset."
+        echo "Please run 'yarn gen:unifont' to update the font subset."
         exit 1
     else
         echo "Verification successful: All characters are covered."
