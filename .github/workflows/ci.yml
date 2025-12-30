@@ -29,6 +29,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Test
+        #        Run scheduled tests on a latest version of the game, on push - on commited in all.meta.json
         run: |
           if [ "$GITHUB_EVENT_NAME" != "push" ]; then
             yarn test:latest
