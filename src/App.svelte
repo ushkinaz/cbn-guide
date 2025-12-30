@@ -22,6 +22,13 @@ import debounce from "lodash/debounce";
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
+import { fade } from "svelte/transition";
+
+let scrollY = 0;
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 let item: { type: string; id: string } | null = null;
 
@@ -370,7 +377,10 @@ function isSupportedVersion(buildNumber: string): boolean {
 }
 </script>
 
-<svelte:window on:click={maybeNavigate} on:keydown={maybeFocusSearch} />
+<svelte:window
+  on:click={maybeNavigate}
+  on:keydown={maybeFocusSearch}
+  bind:scrollY />
 
 <svelte:head>
   {#if builds}
@@ -477,6 +487,22 @@ function isSupportedVersion(buildNumber: string): boolean {
     </p>
 
     <CategoryGrid />
+  {/if}
+  {#if scrollY > 300}
+    <button
+      on:click={scrollToTop}
+      transition:fade={{ duration: 200 }}
+      aria-label={t("Scroll to top")}
+      class="scroll-to-top">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width="24"
+        height="24"
+        fill="currentColor">
+        <path d="M12 4l-8 8h6v8h4v-8h6z" />
+      </svg>
+    </button>
   {/if}
 </main>
 <footer>
@@ -792,6 +818,33 @@ footer #credits a:hover {
   gap: 20px; /* Space between select groups */
   align-items: center;
   justify-content: center;
+}
+
+.scroll-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--cata-color-cyan);
+  color: var(--cata-color-black);
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+  padding: 0;
+}
+
+.scroll-to-top:hover {
+  transform: translateY(-2px);
+  background-color: var(--cata-color-light_cyan);
 }
 
 .select-group {
