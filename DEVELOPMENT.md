@@ -60,12 +60,12 @@ This project uses `vitest` for testing. The tests cover a range of functionality
 ### Running Tests
 
 - **Run all tests**: `yarn test`
-  - Runs formatting checks (`yarn check:format`), type validation (`yarn check:types`), and unit tests.
+  - Runs formatting checks (`yarn verify:format`), type validation (`yarn verify:types`), and unit tests.
 - **Run tests with latest data**: `yarn test:latest`
   - Fetches latest fixtures (`yarn fetch:fixtures:latest`) and runs tests.
 - **Watch mode**: `yarn test:watch`
   - Fetches fixtures, runs type checks, and starts Vitest in watch mode.
-- **Type Checking**: `yarn check:types`
+- **Type Checking**: `yarn verify:types`
   - Runs `svelte-check` and `tsc` to ensure type safety.
 
 ### Project Scripts
@@ -74,9 +74,9 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 #### Code Quality
 
-- `yarn check`: Run all static checks (formatting & types).
-- `yarn check:format`: Check code formatting.
-- `yarn check:types`: Run type checking.
+- `yarn verify`: Run all static checks (formatting & types).
+- `yarn verify:format`: Check code formatting.
+- `yarn verify:types`: Run type checking.
 - `yarn fix:format`: Auto-fix formatting issues.
 
 #### Data & Assets

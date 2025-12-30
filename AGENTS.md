@@ -28,8 +28,8 @@ Focused rules for AI agents. Keep this open while working.
 - Dev server: `yarn dev` (http://localhost:3000)
 - Build: `yarn build`
 - Full check (downloads fixtures if missing): `yarn test --bail 2`
-- Type checks: `yarn check`
-- Lint / format: `yarn check:format`, `yarn fix:format` (run before committing)
+- Type checks: `yarn verify`
+- Lint / format: `yarn verify:format`, `yarn fix:format` (run before committing)
 
 ## Data handling (always-on truthiness)
 
