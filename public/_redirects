@@ -1,9 +1,9 @@
 # Primary Landing
-/ /stable 302
+/ /stable 301
 
 # Version Aliases
-/latest/* /nightly/:splat 302
-/main/* /nightly/:splat 302
+/latest/* /nightly/:splat 301
+/main/* /nightly/:splat 301
 
 # Legacy Paths (redirecting to nightly, could be coming from the game)
 /item/* /nightly/item/:splat 302
