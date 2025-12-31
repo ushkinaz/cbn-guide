@@ -61,3 +61,4 @@ Focused rules for AI agents. Keep this open while working.
 2. Touching UI/layout/colors? Read `.agent/rules/colors.md` and `.agent/rules/ui-verification.md`.
 3. Adding/changing UI text? Read `.agent/rules/localization.md`.
 4. Filtering JSON? `jq` guidance lives in `.agent/rules/jq.md`.
+5. Using browser agent? Read `.agent/rules/browser-nightly.md`.
