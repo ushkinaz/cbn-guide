@@ -32,7 +32,7 @@ function scrollToTop() {
 
 let item: { type: string; id: string } | null = null;
 
-//Mirrors JSON sctructure from builds.json
+//Mirrors JSON structure from builds.json
 type BuildInfo = {
   //Same as a version
   build_number: string;
@@ -81,8 +81,8 @@ function getCurrentVersionSlug(): string {
   return s[0] || stableVersion;
 }
 
-let requestedVersion = versionParam;
-let version = stableVersion; // Default for initial reactive state
+const requestedVersion = versionParam;
+let resolvedVersion: string;
 
 let latestStableBuild: BuildInfo | undefined;
 let latestNightlyBuild: BuildInfo | undefined;
@@ -105,20 +105,25 @@ fetch(BUILDS_URL)
         return latestNightlyBuild?.build_number;
       return slug;
     };
-    version =
+    resolvedVersion =
       resolveAlias(requestedVersion) ??
       fallbackVersion ?? // Use the latest good
       "Grinch-v1.0"; //We cannot resolve anything. Fallback to the hardcoded Christmas Version. Why not?
 
     // Verify if the version actually exists in the build list
-    const versionExists = b.some((build) => build.build_number === version);
-    if (!versionExists && fallbackVersion) {
+    const versionExists = b.some(
+      (build) => build.build_number === resolvedVersion,
+    );
+    if (versionExists) {
+      versionSlug.set(requestedVersion);
+    } else if (!versionExists && fallbackVersion) {
       // Fallback logic. We are here only of slug pointed to an incorrect version.
       console.warn(
-        `Version ${version} not found in builds list, falling back to ${fallbackVersion}.`,
+        `Version ${resolvedVersion} not found in builds list, falling back to ${fallbackVersion}.`,
       );
       //TODO: Notify user
-      version = fallbackVersion;
+      resolvedVersion = fallbackVersion;
+      versionSlug.set(resolvedVersion);
       const newPath =
         import.meta.env.BASE_URL +
         fallbackVersion +
@@ -126,10 +131,13 @@ fetch(BUILDS_URL)
         segments.slice(1).join("/") +
         location.search;
       history.replaceState(null, "", newPath);
-      requestedVersion = version;
+    } else {
+      //no fallback - should never be here
+      console.error("Can not load anything. Are we totally offline?");
+      //TODO: Notify user, we failed to load our app.
     }
 
-    data.setVersion(version, locale);
+    data.setVersion(resolvedVersion, locale);
   })
   .catch((e) => {
     console.error(e);
@@ -373,7 +381,9 @@ function isSupportedVersion(buildNumber: string): boolean {
 <svelte:head>
   {#if builds}
     <link rel="canonical" href={canonicalUrl} />
-    {@const currentBuild = builds.find((b) => b.build_number === version)}
+    {@const currentBuild = builds.find(
+      (b) => b.build_number === resolvedVersion,
+    )}
     {#if currentBuild}
       {#each [...(currentBuild.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
         <link
@@ -426,7 +436,9 @@ function isSupportedVersion(buildNumber: string): boolean {
     {:else}
       <Loading
         fullScreen={true}
-        text={t("Loading {version} game data...", { version })} />
+        text={t("Loading {version} game data...", {
+          version: resolvedVersion,
+        })} />
     {/if}
   {:else if search}
     {#if $data}
@@ -436,7 +448,9 @@ function isSupportedVersion(buildNumber: string): boolean {
     {:else}
       <Loading
         fullScreen={true}
-        text={t("Loading {version} game data...", { version })} />
+        text={t("Loading {version} game data...", {
+          version: resolvedVersion,
+        })} />
     {/if}
   {:else}
     <Logo />
@@ -561,7 +575,7 @@ function isSupportedVersion(buildNumber: string): boolean {
     </div>
     <div class="select-group">
       {#if builds}
-        {@const build_number = version}
+        {@const build_number = resolvedVersion}
         <select
           id="language_select"
           aria-label={t("Language")}
