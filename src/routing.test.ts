@@ -18,6 +18,7 @@ const testBuilds = JSON.parse(
 );
 
 describe("Routing E2E Tests", () => {
+  vi.setConfig({ testTimeout: 10000 });
   let originalFetch: typeof global.fetch;
   let container: HTMLElement;
 

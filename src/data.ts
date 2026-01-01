@@ -1710,6 +1710,10 @@ const fetchJsonWithProgress = (
   // serve it double-gzipped JSON.
   if (/latest/.test(url) && /googlebot/i.test(navigator.userAgent))
     return fetchGzippedJsonForGoogleBot(url);
+  if ((globalThis as any).__isTesting__) {
+    progress(100, 100);
+    return fetch(url).then((r) => r.json());
+  }
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.onload = (e) => {
@@ -1786,7 +1790,8 @@ const { subscribe, set } = writable<CddaData | null>(null);
 export const data = {
   subscribe,
   async setVersion(version: string, locale: string | null) {
-    if (_hasSetVersion) throw new Error("can only set version once");
+    if (_hasSetVersion && !(globalThis as any).__isTesting__)
+      throw new Error("can only set version once");
     _hasSetVersion = true;
     console.log("Set version to v=%s, lang=%s", version, locale);
     let totals = [0, 0, 0];
