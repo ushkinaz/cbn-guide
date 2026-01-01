@@ -1788,6 +1788,8 @@ export const data = {
   async setVersion(version: string, locale: string | null) {
     if (_hasSetVersion) throw new Error("can only set version once");
     _hasSetVersion = true;
+    console.log("Set version to v=%s, lang=%s", version, locale);
+    versionSlug.set(version);
     let totals = [0, 0, 0];
     let receiveds = [0, 0, 0];
     const updateProgress = () => {

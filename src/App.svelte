@@ -32,14 +32,16 @@ function scrollToTop() {
 
 let item: { type: string; id: string } | null = null;
 
-let builds:
-  | {
-      build_number: string;
-      prerelease: boolean;
-      created_at: string;
-      langs?: string[];
-    }[]
-  | null = null;
+//Mirrors JSON sctructure from builds.json
+type BuildInfo = {
+  //Same as a version
+  build_number: string;
+  prerelease: boolean;
+  created_at: string;
+  langs?: string[];
+};
+
+let builds: BuildInfo[] | null = null;
 
 const url = new URL(location.href);
 
@@ -56,85 +58,82 @@ const stableVersion = "stable";
 const nightlyVersion = "nightly";
 const latestVersion = "latest";
 
-function isValidVersionSlug(s: string): boolean {
-  if (!s) return false;
-  if ([stableVersion, nightlyVersion, latestVersion].includes(s)) return true;
-  return /^\d/.test(s) || /^v\d/.test(s);
-}
+const getBuildTimestamp = (build: BuildInfo): number => {
+  const ts = Date.parse(build.created_at);
+  return Number.isNaN(ts) ? -Infinity : ts;
+};
 
-// A valid version might be 'stable', 'nightly', or a build number.
-let segments = getPathSegments();
-let versionParam = segments[0];
+const sortBuildsByFreshness = (a: BuildInfo, b: BuildInfo) =>
+  getBuildTimestamp(b) - getBuildTimestamp(a) ||
+  b.build_number.localeCompare(a.build_number);
 
-// If the first segment looks like a version, use it.
-// Otherwise, assume the user omitted the version and wants stable.
-if (versionParam && !isValidVersionSlug(versionParam)) {
-  // Redirect to /stable/...
-  const newPath =
-    import.meta.env.BASE_URL + "stable/" + segments.join("/") + location.search;
-  location.replace(newPath);
-  // Stop processing (the reload will happen momentarily)
-  versionParam = stableVersion; // failsafe
-} else {
-  versionParam = versionParam || stableVersion;
-}
+const pickLatestBuild = (
+  buildList: BuildInfo[],
+  predicate: (build: BuildInfo) => boolean,
+): BuildInfo | undefined =>
+  [...buildList].filter(predicate).sort(sortBuildsByFreshness)[0];
+
+const segments = getPathSegments();
+const versionParam = segments[0] || stableVersion;
 
 function getCurrentVersionSlug(): string {
   const s = getPathSegments();
   return s[0] || stableVersion;
 }
 
-// Map "latest" to "nightly"
-const requestedVersion =
-  versionParam === latestVersion ? nightlyVersion : versionParam;
+let requestedVersion = versionParam;
 let version = stableVersion; // Default for initial reactive state
+
+let latestStableBuild: BuildInfo | undefined;
+let latestNightlyBuild: BuildInfo | undefined;
 
 fetch(BUILDS_URL)
   .then((d) => d.json())
-  .then((b) => {
+  .then((b: BuildInfo[]) => {
     builds = b;
-    // Resolve version aliases
-    if (requestedVersion === stableVersion) {
-      version =
-        b.find((build: any) => !build.prerelease)?.build_number ??
-        b[0].build_number;
-    } else if (requestedVersion === nightlyVersion) {
-      version = b[0].build_number;
-    } else {
-      version = requestedVersion;
-    }
+    latestStableBuild = pickLatestBuild(b, (build) => !build.prerelease);
+    latestNightlyBuild = pickLatestBuild(b, (build) => build.prerelease);
+
+    const fallbackVersion =
+      latestStableBuild?.build_number ||
+      latestNightlyBuild?.build_number ||
+      b[0]?.build_number;
+
+    const resolveAlias = (slug: string): string | undefined => {
+      if (slug === stableVersion) return latestStableBuild?.build_number;
+      if (slug === nightlyVersion || slug === latestVersion)
+        return latestNightlyBuild?.build_number;
+      return slug;
+    };
+    version =
+      resolveAlias(requestedVersion) ??
+      fallbackVersion ?? // Use the latest good
+      "Grinch-v1.0"; //We cannot resolve anything. Fallback to the hardcoded Christmas Version. Why not?
 
     // Verify if the version actually exists in the build list
-    const versionExists = b.some(
-      (build: any) => build.build_number === version,
-    );
-    if (!versionExists) {
+    const versionExists = b.some((build) => build.build_number === version);
+    if (!versionExists && fallbackVersion) {
+      // Fallback logic. We are here only of slug pointed to an incorrect version.
       console.warn(
-        `Version ${version} not found in builds list, falling back to stable.`,
+        `Version ${version} not found in builds list, falling back to ${fallbackVersion}.`,
       );
-      version =
-        b.find((build: any) => !build.prerelease)?.build_number ??
-        b[0].build_number;
-      // Also fix the URL if we are falling back
+      //TODO: Notify user
+      version = fallbackVersion;
       const newPath =
         import.meta.env.BASE_URL +
-        stableVersion +
+        fallbackVersion +
         "/" +
         segments.slice(1).join("/") +
         location.search;
       history.replaceState(null, "", newPath);
-      versionSlug.set(stableVersion);
+      requestedVersion = version;
     }
 
     data.setVersion(version, locale);
   })
   .catch((e) => {
     console.error(e);
-    // Fallback if builds list fails to load entirely
-    // We can't really validate against the list if we don't have it.
-    // But we can try to proceed or just default.
-    version = requestedVersion;
-    data.setVersion(version, locale);
+    //TODO: Notify user, we failed to load our app.
   });
 
 const locale = url.searchParams.get("lang");
@@ -201,17 +200,6 @@ function decodeQueryParam(p: string) {
 
 function load() {
   const segs = getPathSegments();
-  // Expected structure: [version, type, id] or [version, 'search', query]
-  // or just [version]
-
-  // Set version slug
-  const newVersionParam = getCurrentVersionSlug();
-  versionSlug.set(newVersionParam);
-
-  // If we simply have a version, we might want to reload data if it changed?
-  // The initial fetch above handles the initial load.
-  // If navigation happens between versions, we might need to trigger data reload.
-  // However, for now, let's just handle parsing.
 
   // We assume the first segment is the version.
   const type = segs[1];
@@ -528,11 +516,9 @@ function isSupportedVersion(buildNumber: string): boolean {
             }}>
             <optgroup label={t("Branch")}>
               <option value={stableVersion}
-                >Stable ({builds.find((b) => !b.prerelease)?.build_number ??
-                  "N/A"})</option>
+                >Stable ({latestStableBuild?.build_number ?? "N/A"})</option>
               <option value={nightlyVersion}
-                >Nightly ({builds.find((b) => b.prerelease)?.build_number ??
-                  "N/A"})</option>
+                >Nightly ({latestNightlyBuild?.build_number ?? "N/A"})</option>
             </optgroup>
             <optgroup label={t("Stable")}>
               {#each builds.filter((b) => !b.prerelease && isSupportedVersion(b.build_number)) as build}
