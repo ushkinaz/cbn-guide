@@ -229,6 +229,7 @@ export type BookSlot = {
 
 export type ToolSlot = {
   ammo?: string | string[];
+  default_ammo?: string; //item_id
   max_charges?: integer;
   initial_charges?: integer;
   charges_per_use?: integer;
@@ -236,8 +237,11 @@ export type ToolSlot = {
   turns_per_charge?: integer;
   power_draw?: energy;
   revert_to?: string; // item_id
+  revert_msg?: string;
   sub?: string; // item_id
   rand_charges?: integer[];
+  ups_eff_mult?: integer;
+  ups_recharge_rate?: integer;
 };
 
 export type DamageTypeId =
