@@ -481,53 +481,30 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
   <div id="credits">
     <InterpolatedTranslation
       str={t(
-        `Based on {link_original} by {link_nornagon}, updated for BN by {link_mythosmod}. Currently maintained by {link_ushkinaz} on {link_github}.
-        If you notice any problems with this version, please {link_file_an_issue}!`,
+        "Adopted to C:BN by {ushkinaz} on {github}. If you notice any problems, please file an {issue}!",
         {
-          link_original: "{link_original}",
-          link_nornagon: "{link_nornagon}",
-          link_mythosmod: "{link_mythosmod}",
-          link_ushkinaz: "{link_ushkinaz}",
-          link_github: "{link_github}",
-          link_file_an_issue: "{link_file_an_issue}",
+          ushkinaz: "{ushkinaz}",
+          github: "{github}",
+          issue: "{issue}",
         },
       )}
-      slot0="link_original"
-      slot1="link_nornagon"
-      slot2="link_mythosmod"
-      slot3="link_ushkinaz"
-      slot4="link_github"
-      slot5="link_file_an_issue">
-      Based on the .
+      slot0="ushkinaz"
+      slot1="github"
+      slot2="issue">
       <a
         slot="0"
-        href="https://cdda-guide.nornagon.net/"
-        target="_blank"
-        rel="noopener noreferrer">C:DDA guide</a>
-      <a
-        slot="1"
-        href="https://www.nornagon.net"
-        target="_blank"
-        rel="noopener noreferrer">nornagon</a>
-      <a
-        slot="2"
-        href="https://github.com/mythosmod/cbn-guide"
-        target="_blank"
-        rel="noopener noreferrer">MythosMod</a>
-      <a
-        slot="3"
         href="https://github.com/ushkinaz"
         target="_blank"
         rel="noopener noreferrer">ushkinaz</a>
       <a
-        slot="4"
+        slot="1"
         href="https://github.com/ushkinaz/cbn-guide/"
         target="_blank"
         rel="noopener noreferrer">GitHub</a>
       <a
-        slot="5"
+        slot="2"
         href="https://github.com/ushkinaz/cbn-guide/issues/new?type=bug"
-        >{t("file an issue")}</a>
+        >{t("issue")}</a>
     </InterpolatedTranslation>
   </div>
 </footer>
