@@ -305,20 +305,6 @@ buildUrl("nightly", null, "C++", "ru_RU", "UltimateCataclysm");
 
 #### Navigation Operations
 
-##### `navigateTo(version, item, search, pushToHistory?): void`
-
-Navigates to a new route without affecting query params.
-
-**Parameters:**
-
-- `pushToHistory: boolean = true` - If false, uses `replaceState` instead of `pushState`
-
-**Side effects:**
-
-- Cancels any pending debounced route updates
-- Updates browser history
-- Does NOT reload page or change query params
-
 ##### `updateSearchRoute(searchQuery, currentItem): void`
 
 Updates the URL to reflect a search query.
