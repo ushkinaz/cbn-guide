@@ -133,6 +133,8 @@ describe("Parsing units", () => {
     expect(parseVolume("100 ml")).toBe(100);
     expect(parseVolume("2 L")).toBe(2000);
     expect(parseVolume("1 L 500 ml")).toBe(1500);
+    expect(parseVolume("83.33 ml")).toBe(83.33);
+    expect(parseVolume("0.5 L")).toBe(500);
   });
 
   test("parseMass", () => {
@@ -141,6 +143,8 @@ describe("Parsing units", () => {
     expect(parseMass("500 g")).toBe(500);
     expect(parseMass("50 mg")).toBe(0.05);
     expect(parseMass("1 kg 500 g")).toBe(1500);
+    expect(parseMass("1.5 kg")).toBe(1500);
+    expect(parseMass("0.5 g")).toBe(0.5);
   });
 
   test("parseDuration", () => {
@@ -155,6 +159,8 @@ describe("Parsing units", () => {
     expect(parseDuration("+1 day -23 hours 50m")).toBe(110 * 60);
     expect(parseDuration("1 turn 1 minutes 9 turns")).toBe(70);
     expect(parseDuration("-10s")).toBe(-10);
+    expect(parseDuration("1.5 m")).toBe(90);
+    expect(parseDuration("0.5 h")).toBe(1800);
   });
 });
 

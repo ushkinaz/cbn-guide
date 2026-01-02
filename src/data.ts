@@ -156,7 +156,7 @@ export function parseVolume(string: string | number): number {
   if (typeof string === "undefined") return 0;
   if (typeof string === "number") return string * 250;
   let val = 0;
-  const re = /([+-]?\d+)\s*([a-zA-Z]+)/g;
+  const re = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Z]+)/g;
   let m: RegExpExecArray | null;
   const unitMap: Record<string, number> = {
     ml: 1,
@@ -166,7 +166,7 @@ export function parseVolume(string: string | number): number {
     const [_, numStr, unit] = m;
     const unitVal = unitMap[unit];
     if (unitVal !== undefined) {
-      val += parseInt(numStr, 10) * unitVal;
+      val += parseFloat(numStr) * unitVal;
     }
   }
   return val;
@@ -182,7 +182,7 @@ const massUnits: Record<string, number> = {
   kg: 1e3,
 };
 
-const MASS_REGEX = /([+-]?\d+)\s*([a-zA-Zμ]+)/g;
+const MASS_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Zμ]+)/g;
 
 // Returns grams
 export function parseMass(string: string | number): number {
@@ -196,7 +196,7 @@ export function parseMass(string: string | number): number {
     const [_, numStr, unit] = m;
     const unitVal = massUnits[unit];
     if (unitVal !== undefined) {
-      val += parseInt(numStr, 10) * unitVal;
+      val += parseFloat(numStr) * unitVal;
     }
   }
   return val;
@@ -224,13 +224,13 @@ export function parseDuration(duration: string | number): number {
   if (typeof duration === "undefined") return 0;
   if (typeof duration === "number") return duration / 100;
   let val = 0;
-  const re = /([+-]?\d+)\s*([a-z]+)/g;
+  const re = /([+-]?\d+(?:\.\d+)?)\s*([a-z]+)/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(duration))) {
     const [_, numStr, unit] = m;
     const unitVal = durationUnits[unit];
     if (unitVal !== undefined) {
-      val += parseInt(numStr, 10) * unitVal;
+      val += parseFloat(numStr) * unitVal;
     }
   }
   return val;
