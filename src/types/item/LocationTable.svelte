@@ -1,7 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import { CddaData, omsName } from "../../data";
-import { versionSlug } from "../../routing";
+import { getVersionedBasePath } from "../../routing";
 import type { ItemChance, Loot } from "./spawnLocations";
 import { showNumber, showProbability } from "./utils";
 import type { OvermapSpecial } from "../../types";
@@ -71,8 +71,7 @@ function filterLocations(
             </td>
             <td>
               <a
-                href="{import.meta.env
-                  .BASE_URL}{$versionSlug}/overmap_special/{loc
+                href="{getVersionedBasePath()}overmap_special/{loc
                   .ids[0]}{location.search}"
                 >{omsName(data, loc.overmap_special)}</a>
               {#if loc.ids.length > 1}

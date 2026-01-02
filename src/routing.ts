@@ -9,16 +9,13 @@
  * - URL generation and manipulation
  */
 
-import { writable } from "svelte/store";
 import debounce from "lodash/debounce";
 
 import { BUILDS_URL } from "./constants";
 
 // ============================================================================
-// Stores & Constants
+// Constants
 // ============================================================================
-
-export const versionSlug = writable<string>("stable");
 
 export const STABLE_VERSION = "stable";
 export const NIGHTLY_VERSION = "nightly";
@@ -81,18 +78,19 @@ function getPathSegments(): string[] {
 
 /**
  * Get the current version slug from URL
+ * This is what components should use to build relative URLs
  */
-function getCurrentVersionSlug(): string {
+export function getCurrentVersionSlug(): string {
   const segments = getPathSegments();
   return segments[0] || STABLE_VERSION;
 }
 
 /**
- * Decode a query parameter (handles + as space)
- * Note: Only use for actual query parameters, not path segments
+ * Get the base path for the current version (e.g., "/cbn-guide/stable/")
+ * Use this when building href strings in templates
  */
-function decodeQueryParam(p: string): string {
-  return decodeURIComponent(p.replace(/\+/g, " "));
+export function getVersionedBasePath(): string {
+  return import.meta.env.BASE_URL + getCurrentVersionSlug() + "/";
 }
 
 /**
@@ -115,16 +113,6 @@ function getSearchParam(param: string): string | null {
 function getBuildTimestamp(build: BuildInfo): number {
   const ts = Date.parse(build.created_at);
   return Number.isNaN(ts) ? -Infinity : ts;
-}
-
-/**
- * Sort builds by freshness (newest first)
- */
-function sortBuildsByFreshness(a: BuildInfo, b: BuildInfo): number {
-  return (
-    getBuildTimestamp(b) - getBuildTimestamp(a) ||
-    b.build_number.localeCompare(a.build_number)
-  );
 }
 
 /**
@@ -303,6 +291,7 @@ const debouncedReplaceState = debounce(
   { trailing: true },
 );
 
+// noinspection JSUnusedGlobalSymbols
 /**
  * Navigate to a new route without affecting query params
  */
@@ -418,7 +407,6 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
  * - Fetching builds.json
  * - Resolving version aliases (stable/nightly)
  * - Validating version exists
- * - Setting versionSlug store
  * - Redirecting to fallback if needed
  *
  * @returns Promise with valid initial state
@@ -453,22 +441,21 @@ export async function initializeRouting(): Promise<InitialAppState> {
     ) ?? fallbackVersion;
 
   // Verify if the version actually exists in the build list
-  if (versionExists(builds, resolvedVersion)) {
-    versionSlug.set(requestedVersion);
-  } else if (fallbackVersion) {
+  if (!versionExists(builds, resolvedVersion)) {
     // Fallback logic. We are here only if slug pointed to an incorrect version.
-    console.warn(
-      `Version ${resolvedVersion} not found in builds list, falling back to ${fallbackVersion}.`,
-    );
-    //TODO: Notify user
-    resolvedVersion = fallbackVersion;
-    versionSlug.set(resolvedVersion);
-    redirectToVersion(resolvedVersion, true);
-  } else {
-    //no fallback - should never be here
-    console.error("Can not load anything. Are we totally offline?");
-    //TODO: Notify user, we failed to load our app.
-    throw new Error("Failed to resolve any valid version");
+    if (fallbackVersion) {
+      console.warn(
+        `Version ${resolvedVersion} not found in builds list, falling back to ${fallbackVersion}.`,
+      );
+      //TODO: Notify user
+      resolvedVersion = fallbackVersion;
+      redirectToVersion(resolvedVersion, true);
+    } else {
+      //no fallback - should never be here
+      console.error("Can not load anything. Are we totally offline?");
+      //TODO: Notify user, we failed to load our app.
+      throw new Error("Failed to resolve any valid version");
+    }
   }
 
   return {

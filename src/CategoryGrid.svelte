@@ -23,9 +23,8 @@ import terrainIcon from "./assets/category-icons/terrain.svg";
 import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import { t } from "@transifex/native";
 import { CddaData, data, mapType } from "./data";
-import { versionSlug } from "./routing";
+import { getVersionedBasePath } from "./routing";
 import type { SupportedTypeMapped } from "./types";
-import { get } from "svelte/store";
 
 const categories = [
   {
@@ -114,8 +113,7 @@ let randomPage: string | null = null;
 
 function newRandomPage() {
   getRandomPage().then((r) => {
-    const ver = get(versionSlug);
-    randomPage = `${import.meta.env.BASE_URL}${ver}/${mapType(r.type)}/${r.id}${
+    randomPage = `${getVersionedBasePath()}${mapType(r.type)}/${r.id}${
       location.search
     }`;
   });
@@ -127,8 +125,7 @@ newRandomPage();
 <div class="category-grid">
   {#each categories as cat}
     <a
-      href="{import.meta.env
-        .BASE_URL}{$versionSlug}/{cat.href}{location.search}"
+      href="{getVersionedBasePath()}{cat.href}{location.search}"
       class="category-card">
       <div class="icon-wrapper">
         <img

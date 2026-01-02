@@ -4,7 +4,7 @@ import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
 import { getContext } from "svelte";
 import { CddaData, i18n, singularName } from "../../data";
-import { versionSlug } from "../../routing";
+import { getVersionedBasePath } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
 import ThingLink from "../ThingLink.svelte";
@@ -52,8 +52,7 @@ let { tools, qualities } =
             {#if count <= 0}
               {#if data.craftingPseudoItem(toolId)}
                 <a
-                  href="{import.meta.env
-                    .BASE_URL}{$versionSlug}/furniture/{data.craftingPseudoItem(
+                  href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
                     toolId,
                   )}{location.search}"
                   >{singularName(data.byId("item", toolId))}</a>
@@ -77,8 +76,7 @@ let { tools, qualities } =
                 <svelte:fragment slot="0">
                   {#if data.craftingPseudoItem(toolId)}
                     <a
-                      href="{import.meta.env
-                        .BASE_URL}{$versionSlug}/furniture/{data.craftingPseudoItem(
+                      href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
                         toolId,
                       )}{location.search}"
                       >{singularName(data.byId("item", toolId))}</a>

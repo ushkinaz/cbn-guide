@@ -7,7 +7,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import * as fs from "fs";
 
 import App from "./App.svelte";
-import { versionSlug } from "./routing";
 // Load test data
 const testData = JSON.parse(
   fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
@@ -59,9 +58,6 @@ describe("Routing E2E Tests", () => {
       }
       return Promise.reject(new Error(`Unmocked fetch: ${url}`));
     }) as typeof fetch;
-
-    // Reset stores
-    versionSlug.set("stable");
 
     // Create a container for rendering
     container = document.createElement("div");

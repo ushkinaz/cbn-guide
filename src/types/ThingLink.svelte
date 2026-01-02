@@ -7,7 +7,7 @@ import {
   singular,
   singularName,
 } from "../data";
-import { versionSlug } from "../routing";
+import { getVersionedBasePath } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 
@@ -49,8 +49,7 @@ if (item?.type === "vehicle_part" && !item.name && item.item)
         count,
       )}){/if}</span>
 {:else}
-  <a
-    href="{import.meta.env.BASE_URL}{$versionSlug}/{type}/{id}{location.search}"
+  <a href="{getVersionedBasePath()}{type}/{id}{location.search}"
     >{overrideText
       ? overrideText
       : item

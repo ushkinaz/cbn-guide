@@ -7,7 +7,7 @@ import {
   omsName,
   singularName,
 } from "./data";
-import { versionSlug } from "./routing";
+import { getVersionedBasePath } from "./routing";
 import * as fuzzysort from "fuzzysort";
 import ItemSymbol from "./types/item/ItemSymbol.svelte";
 import type {
@@ -162,8 +162,7 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
           </td>
           <td style="vertical-align: middle; padding-left: 5px;">
             <a
-              href="{import.meta.env
-                .BASE_URL}{$versionSlug}/overmap_special/{result[0]
+              href="{getVersionedBasePath()}overmap_special/{result[0]
                 .id}{location.search}">{omsName(data, result[0])}</a
             >{#if result.length > 1}{" "}({result.length} variants){/if}
           </td>

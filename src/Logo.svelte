@@ -1,5 +1,5 @@
 <script lang="ts">
-import { versionSlug } from "./routing";
+import { getVersionedBasePath } from "./routing";
 
 //https://patorjk.com/software/taag/#p=display&f=Poison&t=Don%27t%0APanic%21&x=none&v=4&h=0&w=80&we=false
 const asciiArt = `
@@ -44,7 +44,7 @@ const asciiArtSmall = `
 `;
 </script>
 
-<a href="{import.meta.env.BASE_URL}{$versionSlug}/item/towel" class="logo-link">
+<a href="{getVersionedBasePath()}item/towel" class="logo-link">
   <aside class="ascii-art-container large">
     <pre class="ascii-art">{asciiArt}</pre>
   </aside>

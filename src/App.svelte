@@ -20,6 +20,7 @@ import {
   type BuildInfo,
   buildUrl,
   changeVersion,
+  getCurrentVersionSlug,
   getUrlConfig,
   handleInternalNavigation,
   type InitialAppState,
@@ -30,7 +31,6 @@ import {
   STABLE_VERSION,
   updateQueryParam,
   updateSearchRoute,
-  versionSlug,
 } from "./routing";
 
 import Logo from "./Logo.svelte";
@@ -232,7 +232,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
         <link
           rel="alternate"
           hreflang={lang.replace("_", "-")}
-          href={buildUrl($versionSlug, item, search, lang)} />
+          href={buildUrl(getCurrentVersionSlug(), item, search, lang)} />
       {/each}
     {/if}
   {/if}
