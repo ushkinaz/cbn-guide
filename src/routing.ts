@@ -97,7 +97,7 @@ export function getVersionedBasePath(): string {
  * Get current URL search params
  */
 function getSearchParams(): URLSearchParams {
-  return new URL(location.href).searchParams;
+  return new URLSearchParams(location.search);
 }
 
 /**
@@ -117,12 +117,29 @@ function getBuildTimestamp(build: BuildInfo): number {
 
 /**
  * Pick the latest build matching a predicate
+ * Uses O(n) algorithm instead of O(n log n) sorting
  */
 function pickLatestBuild(
   buildList: BuildInfo[],
   predicate: (build: BuildInfo) => boolean,
 ): BuildInfo | undefined {
-  return buildList.filter(predicate).sort(sortBuildsByFreshness)[0];
+  let latest: BuildInfo | undefined;
+  let latestTimestamp = -Infinity;
+
+  for (const build of buildList) {
+    if (!predicate(build)) continue;
+    const ts = getBuildTimestamp(build);
+    if (
+      ts > latestTimestamp ||
+      (ts === latestTimestamp &&
+        build.build_number > (latest?.build_number ?? ""))
+    ) {
+      latestTimestamp = ts;
+      latest = build;
+    }
+  }
+
+  return latest;
 }
 
 /**
@@ -254,17 +271,20 @@ export function buildUrl(
     path += "search/" + encodeURIComponent(search);
   }
 
-  const url = new URL(path, location.origin);
-
-  if (locale && locale !== "en") {
-    url.searchParams.set("lang", locale);
+  // Only create URL object if we need to add query parameters
+  if ((locale && locale !== "en") || tileset) {
+    const url = new URL(path, location.origin);
+    if (locale && locale !== "en") {
+      url.searchParams.set("lang", locale);
+    }
+    if (tileset) {
+      url.searchParams.set("t", tileset);
+    }
+    return url.toString();
   }
 
-  if (tileset) {
-    url.searchParams.set("t", tileset);
-  }
-
-  return url.toString();
+  // Return path directly with origin when no query params needed
+  return location.origin + path;
 }
 
 /**
@@ -380,16 +400,16 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
   const anchor = target?.closest("a") as HTMLAnchorElement | null;
 
   if (anchor && anchor.href) {
-    const { origin, pathname } = new URL(anchor.href);
+    // Use anchor element properties directly instead of creating URL object
     if (
-      origin === location.origin &&
-      pathname.startsWith(import.meta.env.BASE_URL)
+      anchor.origin === location.origin &&
+      anchor.pathname.startsWith(import.meta.env.BASE_URL)
     ) {
       event.preventDefault();
       // Cancel any pending debounced URL updates - user is explicitly navigating
       debouncedReplaceState.cancel();
       // We push to history, calculating the path from the anchor
-      history.pushState(null, "", pathname + location.search);
+      history.pushState(null, "", anchor.pathname + location.search);
       return true;
     }
   }
