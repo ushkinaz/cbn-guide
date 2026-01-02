@@ -89,6 +89,7 @@ function getCurrentVersionSlug(): string {
 
 /**
  * Decode a query parameter (handles + as space)
+ * Note: Only use for actual query parameters, not path segments
  */
 function decodeQueryParam(p: string): string {
   return decodeURIComponent(p.replace(/\+/g, " "));
@@ -133,7 +134,7 @@ function pickLatestBuild(
   buildList: BuildInfo[],
   predicate: (build: BuildInfo) => boolean,
 ): BuildInfo | undefined {
-  return [...buildList].filter(predicate).sort(sortBuildsByFreshness)[0];
+  return buildList.filter(predicate).sort(sortBuildsByFreshness)[0];
 }
 
 /**
@@ -213,12 +214,12 @@ export function parseRoute(): ParsedRoute {
     return {
       version,
       item: null,
-      search: id ? decodeQueryParam(id) : "",
+      search: id || "",
     };
   } else if (type) {
     return {
       version,
-      item: { type, id: id ? decodeQueryParam(id) : "" },
+      item: { type, id: id || "" },
       search: "",
     };
   }

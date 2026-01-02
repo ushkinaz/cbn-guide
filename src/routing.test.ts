@@ -208,6 +208,133 @@ describe("Routing E2E Tests", () => {
     });
   });
 
+  describe("URL Encoding/Decoding", () => {
+    test("handles plus signs in search queries correctly", async () => {
+      // Direct import to test parseRoute
+      const { parseRoute, buildUrl } = await import("./routing");
+
+      // Test encoding: "C++ programming" should encode + as %2B
+      const searchQuery = "C++ programming";
+      const url = buildUrl("stable", null, searchQuery);
+
+      // Should encode + as %2B and space as %20
+      expect(url).toContain("C%2B%2B%20programming");
+
+      // Simulate URL navigation
+      updateLocation("stable/search/C%2B%2B%20programming");
+
+      const route = parseRoute();
+      // Should decode back to original query
+      expect(route.search).toBe("C++ programming");
+    });
+
+    test("handles plus signs in item IDs correctly", async () => {
+      const { parseRoute, buildUrl } = await import("./routing");
+
+      // Test item ID with plus sign
+      const itemId = "item_id+variant";
+      const url = buildUrl("stable", { type: "item", id: itemId }, "");
+
+      // Should encode + as %2B
+      expect(url).toContain("item_id%2Bvariant");
+
+      // Simulate URL navigation
+      updateLocation("stable/item/item_id%2Bvariant");
+
+      const route = parseRoute();
+      expect(route.item?.id).toBe("item_id+variant");
+    });
+
+    test("handles spaces in search queries correctly", async () => {
+      const { parseRoute, buildUrl } = await import("./routing");
+
+      const searchQuery = "test query with spaces";
+      const url = buildUrl("stable", null, searchQuery);
+
+      // Spaces should be encoded as %20
+      expect(url).toContain("test%20query%20with%20spaces");
+
+      updateLocation("stable/search/test%20query%20with%20spaces");
+
+      const route = parseRoute();
+      expect(route.search).toBe("test query with spaces");
+    });
+
+    test("handles special characters in search", async () => {
+      const { parseRoute, buildUrl } = await import("./routing");
+
+      const searchQuery = "test&query=value";
+      const url = buildUrl("stable", null, searchQuery);
+
+      // Should properly encode & and =
+      expect(url).toContain(encodeURIComponent("test&query=value"));
+
+      const encodedQuery = encodeURIComponent(searchQuery);
+      updateLocation(`stable/search/${encodedQuery}`);
+
+      const route = parseRoute();
+      expect(route.search).toBe("test&query=value");
+    });
+
+    test("round-trip encoding: search query", async () => {
+      const { parseRoute, buildUrl } = await import("./routing");
+
+      const testCases = [
+        "simple",
+        "with spaces",
+        "C++",
+        "a+b+c",
+        "test&query",
+        "special@#$chars",
+        "unicode: 日本語",
+      ];
+
+      for (const query of testCases) {
+        const url = buildUrl("stable", null, query);
+        const urlObj = new URL(url);
+        const path = urlObj.pathname;
+
+        // Extract the search part from the path
+        const match = path.match(/\/search\/(.+)$/);
+        expect(match).toBeTruthy();
+
+        // Remove BASE_URL from path to get relative path
+        const baseUrl = import.meta.env.BASE_URL;
+        const relativePath = path.startsWith(baseUrl)
+          ? path.slice(baseUrl.length)
+          : path.slice(1); // fallback: remove leading /
+
+        updateLocation(relativePath);
+
+        const route = parseRoute();
+        expect(route.search).toBe(query);
+      }
+    });
+
+    test("round-trip encoding: item ID", async () => {
+      const { parseRoute, buildUrl } = await import("./routing");
+
+      const testCases = ["simple_id", "id with spaces", "c++_item", "a+b"];
+
+      for (const id of testCases) {
+        const url = buildUrl("stable", { type: "item", id }, "");
+        const urlObj = new URL(url);
+        const path = urlObj.pathname;
+
+        // Remove BASE_URL from path to get relative path
+        const baseUrl = import.meta.env.BASE_URL;
+        const relativePath = path.startsWith(baseUrl)
+          ? path.slice(baseUrl.length)
+          : path.slice(1); // fallback: remove leading /
+
+        updateLocation(relativePath);
+
+        const route = parseRoute();
+        expect(route.item?.id).toBe(id);
+      }
+    });
+  });
+
   describe("History Navigation", () => {
     test("reacts to history navigation and renders the matching route", async () => {
       render(App, {
