@@ -1,5 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { CBNData, parseDuration, parseMass, parseVolume } from "./data";
+import {
+  CBNData,
+  data,
+  parseDuration,
+  parseMass,
+  parseVolume,
+  singularName,
+} from "./data";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([
@@ -359,4 +366,64 @@ test("flattenRequirement: onlyRecoverable", () => {
     onlyRecoverable: true,
   });
   expect(flat).toEqual([[{ id: "stick", count: 1 }]]);
+});
+
+describe("Language Loading Fallback", () => {
+  test("setVersion should not crash if locale JSON is malformed", async () => {
+    const mockData = {
+      data: [{ type: "item", id: "stick", name: "Stick" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const mockLocale = {
+      // Missing required "" header for gettext.js
+      Stick: "Bâton",
+    };
+
+    // Backup and mock global fetch
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("lang/fr.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockLocale),
+        } as Response);
+      }
+      return Promise.reject(new Error("Unexpected fetch"));
+    }) as any;
+
+    try {
+      // Mock progress store
+      (globalThis as any).__isTesting__ = true;
+
+      // This should NOT throw "Wrong JSON, it must have an empty key ("") ..."
+      await data.setVersion("latest", "fr");
+
+      // Verify data is still loaded
+      const d = await new Promise<CBNData | null>((resolve) => {
+        let unsubscribe: () => void;
+        unsubscribe = data.subscribe((val) => {
+          if (val) {
+            if (unsubscribe) unsubscribe();
+            resolve(val);
+          }
+        });
+      });
+
+      expect(d).toBeDefined();
+      expect(d?.byId("item", "stick")).toBeDefined();
+      // Should fall back to English name if locale failed to load/parse
+      expect(singularName(d?.byId("item", "stick"))).toBe("Stick");
+    } finally {
+      globalThis.fetch = originalFetch;
+      (globalThis as any).__isTesting__ = false;
+    }
+  });
 });

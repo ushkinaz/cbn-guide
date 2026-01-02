@@ -141,7 +141,6 @@ function loadRoute() {
   const route = parseRoute();
   item = route.item;
   search = route.search;
-  console.log("search: %s", search);
   window.scrollTo(0, 0);
 }
 

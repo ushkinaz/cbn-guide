@@ -1821,7 +1821,7 @@ async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
 
       // Exponential backoff: 2s, 4s, 8s
       const delayMs = BASE_DELAY_MS * Math.pow(2, attempt - 1);
-      console.log(`Retrying in ${delayMs / 1000}s...`);
+      console.warn(`Retrying in ${delayMs / 1000}s...`);
       await new Promise((r) => setTimeout(r, delayMs));
     }
   }
@@ -1840,7 +1840,6 @@ export const data = {
     if (_hasSetVersion && !(globalThis as any).__isTesting__)
       throw new Error("can only set version once");
     _hasSetVersion = true;
-    console.log("Set version to v=%s, lang=%s", version, locale);
     let totals = [0, 0, 0];
     let receiveds = [0, 0, 0];
     const updateProgress = () => {
@@ -1878,19 +1877,26 @@ export const data = {
         ),
     ]);
     if (locale && localeJson) {
-      if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
-      i18n.loadJSON(localeJson);
-      i18n.setLocale(locale);
-      if (pinyinNameJson) {
-        i18n.loadJSON(pinyinNameJson, "pinyin");
+      try {
+        if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
+        i18n.loadJSON(localeJson);
+        i18n.setLocale(locale);
+        if (pinyinNameJson) {
+          i18n.loadJSON(pinyinNameJson, "pinyin");
+        }
+      } catch (e) {
+        console.error(
+          "Failed to load locale JSON, falling back to English:",
+          e,
+        );
       }
     }
-    const cddaData = new CBNData(
+    const cbnData = new CBNData(
       dataJson.data,
       dataJson.build_number,
       dataJson.release,
     );
-    set(cddaData);
+    set(cbnData);
   },
 };
 
