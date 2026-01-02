@@ -1,5 +1,5 @@
 <script lang="ts">
-import { versionSlug } from "./data";
+import { versionSlug } from "./routing";
 
 //https://patorjk.com/software/taag/#p=display&f=Poison&t=Don%27t%0APanic%21&x=none&v=4&h=0&w=80&we=false
 const asciiArt = `

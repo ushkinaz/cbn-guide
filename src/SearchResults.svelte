@@ -6,8 +6,8 @@ import {
   mapType,
   omsName,
   singularName,
-  versionSlug,
 } from "./data";
+import { versionSlug } from "./routing";
 import * as fuzzysort from "fuzzysort";
 import ItemSymbol from "./types/item/ItemSymbol.svelte";
 import type {

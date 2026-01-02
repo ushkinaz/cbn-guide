@@ -1,6 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, omsName, versionSlug } from "../../data";
+import { CddaData, omsName } from "../../data";
+import { versionSlug } from "../../routing";
 import type { ItemChance, Loot } from "./spawnLocations";
 import { showNumber, showProbability } from "./utils";
 import type { OvermapSpecial } from "../../types";

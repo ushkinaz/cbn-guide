@@ -6,8 +6,8 @@ import {
   pluralName,
   singular,
   singularName,
-  versionSlug,
 } from "../data";
+import { versionSlug } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 

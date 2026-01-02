@@ -1,6 +1,6 @@
 <script lang="ts">
 import Thing from "./Thing.svelte";
-import { data, singularName, versionSlug } from "./data";
+import { data, singularName } from "./data";
 import { tileData } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
@@ -10,14 +10,28 @@ import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
 import {
-  BUILDS_URL,
   GAME_REPO_URL,
   getTilesetUrl,
   GUIDE_NAME,
   TILESETS,
 } from "./constants";
 import { t } from "@transifex/native";
-import debounce from "lodash/debounce";
+import {
+  type BuildInfo,
+  buildUrl,
+  changeVersion,
+  getUrlConfig,
+  handleInternalNavigation,
+  type InitialAppState,
+  initializeRouting,
+  isSupportedVersion,
+  NIGHTLY_VERSION,
+  parseRoute,
+  STABLE_VERSION,
+  updateQueryParam,
+  updateSearchRoute,
+  versionSlug,
+} from "./routing";
 
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
@@ -32,121 +46,32 @@ function scrollToTop() {
 
 let item: { type: string; id: string } | null = null;
 
-//Mirrors JSON structure from builds.json
-type BuildInfo = {
-  //Same as a version
-  build_number: string;
-  prerelease: boolean;
-  created_at: string;
-  langs?: string[];
-};
-
 let builds: BuildInfo[] | null = null;
 
-const url = new URL(location.href);
-
-// helper to get path segments relative to BASE_URL
-function getPathSegments(): string[] {
-  const path = location.pathname.slice(import.meta.env.BASE_URL.length - 1);
-  // remove the leading slash if present
-  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  if (!cleanPath) return [];
-  return cleanPath.split("/").map(decodeURIComponent);
-}
-
-const stableVersion = "stable";
-const nightlyVersion = "nightly";
-const latestVersion = "latest";
-
-const getBuildTimestamp = (build: BuildInfo): number => {
-  const ts = Date.parse(build.created_at);
-  return Number.isNaN(ts) ? -Infinity : ts;
-};
-
-const sortBuildsByFreshness = (a: BuildInfo, b: BuildInfo) =>
-  getBuildTimestamp(b) - getBuildTimestamp(a) ||
-  b.build_number.localeCompare(a.build_number);
-
-const pickLatestBuild = (
-  buildList: BuildInfo[],
-  predicate: (build: BuildInfo) => boolean,
-): BuildInfo | undefined =>
-  [...buildList].filter(predicate).sort(sortBuildsByFreshness)[0];
-
-const segments = getPathSegments();
-const versionParam = segments[0] || stableVersion;
-
-function getCurrentVersionSlug(): string {
-  const s = getPathSegments();
-  return s[0] || stableVersion;
-}
-
-const requestedVersion = versionParam;
+const requestedVersion = parseRoute().version;
 let resolvedVersion: string;
 
 let latestStableBuild: BuildInfo | undefined;
 let latestNightlyBuild: BuildInfo | undefined;
 
-fetch(BUILDS_URL)
-  .then((d) => d.json())
-  .then((b: BuildInfo[]) => {
-    builds = b;
-    latestStableBuild = pickLatestBuild(b, (build) => !build.prerelease);
-    latestNightlyBuild = pickLatestBuild(b, (build) => build.prerelease);
+// Initialize routing and fetch builds
+initializeRouting()
+  .then((result: InitialAppState) => {
+    builds = result.builds;
+    resolvedVersion = result.resolvedVersion;
+    latestStableBuild = result.latestStableBuild;
+    latestNightlyBuild = result.latestNightlyBuild;
 
-    const fallbackVersion =
-      latestStableBuild?.build_number ||
-      latestNightlyBuild?.build_number ||
-      b[0]?.build_number;
-
-    const resolveAlias = (slug: string): string | undefined => {
-      if (slug === stableVersion) return latestStableBuild?.build_number;
-      if (slug === nightlyVersion || slug === latestVersion)
-        return latestNightlyBuild?.build_number;
-      return slug;
-    };
-    resolvedVersion =
-      resolveAlias(requestedVersion) ??
-      fallbackVersion ?? // Use the latest good
-      "Grinch-v1.0"; //We cannot resolve anything. Fallback to the hardcoded Christmas Version. Why not?
-
-    // Verify if the version actually exists in the build list
-    const versionExists = b.some(
-      (build) => build.build_number === resolvedVersion,
-    );
-    if (versionExists) {
-      versionSlug.set(requestedVersion);
-    } else if (!versionExists && fallbackVersion) {
-      // Fallback logic. We are here only of slug pointed to an incorrect version.
-      console.warn(
-        `Version ${resolvedVersion} not found in builds list, falling back to ${fallbackVersion}.`,
-      );
-      //TODO: Notify user
-      resolvedVersion = fallbackVersion;
-      versionSlug.set(resolvedVersion);
-      const newPath =
-        import.meta.env.BASE_URL +
-        fallbackVersion +
-        "/" +
-        segments.slice(1).join("/") +
-        location.search;
-      history.replaceState(null, "", newPath);
-    } else {
-      //no fallback - should never be here
-      console.error("Can not load anything. Are we totally offline?");
-      //TODO: Notify user, we failed to load our app.
-    }
-
-    data.setVersion(resolvedVersion, locale);
+    data.setVersion(resolvedVersion, localeParam);
   })
   .catch((e) => {
     console.error(e);
     //TODO: Notify user, we failed to load our app.
   });
 
-const locale = url.searchParams.get("lang");
-
-const tilesets = TILESETS;
+const urlConfig = getUrlConfig();
+const localeParam = urlConfig.locale;
+const tilesetParam = urlConfig.tileset;
 
 const ASCII_TILESET = "-";
 const DEFAULT_TILESET = ASCII_TILESET;
@@ -181,11 +106,9 @@ function saveTileset(tileset: string | null) {
 function isValidTileset(tilesetID: string | null) {
   return (
     (tilesetID && tilesetID === ASCII_TILESET) ||
-    tilesets.some((t) => t.name === tilesetID)
+    TILESETS.some((t) => t.name === tilesetID)
   );
 }
-
-const tilesetParam = url.searchParams.get("t");
 
 let tileset: string =
   (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
@@ -193,7 +116,7 @@ let tilesetUrlTemplate: string = "";
 
 $: tilesetUrlTemplate = normalizeTemplate(
   (() => {
-    const t = tilesets.find((t) => t.name === tileset);
+    const t = TILESETS.find((t) => t.name === tileset);
     return t ? getTilesetUrl("{version}", t.path) : "";
   })(),
 );
@@ -201,31 +124,6 @@ $: tilesetUrl = $data
   ? (tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null)
   : null;
 $: tileData.setURL(tilesetUrl);
-
-function decodeQueryParam(p: string) {
-  return decodeURIComponent(p.replace(/\+/g, " "));
-}
-
-function load() {
-  const segs = getPathSegments();
-
-  // We assume the first segment is the version.
-  const type = segs[1];
-  const id = segs[2];
-
-  if (type === "search") {
-    item = null;
-    search = id ? decodeQueryParam(id) : "";
-  } else if (type) {
-    item = { type, id: id ? decodeQueryParam(id) : "" };
-  } else {
-    // Home page
-    item = null;
-    search = "";
-  }
-
-  window.scrollTo(0, 0);
-}
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
@@ -238,49 +136,30 @@ $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
 
 let search: string = "";
 
-load();
+// Load initial route from URL
+function loadRoute() {
+  const route = parseRoute();
+  item = route.item;
+  search = route.search;
+  console.log("search: %s", search);
+  window.scrollTo(0, 0);
+}
 
-// Throttle replaceState to avoid browser warnings.
-// |debounce| isn't defined when running tests for some reason.
-const replaceState = debounce
-  ? debounce(history.replaceState.bind(history), 400, {
-      trailing: true,
-    })
-  : history.replaceState.bind(history);
+loadRoute();
 
 const handleSearchInput = () => {
-  // The current version is used in the path
-  const currentVer = getCurrentVersionSlug();
-
-  // Construct a new path
-  let newPath = import.meta.env.BASE_URL + currentVer + "/";
-  if (search) {
-    newPath += "search/" + encodeURIComponent(search);
-  }
-
-  if (item) history.pushState(null, "", newPath + location.search);
-  else replaceState(null, "", newPath + location.search);
+  updateSearchRoute(search, item);
   item = null;
 };
 
-function maybeNavigate(event: MouseEvent) {
-  const target = event.target as HTMLElement | null;
-  const anchor = target?.closest("a") as HTMLAnchorElement | null;
-  if (anchor && anchor.href) {
-    const { origin, pathname } = new URL(anchor.href);
-    if (
-      origin === location.origin &&
-      pathname.startsWith(import.meta.env.BASE_URL)
-    ) {
-      event.preventDefault();
-      history.pushState(null, "", pathname + location.search);
-      load();
-    }
+function handleNavigation(event: MouseEvent) {
+  if (handleInternalNavigation(event)) {
+    loadRoute();
   }
 }
 
 window.addEventListener("popstate", () => {
-  load();
+  loadRoute();
 });
 
 function maybeFocusSearch(e: KeyboardEvent) {
@@ -322,9 +201,9 @@ function getLanguageName(code: string) {
       zh_TW: "中文 (台灣)",
     }[code] ??
     (Intl?.DisplayNames
-      ? new Intl.DisplayNames([code.replace(/_/, ASCII_TILESET)], {
+      ? new Intl.DisplayNames([code.replace(/_/, "-")], {
           type: "language",
-        }).of(code.replace(/_/, ASCII_TILESET))
+        }).of(code.replace(/_/, "-"))
       : code)
   );
 }
@@ -334,47 +213,11 @@ function getLanguageName(code: string) {
 let currentHref = location.href;
 $: (item, search, (currentHref = location.href));
 
-function getCleanUrl(
-  _ver: string,
-  _item: typeof item,
-  _search: string,
-  _locale: string | null,
-): string {
-  let path = import.meta.env.BASE_URL + _ver + "/";
-
-  if (_item) {
-    if (_item.type && _item.id) {
-      path +=
-        encodeURIComponent(_item.type) + "/" + encodeURIComponent(_item.id);
-    } else if (_item.type) {
-      path += encodeURIComponent(_item.type);
-    }
-  } else if (_search) {
-    path += "search/" + encodeURIComponent(_search);
-  }
-
-  const u = new URL(path, location.origin);
-
-  if (_locale && _locale !== "en") {
-    u.searchParams.set("lang", _locale);
-  }
-
-  return u.toString();
-}
-
-$: canonicalUrl = getCleanUrl(stableVersion, item, search, locale);
-
-function isSupportedVersion(buildNumber: string): boolean {
-  const match = /^v?(\d+)\.(\d+)(?:\.(\d+))?/.exec(buildNumber);
-  if (!match) return false;
-  const [, major, minor] = match;
-  //0.7.0 or later
-  return parseInt(major) > 0 || (parseInt(major) === 0 && parseInt(minor) >= 7);
-}
+$: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
 </script>
 
 <svelte:window
-  on:click={maybeNavigate}
+  on:click={handleNavigation}
   on:keydown={maybeFocusSearch}
   bind:scrollY />
 
@@ -389,7 +232,7 @@ function isSupportedVersion(buildNumber: string): boolean {
         <link
           rel="alternate"
           hreflang={lang.replace("_", "-")}
-          href={getCleanUrl($versionSlug, item, search, lang)} />
+          href={buildUrl($versionSlug, item, search, lang)} />
       {/each}
     {/if}
   {/if}
@@ -519,19 +362,12 @@ function isSupportedVersion(buildNumber: string): boolean {
             value={requestedVersion}
             on:change={(e) => {
               const v = e.currentTarget.value;
-              // Redirect to a new version
-              const segs = getPathSegments();
-              segs[0] = v;
-              // If we were on the home page (segs length 1 or 0), just go to version root
-              if (segs.length === 0) segs.push(v);
-
-              const newPath = import.meta.env.BASE_URL + segs.join("/");
-              location.href = newPath + location.search;
+              changeVersion(v);
             }}>
             <optgroup label={t("Branch")}>
-              <option value={stableVersion}
+              <option value={STABLE_VERSION}
                 >Stable ({latestStableBuild?.build_number ?? "N/A"})</option>
-              <option value={nightlyVersion}
+              <option value={NIGHTLY_VERSION}
                 >Nightly ({latestNightlyBuild?.build_number ?? "N/A"})</option>
             </optgroup>
             <optgroup label={t("Stable")}>
@@ -563,12 +399,10 @@ function isSupportedVersion(buildNumber: string): boolean {
         on:change={(e) => {
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
-          const url = new URL(location.href);
-          url.searchParams.set("t", tileset);
-          location.href = url.toString();
+          updateQueryParam("t", tileset);
         }}>
         <option value={ASCII_TILESET}>None (ASCII)</option>
-        {#each tilesets as { name }}
+        {#each TILESETS as { name }}
           <option value={name}>{name}</option>
         {/each}
       </select>
@@ -579,13 +413,10 @@ function isSupportedVersion(buildNumber: string): boolean {
         <select
           id="language_select"
           aria-label={t("Language")}
-          value={locale || "en"}
+          value={localeParam || "en"}
           on:change={(e) => {
-            const url = new URL(location.href);
             const lang = e.currentTarget.value;
-            if (lang === "en") url.searchParams.delete("lang");
-            else url.searchParams.set("lang", lang);
-            location.href = url.toString();
+            updateQueryParam("lang", lang === "en" ? null : lang);
           }}>
           <option value="en">English</option>
           {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}

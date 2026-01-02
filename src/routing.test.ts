@@ -3,12 +3,11 @@
  */
 
 import { act, cleanup, render } from "@testing-library/svelte";
-import { screen } from "@testing-library/dom";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import * as fs from "fs";
 
 import App from "./App.svelte";
-import { versionSlug } from "./data";
+import { versionSlug } from "./routing";
 // Load test data
 const testData = JSON.parse(
   fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),

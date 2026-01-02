@@ -22,7 +22,8 @@ import terrainIcon from "./assets/category-icons/terrain.svg";
 //https://game-icons.net/1x1/delapouite/car-wheel.html
 import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import { t } from "@transifex/native";
-import { CddaData, data, mapType, versionSlug } from "./data";
+import { CddaData, data, mapType } from "./data";
+import { versionSlug } from "./routing";
 import type { SupportedTypeMapped } from "./types";
 import { get } from "svelte/store";
 

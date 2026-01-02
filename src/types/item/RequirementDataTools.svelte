@@ -3,7 +3,8 @@ import { t } from "@transifex/native";
 import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
 import { getContext } from "svelte";
-import { CddaData, i18n, singularName, versionSlug } from "../../data";
+import { CddaData, i18n, singularName } from "../../data";
+import { versionSlug } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
 import ThingLink from "../ThingLink.svelte";
