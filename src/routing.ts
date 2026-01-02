@@ -377,6 +377,17 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
   const anchor = target?.closest("a") as HTMLAnchorElement | null;
 
   if (anchor && anchor.href) {
+    // Standard browser behavior: let browser handle modifier keys and middle click
+    if (
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.button !== 0
+    ) {
+      return false;
+    }
+
     // Use anchor element properties directly instead of creating URL object
     if (
       anchor.origin === location.origin &&

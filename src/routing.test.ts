@@ -148,6 +148,52 @@ describe("Routing E2E Tests", () => {
       expect(document.title.toLowerCase()).toMatch(/rock/);
     });
 
+    test("ignores internal navigation when modifier keys are pressed", async () => {
+      // Start at home
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+
+      // We need to import the handler directly to test its return value
+      // since we can't easily spy on the native browser new tab behavior
+      const { handleInternalNavigation } = await import("./routing");
+
+      // Mock an event with meta key (Cmd+Click)
+      const mockEvent = {
+        target: document.createElement("a"),
+        preventDefault: vi.fn(),
+        metaKey: true,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        button: 0,
+      } as unknown as MouseEvent;
+
+      // Setup the anchor to look like an internal link
+      const anchor = mockEvent.target as HTMLAnchorElement;
+      anchor.href = "http://localhost:3000/stable/item/rock";
+      // We need to ensure the closest("a") works
+      // In a real event, target might be a child, but here it is the anchor itself
+      // The routing implementation uses target.closest("a")
+      // Since we passed a disconnected element, closest might fail if we don't mock it or append it
+      // Let's just mock closest on the target
+      (mockEvent.target as any).closest = () => anchor;
+      Object.defineProperty(anchor, "origin", {
+        value: "http://localhost:3000",
+      });
+      Object.defineProperty(anchor, "pathname", {
+        value: "/stable/item/rock",
+      });
+
+      const handled = handleInternalNavigation(mockEvent);
+
+      // Should return false (not handled) and NOT prevent default
+      expect(handled).toBe(false);
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    });
+
     test("preserves query parameters during navigation", async () => {
       // Set up with a query parameter
       updateLocation("stable/", "?lang=ru_RU");
