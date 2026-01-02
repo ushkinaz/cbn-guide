@@ -65,7 +65,7 @@ export type Construction = {
   type: "construction";
   id: string;
   group: string; // construction_group_id
-  required_skills: [string /* skill_id */, number /* level */][];
+  required_skills?: [string /* skill_id */, number /* level */][];
 
   category: string; // construction_category_id, default: OTHER
   time: string | number /* minutes */;
@@ -453,6 +453,8 @@ export type UseFunction =
   | MulticookerUseFunction
   | SexToyUseFunction
   | RevealContentsUseFunction
+  | CloningSyringeUseFunction
+  | DnaEditorUseFunction
   | {
       // TODO
       type:
@@ -542,6 +544,17 @@ export type RevealContentsUseFunction = {
   group: string;
   open_message?: Translation;
   moves?: integer;
+};
+
+export type CloningSyringeUseFunction = {
+  type: "cloning_syringe";
+  moves?: integer;
+  charges_to_use?: integer;
+};
+
+export type DnaEditorUseFunction = {
+  type: "dna_editor";
+  charges_to_use?: integer;
 };
 
 type ItemActionUseFunction = {
