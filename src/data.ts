@@ -182,14 +182,17 @@ const massUnits: Record<string, number> = {
   kg: 1e3,
 };
 
+const MASS_REGEX = /([+-]?\d+)\s*([a-zA-Zμ]+)/g;
+
 // Returns grams
 export function parseMass(string: string | number): number {
   if (typeof string === "undefined") return 0;
   if (typeof string === "number") return string;
   let val = 0;
-  const re = /([+-]?\d+)\s*([a-zA-Zμ]+)/g;
+  // Reset regex lastIndex for global regex reuse
+  MASS_REGEX.lastIndex = 0;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(string))) {
+  while ((m = MASS_REGEX.exec(string))) {
     const [_, numStr, unit] = m;
     const unitVal = massUnits[unit];
     if (unitVal !== undefined) {
@@ -1793,15 +1796,38 @@ const fetchLocaleJson = async (
   );
 };
 
-async function retry<T>(promiseGenerator: () => Promise<T>) {
-  while (true) {
+/**
+ * Retry a promise-generating function with exponential backoff.
+ * Max 3 attempts with increasing delays: 2s, 4s, 8s.
+ * @throws Error with user-friendly message if all attempts fail
+ */
+async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
+  const MAX_RETRIES = 3;
+  const BASE_DELAY_MS = 2000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       return await promiseGenerator();
     } catch (e) {
-      console.error(e);
-      await new Promise((r) => setTimeout(r, 2000));
+      console.error(`Attempt ${attempt}/${MAX_RETRIES} failed:`, e);
+
+      if (attempt === MAX_RETRIES) {
+        // Final attempt failed - show user-friendly error
+        throw new Error(
+          `Failed to load data after ${MAX_RETRIES} attempts. ` +
+            `Please check your internet connection and try refreshing the page.`,
+        );
+      }
+
+      // Exponential backoff: 2s, 4s, 8s
+      const delayMs = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      console.log(`Retrying in ${delayMs / 1000}s...`);
+      await new Promise((r) => setTimeout(r, delayMs));
     }
   }
+
+  // TypeScript flow analysis - should never reach here
+  throw new Error("Unexpected: retry loop exhausted");
 }
 
 const loadProgressStore = writable<[number, number] | null>(null);
