@@ -293,6 +293,16 @@ export function isSupportedVersion(buildNumber: string): boolean {
 // ============================================================================
 
 /**
+ * Debounced version of history.replaceState for search input updates
+ * Prevents excessive history updates during rapid typing
+ */
+const debouncedReplaceState = debounce(
+  (url: string) => history.replaceState(null, "", url),
+  400,
+  { trailing: true },
+);
+
+/**
  * Navigate to a new route without affecting query params
  */
 export function navigateTo(
@@ -301,6 +311,9 @@ export function navigateTo(
   search: string,
   pushToHistory: boolean = true,
 ): void {
+  // Cancel any pending debounced URL updates - user is explicitly navigating
+  debouncedReplaceState.cancel();
+
   const url = buildUrl(version, item, search);
   const newPath = new URL(url).pathname;
   const fullUrl = newPath + location.search;
@@ -348,9 +361,7 @@ export function updateSearchRoute(
   if (currentItem) {
     history.pushState(null, "", fullUrl);
   } else {
-    debounce(history.replaceState.bind(history), 400, {
-      trailing: true,
-    })(null, "", fullUrl);
+    debouncedReplaceState(fullUrl);
   }
 }
 
@@ -385,6 +396,8 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
       pathname.startsWith(import.meta.env.BASE_URL)
     ) {
       event.preventDefault();
+      // Cancel any pending debounced URL updates - user is explicitly navigating
+      debouncedReplaceState.cancel();
       // We push to history, calculating the path from the anchor
       history.pushState(null, "", pathname + location.search);
       return true;
@@ -449,7 +462,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
     //TODO: Notify user
     resolvedVersion = fallbackVersion;
     versionSlug.set(resolvedVersion);
-    redirectToVersion(fallbackVersion, true);
+    redirectToVersion(resolvedVersion, true);
   } else {
     //no fallback - should never be here
     console.error("Can not load anything. Are we totally offline?");
