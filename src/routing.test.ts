@@ -58,6 +58,12 @@ describe("Routing E2E Tests", () => {
           json: () => Promise.resolve(testData),
         } as Response);
       }
+      if (url.includes("ru_RU.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => {},
+        } as Response);
+      }
       return Promise.reject(new Error(`Unmocked fetch: ${url}`));
     }) as typeof fetch;
 
