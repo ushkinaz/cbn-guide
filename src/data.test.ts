@@ -1,5 +1,5 @@
-import { expect, test } from "vitest";
-import { CBNData } from "./data";
+import { describe, expect, test } from "vitest";
+import { CBNData, parseDuration, parseMass, parseVolume } from "./data";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([
@@ -118,4 +118,245 @@ test("nested", () => {
     { id: "bottle_plastic", count: [2, 2], prob: "0.90", expected: 1.8 },
     { id: "water_clean", count: [2, 7], prob: "0.90", expected: 4.05 },
   ]);
+});
+
+describe("Parsing units", () => {
+  test("parseVolume", () => {
+    expect(parseVolume(1)).toBe(250); //see legacy_volume_factor
+    expect(parseVolume("100 ml")).toBe(100);
+    expect(parseVolume("2 L")).toBe(2000);
+    expect(parseVolume("1 L 500 ml")).toBe(1500);
+  });
+
+  test("parseMass", () => {
+    expect(parseMass(100)).toBe(100);
+    expect(parseMass("1 kg")).toBe(1000);
+    expect(parseMass("500 g")).toBe(500);
+    expect(parseMass("50 mg")).toBe(0.05);
+    expect(parseMass("1 kg 500 g")).toBe(1500);
+  });
+
+  test("parseDuration", () => {
+    expect(parseDuration(100)).toBe(1);
+    expect(parseDuration("1 turns")).toBe(1);
+    expect(parseDuration("10 s")).toBe(10);
+    expect(parseDuration("1 m")).toBe(60);
+    expect(parseDuration("1 h")).toBe(3600);
+    expect(parseDuration("1 d")).toBe(86400);
+    expect(parseDuration("1 day 12 hours")).toBe(86400 + 12 * 3600);
+    expect(parseDuration("1 h 7 m 30 s")).toBe(3600 + 7 * 60 + 30);
+    expect(parseDuration("+1 day -23 hours 50m")).toBe(110 * 60);
+    expect(parseDuration("1 turn 1 minutes 9 turns")).toBe(70);
+    expect(parseDuration("-10s")).toBe(-10);
+  });
+});
+
+test("_flatten: copy-from inheritance", () => {
+  const data = new CBNData([
+    { type: "item", abstract: "parent", weight: "1 kg", volume: "1 L" },
+    { type: "item", id: "child", "copy-from": "parent", weight: "2 kg" },
+  ]);
+  const child = data.byId("item", "child");
+  expect(child.weight).toBe("2 kg");
+  expect(child.volume).toBe("1 L");
+});
+
+test("_flatten: relative", () => {
+  const data = new CBNData([
+    {
+      type: "item",
+      abstract: "parent",
+      weight: "1 kg",
+      volume: "1 L",
+      melee_damage: { damage_type: "bash", amount: 10 },
+      qualities: [["CUT", 1]],
+    },
+    {
+      type: "item",
+      id: "child",
+      "copy-from": "parent",
+      relative: {
+        weight: 500, // weight is in grams
+        volume: 250, // volume is in 250ml units if number? No, looking at code: (parseVolume(ret[k]) ?? 0) + ret.relative[k]
+        melee_damage: { amount: 5 },
+        qualities: [["CUT", 1]],
+      },
+    },
+  ]);
+  const child = data.byId("item", "child");
+  expect(child.weight).toBe(1500); // 1kg (1000) + 500
+  expect(child.volume).toBe(1250); // 1L (1000) + 250
+  expect(child.melee_damage).toEqual({ damage_type: "bash", amount: 15 });
+  expect(child.qualities).toEqual([["CUT", 2]]);
+});
+
+test("_flatten: proportional", () => {
+  const data = new CBNData([
+    { type: "item", abstract: "parent", weight: "1 kg", volume: "1 L" },
+    {
+      type: "item",
+      id: "child",
+      "copy-from": "parent",
+      proportional: {
+        weight: 1.5,
+        volume: 2,
+      },
+    },
+  ]);
+  const child = data.byId("item", "child");
+  // code: ret[k] *= ret.proportional[k]; ret[k] = ret[k] | 0;
+  // wait, ret[k] here is still "1kg".
+  // Looking at code:
+  // if (typeof ret[k] === "string") {
+  //   const m = /^\s*(\d+)\s*(.+)$/.exec(ret[k]);
+  //   if (m) {
+  //     const [, num, unit] = m;
+  //     ret[k] = `${Number(num) * ret.proportional[k]} ${unit}`;
+  //   }
+  // }
+  expect(child.weight).toBe("1.5 kg");
+  expect(child.volume).toBe("2 L");
+});
+
+test("_flatten: extend and delete", () => {
+  const data = new CBNData([
+    {
+      type: "item",
+      abstract: "parent",
+      flags: ["A", "B"],
+      qualities: [
+        ["CUT", 1],
+        ["DIG", 1],
+      ],
+    },
+    {
+      type: "item",
+      id: "child",
+      "copy-from": "parent",
+      extend: {
+        flags: ["B", "C"],
+      },
+      delete: {
+        qualities: [["DIG", 1]],
+      },
+    },
+  ]);
+  const child = data.byId("item", "child");
+  expect(child.flags).toEqual(["A", "B", "C"]);
+  expect(child.qualities).toEqual([["CUT", 1]]);
+});
+
+test("flattenItemGroup: deep nested groups", () => {
+  const data = new CBNData([
+    {
+      type: "item_group",
+      id: "leaf",
+      subtype: "collection",
+      entries: [{ item: "stick", prob: 50 }],
+    },
+    {
+      type: "item_group",
+      id: "middle",
+      subtype: "distribution",
+      entries: [
+        { group: "leaf", prob: 1 },
+        { item: "stone", prob: 1 },
+      ],
+    },
+    {
+      type: "item_group",
+      id: "top",
+      subtype: "collection",
+      entries: [{ group: "middle", count: 2 }],
+    },
+  ]);
+  const flat = data.flattenTopLevelItemGroup(data.byId("item_group", "top"));
+  // top: collection of 2 'middle'
+  // middle: 50% leaf, 50% stone
+  // leaf: 50% stick
+  // middle spawns:
+  // - stick: 0.5 * 0.5 = 0.25 (count 1)
+  // - stone: 0.5 (count 1)
+  // top spawns middle with count 2:
+  // - stick: prob = 0.25 (prob is not increased by roll count in current implementation)
+  // - stone: prob = 0.5
+  expect(flat.find((x) => x.id === "stick")?.prob).toBe(0.25);
+  expect(flat.find((x) => x.id === "stick")?.expected).toBe(0.5);
+  expect(flat.find((x) => x.id === "stone")?.prob).toBe(0.5);
+  expect(flat.find((x) => x.id === "stone")?.expected).toBe(1);
+});
+
+test("flattenItemGroup: container-item in entry", () => {
+  const data = new CBNData([
+    {
+      type: "item_group",
+      id: "foo",
+      subtype: "collection",
+      entries: [{ item: "water", prob: 50, "container-item": "bottle" }],
+    },
+  ]);
+  const flat = data.flattenTopLevelItemGroup(data.byId("item_group", "foo"));
+  expect(flat.find((x) => x.id === "bottle")?.prob).toBe(0.5);
+  expect(flat.find((x) => x.id === "water")?.prob).toBe(0.5);
+});
+
+test("flattenRequirement: basic expansion", () => {
+  const data = new CBNData([
+    {
+      type: "requirement",
+      id: "req_a",
+      components: [[["comp_1", 1]]],
+    },
+  ]);
+  const flat = data.flattenRequirement([[["comp_1", 2]]], (x) => x.components);
+  expect(flat).toEqual([[{ id: "comp_1", count: 2 }]]);
+});
+
+test("flattenRequirement: substitutes", () => {
+  const data = new CBNData([
+    {
+      type: "TOOL",
+      id: "welder",
+      sub: "welding_standard",
+    },
+    {
+      type: "TOOL",
+      id: "welder_crude",
+      sub: "welding_standard",
+    },
+  ]);
+  // replacements for 'welding_standard' should include welder and welder_crude
+  // but wait, replacementTools(type: string) looks for items where item.sub === type
+  const flat = data.flattenRequirement(
+    [[["welding_standard", 5]]],
+    (x) => x.tools,
+    { expandSubstitutes: true },
+  );
+  expect(flat[0]).toContainEqual({ id: "welding_standard", count: 5 });
+  expect(flat[0]).toContainEqual({ id: "welder", count: 5 });
+  expect(flat[0]).toContainEqual({ id: "welder_crude", count: 5 });
+});
+
+test("flattenRequirement: onlyRecoverable", () => {
+  const data = new CBNData([
+    {
+      type: "item",
+      id: "stick",
+    },
+    {
+      type: "item",
+      id: "glue",
+      flags: ["UNRECOVERABLE"],
+    },
+  ]);
+  const req = [
+    [
+      ["stick", 1],
+      ["glue", 1],
+    ],
+  ];
+  const flat = data.flattenRequirement(req, (x: any) => x.components, {
+    onlyRecoverable: true,
+  });
+  expect(flat).toEqual([[{ id: "stick", count: 1 }]]);
 });

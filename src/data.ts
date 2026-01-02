@@ -155,13 +155,25 @@ export function showProbability(prob: number) {
 export function parseVolume(string: string | number): number {
   if (typeof string === "undefined") return 0;
   if (typeof string === "number") return string * 250;
-  if (string.endsWith("ml")) return parseInt(string);
-  else if (string.endsWith("L")) return parseInt(string) * 1000;
-  throw new Error("unknown volume unit: " + string);
+  let val = 0;
+  const re = /([+-]?\d+)\s*([a-zA-Z]+)/g;
+  let m: RegExpExecArray | null;
+  const unitMap: Record<string, number> = {
+    ml: 1,
+    L: 1000,
+  };
+  while ((m = re.exec(string))) {
+    const [_, numStr, unit] = m;
+    const unitVal = unitMap[unit];
+    if (unitVal !== undefined) {
+      val += parseInt(numStr, 10) * unitVal;
+    }
+  }
+  return val;
 }
 
 // with g as 1
-const massUnitMultiplier = {
+const massUnits: Record<string, number> = {
   μg: 1e-6,
   ug: 1e-6,
   mcg: 1e-6,
@@ -174,51 +186,51 @@ const massUnitMultiplier = {
 export function parseMass(string: string | number): number {
   if (typeof string === "undefined") return 0;
   if (typeof string === "number") return string;
-  let m: RegExpExecArray | null;
   let val = 0;
-  const re = new RegExp(
-    `(\\d+)\\s+(${Object.keys(massUnitMultiplier).join("|")})`,
-    "g",
-  );
+  const re = /([+-]?\d+)\s*([a-zA-Zμ]+)/g;
+  let m: RegExpExecArray | null;
   while ((m = re.exec(string))) {
-    const [_, num, unit] = m;
-    val +=
-      parseInt(num) *
-      massUnitMultiplier[unit as keyof typeof massUnitMultiplier];
+    const [_, numStr, unit] = m;
+    const unitVal = massUnits[unit];
+    if (unitVal !== undefined) {
+      val += parseInt(numStr, 10) * unitVal;
+    }
   }
   return val;
 }
 
+const durationUnits: Record<string, number> = {
+  turns: 1,
+  turn: 1,
+  t: 1,
+  seconds: 1,
+  second: 1,
+  s: 1,
+  minutes: 60,
+  minute: 60,
+  m: 60,
+  hours: 3600,
+  hour: 3600,
+  h: 3600,
+  days: 86400,
+  day: 86400,
+  d: 86400,
+};
 // Returns seconds
 export function parseDuration(duration: string | number): number {
+  if (typeof duration === "undefined") return 0;
   if (typeof duration === "number") return duration / 100;
-  const turns = 1;
-  const seconds = 1;
-  const minutes = 60;
-  const hours = minutes * 60;
-  const days = hours * 24;
-  // noinspection PointlessArithmeticExpressionJS
-  const units: [string, number][] = [
-    ["turns", 1 * turns],
-    ["turn", 1 * turns],
-    ["t", 1 * turns],
-    ["seconds", 1 * seconds],
-    ["second", 1 * seconds],
-    ["s", 1 * seconds],
-    ["minutes", 1 * minutes],
-    ["minute", 1 * minutes],
-    ["m", 1 * minutes],
-    ["hours", 1 * hours],
-    ["hour", 1 * hours],
-    ["h", 1 * hours],
-    ["days", 1 * days],
-    ["day", 1 * days],
-    ["d", 1 * days],
-  ];
-  const [num, unit] = duration.trim().split(/\s+/);
-  const multiplier = units.find((x) => x[0] === unit);
-  if (!multiplier) throw new Error(`bad duration: ${JSON.stringify(duration)}`);
-  return Number(num) * multiplier[1];
+  let val = 0;
+  const re = /([+-]?\d+)\s*([a-z]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(duration))) {
+    const [_, numStr, unit] = m;
+    const unitVal = durationUnits[unit];
+    if (unitVal !== undefined) {
+      val += parseInt(numStr, 10) * unitVal;
+    }
+  }
+  return val;
 }
 
 export function asMinutes(duration: string | number) {
