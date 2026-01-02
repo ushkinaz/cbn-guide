@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { getContext } from "svelte";
-import { CddaData, i18n, singularName } from "../../data";
+import { CBNData, i18n, singularName } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ThingLink from "../ThingLink.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
@@ -9,7 +9,7 @@ import ItemSymbol from "./ItemSymbol.svelte";
 export let item_id: string;
 const _context = "Item Basic Info";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const itemComponents = data.getItemComponents();
 

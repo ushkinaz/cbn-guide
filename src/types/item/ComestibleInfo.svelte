@@ -2,14 +2,14 @@
 import { t } from "@transifex/native";
 import type { ComestibleSlot } from "../../types";
 import ThingLink from "../ThingLink.svelte";
-import { CddaData, parseDuration } from "../../data";
+import { CBNData, parseDuration } from "../../data";
 import { getContext } from "svelte";
 
 export let item: ComestibleSlot;
 
 const _context = "Item Comestible Info";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 </script>
 
 <section>

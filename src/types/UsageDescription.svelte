@@ -1,11 +1,11 @@
 <script lang="ts">
-import { CddaData, singular, singularName } from "../data";
+import { CBNData, singular, singularName } from "../data";
 import { getContext } from "svelte";
 import type { UseFunction } from "../types";
 import ThingLink from "./ThingLink.svelte";
 import { t } from "@transifex/native";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 export let usage: UseFunction;
 

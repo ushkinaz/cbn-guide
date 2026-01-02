@@ -1,7 +1,7 @@
 <script lang="ts">
 import { setContext } from "svelte";
 
-import { byName, CddaData, singularName } from "./data";
+import { byName, CBNData, singularName } from "./data";
 import LimitedList from "./LimitedList.svelte";
 import type {
   Item,
@@ -18,7 +18,7 @@ import { groupBy } from "./types/item/utils";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
 
 export let type: string;
-export let data: CddaData;
+export let data: CBNData;
 let typeWithCorrectType = type as keyof SupportedTypesWithMapped;
 setContext("data", data);
 

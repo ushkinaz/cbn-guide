@@ -1,6 +1,6 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { byName, CddaData } from "../../data";
+import { byName, CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ThingLink from "../ThingLink.svelte";
 import type { Furniture, Terrain } from "../../types";
@@ -9,7 +9,7 @@ import { t } from "@transifex/native";
 
 export let item_id: string;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const harvestedFrom = (data.byType("terrain") as (Terrain | Furniture)[])
   .concat(data.byType("furniture"))

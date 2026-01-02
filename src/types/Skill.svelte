@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { byName, CddaData, singular, singularName } from "../data";
+import { byName, CBNData, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -11,7 +11,7 @@ import ThingLink from "./ThingLink.svelte";
 
 export let item: Skill;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const booksWithSkill = data
   .byType("item")

@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { MartialArt, MartialArtBuff } from "../types";
 import { getContext } from "svelte";
-import { CddaData, i18n, singular, singularName } from "../data";
+import { CBNData, i18n, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import ThingLink from "./ThingLink.svelte";
 import Technique from "./Technique.svelte";
@@ -9,7 +9,7 @@ import BonusContainer from "./BonusContainer.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
 import { t } from "@transifex/native";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 function learnDifficultyAsText(difficulty: number): string {
   if (difficulty <= 2) {

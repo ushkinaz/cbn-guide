@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { byName, CddaData, parseMass } from "../../data";
+import { byName, CBNData, parseMass } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Item, Material } from "../../types";
 import ThingLink from "../ThingLink.svelte";
@@ -10,7 +10,7 @@ import ItemSymbol from "./ItemSymbol.svelte";
 
 export let item_id: string;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 const item = data.byId("item", item_id);
 

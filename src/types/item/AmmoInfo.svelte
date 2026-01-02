@@ -1,23 +1,15 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { byName, CddaData, singularName } from "../../data";
-import type {
-  AmmoSlot,
-  DamageUnit,
-  GunSlot,
-  ItemBasicInfo,
-  MagazineSlot,
-  SupportedTypesWithMapped,
-} from "../../types";
+import { CBNData, singularName } from "../../data";
+import type { AmmoSlot, DamageUnit } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import { getContext } from "svelte";
-import LimitedList from "../../LimitedList.svelte";
 import CompatibleItems from "./CompatibleItems.svelte";
 
 export let item: AmmoSlot;
 const _context = "Item Ammo Info";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 // TODO: handle multiple damage type
 const damage = Array.isArray(item.damage)

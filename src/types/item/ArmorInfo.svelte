@@ -1,6 +1,6 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, singular } from "../../data";
+import { CBNData, singular } from "../../data";
 import type {
   ArmorPortionData,
   ArmorSlot,
@@ -9,7 +9,7 @@ import type {
 } from "../../types";
 
 export let item: ItemBasicInfo & ArmorSlot;
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 function isStrings<T>(array: string[] | T[]): array is string[] {
   return typeof array[0] === "string";

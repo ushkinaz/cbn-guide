@@ -5,7 +5,7 @@ import ThingLink from "../ThingLink.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
 import type { Loot } from "./spawnLocations";
 import { showNumber, showProbability } from "./utils";
-import type { CddaData } from "../../data";
+import type { CBNData } from "../../data";
 import { t } from "@transifex/native";
 import type { SupportedTypesWithMapped } from "src/types";
 
@@ -24,7 +24,7 @@ function stripType(x: any): any {
 
 let showData = (globalThis as any).__isTesting__;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 </script>
 
 {#if showData}

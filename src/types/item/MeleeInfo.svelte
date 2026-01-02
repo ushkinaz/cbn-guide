@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 import {
-  CddaData,
+  CBNData,
   parseMass,
   parseVolume,
   singular,
@@ -12,7 +12,7 @@ import {
 import type { Item } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 const _context = "Item Melee Info";
 export let item: Item;
 

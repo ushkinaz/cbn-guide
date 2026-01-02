@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import type { CddaData } from "../../data";
+import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Harvest } from "../../types";
 import ThingLink from "../ThingLink.svelte";
@@ -11,7 +11,7 @@ import ItemTable from "./ItemTable.svelte";
 
 export let item_id: string;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 const mons = new Map(
   data.byType("monster").flatMap((mon) => {
     if (!mon.id) return [];

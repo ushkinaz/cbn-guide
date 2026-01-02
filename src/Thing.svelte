@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 import { setContext, SvelteComponent } from "svelte";
 
-import type { CddaData } from "./data";
+import type { CBNData } from "./data";
 import Monster from "./types/Monster.svelte";
 import Item from "./types/Item.svelte";
 import Unknown from "./types/Unknown.svelte";
@@ -36,7 +36,7 @@ import Technique from "./types/Technique.svelte";
 
 export let item: { id: string; type: string };
 
-export let data: CddaData;
+export let data: CBNData;
 setContext("data", data);
 let error: Error | null = null;
 

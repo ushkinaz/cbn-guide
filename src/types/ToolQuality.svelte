@@ -2,15 +2,15 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { byName, CddaData, singularName, i18n } from "../data";
+import { byName, CBNData, i18n, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
-import type { Item, VehiclePart, ToolQuality, Construction } from "../types";
+import type { Construction, Item, ToolQuality, VehiclePart } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import ThingLink from "./ThingLink.svelte";
 
 export let item: ToolQuality;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 const _context = "Tool Quality";
 
 let toolsWithQualityByLevel = new Map<number, Item[]>();

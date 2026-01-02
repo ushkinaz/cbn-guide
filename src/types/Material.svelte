@@ -3,14 +3,14 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { byName, CddaData, singularName } from "../data";
+import { byName, CBNData, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Material } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 
 import ThingLink from "./ThingLink.svelte";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 export let item: Material;
 const _context = "Material";

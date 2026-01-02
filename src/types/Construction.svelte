@@ -3,13 +3,13 @@ import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 
 import { getContext } from "svelte";
-import { CddaData, i18n, singular, singularName } from "../data";
+import { CBNData, i18n, singular, singularName } from "../data";
 import type { Construction, RequirementData } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
 import ThingLink from "./ThingLink.svelte";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Construction";
 
 export let construction: Construction;

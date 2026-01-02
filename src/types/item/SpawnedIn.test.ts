@@ -5,7 +5,7 @@ import { render } from "@testing-library/svelte";
 
 import SpawnedIn from "./SpawnedIn.svelte";
 import WithData from "../../WithData.svelte";
-import { CddaData } from "../../data";
+import { CBNData } from "../../data";
 import { lootByOMSAppearance } from "./spawnLocations";
 import { describe, expect, it } from "vitest";
 
@@ -13,7 +13,7 @@ describe("the loot section", () => {
   it("displays the name of the spawn location and chance", async () => {
     (globalThis as any).__isTesting__ = true;
     const item_id = "fake_item";
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",
@@ -55,7 +55,7 @@ describe("the loot section", () => {
   });
   it("displays a composite chance", async () => {
     (globalThis as any).__isTesting__ = true;
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",

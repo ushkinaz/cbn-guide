@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 import {
-  CddaData,
+  CBNData,
   normalizeUseAction,
   parseDuration,
   singular,
@@ -21,7 +21,7 @@ import ThingLink from "./ThingLink.svelte";
 
 export let item: Vitamin;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Vitamin";
 
 const containingComestibles = data

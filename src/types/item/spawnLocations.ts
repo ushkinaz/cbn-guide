@@ -1,4 +1,4 @@
-import type { CddaData } from "../../data";
+import type { CBNData } from "../../data";
 import type * as raw from "../../types";
 import { multimap } from "./utils";
 
@@ -198,8 +198,8 @@ async function yieldable<T>(
   }
 }
 
-const mapgensByOmtCache = new WeakMap<CddaData, Map<string, raw.Mapgen[]>>();
-function getMapgensByOmt(data: CddaData): Map<string, raw.Mapgen[]> {
+const mapgensByOmtCache = new WeakMap<CBNData, Map<string, raw.Mapgen[]>>();
+function getMapgensByOmt(data: CBNData): Map<string, raw.Mapgen[]> {
   if (mapgensByOmtCache.has(data)) return mapgensByOmtCache.get(data)!;
   const mapgensByOmt = new Map<string, raw.Mapgen[]>();
   const add = (id: string, mapgen: raw.Mapgen) => {
@@ -233,7 +233,7 @@ function getMapgensByOmt(data: CddaData): Map<string, raw.Mapgen[]> {
 }
 
 export function lootForOmt(
-  data: CddaData,
+  data: CBNData,
   omt_id: string,
   lootFn: (mapgen: raw.Mapgen) => Loot,
 ) {
@@ -249,7 +249,7 @@ export function lootForOmt(
 }
 
 export async function lootForOmSpecial(
-  data: CddaData,
+  data: CBNData,
   om_special: raw.OvermapSpecial,
   lootFn: (mapgen: raw.Mapgen) => Loot,
 ): Promise<Loot> {
@@ -267,7 +267,7 @@ export async function lootForOmSpecial(
 }
 
 export async function lootByOmSpecial(
-  data: CddaData,
+  data: CBNData,
   lootFn: (mapgen: raw.Mapgen) => Loot,
 ) {
   const overmapSpecials = data.byType("overmap_special");
@@ -282,7 +282,7 @@ export async function lootByOmSpecial(
 }
 
 export function overmapAppearance(
-  data: CddaData,
+  data: CBNData,
   oms: raw.OvermapSpecial,
 ): string | undefined {
   if (oms.subtype === "mutable") return;
@@ -351,18 +351,18 @@ function lazily<T extends object, U>(f: (x: T) => U): (x: T) => U {
     return cache.get(x)!;
   };
 }
-export const lootByOMSAppearance = lazily((data: CddaData) =>
+export const lootByOMSAppearance = lazily((data: CBNData) =>
   computeLootByOMSAppearance(data, (mg) => getLootForMapgen(data, mg)),
 );
-export const furnitureByOMSAppearance = lazily((data: CddaData) =>
+export const furnitureByOMSAppearance = lazily((data: CBNData) =>
   computeLootByOMSAppearance(data, (mg) => getFurnitureForMapgen(data, mg)),
 );
-export const terrainByOMSAppearance = lazily((data: CddaData) =>
+export const terrainByOMSAppearance = lazily((data: CBNData) =>
   computeLootByOMSAppearance(data, (mg) => getTerrainForMapgen(data, mg)),
 );
 
 export const getOMSByAppearance = lazily(
-  (data: CddaData): Map<string | undefined, string[]> => {
+  (data: CBNData): Map<string | undefined, string[]> => {
     const omsByAppearance = new Map<string | undefined, string[]>();
     for (const oms of data.byType("overmap_special")) {
       const appearance = overmapAppearance(data, oms);
@@ -376,7 +376,7 @@ export const getOMSByAppearance = lazily(
 );
 
 async function computeLootByOMSAppearance(
-  data: CddaData,
+  data: CBNData,
   lootFn: (mapgen: raw.Mapgen) => Loot,
 ) {
   const lootByOMS = await lootByOmSpecial(data, lootFn);
@@ -538,7 +538,7 @@ function toLoot(distribution: Map<string, number>): Loot {
 
 let onStack = 0;
 function lootForChunks(
-  data: CddaData,
+  data: CBNData,
   chunks: (raw.MapgenValue | [raw.MapgenValue, number])[],
 ): Loot {
   onStack += 1;
@@ -570,7 +570,7 @@ function lootForChunks(
 }
 
 const lootForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
-export function getLootForMapgen(data: CddaData, mapgen: raw.Mapgen): Loot {
+export function getLootForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (lootForMapgenCache.has(mapgen)) return lootForMapgenCache.get(mapgen)!;
   const palette = parsePalette(data, mapgen.object);
   const place_items: Loot[] = (mapgen.object.place_items ?? []).map(
@@ -643,10 +643,7 @@ export function getLootForMapgen(data: CddaData, mapgen: raw.Mapgen): Loot {
 }
 
 const furnitureForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
-export function getFurnitureForMapgen(
-  data: CddaData,
-  mapgen: raw.Mapgen,
-): Loot {
+export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (furnitureForMapgenCache.has(mapgen))
     return furnitureForMapgenCache.get(mapgen)!;
   const palette = parseFurniturePalette(data, mapgen.object);
@@ -676,7 +673,7 @@ export function getFurnitureForMapgen(
 }
 
 const terrainForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
-export function getTerrainForMapgen(data: CddaData, mapgen: raw.Mapgen): Loot {
+export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (terrainForMapgenCache.has(mapgen))
     return terrainForMapgenCache.get(mapgen)!;
   const palette = parseTerrainPalette(data, mapgen.object);
@@ -719,7 +716,7 @@ export function getTerrainForMapgen(data: CddaData, mapgen: raw.Mapgen): Loot {
 }
 
 export function parseItemGroup(
-  data: CddaData,
+  data: CBNData,
   group: raw.InlineItemGroup,
   repeat: undefined | number | [number] | [number, number],
   chance: chance,
@@ -788,7 +785,7 @@ function parsePlaceMappingAlternative<T>(
 
 const paletteCache = new WeakMap<raw.PaletteData, Map<string, Loot>>();
 export function parsePalette(
-  data: CddaData,
+  data: CBNData,
   palette: raw.PaletteData,
 ): Map<string, Loot> {
   if (paletteCache.has(palette)) return paletteCache.get(palette)!;
@@ -889,7 +886,7 @@ export function parsePalette(
 
 const furniturePaletteCache = new WeakMap<raw.PaletteData, Map<string, Loot>>();
 export function parseFurniturePalette(
-  data: CddaData,
+  data: CBNData,
   palette: raw.PaletteData,
 ): Map<string, Loot> {
   if (furniturePaletteCache.has(palette))
@@ -929,7 +926,7 @@ export function parseFurniturePalette(
 
 const terrainPaletteCache = new WeakMap<raw.PaletteData, Map<string, Loot>>();
 export function parseTerrainPalette(
-  data: CddaData,
+  data: CBNData,
   palette: raw.PaletteData,
 ): Map<string, Loot> {
   if (terrainPaletteCache.has(palette))

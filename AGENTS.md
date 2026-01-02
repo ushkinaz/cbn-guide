@@ -35,7 +35,7 @@ Focused rules for AI agents. Keep this open while working.
 
 - Source of truth is `_test/all.json`; use `jq` filters to avoid loading everything:
   - `jq '.data[] | select(.id==\"<id>\" and .type==\"<type>\")' _test/all.json`
-- Raw JSON inherits via `copy-from`; rely on `src/data.ts` (`CddaData` + `_flatten`) to resolve final values.
+- Raw JSON inherits via `copy-from`; rely on `src/data.ts` (`CBNData` + `_flatten`) to resolve final values.
 - For schema issues, run `yarn vitest --run schema.test.ts --bail 1` or follow `.agent/workflows/fix-schema-validation.md`.
 
 ## UI, styling, and colors

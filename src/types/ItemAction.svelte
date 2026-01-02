@@ -1,10 +1,10 @@
 <script lang="ts">
 import type { ItemAction } from "../types";
 import {
-  normalizeUseAction,
-  type CddaData,
-  singularName,
   byName,
+  type CBNData,
+  normalizeUseAction,
+  singularName,
 } from "../data";
 import { getContext } from "svelte";
 import ThingLink from "./ThingLink.svelte";
@@ -14,7 +14,7 @@ import ItemSymbol from "./item/ItemSymbol.svelte";
 
 export let item: ItemAction;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const providers = data
   .byType("item")

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import { t } from "@transifex/native";
-import { CddaData, byName } from "../../data";
+import { byName, CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
 import ThingLink from "../ThingLink.svelte";
@@ -10,7 +10,7 @@ import type { SupportedTypes } from "../../types";
 export let ammo_type: string;
 export let type: keyof Pick<SupportedTypes, "AMMO" | "GUN" | "MAGAZINE">;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const config = {
   GUN: {

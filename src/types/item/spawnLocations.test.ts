@@ -9,11 +9,11 @@ import {
   parsePalette,
   repeatChance,
 } from "./spawnLocations";
-import { CddaData } from "../../data";
+import { CBNData } from "../../data";
 import type { ItemGroupData, Mapgen } from "../../types";
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 
-const emptyData = new CddaData([]);
+const emptyData = new CBNData([]);
 
 describe("collection()", () => {
   it("returns nothing given no items", () => {
@@ -82,7 +82,7 @@ describe("parseItemGroup()", () => {
     );
   });
   it("repeat 2", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -99,12 +99,12 @@ describe("parseItemGroup()", () => {
 
 describe("parsePalette()", () => {
   it("perses empty palette", () => {
-    const got = parsePalette(new CddaData([]), {});
+    const got = parsePalette(new CBNData([]), {});
     expect(got).toStrictEqual(new Map());
   });
 
   it("knows about .items", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -126,7 +126,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about arrays in .items", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         id: "gr0",
         type: "item_group",
@@ -152,7 +152,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about chance in .items", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -174,7 +174,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about repeat in .items", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -193,7 +193,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows anout .palettes", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "palette",
         id: "fake_palette",
@@ -218,7 +218,7 @@ describe("parsePalette()", () => {
     );
   });
   it("parses inline item group", () => {
-    const data = new CddaData([]);
+    const data = new CBNData([]);
     const rawPalette = {
       items: {
         X: {
@@ -236,7 +236,7 @@ describe("parsePalette()", () => {
     );
   });
   it("parses inline item collections", () => {
-    const data = new CddaData([]);
+    const data = new CBNData([]);
     const rawPalette = {
       items: {
         X: {
@@ -250,7 +250,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .item", () => {
-    const data = new CddaData([]);
+    const data = new CBNData([]);
     const rawPalette = {
       item: {
         X: { item: "i0", chance: 50, repeat: 2 },
@@ -272,7 +272,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .sealed_item.[].items", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -298,7 +298,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .sealed_item | .[].items | {repeat, chance}", () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -322,7 +322,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .sealed_item | .[].item", () => {
-    const data = new CddaData([]);
+    const data = new CBNData([]);
     const rawPalette = {
       sealed_item: {
         X: {
@@ -381,7 +381,7 @@ describe("repeatChance()", () => {
 
 describe("loot", () => {
   it("place_loot", async () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",
@@ -431,7 +431,7 @@ describe("loot", () => {
 
 describe("nested mapgen", () => {
   it("reads place_nested", async () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",
@@ -462,7 +462,7 @@ describe("nested mapgen", () => {
   });
 
   it("handles chunk weights", async () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",
@@ -515,7 +515,7 @@ describe("nested mapgen", () => {
   });
 
   it("handles repeat", async () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",
@@ -548,7 +548,7 @@ describe("nested mapgen", () => {
   it.todo("handles repeat range");
 
   it("reads nested", async () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",
@@ -584,7 +584,7 @@ describe("nested mapgen", () => {
 
 describe("furniture", () => {
   it("furniture", async () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",
@@ -603,7 +603,7 @@ describe("furniture", () => {
   });
 
   it("place_furniture", async () => {
-    const data = new CddaData([
+    const data = new CBNData([
       {
         type: "mapgen",
         method: "json",

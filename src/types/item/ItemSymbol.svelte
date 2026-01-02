@@ -1,8 +1,9 @@
 <script lang="ts">
 import { tileData } from "../../tile-data";
 import { colorForName } from "../../colors";
-import { CddaData, mapType } from "../../data";
+import { CBNData, mapType } from "../../data";
 import { getContext } from "svelte";
+
 export let item: {
   id: string;
   looks_like?: string;
@@ -12,7 +13,7 @@ export let item: {
   type: string;
 };
 
-let data: CddaData = getContext("data");
+let data: CBNData = getContext("data");
 
 $: tile_info = $tileData?.tile_info[0];
 $: tile = typeHasTile(item)

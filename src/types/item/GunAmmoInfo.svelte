@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { getContext } from "svelte";
-import { byName, CddaData } from "../../data";
+import { byName, CBNData } from "../../data";
 import type { GunSlot, ItemBasicInfo } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
@@ -10,7 +10,7 @@ import CompatibleItems from "./CompatibleItems.svelte";
 
 export let item: GunSlot & ItemBasicInfo;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 let ammo_types: string[] = Array.isArray(item.ammo)
   ? item.ammo

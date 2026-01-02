@@ -3,12 +3,12 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { byName, CddaData, singularName } from "../data";
+import { byName, CBNData, singularName } from "../data";
 import type { MutationCategory } from "../types";
 import MutationList from "./MutationList.svelte";
 import ThingLink from "./ThingLink.svelte";
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 const _context = "Mutation";
 
 export let item: MutationCategory;

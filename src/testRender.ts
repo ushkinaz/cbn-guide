@@ -3,7 +3,7 @@ import { screen } from "@testing-library/dom";
 import { afterEach, expect, test } from "vitest";
 import * as fs from "fs";
 
-import { CddaData, mapType } from "./data";
+import { CBNData, mapType } from "./data";
 
 import Thing from "./Thing.svelte";
 import {
@@ -16,7 +16,7 @@ export function makeRenderTests(chunkIdx: number, numChunks: number) {
   const json = JSON.parse(
     fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
   );
-  let data: CddaData = new CddaData(json.data);
+  let data: CBNData = new CBNData(json.data);
   const types = [
     "ammunition_type",
     "bionic",

@@ -9,7 +9,7 @@ import type {
 import { getContext } from "svelte";
 import {
   asHumanReadableDuration,
-  CddaData,
+  CBNData,
   normalizeUseAction,
 } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
@@ -18,7 +18,7 @@ import ItemSymbol from "./ItemSymbol.svelte";
 
 export let item_id: string;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const transformedFrom = data.transformedFrom(item_id);
 const getTransformAction = (item: Item) =>
   normalizeUseAction(item.use_action).find(

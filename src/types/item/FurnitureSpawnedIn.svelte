@@ -1,13 +1,13 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import type { CddaData } from "../../data";
+import type { CBNData } from "../../data";
 import { furnitureByOMSAppearance } from "./spawnLocations";
 import { t } from "@transifex/native";
 import LocationTable from "./LocationTable.svelte";
 
 export let item_id: string;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 </script>
 
 <LocationTable

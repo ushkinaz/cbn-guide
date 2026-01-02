@@ -1,13 +1,13 @@
 <script lang="ts">
+import type { CBNData } from "../data";
 import { i18n, singular, singularName } from "../data";
-import type { CddaData } from "../data";
 import ThingLink from "./ThingLink.svelte";
 import { getContext } from "svelte";
 import type { Fault, RequirementData } from "../types";
 import { t } from "@transifex/native";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Fault";
 
 export let item: Fault;

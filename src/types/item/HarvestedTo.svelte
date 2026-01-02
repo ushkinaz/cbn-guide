@@ -1,6 +1,6 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, i18n } from "../../data";
+import { CBNData, i18n } from "../../data";
 import ThingLink from "../ThingLink.svelte";
 import type { MapDataCommon } from "../../types";
 import ItemSymbol from "./ItemSymbol.svelte";
@@ -11,7 +11,7 @@ import { t } from "@transifex/native";
  */
 export let item: MapDataCommon;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
 
 const harvestBySeason: Map<string, string[]> = new Map();

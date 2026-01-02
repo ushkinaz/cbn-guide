@@ -164,9 +164,9 @@ graph TD
 
 ### Svelte Stores (`src/data.ts`)
 
-| Store  | Type                         | Purpose              |
-| ------ | ---------------------------- | -------------------- |
-| `data` | `Writable<CddaData \| null>` | Main game data store |
+| Store  | Type                        | Purpose              |
+| ------ |-----------------------------| -------------------- |
+| `data` | `Writable<CBNData \| null>` | Main game data store |
 
 ### localStorage
 

@@ -3,13 +3,13 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { CddaData, singularName } from "../data";
+import { CBNData, singularName } from "../data";
 import type { MutationType } from "../types";
 import MutationList from "./MutationList.svelte";
 
 export let item: MutationType;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 const mutationsWithType = data
   .byType("mutation")

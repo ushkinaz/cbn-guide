@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 import { getContext } from "svelte";
-import { CddaData, i18n } from "../data";
+import { CBNData, i18n } from "../data";
 
 import type { Recipe } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
@@ -11,7 +11,7 @@ import ThingLink from "./ThingLink.svelte";
 export let recipe: Recipe;
 export let showResult: boolean = false;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Recipe";
 
 function normalizeSkillsRequired(

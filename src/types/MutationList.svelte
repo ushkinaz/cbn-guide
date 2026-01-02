@@ -1,11 +1,11 @@
 <script lang="ts">
-import { CddaData, singularName } from "../data";
+import { CBNData, singularName } from "../data";
 import { getContext } from "svelte";
 import { topologicalSortComponentsByRank } from "../toposort";
 import type { Mutation } from "../types";
 import ThingLink from "./ThingLink.svelte";
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 export let mutations: Mutation[];
 const allPrereqs = (m: Mutation) =>

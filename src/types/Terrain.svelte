@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { CddaData, showProbability, singular, singularName } from "../data";
+import { CBNData, showProbability, singular, singularName } from "../data";
 import type { Terrain } from "../types";
 import Construction from "./Construction.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -12,7 +12,7 @@ import ThingLink from "./ThingLink.svelte";
 import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
 
 export let item: Terrain;

@@ -4,7 +4,7 @@ import { t } from "@transifex/native";
 import { getContext } from "svelte";
 
 import {
-  CddaData,
+  CBNData,
   getVehiclePartIdAndVariant,
   itemGroupFromVehicle,
   singularName,
@@ -19,7 +19,7 @@ import ItemTable from "./item/ItemTable.svelte";
 
 export let item: Vehicle;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Vehicle";
 
 let minX = Infinity;

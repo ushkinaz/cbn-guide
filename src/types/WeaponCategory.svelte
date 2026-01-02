@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { byName, CddaData, singularName } from "../data";
+import { byName, CBNData, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { WeaponCategory } from "../types";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -10,7 +10,7 @@ import ThingLink from "./ThingLink.svelte";
 
 export let item: WeaponCategory;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const itemsInCategory = data
   .byType("item")

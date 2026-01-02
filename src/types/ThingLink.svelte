@@ -1,7 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import {
-  CddaData,
+  CBNData,
   countsByCharges,
   pluralName,
   singular,
@@ -29,7 +29,7 @@ function countIsPlural(count: number | [number, number]): boolean {
   return true;
 }
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 let item = data.byIdMaybe(type, id);
 if (item?.type === "vehicle_part" && !item.name && item.item)

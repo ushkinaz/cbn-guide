@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import type { CddaData } from "../../data";
+import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ThingLink from "../ThingLink.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
@@ -10,7 +10,7 @@ import type { Furniture, Terrain, VehiclePart } from "src/types";
 
 export let item_id: string;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 let vparts = data
   .byType("vehicle_part")

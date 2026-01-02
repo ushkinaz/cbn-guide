@@ -22,7 +22,7 @@ import terrainIcon from "./assets/category-icons/terrain.svg";
 //https://game-icons.net/1x1/delapouite/car-wheel.html
 import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import { t } from "@transifex/native";
-import { CddaData, data, mapType } from "./data";
+import { CBNData, data, mapType } from "./data";
 import { getVersionedBasePath } from "./routing";
 import type { SupportedTypeMapped } from "./types";
 
@@ -93,7 +93,7 @@ const randomableItemTypes = new Set([
 ]);
 
 async function getRandomPage() {
-  const d = await new Promise<CddaData>((resolve) => {
+  const d = await new Promise<CBNData>((resolve) => {
     const unsubscribe = data.subscribe((v) => {
       if (v) {
         resolve(v);

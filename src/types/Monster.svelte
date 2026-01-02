@@ -5,7 +5,7 @@ import { getContext } from "svelte";
 import {
   asKilograms,
   asLiters,
-  CddaData,
+  CBNData,
   i18n,
   normalizeDamageInstance,
   singular,
@@ -23,7 +23,7 @@ const _context = "Monster";
 
 export let item: Monster;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 // prettier-ignore
 function difficulty(mon: Monster): number {

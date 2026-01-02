@@ -246,7 +246,7 @@ export function asKilograms(string: string | number): string {
   return `${(g / 1000).toFixed(2)} kg`;
 }
 
-export class CddaData {
+export class CBNData {
   _raw: any[];
   _byType: Map<string, any[]> = new Map();
   _byTypeById: Map<string, Map<string, any>> = new Map();
@@ -1473,7 +1473,7 @@ export class CddaData {
 
 class ReverseIndex<T extends keyof SupportedTypesWithMapped> {
   constructor(
-    private data: CddaData,
+    private data: CBNData,
     private objType: T,
     private fn: (x: SupportedTypesWithMapped[T]) => string[],
   ) {}
@@ -1501,7 +1501,7 @@ class ReverseIndex<T extends keyof SupportedTypesWithMapped> {
 }
 
 function flattenChoices<T>(
-  data: CddaData,
+  data: CBNData,
   choices: T[],
   get: (x: Requirement) => T[][],
   onlyRecoverable: boolean = false,
@@ -1545,7 +1545,7 @@ function flattenChoices<T>(
 }
 
 function expandSubstitutes(
-  data: CddaData,
+  data: CBNData,
   r: { id: string; count: number },
 ): { id: string; count: number }[] {
   const replacements = data.replacementTools(r.id);
@@ -1630,7 +1630,7 @@ const vpartVariants = [
 ];
 
 export const getVehiclePartIdAndVariant = (
-  data: CddaData,
+  data: CBNData,
   compositePartId: string,
 ): [string, string] => {
   if (data.byIdMaybe("vehicle_part", compositePartId))
@@ -1784,7 +1784,7 @@ async function retry<T>(promiseGenerator: () => Promise<T>) {
 const loadProgressStore = writable<[number, number] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 let _hasSetVersion = false;
-const { subscribe, set } = writable<CddaData | null>(null);
+const { subscribe, set } = writable<CBNData | null>(null);
 export const data = {
   subscribe,
   async setVersion(version: string, locale: string | null) {
@@ -1836,7 +1836,7 @@ export const data = {
         i18n.loadJSON(pinyinNameJson, "pinyin");
       }
     }
-    const cddaData = new CddaData(
+    const cddaData = new CBNData(
       dataJson.data,
       dataJson.build_number,
       dataJson.release,
@@ -1845,7 +1845,7 @@ export const data = {
   },
 };
 
-export function omsName(data: CddaData, oms: OvermapSpecial): string {
+export function omsName(data: CBNData, oms: OvermapSpecial): string {
   if (oms.subtype === "mutable") return oms.id;
   const ground_level_omts = (oms.overmaps ?? []).filter(
     (p) => p.point[2] === 0,

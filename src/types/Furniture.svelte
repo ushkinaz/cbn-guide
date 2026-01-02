@@ -1,5 +1,5 @@
 <script lang="ts">
-import { CddaData, singular, singularName } from "../data";
+import { CBNData, singular, singularName } from "../data";
 import type { Furniture } from "../types";
 import ThingLink from "./ThingLink.svelte";
 import { getContext } from "svelte";
@@ -11,7 +11,7 @@ import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
 import LimitedList from "../LimitedList.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
 
 export let item: Furniture;

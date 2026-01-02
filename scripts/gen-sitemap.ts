@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
 
 import { BUILDS_URL, CANONICAL_URL, getDataJsonUrl } from "../src/constants";
-import { CddaData } from "../src/data";
+import { CBNData } from "../src/data";
 
 const agent = new EnvHttpProxyAgent();
 setGlobalDispatcher(agent);
@@ -81,7 +81,7 @@ async function downloadFile(url: string, dest: string) {
 }
 
 async function loadData(): Promise<{
-  gameData: CddaData;
+  gameData: CBNData;
   version: string;
   releaseDate: string;
 }> {
@@ -115,7 +115,7 @@ async function loadData(): Promise<{
 
   const { data, build_number, release } = await readJson(localAllJson);
   return {
-    gameData: new CddaData(data, build_number, release),
+    gameData: new CBNData(data, build_number, release),
     version: version,
     releaseDate: selectedBuild.created_at.split("T")[0],
   };

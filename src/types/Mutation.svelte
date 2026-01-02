@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { byName, CddaData, singular, singularName } from "../data";
+import { byName, CBNData, singular, singularName } from "../data";
 
 import type { Mutation } from "../types";
 import MutationColor from "./MutationColor.svelte";
@@ -12,7 +12,7 @@ import ThingLink from "./ThingLink.svelte";
 
 export let item: Mutation;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 const _context = "Mutation";
 
 const postThresholdMutations = data

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { singularName, type CddaData } from "../data";
+import { type CBNData, singularName } from "../data";
 import type { OvermapSpecial } from "../types";
 import { getContext, onMount } from "svelte";
 import {
@@ -15,7 +15,7 @@ import { t } from "@transifex/native";
 import OvermapAppearance from "./item/OvermapAppearance.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 export let item: OvermapSpecial;
 const mevels =

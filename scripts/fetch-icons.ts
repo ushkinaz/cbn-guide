@@ -29,7 +29,7 @@ import {
   getTilesetUrl,
   TILESETS,
 } from "../src/constants";
-import { CddaData, mapType } from "../src/data";
+import { CBNData, mapType } from "../src/data";
 
 type TilePosition = {
   file: string;
@@ -290,7 +290,7 @@ function fallbackTile(
 
 function findTileOrLooksLike(
   tileset: LoadedTileset,
-  data: CddaData,
+  data: CBNData,
   item: any,
   jumps: number = 10,
 ): TileInfo | undefined {
@@ -416,7 +416,7 @@ async function composeIcon(
     .toBuffer();
 }
 
-async function loadData(): Promise<{ gameData: CddaData; version: string }> {
+async function loadData(): Promise<{ gameData: CBNData; version: string }> {
   if (!version) {
     console.log(`Fetching latest builds from ${BUILDS_URL}...`);
     const res = await request(BUILDS_URL);
@@ -439,13 +439,13 @@ async function loadData(): Promise<{ gameData: CddaData; version: string }> {
 
   const { data, build_number, release } = await readJson(localAllJson);
   return {
-    gameData: new CddaData(data, build_number, release),
+    gameData: new CBNData(data, build_number, release),
     version: version!,
   };
 }
 
 function collectEntities(
-  gameData: CddaData,
+  gameData: CBNData,
 ): { id: string; type: string; item: any }[] {
   const seen = new Set<string>();
   const out: { id: string; type: string; item: any }[] = [];

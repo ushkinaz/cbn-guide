@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { getContext } from "svelte";
-import type { CddaData } from "../../data";
+import type { CBNData } from "../../data";
 
 import type { BookSlot } from "../../types";
 import ThingLink from "../ThingLink.svelte";
@@ -9,7 +9,7 @@ import ThingLink from "../ThingLink.svelte";
 export let item: BookSlot & { id: string; type: "BOOK" };
 const _context = "Item Book Info";
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 const bookRecipes = new Map<string, { recipe_name: string; level: number }>();
 function add(recipe_id: string, recipe_name: string, level: number) {

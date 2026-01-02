@@ -6,7 +6,7 @@ import {
   asKilograms,
   asLiters,
   asMinutes,
-  CddaData,
+  CBNData,
   getVehiclePartIdAndVariant,
   parseDuration,
   showProbability,
@@ -46,7 +46,7 @@ function bonusLabel(item: VehiclePart) {
   else if (flags.includes("REAPER")) return t("Plant Harvested", { _context });
 }
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const breaksIntoGroup: ItemGroupData | null =
   typeof item.breaks_into === "string"

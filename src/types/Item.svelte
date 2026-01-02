@@ -6,7 +6,7 @@ import { getContext } from "svelte";
 import {
   asKilograms,
   asLiters,
-  CddaData,
+  CBNData,
   i18n,
   normalizeUseAction,
   parseVolume,
@@ -56,7 +56,7 @@ import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
 
 export let item: Item;
-let data: CddaData = getContext("data");
+let data: CBNData = getContext("data");
 
 const _context = "Item Basic Info";
 

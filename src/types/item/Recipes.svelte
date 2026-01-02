@@ -3,7 +3,7 @@ import type { Recipe as RecipeType } from "../../types";
 import { singularName } from "../../data";
 // Lazily compute the recipe index.
 let recipeIndex: Record<string, RecipeType[]>;
-export function getRecipeIndex(data: CddaData) {
+export function getRecipeIndex(data: CBNData) {
   if (!recipeIndex) {
     recipeIndex = {};
     for (const recipe of data.byType("recipe")) {
@@ -20,7 +20,7 @@ export function getRecipeIndex(data: CddaData) {
 
 // And the byproducts index.
 let byproductsIndex: Record<string, RecipeType[]>;
-export function getByproductsIndex(data: CddaData) {
+export function getByproductsIndex(data: CBNData) {
   if (!byproductsIndex) {
     byproductsIndex = {};
     for (const recipe of data.byType("recipe")) {
@@ -50,7 +50,7 @@ export function getByproductsIndex(data: CddaData) {
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { CddaData } from "../../data";
+import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import Recipe from "../Recipe.svelte";
 import ThingLink from "../ThingLink.svelte";
@@ -58,7 +58,7 @@ import ItemSymbol from "./ItemSymbol.svelte";
 
 export let item_id: string;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 const recipes = getRecipeIndex(data)[item_id] ?? [];
 recipes.sort(

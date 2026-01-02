@@ -1,6 +1,6 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, itemGroupFromVehicle } from "../../data";
+import { CBNData, itemGroupFromVehicle } from "../../data";
 import { showProbability } from "./utils";
 import LimitedList from "../../LimitedList.svelte";
 import ThingLink from "../ThingLink.svelte";
@@ -8,7 +8,7 @@ import { t } from "@transifex/native";
 
 export let item_id: string;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const vehiclesAndProbabilities = data
   .byType("vehicle")

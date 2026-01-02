@@ -1,12 +1,12 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, singularName } from "../data";
+import { CBNData, singularName } from "../data";
 import type { ConstructionGroup } from "../types";
 import Construction from "./Construction.svelte";
 
 export let item: ConstructionGroup;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const constructions = data
   .byType("construction")

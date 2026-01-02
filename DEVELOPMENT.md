@@ -34,8 +34,8 @@ The reactive label `$:` should be reserved primarily for **derived state** (comp
 ### State Management
 
 1.  **Global Data (`src/data.ts`)**:
-    The application relies on a central `data` store (`CddaData` instance).
-    - **Effectively Immutable**: The `CddaData` instance itself is effectively immutable. It is replaced wholesale when a new game version is loaded. It does not mutate internally.
+    The application relies on a central `data` store (`CBNData` instance).
+    - **Effectively Immutable**: The `CBNData` instance itself is effectively immutable. It is replaced wholesale when a new game version is loaded. It does not mutate internally.
     - Components should subscribe to `$data` or accept it as a prop.
     - **Do not** attempt to re-provide `$data` via context in every component (`$: setContext('data', data)`). This is an anti-pattern. Since `data` is a global export, prefer verifying if `import { data } from '...'` suffices, or pass it explicitly.
 
@@ -104,7 +104,7 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 #### Core Data Logic
 
 - **`src/data.test.ts`**
-  - Unit tests for the `CddaData` class in `src/data.ts`.
+  - Unit tests for the `CBNData` class in `src/data.ts`.
 
 - **`src/schema.test.ts`**
   - If upstream BN changes the schema for JSON data, this test will fail.

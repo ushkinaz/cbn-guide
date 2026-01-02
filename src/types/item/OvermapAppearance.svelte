@@ -1,9 +1,9 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, singular } from "../../data";
+import { CBNData, singular } from "../../data";
 import type { OvermapSpecial } from "../../types";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 export let overmapSpecial: OvermapSpecial;
 export let showZ: number = 0;

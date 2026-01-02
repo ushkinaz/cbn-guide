@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { CddaData, byName, i18n, singular, singularName } from "../data";
+import { byName, CBNData, i18n, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { MartialArtBuff, Technique } from "../types";
 import BonusContainer from "./BonusContainer.svelte";
@@ -14,7 +14,7 @@ export let item: Technique;
 export let buffMap: Map<string, MartialArtBuff> = new Map();
 export let standalone: boolean = true;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Martial Art";
 
 const weapons = data

@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
-import { CddaData } from "./data";
+import { CBNData } from "./data";
 
 test("flattened item group includes container item for distribution", () => {
-  const data = new CddaData([
+  const data = new CBNData([
     {
       type: "item_group",
       id: "foo",
@@ -28,7 +28,7 @@ test("flattened item group includes container item for distribution", () => {
 });
 
 test("flattened item group includes container item for collection", () => {
-  const data = new CddaData([
+  const data = new CBNData([
     {
       type: "item_group",
       id: "foo",
@@ -48,7 +48,7 @@ test("flattened item group includes container item for collection", () => {
 });
 
 test("includes container item specified in item", () => {
-  const data = new CddaData([
+  const data = new CBNData([
     {
       type: "item_group",
       id: "foo",
@@ -79,7 +79,7 @@ test("includes container item specified in item", () => {
 });
 
 test("nested", () => {
-  const data = new CddaData([
+  const data = new CBNData([
     {
       type: "COMESTIBLE",
       id: "water_clean",

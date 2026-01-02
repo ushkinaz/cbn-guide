@@ -1,6 +1,6 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CddaData, omsName } from "../../data";
+import { CBNData, omsName } from "../../data";
 import { getVersionedBasePath } from "../../routing";
 import type { ItemChance, Loot } from "./spawnLocations";
 import { showNumber, showProbability } from "./utils";
@@ -17,7 +17,7 @@ export let heading: string;
 
 let showData = (globalThis as any).__isTesting__;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 function filterLocations(
   lootByAppearance: Map<string, { loot: Loot; ids: string[] }>,

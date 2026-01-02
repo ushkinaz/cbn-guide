@@ -3,14 +3,14 @@ import { t } from "@transifex/native";
 
 import type { DamageUnit, GunSlot, ItemBasicInfo } from "../../types";
 import ThingLink from "../ThingLink.svelte";
-import { CddaData, singularName } from "../../data";
+import { CBNData, singularName } from "../../data";
 import { getContext } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
 
 export let item: GunSlot & ItemBasicInfo;
 export const _context = "Item Gun Info";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 // TODO: handle multiple ranged_damage type
 const ranged_damage = Array.isArray(item.ranged_damage)

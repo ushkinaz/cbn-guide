@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
 import { getContext } from "svelte";
-import { CddaData, i18n, singularName } from "../../data";
+import { CBNData, i18n, singularName } from "../../data";
 import { getVersionedBasePath } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
@@ -13,7 +13,7 @@ export let requirement: RequirementData & { using?: Recipe["using"] };
 export let direction: "uncraft" | "craft" = "craft";
 
 const _context = "Requirement";
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 let { tools, qualities } =
   direction === "craft"

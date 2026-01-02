@@ -1,14 +1,14 @@
 /**
  * @jest-environment jsdom
  */
-import { test, expect, afterEach } from "vitest";
+import { afterEach, expect, test } from "vitest";
 import { cleanup, render } from "@testing-library/svelte";
 
-import { CddaData } from "./data";
+import { CBNData } from "./data";
 
 import SearchResults from "./SearchResults.svelte";
 
-let data: CddaData = new CddaData([
+let data: CBNData = new CBNData([
   { type: "MONSTER", id: "zombie", name: "zombie", symbol: "Z" },
   { type: "MONSTER", id: "zombie_child", name: "zombie child", symbol: "z" },
   { type: "BOOK", id: "ZSG", name: "Zombie Survival Guide", symbol: "?" },

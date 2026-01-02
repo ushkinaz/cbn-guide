@@ -3,13 +3,13 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { CddaData, singular, singularName } from "../data";
+import { CBNData, singular, singularName } from "../data";
 import type { Bionic } from "../types";
 import MutationList from "./MutationList.svelte";
 import ThingLink from "./ThingLink.svelte";
 
 export let item: Bionic;
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 const _context = "Bionic";
 
 const correspondingItem = data.itemForBionic(item);

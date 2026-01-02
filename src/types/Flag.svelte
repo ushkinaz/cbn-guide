@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { byName, CddaData, singular } from "../data";
+import { byName, CBNData, singular } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { JsonFlag } from "../types";
 import ColorText from "./ColorText.svelte";
@@ -11,7 +11,7 @@ import ThingLink from "./ThingLink.svelte";
 
 export let item: JsonFlag;
 
-let data = getContext<CddaData>("data");
+let data = getContext<CBNData>("data");
 
 const itemsWithFlag = data
   .byType("item")

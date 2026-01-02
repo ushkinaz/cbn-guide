@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import type { CddaData } from "src/data";
+import type { CBNData } from "src/data";
 import type { ActivityDataCommon } from "src/types";
 import { getContext } from "svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -9,7 +9,7 @@ import ThingLink from "./ThingLink.svelte";
 export let act: ActivityDataCommon & { result?: string };
 export let resultType: "terrain" | "furniture";
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 const _context = "Terrain / Furniture";
 const _comment = "activity (prying, hacksawing, etc.)";

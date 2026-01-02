@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  type CddaData,
+  type CBNData,
   i18n,
   loadProgress,
   mapType,
@@ -46,7 +46,7 @@ type SearchableType = SupportedTypeMapped & {
   type: keyof SupportedTypesWithMapped;
 } & { __filename?: string };
 
-export let data: CddaData;
+export let data: CBNData;
 $: setContext("data", data);
 
 type SearchTarget = {
@@ -55,7 +55,7 @@ type SearchTarget = {
   type: keyof SupportedTypesWithMapped;
 };
 let targets: SearchTarget[];
-function searchableName(data: CddaData, item: SupportedTypeMapped) {
+function searchableName(data: CBNData, item: SupportedTypeMapped) {
   item = data._flatten(item);
   if (item?.type === "overmap_special" || item?.type === "city_building") {
     if (item.subtype === "mutable") return item.id;

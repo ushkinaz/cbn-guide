@@ -2,15 +2,15 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import type { CddaData } from "../../data";
+import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import type { Terrain, Furniture, VehiclePart } from "../../types";
+import type { Furniture, Terrain, VehiclePart } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import ItemSymbol from "./ItemSymbol.svelte";
 
 export let item_id: string;
 
-const data = getContext<CddaData>("data");
+const data = getContext<CBNData>("data");
 
 let bashFrom = (
   data.bashFromFurniture(item_id) as (Furniture | Terrain | VehiclePart)[]

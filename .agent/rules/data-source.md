@@ -7,6 +7,6 @@ description: Use when debugging game content, investigating data values, updatin
 - **Large File**: ~30MB. Use `jq` or `grep` filters.
   - `jq '.data[] | select(.id=="<id>" and .type=="<type>")' _test/all.json`
 - Raw JSON uses `copy-from` inheritance.
-- Always use `src/data.ts` (`CddaData` / `_flatten`) to resolve values.
+- Always use `src/data.ts` (`CBNData` / `_flatten`) to resolve values.
 - If data is "missing" in raw JSON, it's likely inherited.
 - **Tests** `yarn vitest --run schema.test.ts --bail 1`
