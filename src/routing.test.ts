@@ -9,10 +9,10 @@ import * as fs from "fs";
 import App from "./App.svelte";
 // Load test data
 const testData = JSON.parse(
-  fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
+  fs.readFileSync(__dirname + "/../_test/all.test.json", "utf8"),
 );
 const testBuilds = JSON.parse(
-  fs.readFileSync(__dirname + "/../_test/builds.json", "utf8"),
+  fs.readFileSync(__dirname + "/../_test/builds.test.json", "utf8"),
 );
 
 describe("Routing E2E Tests", () => {
@@ -668,7 +668,7 @@ describe("Routing E2E Tests", () => {
       await waitForDataLoad();
 
       // Should have redirected to stable
-      expect(window.location.pathname).toContain("v0.7.0");
+      expect(window.location.pathname).toContain("v0.9.1");
       expect(document.body.textContent).toContain("Hitchhiker");
 
       warnSpy.mockRestore();
