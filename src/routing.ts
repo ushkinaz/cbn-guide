@@ -168,7 +168,9 @@ function getFallbackVersion(
     latestStableBuild?.build_number ||
     latestNightlyBuild?.build_number ||
     builds[0]?.build_number ||
-    "Grinch-v1.0" // Hardcoded fallback
+    // Easter egg: This version should never be reached in production.
+    // If we get here, all builds are missing - something is very wrong.
+    "Grinch-v1.0"
   );
 }
 
@@ -187,9 +189,10 @@ function redirectToVersion(
   preservePath: boolean = true,
 ): void {
   const segments = getPathSegments();
-  if (preservePath) {
+  if (preservePath && segments.length > 0) {
     segments[0] = newVersion;
   } else {
+    // Either !preservePath or empty segments - start fresh with just version
     segments.length = 0;
     segments.push(newVersion);
   }
@@ -271,20 +274,15 @@ export function buildUrl(
     path += "search/" + encodeURIComponent(search);
   }
 
-  // Only create URL object if we need to add query parameters
-  if ((locale && locale !== "en") || tileset) {
-    const url = new URL(path, location.origin);
-    if (locale && locale !== "en") {
-      url.searchParams.set("lang", locale);
-    }
-    if (tileset) {
-      url.searchParams.set("t", tileset);
-    }
-    return url.toString();
+  // Always use URL class for consistent encoding/formatting
+  const url = new URL(path, location.origin);
+  if (locale && locale !== "en") {
+    url.searchParams.set("lang", locale);
   }
-
-  // Return path directly with origin when no query params needed
-  return location.origin + path;
+  if (tileset) {
+    url.searchParams.set("t", tileset);
+  }
+  return url.toString();
 }
 
 /**
@@ -311,37 +309,16 @@ const debouncedReplaceState = debounce(
   { trailing: true },
 );
 
-// noinspection JSUnusedGlobalSymbols
-/**
- * Navigate to a new route without affecting query params
- */
-export function navigateTo(
-  version: string,
-  item: { type: string; id: string } | null,
-  search: string,
-  pushToHistory: boolean = true,
-): void {
-  // Cancel any pending debounced URL updates - user is explicitly navigating
-  debouncedReplaceState.cancel();
-
-  const url = buildUrl(version, item, search);
-  const newPath = new URL(url).pathname;
-  const fullUrl = newPath + location.search;
-
-  if (pushToHistory) {
-    history.pushState(null, "", fullUrl);
-  } else {
-    history.replaceState(null, "", fullUrl);
-  }
-}
-
 /**
  * Update the URL to reflect a version change (causes full page reload)
  */
 export function changeVersion(newVersion: string): void {
   const segments = getPathSegments();
-  segments[0] = newVersion;
-  if (segments.length === 0) segments.push(newVersion);
+  if (segments.length === 0) {
+    segments.push(newVersion);
+  } else {
+    segments[0] = newVersion;
+  }
 
   const newPath = import.meta.env.BASE_URL + segments.join("/");
   location.href = newPath + location.search;
@@ -434,6 +411,11 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
  */
 export async function initializeRouting(): Promise<InitialAppState> {
   const response = await fetch(BUILDS_URL);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch builds: ${response.status} ${response.statusText}`,
+    );
+  }
   const builds: BuildInfo[] = await response.json();
 
   const latestStableBuild = pickLatestBuild(

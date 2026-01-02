@@ -48,11 +48,13 @@ describe("Routing E2E Tests", () => {
       const url = typeof input === "string" ? input : input.toString();
       if (url.includes("builds.json")) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve(testBuilds),
         } as Response);
       }
       if (url.includes("all.json")) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve(testData),
         } as Response);
       }
