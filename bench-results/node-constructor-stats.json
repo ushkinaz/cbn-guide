@@ -1,0 +1,17 @@
+{
+  "scenario": "node-constructor",
+  "updated": "2026-01-03T15:31:16.126Z",
+  "totalRuns": 10,
+  "metrics": {
+    "CBNData.constructor": {
+      "mean": 11304.4,
+      "stddev": 2106.778735415753,
+      "min": 9952,
+      "max": 17567,
+      "p50": 10615,
+      "p95": 17567,
+      "p99": 17567,
+      "count": 10
+    }
+  }
+}

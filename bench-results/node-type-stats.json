@@ -1,0 +1,17 @@
+{
+  "scenario": "node-type",
+  "updated": "2026-01-03T15:31:21.632Z",
+  "totalRuns": 10,
+  "metrics": {
+    "CBNData._flatten": {
+      "mean": 2.0113855563396847,
+      "stddev": 25.260446763479855,
+      "min": 1,
+      "max": 2991,
+      "p50": 1,
+      "p95": 5,
+      "p99": 11,
+      "count": 127530
+    }
+  }
+}

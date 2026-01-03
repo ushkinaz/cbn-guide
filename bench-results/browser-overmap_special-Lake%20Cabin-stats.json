@@ -1,0 +1,57 @@
+{
+  "scenario": "browser-overmap_special-Lake%20Cabin",
+  "updated": "2026-01-03T15:52:41.881Z",
+  "totalRuns": 10,
+  "metrics": {
+    "byId": {
+      "mean": 33.7,
+      "stddev": 0.6403124237432849,
+      "min": 33,
+      "max": 35,
+      "p50": 34,
+      "p95": 35,
+      "p99": 35,
+      "count": 10
+    },
+    "CBNData._flatten": {
+      "mean": 12.6,
+      "stddev": 0.4898979485566356,
+      "min": 12,
+      "max": 13,
+      "p50": 13,
+      "p95": 13,
+      "p99": 13,
+      "count": 10
+    },
+    "CBNData.constructor": {
+      "mean": 43792,
+      "stddev": 1919.359893297763,
+      "min": 40192,
+      "max": 46207,
+      "p50": 44223,
+      "p95": 46207,
+      "p99": 46207,
+      "count": 10
+    },
+    "CBNData.flattenItemGroup": {
+      "mean": 822.1,
+      "stddev": 24.30411487793785,
+      "min": 778,
+      "max": 849,
+      "p50": 826,
+      "p95": 849,
+      "p99": 849,
+      "count": 10
+    },
+    "CBNData.nestedMapgensById": {
+      "mean": 17.2,
+      "stddev": 21.917116598676934,
+      "min": 1,
+      "max": 67,
+      "p50": 1,
+      "p95": 67,
+      "p99": 67,
+      "count": 10
+    }
+  }
+}

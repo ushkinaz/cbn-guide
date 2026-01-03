@@ -1,0 +1,157 @@
+{
+  "scenario": "browser-item-thc_liquid",
+  "updated": "2026-01-03T15:46:22.961Z",
+  "totalRuns": 10,
+  "metrics": {
+    "byId": {
+      "mean": 32.5,
+      "stddev": 0.6708203932499369,
+      "min": 32,
+      "max": 34,
+      "p50": 32,
+      "p95": 34,
+      "p99": 34,
+      "count": 10
+    },
+    "CBNData._flatten": {
+      "mean": 12,
+      "stddev": 0,
+      "min": 12,
+      "max": 12,
+      "p50": 12,
+      "p95": 12,
+      "p99": 12,
+      "count": 10
+    },
+    "CBNData.constructor": {
+      "mean": 44064,
+      "stddev": 1439.9466656789757,
+      "min": 41472,
+      "max": 46527,
+      "p50": 44031,
+      "p95": 46527,
+      "p99": 46527,
+      "count": 10
+    },
+    "CBNData.craftingPseudoItems": {
+      "mean": 18,
+      "stddev": 14.028542333400146,
+      "min": 1,
+      "max": 39,
+      "p50": 17,
+      "p95": 39,
+      "p99": 39,
+      "count": 10
+    },
+    "CBNData.flattenItemGroup": {
+      "mean": 300,
+      "stddev": 9.433981132056603,
+      "min": 290,
+      "max": 321,
+      "p50": 295,
+      "p95": 321,
+      "p99": 321,
+      "count": 10
+    },
+    "CBNData.flattenRequirement": {
+      "mean": 96,
+      "stddev": 1.3416407864998738,
+      "min": 94,
+      "max": 98,
+      "p50": 95,
+      "p95": 98,
+      "p99": 98,
+      "count": 10
+    },
+    "CBNData.getConstructionComponents": {
+      "mean": 84659.2,
+      "stddev": 1964.7166106082577,
+      "min": 81984,
+      "max": 87935,
+      "p50": 84223,
+      "p95": 87935,
+      "p99": 87935,
+      "count": 10
+    },
+    "CBNData.getItemComponents": {
+      "mean": 903577.6,
+      "stddev": 11722.56397892543,
+      "min": 885248,
+      "max": 918015,
+      "p50": 903679,
+      "p95": 918015,
+      "p99": 918015,
+      "count": 10
+    },
+    "CBNData.normalizeRequirementsForDisassembly": {
+      "mean": 524,
+      "stddev": 9.391485505499118,
+      "min": 514,
+      "max": 542,
+      "p50": 518,
+      "p95": 542,
+      "p99": 542,
+      "count": 10
+    },
+    "CBNData.replacementTools.build": {
+      "mean": 250918.4,
+      "stddev": 2960.5378970720844,
+      "min": 246784,
+      "max": 256511,
+      "p50": 249471,
+      "p95": 256511,
+      "p99": 256511,
+      "count": 10
+    },
+    "flattenChoices": {
+      "mean": 28.5,
+      "stddev": 1.02469507659596,
+      "min": 27,
+      "max": 30,
+      "p50": 28,
+      "p95": 30,
+      "p99": 30,
+      "count": 10
+    },
+    "ReverseIndex.build[furniture]": {
+      "mean": 104742.4,
+      "stddev": 2273.2976575890807,
+      "min": 102144,
+      "max": 109183,
+      "p50": 104319,
+      "p95": 109183,
+      "p99": 109183,
+      "count": 10
+    },
+    "ReverseIndex.build[item]": {
+      "mean": 134694.4,
+      "stddev": 2710.33766162078,
+      "min": 131584,
+      "max": 139647,
+      "p50": 133759,
+      "p95": 139647,
+      "p99": 139647,
+      "count": 10
+    },
+    "ReverseIndex.build[terrain]": {
+      "mean": 72684.8,
+      "stddev": 4587.224276182711,
+      "min": 68672,
+      "max": 84351,
+      "p50": 70207,
+      "p95": 84351,
+      "p99": 84351,
+      "count": 10
+    },
+    "ReverseIndex.build[vehicle_part]": {
+      "mean": 68268.8,
+      "stddev": 1196.9197801022422,
+      "min": 66240,
+      "max": 70335,
+      "p50": 68031,
+      "p95": 70335,
+      "p99": 70335,
+      "count": 10
+    }
+  }
+}
