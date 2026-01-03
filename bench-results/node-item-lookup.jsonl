@@ -1,0 +1,1 @@
+{"scenario":"node-item-lookup","timestamp":1767454280054,"date":"2026-01-03","git-sha1":"d5bf21ee9030db90c9eee01434fafe6ce3f2f333","metrics":{"byId":{"mean":5.75,"stddev":7.256319085229554,"min":1,"max":33,"p50":2,"p95":24,"p99":31,"count":60},"CBNData._flatten":{"mean":3.642857142857143,"stddev":6.754967937506047,"min":1,"max":32,"p50":1,"p95":23,"p99":29,"count":70}}}

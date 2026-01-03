@@ -1,0 +1,1 @@
+{"scenario":"node-constructor","timestamp":1767454276125,"date":"2026-01-03","git-sha1":"d5bf21ee9030db90c9eee01434fafe6ce3f2f333","metrics":{"CBNData.constructor":{"mean":11304.4,"stddev":2106.778735415753,"min":9952,"max":17567,"p50":10615,"p95":17567,"p99":17567,"count":10}}}

@@ -39,6 +39,10 @@
     "gen:css": "tsx scripts/gen-css.ts",
     "gen:sitemap": "tsx scripts/gen-sitemap.ts",
     "gen:unifont": "sh scripts/gen-unifont.sh",
+    "bench:node": "tsx scripts/bench-node.ts",
+    "bench:browser": "tsx scripts/bench-browser.ts",
+    "bench:browser:batch": "tsx scripts/bench-browser-batch.ts",
+    "bench:report": "tsx scripts/bench-report.ts",
     "i18n:push": "txjs-cli push dist",
     "precommit": "lint-staged",
     "prepare": "husky"
@@ -59,6 +63,7 @@
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.2",
     "prettier-plugin-svelte": "^3.3.3",
+    "puppeteer": "^24.34.0",
     "sharp": "^0.33.5",
     "svelte": "^4.2.19",
     "svelte-check": "^4.1.4",

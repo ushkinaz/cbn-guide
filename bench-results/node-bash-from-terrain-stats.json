@@ -1,0 +1,47 @@
+{
+  "scenario": "node-bash-from-terrain",
+  "updated": "2026-01-03T15:31:23.156Z",
+  "totalRuns": 10,
+  "metrics": {
+    "ReverseIndex.build[terrain]": {
+      "mean": 8649.2,
+      "stddev": 2633.211301813814,
+      "min": 5648,
+      "max": 15607,
+      "p50": 8319,
+      "p95": 15607,
+      "p99": 15607,
+      "count": 10
+    },
+    "CBNData._flatten": {
+      "mean": 1.3915185185185186,
+      "stddev": 17.02345904022157,
+      "min": 1,
+      "max": 2319,
+      "p50": 1,
+      "p95": 1,
+      "p99": 7,
+      "count": 27000
+    },
+    "CBNData.flattenItemGroup": {
+      "mean": 9.808962264150944,
+      "stddev": 76.78317803472179,
+      "min": 2,
+      "max": 3345,
+      "p50": 5,
+      "p95": 18,
+      "p99": 43,
+      "count": 6360
+    },
+    "byId": {
+      "mean": 2.5308457711442784,
+      "stddev": 34.26010100941354,
+      "min": 1,
+      "max": 1495,
+      "p50": 1,
+      "p95": 2,
+      "p99": 9,
+      "count": 2010
+    }
+  }
+}

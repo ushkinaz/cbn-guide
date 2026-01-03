@@ -1,0 +1,15 @@
+# Browser Benchmark URLs
+# One URL per line. Lines starting with # are comments.
+
+# Example URLs (uncomment and modify as needed):
+http://localhost:3000/v0.9.1/item/pretzels
+http://localhost:3000/v0.9.1/furniture/f_autodoc
+http://localhost:3000/v0.9.1/item/22_lr
+http://localhost:3000/v0.9.1/item/thc_liquid
+http://localhost:3000/v0.9.1/item/voltmeter_bionic
+http://localhost:3000/v0.9.1/json_flag/NOITEM
+http://localhost:3000/v0.9.1/monster/mon_chud
+http://localhost:3000/v0.9.1/item/vac_sealer
+http://localhost:3000/v0.9.1/overmap_special/Lake%20Cabin
+http://localhost:3000/v0.9.1/item/soup_dumplings
+http://localhost:3000/v0.9.1/vitamin/calcium
