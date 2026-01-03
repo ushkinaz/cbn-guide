@@ -278,7 +278,7 @@ export class CBNData {
   _byType: Map<string, any[]> = new Map();
   _byTypeById: Map<string, Map<string, any>> = new Map();
   _abstractsByType: Map<string, Map<string, any>> = new Map();
-  _toolReplacements: Map<string, string[]> | null = null;
+  _toolReplacements: Map<string, string[]> = new Map();
   _craftingPseudoItems: Map<string, string> = new Map();
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
@@ -359,6 +359,13 @@ export class CBNData {
         if (!this._nestedMapgensById.has(obj.nested_mapgen_id))
           this._nestedMapgensById.set(obj.nested_mapgen_id, []);
         this._nestedMapgensById.get(obj.nested_mapgen_id)!.push(obj);
+      }
+
+      // Build tool replacements index inline (TOOL items with 'sub' field)
+      if (obj.type === "TOOL" && obj.sub) {
+        if (!this._toolReplacements.has(obj.sub))
+          this._toolReplacements.set(obj.sub, []);
+        this._toolReplacements.get(obj.sub)!.push(obj.id);
       }
     }
     this._byTypeById
