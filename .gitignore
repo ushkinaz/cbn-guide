@@ -833,3 +833,12 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/jetbrains,node,yarn,svelte,macos,windows,linux,zsh,visualstudiocode,visualstudio,sublimetext
+
+/ai-prompts/*.md
+
+# Benchmark temporary files
+bench-results/*-baseline.json
+bench-results/report.html
+
+# Benchmark URLs (customize per environment)
+bench-results/browser-urls.txt
