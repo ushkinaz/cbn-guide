@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
-  <ShortName>HHG (BN)</ShortName>
+  <ShortName>Cataclysm: Bright Nights Guide</ShortName>
   <LongName>The Hitchhiker's Guide to the Cataclysm: Bright Nights</LongName>
   <Description>Search the Hitchhiker's Guide to the Cataclysm: Bright Nights</Description>
   <Url type="text/html" method="get" template="https://cbn-guide.pages.dev/search/{searchTerms}"/>

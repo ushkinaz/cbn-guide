@@ -43,7 +43,7 @@ export default defineConfig({
       },
       includeAssets: ["robots.txt", "sitemap.xml", "opensearch.xml"],
       manifest: {
-        short_name: "Cataclysm: BN Guide",
+        short_name: "Cataclysm: Bright Nights Guide",
         name: "The Hitchhiker's Guide to the Cataclysm: Bright Nights",
         description:
           "The Hitchhiker's Guide to the Cataclysm: Bright Nights. Search items, monsters, and more in this offline-capable guide for the zombie survival roguelike.",

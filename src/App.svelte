@@ -13,6 +13,7 @@ import {
   GAME_REPO_URL,
   getTilesetUrl,
   GUIDE_NAME,
+  UI_GUIDE_NAME,
   TILESETS,
 } from "./constants";
 import { t } from "@transifex/native";
@@ -127,11 +128,11 @@ $: tileData.setURL(tilesetUrl);
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
-  document.title = `${singularName(it)} - ` + GUIDE_NAME;
+  document.title = `${singularName(it)} - ` + UI_GUIDE_NAME;
 } else if (item && !item.id && item.type) {
-  document.title = `${item.type} - ` + GUIDE_NAME;
+  document.title = `${item.type} - ` + UI_GUIDE_NAME;
 } else {
-  document.title = GUIDE_NAME;
+  document.title = UI_GUIDE_NAME;
 }
 
 let search: string = "";
@@ -245,7 +246,8 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
         <a
           href={import.meta.env.BASE_URL + location.search}
           on:click={() => (search = "")}
-          ><span class="wide">{GUIDE_NAME}</span><span class="narrow">HHG</span
+          ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow"
+            >HHG</span
           ></a>
       </strong>
     </div>
@@ -317,7 +319,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
     <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
-          `Updated daily, it features full tileset support and data for both Stable and Nightly versions.
+          `Updated daily with full tileset support and data for both Stable and Nightly versions.
           Instantly search and cross-reference items, crafting recipes, drop rates, mutations, and bionics.`,
         )}>
       </InterpolatedTranslation>
@@ -325,7 +327,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
     <p style="text-wrap: pretty">
       <InterpolatedTranslation
         str={t(
-          `The Guide stores all its data locally—just visit the page once and it will work even without internet access.`,
+          `All data is stored locally—just visit once and it works offline.`,
         )}>
       </InterpolatedTranslation>
     </p>
