@@ -1,7 +1,7 @@
 <script lang="ts">
 import Thing from "./Thing.svelte";
 import { data, singularName } from "./data";
-import { tileData } from "./tile-data";
+import { getTilesetUrl, tileData, TILESETS } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
 import InterpolatedTranslation from "./InterpolatedTranslation.svelte";
@@ -9,13 +9,7 @@ import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
-import {
-  GAME_REPO_URL,
-  getTilesetUrl,
-  GUIDE_NAME,
-  UI_GUIDE_NAME,
-  TILESETS,
-} from "./constants";
+import { GAME_REPO_URL, GUIDE_NAME, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import {
   type BuildInfo,
@@ -77,8 +71,6 @@ const tilesetParam = urlConfig.tileset;
 const ASCII_TILESET = "-";
 const DEFAULT_TILESET = ASCII_TILESET;
 
-const normalizeTemplate = (t: string) => (t === "null" || !t ? "" : t);
-
 function loadTileset(): string {
   try {
     const tilesetIDStorage =
@@ -113,14 +105,19 @@ function isValidTileset(tilesetID: string | null) {
 
 let tileset: string =
   (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
-let tilesetUrlTemplate: string = "";
 
-$: tilesetUrlTemplate = normalizeTemplate(
-  (() => {
-    const t = TILESETS.find((t) => t.name === tileset);
-    return t ? getTilesetUrl("{version}", t.path) : "";
-  })(),
+// Set tile info once at initialization (tileset changes trigger full page reload)
+const currentTileset = TILESETS.find((t) => t.name === tileset) ?? TILESETS[0];
+tileData.init(
+  currentTileset.tile_info.width,
+  currentTileset.tile_info.height,
+  currentTileset.tile_info.pixelscale,
 );
+
+const tilesetUrlTemplate = currentTileset
+  ? getTilesetUrl("{version}", currentTileset.path)
+  : "";
+
 $: tilesetUrl = $data
   ? (tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null)
   : null;

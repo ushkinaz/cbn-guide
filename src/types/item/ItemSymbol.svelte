@@ -22,6 +22,9 @@ $: tile = typeHasTile(item)
   : null;
 $: baseUrl = $tileData?.baseUrl;
 
+$: defaultWidth = tile_info ? tile_info.width * tile_info.pixelscale : 16;
+$: defaultHeight = tile_info ? tile_info.height * tile_info.pixelscale : 16;
+
 const sym = [item.symbol].flat()[0] ?? " ";
 const symbol = /^LINE_/.test(sym) ? "|" : sym;
 const color = item.color
@@ -201,7 +204,7 @@ function css(obj: Record<string, string>) {
 }
 </script>
 
-{#if tile}
+{#if tile && tile_info}
   <div
     style={css({
       width: `${tile_info.width * tile_info.pixelscale}px`,
@@ -240,7 +243,15 @@ function css(obj: Record<string, string>) {
     {/if}
   </div>
 {:else}
-  <span style="font-family: monospace;" class="c_{color}">{symbol}</span>
+  <span
+    style={css({
+      "font-family": "monospace",
+      display: "inline-block",
+      width: `${defaultWidth}px`,
+      height: `${defaultHeight}px`,
+      "vertical-align": "bottom",
+    })}
+    class="c_{color}">{symbol}</span>
 {/if}
 
 <style>

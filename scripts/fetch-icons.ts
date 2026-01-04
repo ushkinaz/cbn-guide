@@ -23,13 +23,9 @@ import sharp from "sharp";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
 
 import { colorForName } from "../src/colors";
-import {
-  BUILDS_URL,
-  getDataJsonUrl,
-  getTilesetUrl,
-  TILESETS,
-} from "../src/constants";
+import { BUILDS_URL, getDataJsonUrl } from "../src/constants";
 import { CBNData, mapType } from "../src/data";
+import { getTilesetUrl, TILESETS } from "../src/tile-data";
 
 type TilePosition = {
   file: string;
