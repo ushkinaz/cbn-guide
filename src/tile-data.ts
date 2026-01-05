@@ -137,6 +137,6 @@ export const TILESETS = [
   {
     name: "UltiCa",
     path: "UltimateCataclysm",
-    tile_info: { width: 16, height: 16, pixelscale: 1 },
+    tile_info: { width: 32, height: 32, pixelscale: 1 },
   },
 ];
