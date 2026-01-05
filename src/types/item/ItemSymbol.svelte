@@ -22,9 +22,6 @@ $: tile = typeHasTile(item)
   : null;
 $: baseUrl = $tileData?.baseUrl;
 
-$: defaultWidth = tile_info ? tile_info.width * tile_info.pixelscale : 16;
-$: defaultHeight = tile_info ? tile_info.height * tile_info.pixelscale : 16;
-
 const sym = [item.symbol].flat()[0] ?? " ";
 const symbol = /^LINE_/.test(sym) ? "|" : sym;
 const color = item.color
@@ -230,15 +227,7 @@ function fallbackTile(
     {/if}
   </div>
 {:else}
-  <span
-    style="
-      font-family: monospace;
-      display: inline-block;
-      width: {defaultWidth}px;
-      text-align: center;
-      vertical-align: bottom;
-    "
-    class="c_{color}">{symbol}</span>
+  <span style="font-family: monospace;" class="c_{color}">{symbol}</span>
 {/if}
 
 <style>

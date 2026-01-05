@@ -37,50 +37,26 @@ const fetchJson = async (url: string) => {
   return json;
 };
 
-/** Tile info structure matching tile_config.json format */
-export type TileInfo = {
-  width: number;
-  height: number;
-  pixelscale: number;
-};
-
-/** Complete tileset data structure */
-export type TilesetData = {
-  tile_info: [TileInfo, ...TileInfo[]]; // At least one element
+type TilesetData = {
+  tile_info: { width: number; height: number; pixelscale: number }[];
   "tiles-new": any[];
   baseUrl?: string;
+} | null;
+
+const { subscribe, set } = writable<TilesetData>(null);
+export const tileData = {
+  subscribe,
+  setURL(url: string | null) {
+    if (url) {
+      fetchJson(url).then(
+        (data) => set({ ...data, baseUrl: url }),
+        (err) => console.error("Error fetching tiles", err),
+      );
+    } else {
+      set(null);
+    }
+  },
 };
-
-function createTileDataStore() {
-  const { subscribe, set } = writable<TilesetData | null>(null);
-
-  let initData: TilesetData | null = null;
-
-  return {
-    subscribe,
-    /** Initialize with prefetched dimensions before full tileset loads */
-    init(width: number, height: number, pixelscale: number) {
-      initData = {
-        tile_info: [{ width, height, pixelscale }],
-        "tiles-new": [],
-      };
-      set(initData);
-    },
-    /** Load full tileset data from URL */
-    setURL(url: string | null) {
-      if (url) {
-        fetchJson(url).then(
-          (data) => set({ ...data, baseUrl: url }),
-          (err) => console.error("Error fetching tiles", err),
-        );
-      } else {
-        set(initData);
-      }
-    },
-  };
-}
-
-export const tileData = createTileDataStore();
 /**
  * @param {string} version
  * @param {string} path

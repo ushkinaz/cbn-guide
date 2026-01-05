@@ -353,7 +353,7 @@ export function updateSearchRoute(
 }
 
 /**
- * Update URL query parameters and reload (for language/tileset changes)
+ * Update URL query parameters and reload (for language changes)
  */
 export function updateQueryParam(param: string, value: string | null): void {
   const url = new URL(location.href);
@@ -363,6 +363,22 @@ export function updateQueryParam(param: string, value: string | null): void {
     url.searchParams.delete(param);
   }
   location.href = url.toString();
+}
+
+/**
+ * Update URL query parameters without reload (for tileset changes)
+ */
+export function updateQueryParamNoReload(
+  param: string,
+  value: string | null,
+): void {
+  const url = new URL(location.href);
+  if (value) {
+    url.searchParams.set(param, value);
+  } else {
+    url.searchParams.delete(param);
+  }
+  history.replaceState(null, "", url.toString());
 }
 
 /**

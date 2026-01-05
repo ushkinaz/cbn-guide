@@ -25,6 +25,7 @@ import {
   parseRoute,
   STABLE_VERSION,
   updateQueryParam,
+  updateQueryParamNoReload,
   updateSearchRoute,
 } from "./routing";
 
@@ -102,26 +103,15 @@ function isValidTileset(tilesetID: string | null) {
 let tileset: string =
   (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
 
-// Set tile info once at initialization (tileset changes trigger full page reload)
-const currentTileset = TILESETS.find((t) => t.name === tileset) ?? TILESETS[0];
-tileData.init(
-  currentTileset.tile_info.width,
-  currentTileset.tile_info.height,
-  currentTileset.tile_info.pixelscale,
-);
+// Derive currentTileset reactively from tileset
+$: currentTileset = TILESETS.find((t) => t.name === tileset) ?? TILESETS[0];
 
-const tilesetUrlTemplate = currentTileset
-  ? getTilesetUrl("{version}", currentTileset.path)
-  : "";
-
-$: if (!$data || currentTileset.name === TILESETS[0].name) {
-  //ASCII
-  tileData.setURL(null);
-} else {
-  tileData.setURL(
-    tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null,
-  );
-}
+// React to tileset changes
+$: tilesetUrl =
+  $data && currentTileset.name !== TILESETS[0].name
+    ? getTilesetUrl($data.build_number!, currentTileset.path)
+    : null;
+$: tileData.setURL(tilesetUrl);
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
@@ -397,7 +387,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
         on:change={(e) => {
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
-          updateQueryParam("t", tileset);
+          updateQueryParamNoReload("t", tileset);
         }}>
         {#each TILESETS as { name }}
           <option value={name}>{name}</option>
