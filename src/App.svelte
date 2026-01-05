@@ -68,8 +68,7 @@ const urlConfig = getUrlConfig();
 const localeParam = urlConfig.locale;
 const tilesetParam = urlConfig.tileset;
 
-const ASCII_TILESET = "-";
-const DEFAULT_TILESET = ASCII_TILESET;
+const DEFAULT_TILESET = TILESETS[0].name;
 
 function loadTileset(): string {
   try {
@@ -97,10 +96,7 @@ function saveTileset(tileset: string | null) {
 }
 
 function isValidTileset(tilesetID: string | null) {
-  return (
-    (tilesetID && tilesetID === ASCII_TILESET) ||
-    TILESETS.some((t) => t.name === tilesetID)
-  );
+  return TILESETS.some((t) => t.name === tilesetID);
 }
 
 let tileset: string =
@@ -118,10 +114,14 @@ const tilesetUrlTemplate = currentTileset
   ? getTilesetUrl("{version}", currentTileset.path)
   : "";
 
-$: tilesetUrl = $data
-  ? (tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null)
-  : null;
-$: tileData.setURL(tilesetUrl);
+$: if (!$data || currentTileset.name === TILESETS[0].name) {
+  //ASCII
+  tileData.setURL(null);
+} else {
+  tileData.setURL(
+    tilesetUrlTemplate?.replace("{version}", $data.build_number!) ?? null,
+  );
+}
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
@@ -399,7 +399,6 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
           saveTileset(tileset);
           updateQueryParam("t", tileset);
         }}>
-        <option value={ASCII_TILESET}>None (ASCII)</option>
         {#each TILESETS as { name }}
           <option value={name}>{name}</option>
         {/each}

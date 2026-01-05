@@ -89,11 +89,11 @@ export const tileData = createTileDataStore();
 export const getTilesetUrl = (version: string, path: string): string =>
   `https://raw.githubusercontent.com/${GAME_REPO_PATH}/${version}/gfx/${path}`;
 export const TILESETS = [
-  // {
-  //   name: "ASCII",
-  //   path: "-",
-  //   tile_info: { height: 10, width: 10, pixelscale: 1 },
-  // },
+  {
+    name: "None (ASCII)",
+    path: "",
+    tile_info: { height: 16, width: 16, pixelscale: 1 },
+  },
   {
     name: "BrownLikeBears",
     path: "BrownLikeBears",
