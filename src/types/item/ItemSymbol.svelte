@@ -193,64 +193,51 @@ function fallbackTile(
     } else return -1;
   }
 }
-
-// Simple CSS helper to fight Prettier, which wants to mangle inline CSS strings.
-function css(obj: Record<string, string>) {
-  let result = "";
-  for (const [k, v] of Object.entries(obj)) {
-    result += `${k}: ${v};`;
-  }
-  return result;
-}
 </script>
 
 {#if tile && tile_info}
   <div
-    style={css({
-      width: `${tile_info.width * tile_info.pixelscale}px`,
-      height: `${tile_info.height * tile_info.pixelscale}px`,
-    })}
+    style="
+      width: {tile_info.width * tile_info.pixelscale}px;
+      height: {tile_info.height * tile_info.pixelscale}px;
+    "
     class="tile-icon">
     {#if tile.bg != null}
       <div
         class="icon-layer bg"
-        style={css({
-          width: `${tile.bg.width}px`,
-          height: `${tile.bg.height}px`,
-          "background-image": `url(${`${baseUrl}/${encodeURIComponent(
-            tile.bg.file,
-          )}`})`,
-          "background-position": `${-tile.bg.tx * tile.bg.width}px ${
-            -tile.bg.ty * tile.bg.height
-          }px`,
-          transform: `scale(${tile_info.pixelscale}) translate(${tile.bg.offx}px, ${tile.bg.offy}px)`,
-        })} />
+        style="
+          width: {tile.bg.width}px;
+          height: {tile.bg.height}px;
+          background-image: url({`${baseUrl}/${encodeURIComponent(tile.bg.file)}`});
+          background-position: {-tile.bg.tx * tile.bg.width}px
+            {-tile.bg.ty * tile.bg.height}px;
+          transform: scale({tile_info.pixelscale})
+          translate({tile.bg.offx}px, {tile.bg.offy}px);
+        " />
     {/if}
     {#if tile.fg != null}
       <div
         class="icon-layer fg"
-        style={css({
-          width: `${tile.fg.width}px`,
-          height: `${tile.fg.height}px`,
-          "background-image": `url(${`${baseUrl}/${encodeURIComponent(
-            tile.fg.file,
-          )}`})`,
-          "background-position": `${-tile.fg.tx * tile.fg.width}px ${
-            -tile.fg.ty * tile.fg.height
-          }px`,
-          transform: `scale(${tile_info.pixelscale}) translate(${tile.fg.offx}px, ${tile.fg.offy}px)`,
-        })} />
+        style="
+          width: {tile.fg.width}px;
+          height: {tile.fg.height}px;
+          background-image: url({`${baseUrl}/${encodeURIComponent(tile.fg.file)}`});
+          background-position: {-tile.fg.tx * tile.fg.width}px {-tile.fg.ty *
+          tile.fg.height}px;
+          transform: scale({tile_info.pixelscale}) translate({tile.fg
+          .offx}px, {tile.fg.offy}px);
+        " />
     {/if}
   </div>
 {:else}
   <span
-    style={css({
-      "font-family": "monospace",
-      display: "inline-block",
-      width: `${defaultWidth}px`,
-      "text-align": "center",
-      "vertical-align": "bottom",
-    })}
+    style="
+      font-family: monospace;
+      display: inline-block;
+      width: {defaultWidth}px;
+      text-align: center;
+      vertical-align: bottom;
+    "
     class="c_{color}">{symbol}</span>
 {/if}
 
