@@ -842,3 +842,6 @@ bench-results/report.html
 
 # Benchmark URLs (customize per environment)
 bench-results/browser-urls.txt
+
+# Python env
+.venv/

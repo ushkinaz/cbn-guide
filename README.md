@@ -1,6 +1,6 @@
 # The Hitchhiker's Guide to the Cataclysm: Bright Nights
 
-<img src="src/assets/dont_panic.png" width=300 style=float:right  alt="Don't panic"/>
+<img src="public/dont_panic.png" width=908 style=float:right  alt="Don't panic"/>
 
 **The Hitchhiker's Guide to the Cataclysm** is the essential, comprehensive companion to the zombie survival roguelike [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN#readme).
 
