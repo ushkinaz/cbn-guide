@@ -248,7 +248,7 @@ function css(obj: Record<string, string>) {
       "font-family": "monospace",
       display: "inline-block",
       width: `${defaultWidth}px`,
-      height: `${defaultHeight}px`,
+      "text-align": "center",
       "vertical-align": "bottom",
     })}
     class="c_{color}">{symbol}</span>
