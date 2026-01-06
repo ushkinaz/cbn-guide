@@ -131,7 +131,7 @@ async function loadTileset(): Promise<LoadedTileset> {
       `Tileset ${tilesetName} not found in constants.ts. Available: ${TILESETS.map((t) => t.name).join(", ")}`,
     );
 
-  const baseUrl = getTilesetUrl(version!, tileset.path);
+  const baseUrl = getTilesetUrl(version!, tileset.path ?? ""); //Null check is actually redundant - it only applied to ASCII "tileset"
   const cacheDir = path.join(
     outputRoot,
     `${tilesetName}-${version}`,

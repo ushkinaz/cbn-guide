@@ -1,5 +1,6 @@
 import { writable } from "svelte/store";
 import { GAME_REPO_PATH } from "./constants";
+import type { CBNData } from "./data";
 
 const fetchJson = async (url: string) => {
   const res = await fetch(`${url}/tile_config.json`, {
@@ -46,7 +47,7 @@ type TilesetData = {
 const { subscribe, set } = writable<TilesetData>(null);
 export const tileData = {
   subscribe,
-  setURL(url: string | null) {
+  _setURL(url: string | null) {
     if (url) {
       fetchJson(url).then(
         (data) => set({ ...data, baseUrl: url }),
@@ -56,7 +57,23 @@ export const tileData = {
       set(null);
     }
   },
+  setTileset(data: CBNData | null, tilesetName: string) {
+    let tileset =
+      TILESETS.find((t) => t.name === tilesetName) ?? DEFAULT_TILESET;
+
+    if (data && data.build_number && tileset.path !== null) {
+      const url = getTilesetUrl(data.build_number, tileset.path);
+      this._setURL(url);
+    } else {
+      this._setURL(null);
+    }
+  },
 };
+
+export function isValidTileset(tilesetID: string | null) {
+  return TILESETS.some((t) => t.name === tilesetID);
+}
+
 /**
  * @param {string} version
  * @param {string} path
@@ -64,10 +81,11 @@ export const tileData = {
  */
 export const getTilesetUrl = (version: string, path: string): string =>
   `https://raw.githubusercontent.com/${GAME_REPO_PATH}/${version}/gfx/${path}`;
+
 export const TILESETS = [
   {
     name: "None (ASCII)",
-    path: "",
+    path: null,
     tile_info: { height: 16, width: 16, pixelscale: 1 },
   },
   {
@@ -116,3 +134,4 @@ export const TILESETS = [
     tile_info: { width: 32, height: 32, pixelscale: 1 },
   },
 ];
+export const DEFAULT_TILESET = TILESETS[0];

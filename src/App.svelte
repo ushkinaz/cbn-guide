@@ -1,7 +1,12 @@
 <script lang="ts">
 import Thing from "./Thing.svelte";
 import { data, singularName } from "./data";
-import { getTilesetUrl, tileData, TILESETS } from "./tile-data";
+import {
+  DEFAULT_TILESET,
+  isValidTileset,
+  tileData,
+  TILESETS,
+} from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
 import InterpolatedTranslation from "./InterpolatedTranslation.svelte";
@@ -12,18 +17,18 @@ import catapultIcon from "./assets/icons/link-catapult.svg";
 import { GAME_REPO_URL, GUIDE_NAME, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import {
+  NIGHTLY_VERSION,
+  STABLE_VERSION,
   type BuildInfo,
+  type InitialAppState,
   buildUrl,
   changeVersion,
   getCurrentVersionSlug,
   getUrlConfig,
   handleInternalNavigation,
-  type InitialAppState,
   initializeRouting,
   isSupportedVersion,
-  NIGHTLY_VERSION,
   parseRoute,
-  STABLE_VERSION,
   updateQueryParam,
   updateQueryParamNoReload,
   updateSearchRoute,
@@ -69,19 +74,17 @@ const urlConfig = getUrlConfig();
 const localeParam = urlConfig.locale;
 const tilesetParam = urlConfig.tileset;
 
-const DEFAULT_TILESET = TILESETS[0].name;
-
 function loadTileset(): string {
   try {
     const tilesetIDStorage =
-      localStorage.getItem("cbn-guide:tileset") || DEFAULT_TILESET;
+      localStorage.getItem("cbn-guide:tileset") || DEFAULT_TILESET.name;
     if (isValidTileset(tilesetIDStorage)) {
       return tilesetIDStorage;
     }
   } catch (e) {
     /* swallow security errors, which can happen when in incognito mode */
   }
-  return DEFAULT_TILESET;
+  return DEFAULT_TILESET.name;
 }
 
 function saveTileset(tileset: string | null) {
@@ -96,22 +99,11 @@ function saveTileset(tileset: string | null) {
   }
 }
 
-function isValidTileset(tilesetID: string | null) {
-  return TILESETS.some((t) => t.name === tilesetID);
-}
-
 let tileset: string =
   (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
 
-// Derive currentTileset reactively from tileset
-$: currentTileset = TILESETS.find((t) => t.name === tileset) ?? TILESETS[0];
-
 // React to tileset changes
-$: tilesetUrl =
-  $data && currentTileset.name !== TILESETS[0].name
-    ? getTilesetUrl($data.build_number!, currentTileset.path)
-    : null;
-$: tileData.setURL(tilesetUrl);
+$: tileData.setTileset($data, tileset);
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
