@@ -58,13 +58,22 @@ export const tileData = {
     }
   },
   setTileset(data: CBNData | null, tilesetName: string) {
-    let tileset =
+    const tileset =
       TILESETS.find((t) => t.name === tilesetName) ?? DEFAULT_TILESET;
 
-    if (data && data.build_number && tileset.path !== null) {
+    if (data?.build_number && tileset.path !== null) {
+      // Data available, load tileset from URL
       const url = getTilesetUrl(data.build_number, tileset.path);
       this._setURL(url);
+    } else if (!data && tileset.tile_info && tileset.path !== null) {
+      // Version loading (data is null) but tileset selected - set placeholder dimensions
+      // This prevents CLS during version switches
+      set({
+        tile_info: [tileset.tile_info],
+        "tiles-new": [],
+      });
     } else {
+      // ASCII mode or no dimensions available
       this._setURL(null);
     }
   },

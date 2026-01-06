@@ -226,8 +226,19 @@ function fallbackTile(
         " />
     {/if}
   </div>
+{:else if tile_info}
+  <!-- Sized ASCII fallback: We have cached tileset dimensions but tile data hasn't loaded yet.
+       This prevents layout shift during initial page load or version switching. -->
+  <span
+    class="tile-icon c_{color}"
+    style="
+      width: {tile_info.width * tile_info.pixelscale}px;
+      height: {tile_info.height * tile_info.pixelscale}px;
+      line-height: {tile_info.height * tile_info.pixelscale}px;
+    ">{symbol}</span>
+  <!--    class="-&#45;&#45;c_{color}">&nbsp;</span>-->
 {:else}
-  <span style="font-family: monospace;" class="c_{color}">{symbol}</span>
+  <span class="tile-icon c_{color}">{symbol}</span>
 {/if}
 
 <style>
@@ -235,6 +246,8 @@ function fallbackTile(
   vertical-align: middle;
   display: inline-block;
   position: relative;
+  font-family: UnifontSubset, monospace;
+  text-align: center;
 }
 
 .icon-layer {
