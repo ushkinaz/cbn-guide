@@ -1,5 +1,6 @@
 User-agent: *
-Allow: /stable/
-Disallow: /next/
+Allow: /stable
+Disallow: /nightly/
+Disallow: /latest/
 
 Sitemap: https://cbn-guide.pages.dev/sitemap.xml

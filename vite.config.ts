@@ -51,6 +51,23 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,png,svg,woff2,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: "index.html",
+        navigateFallbackDenylist: [
+          //refer /public/_redirects
+          /^\/$/, // Root redirect to /stable
+          /^\/latest\//, // /latest/* -> /nightly/*
+          // Legacy paths that redirect to nightly
+          /^\/item\//,
+          /^\/monster\//,
+          /^\/furniture\//,
+          /^\/terrain\//,
+          /^\/vehicle_part\//,
+          /^\/tool_quality\//,
+          /^\/mutation\//,
+          /^\/martial_art\//,
+          /^\/json_flag\//,
+          /^\/achievement\//,
+          /^\/search\//,
+        ],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {

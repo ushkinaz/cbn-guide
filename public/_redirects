@@ -3,17 +3,16 @@
 
 # Version Aliases
 /latest/* /nightly/:splat 301
-/main/* /nightly/:splat 301
 
 # Legacy Paths (redirecting to nightly, could be coming from the game)
-/item/* /nightly/item/:splat 302
-/monster/* /nightly/monster/:splat 302
-/furniture/* /nightly/furniture/:splat 302
-/terrain/* /nightly/terrain/:splat 302
-/vehicle_part/* /nightly/vehicle_part/:splat 302
-/tool_quality/* /nightly/tool_quality/:splat 302
-/mutation/* /nightly/mutation/:splat 302
-/martial_art/* /nightly/martial_art/:splat 302
-/json_flag/* /nightly/json_flag/:splat 302
-/achievement/* /nightly/achievement/:splat 302
-/search/* /nightly/search/:splat 302
+/item/* /nightly/item/:splat 301
+/monster/* /nightly/monster/:splat 301
+/furniture/* /nightly/furniture/:splat 301
+/terrain/* /nightly/terrain/:splat 301
+/vehicle_part/* /nightly/vehicle_part/:splat 301
+/tool_quality/* /nightly/tool_quality/:splat 301
+/mutation/* /nightly/mutation/:splat 301
+/martial_art/* /nightly/martial_art/:splat 301
+/json_flag/* /nightly/json_flag/:splat 301
+/achievement/* /nightly/achievement/:splat 301
+/search/* /nightly/search/:splat 301
