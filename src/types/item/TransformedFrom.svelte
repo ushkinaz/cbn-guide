@@ -13,8 +13,7 @@ import {
   normalizeUseAction,
 } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let item_id: string;
 
@@ -31,8 +30,7 @@ const getTransformAction = (item: Item) =>
     <h1>{t("Transformed From", { _context: "Obtaining" })}</h1>
     <LimitedList items={transformedFrom} let:item>
       {@const ua = getTransformAction(item)}
-      <ItemSymbol item={data.byId("item", item.id)} />
-      <ThingLink
+      <ItemLink
         type="item"
         id={item.id} />{#if ua.type === "delayed_transform" && ua.transform_age}{" "}({asHumanReadableDuration(
           ua.transform_age * 100,

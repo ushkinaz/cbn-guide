@@ -5,8 +5,7 @@ import { getContext } from "svelte";
 import { byName, CBNData, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { WeaponCategory } from "../types";
-import ItemSymbol from "./item/ItemSymbol.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let item: WeaponCategory;
 
@@ -30,8 +29,7 @@ martialArts.sort(byName);
   <h1>{t("Weapons", { _context: "Martial Art" })}</h1>
   {#if itemsInCategory.length}
     <LimitedList items={itemsInCategory} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
+      <ItemLink type="item" id={item.id} />
     </LimitedList>
   {:else}
     <p style="color: var(--cata-color-gray)">
@@ -44,8 +42,7 @@ martialArts.sort(byName);
   <h1>{t("Martial Arts")}</h1>
   {#if martialArts.length}
     <LimitedList items={martialArts} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="martial_art" id={item.id} />
+      <ItemLink type="martial_art" id={item.id} />
     </LimitedList>
   {:else}
     <p style="color: var(--cata-color-gray)">

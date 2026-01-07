@@ -17,7 +17,7 @@ import type {
   SupportedTypes,
   Vitamin,
 } from "../types";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let item: Vitamin;
 
@@ -121,7 +121,7 @@ const deficiencyNames = item.deficiency
   <section>
     <h1>{t("Comestibles", { _context })}</h1>
     <LimitedList items={containing} let:item={other}>
-      <ThingLink id={other.comestible.id} type="item" /> ({other.pct.toFixed(
+      <ItemLink id={other.comestible.id} type="item" showIcon={false} /> ({other.pct.toFixed(
         2,
       )}{item.vit_type === "counter" || item.vit_type === "drug"
         ? " U"

@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import type { ToolSlot } from "../../types";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 const _context = "Item Tool Info";
 
@@ -18,7 +18,9 @@ export let item: ToolSlot;
         <dd>
           <ul class="comma-separated">
             {#each [item.ammo].flat() as ammo}
-              <li><ThingLink type="ammunition_type" id={ammo} /></li>
+              <li>
+                <ItemLink type="ammunition_type" id={ammo} showIcon={false} />
+              </li>
             {/each}
           </ul>
         </dd>
@@ -37,7 +39,7 @@ export let item: ToolSlot;
       {/if}
       {#if item.sub}
         <dt>{t("Substitute", { _context })}</dt>
-        <dd><ThingLink type="item" id={item.sub} /></dd>
+        <dd><ItemLink type="item" id={item.sub} showIcon={false} /></dd>
       {/if}
     </dl>
   </section>

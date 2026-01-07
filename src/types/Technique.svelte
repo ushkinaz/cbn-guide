@@ -6,9 +6,8 @@ import { byName, CBNData, i18n, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { MartialArtBuff, Technique } from "../types";
 import BonusContainer from "./BonusContainer.svelte";
+import ItemLink from "./ItemLink.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
-import ThingLink from "./ThingLink.svelte";
-import ItemSymbol from "./item/ItemSymbol.svelte";
 
 export let item: Technique;
 export let buffMap: Map<string, MartialArtBuff> = new Map();
@@ -125,8 +124,7 @@ if (item.stunned_target)
   <section>
     <h1>{t("Weapons", { _context })}</h1>
     <LimitedList items={weapons} let:item limit={20}>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
+      <ItemLink type="item" id={item.id} />
     </LimitedList>
   </section>
 {/if}

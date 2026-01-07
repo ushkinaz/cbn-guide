@@ -9,7 +9,7 @@ import {
 } from "./data";
 import { getVersionedBasePath } from "./routing";
 import * as fuzzysort from "fuzzysort";
-import ItemSymbol from "./types/item/ItemSymbol.svelte";
+import ItemLink from "./types/ItemLink.svelte";
 import type {
   OvermapSpecial,
   SupportedTypeMapped,
@@ -17,7 +17,6 @@ import type {
 } from "./types";
 import { setContext } from "svelte";
 import { t } from "@transifex/native";
-import ThingLink from "./types/ThingLink.svelte";
 import LimitedList from "./LimitedList.svelte";
 import LimitedTableList from "./LimitedTableList.svelte";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
@@ -172,8 +171,7 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
       <h1>{type.replace(/_/g, " ")}</h1>
       <LimitedList items={results} let:item={result} limit={50}>
         {@const item = data._flatten(result.item)}
-        <ItemSymbol {item} />
-        <ThingLink type={mapType(result.item.type)} id={result.item.id} />
+        <ItemLink type={mapType(result.item.type)} id={result.item.id} />
         {#if /obsolet/.test(result.item.__filename ?? "")}
           <em style="color: var(--cata-color-gray)"
             >({t("obsolete", { _context: "Search Results" })})</em>

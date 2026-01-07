@@ -1,11 +1,8 @@
 <script lang="ts">
-import { getContext } from "svelte";
 import LimitedTableList from "../../LimitedTableList.svelte";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 import type { Loot } from "./spawnLocations";
 import { showNumber, showProbability } from "./utils";
-import type { CBNData } from "../../data";
 import { t } from "@transifex/native";
 import type { SupportedTypesWithMapped } from "src/types";
 
@@ -18,13 +15,7 @@ export let heading: string =
       ? t("Terrain", { _context: "Loot Table" })
       : t("Loot", { _context: "Loot Table" });
 
-function stripType(x: any): any {
-  return x;
-}
-
 let showData = (globalThis as any).__isTesting__;
-
-const data = getContext<CBNData>("data");
 </script>
 
 {#if showData}
@@ -45,7 +36,7 @@ const data = getContext<CBNData>("data");
       <section>
         <LimitedTableList items={sortedLoot}>
           <tr slot="header">
-            <th colspan="2"><h1>{heading}</h1></th>
+            <th><h1>{heading}</h1></th>
             <th class="numeric"
               ><h1>
                 {t("Avg. Count", {
@@ -64,12 +55,8 @@ const data = getContext<CBNData>("data");
               </h1></th>
           </tr>
           <tr slot="item" let:item={[item_id, chance]}>
-            {@const item = stripType(data.byId(type, item_id))}
-            <td>
-              <ItemSymbol {item} />
-            </td>
             <td style="padding-left: 5px;">
-              <ThingLink {type} id={item_id} />
+              <ItemLink {type} id={item_id} showIcon={true} />
             </td>
             <td class="numeric">{showNumber(chance.expected)}</td>
             <td class="numeric">{showProbability(chance.prob)}</td>

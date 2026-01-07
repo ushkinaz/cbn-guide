@@ -2,8 +2,7 @@
 import { getContext } from "svelte";
 import { byName, CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 
 export let item_id: string;
@@ -23,8 +22,7 @@ sources.sort(byName);
   <section>
     <h1>{t("Smoke", { _context: "Obtaining" })}</h1>
     <LimitedList items={sources} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
+      <ItemLink type="item" id={item.id} />
     </LimitedList>
   </section>
 {/if}

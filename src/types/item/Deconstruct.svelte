@@ -4,8 +4,7 @@ import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 import type { Furniture, Terrain, VehiclePart } from "src/types";
 
 export let item_id: string;
@@ -24,8 +23,7 @@ let deconstructibleFrom = (
   <section>
     <h1>{t("Deconstruct", { _context: "Obtaining" })}</h1>
     <LimitedList items={deconstructibleFrom} let:item={f}>
-      <ItemSymbol item={data.byId(f.type, f.id)} />
-      <ThingLink id={f.id} type={f.type} />
+      <ItemLink id={f.id} type={f.type} />
     </LimitedList>
   </section>
 {/if}

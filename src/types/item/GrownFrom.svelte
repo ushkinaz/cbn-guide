@@ -4,8 +4,7 @@ import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let item_id: string;
 
@@ -18,8 +17,7 @@ const sources = data.grownFrom(item_id);
   <section>
     <h1>{t("Grown From", { _context: "Obtaining" })}</h1>
     <LimitedList items={sources} let:item>
-      <ItemSymbol {item} />
-      <ThingLink id={item.id} type="item" /> ({item.seed_data.grow ?? "1 day"})
+      <ItemLink id={item.id} type="item" /> ({item.seed_data.grow ?? "1 day"})
     </LimitedList>
   </section>
 {/if}

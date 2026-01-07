@@ -5,8 +5,7 @@ import { getContext } from "svelte";
 import { byName, CBNData, i18n, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Construction, Item, ToolQuality, VehiclePart } from "../types";
-import ItemSymbol from "./item/ItemSymbol.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let item: ToolQuality;
 
@@ -129,7 +128,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         <dd>
           <ul class="comma-separated">
             <!-- prettier-ignore -->
-            {#each usages as usage}<li><ThingLink type="item_action" id={usage} /></li>{/each}
+            {#each usages as usage}<li><ItemLink type="item_action" id={usage}  showIcon={false} /></li>{/each}
           </ul>
         </dd>
       {/each}
@@ -146,8 +145,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         </dt>
         <dd>
           <LimitedList items={tools} limit={20} let:item>
-            <ItemSymbol {item} />
-            <ThingLink type="item" id={item.id} />
+            <ItemLink type="item" id={item.id} />
           </LimitedList>
         </dd>
       {/each}
@@ -164,8 +162,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         </dt>
         <dd>
           <LimitedList items={vparts.sort(byName)} limit={20} let:item>
-            <ItemSymbol {item} />
-            <ThingLink type="vehicle_part" id={item.id} />
+            <ItemLink type="vehicle_part" id={item.id} />
           </LimitedList>
         </dd>
       {/each}
@@ -182,8 +179,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         </dt>
         <dd>
           <LimitedList items={recipes} let:item limit={20}>
-            <ItemSymbol item={data.byId("item", item)} />
-            <ThingLink type="item" id={item} />
+            <ItemLink type="item" id={item} />
           </LimitedList>
         </dd>
       {/each}
@@ -200,15 +196,14 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         </dt>
         <dd>
           <LimitedList items={constructions} let:item={f}>
-            <ThingLink id={f.group} type="construction_group" />
+            <ItemLink id={f.group} type="construction_group" showIcon={false} />
             {#if f.pre_terrain}
               on {#each [f.pre_terrain].flat() as preTerrain, i}
                 {@const itemType = preTerrain.startsWith("f_")
                   ? "furniture"
                   : "terrain"}
                 {#if i !== 0}{i18n.__(" OR ")}{/if}
-                <ItemSymbol item={data.byId(itemType, preTerrain)} />
-                <ThingLink type={itemType} id={preTerrain} />
+                <ItemLink type={itemType} id={preTerrain} />
               {/each}
             {/if}
           </LimitedList>

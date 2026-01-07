@@ -14,7 +14,7 @@ import * as Sentry from "@sentry/browser";
 
 import type { Vehicle, VehiclePart } from "../types";
 import { groupBy } from "./item/utils";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 
 export let item: Vehicle;
@@ -228,7 +228,7 @@ partsCounted.sort((a, b) => {
   <section>
     <h1>{t("Parts", { _context })}</h1>
     <LimitedList items={partsCounted} let:item={{ id, count }}>
-      <ThingLink {id} type="vehicle_part" /> ({count})
+      <ItemLink {id} type="vehicle_part" showIcon={false} /> ({count})
     </LimitedList>
   </section>
 {/if}

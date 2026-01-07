@@ -11,9 +11,8 @@ import {
   singular,
   singularName,
 } from "../data";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 import type { Harvest, Monster, MonsterGroup } from "../types";
-import ItemSymbol from "./item/ItemSymbol.svelte";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ColorText from "./ColorText.svelte";
@@ -270,7 +269,7 @@ let upgrades =
     : null;
 </script>
 
-<h1><ItemSymbol {item} /> {singularName(item)}</h1>
+<h1><ItemLink type="monster" id={item.id} link={false} /></h1>
 <section>
   <dl>
     {#if item.bodytype}
@@ -290,7 +289,7 @@ let upgrades =
       <dd>
         <ul class="comma-separated">
           {#each materials as id}
-            <li><ThingLink type="material" {id} /></li>
+            <li><ItemLink type="material" {id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -325,7 +324,10 @@ let upgrades =
               {#each item.special_attacks as special_attack}
                 <li>
                   {#if Array.isArray(special_attack) && special_attack[0] && data.byIdMaybe("monster_attack", special_attack[0])}
-                    <ThingLink type="monster_attack" id={special_attack[0]} />
+                    <ItemLink
+                      type="monster_attack"
+                      id={special_attack[0]}
+                      showIcon={false} />
                   {:else}
                     <SpecialAttack {special_attack} />
                   {/if}
@@ -450,7 +452,7 @@ let upgrades =
           <ul class="comma-separated or">
             <!-- prettier-ignore -->
             {#each upgrades.monsters as mon}
-			<li><ThingLink type="monster" id={mon} /></li>{/each}
+			<li><ItemLink type="monster" id={mon}  showIcon={false} /></li>{/each}
           </ul>
           {#if upgrades.age_grow}
             {t("in {days} {days, plural, =1 {day} other {days}}", {
@@ -480,14 +482,12 @@ let upgrades =
           {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
             {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
               <li>
-                <ItemSymbol item={data.byId("item", id)} />
-                <ThingLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)
+                <ItemLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)
               </li>
             {/each}
           {:else}
             <li>
-              <ItemSymbol item={data.byId("item", harvest_entry.drop)} />
-              <ThingLink type="item" id={harvest_entry.drop} />
+              <ItemLink type="item" id={harvest_entry.drop} />
             </li>
           {/if}
         {/each}

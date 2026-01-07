@@ -10,7 +10,7 @@ import {
   singularName,
 } from "../../data";
 import type { Item } from "../../types";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 let data = getContext<CBNData>("data");
 const _context = "Item Melee Info";
@@ -89,7 +89,11 @@ const piercing =
           <ul class="no-bullets">
             {#each techniques as technique}
               <li>
-                <strong><ThingLink type="technique" id={technique.id} /></strong
+                <strong
+                  ><ItemLink
+                    type="technique"
+                    id={technique.id}
+                    showIcon={false} /></strong
                 >{#if technique.description}: {singular(
                     technique.description,
                   )}{/if}
@@ -124,7 +128,11 @@ const piercing =
           <ul class="no-bullets">
             {#each techniques as technique}
               <li>
-                <strong><ThingLink type="technique" id={technique.id} /></strong
+                <strong
+                  ><ItemLink
+                    type="technique"
+                    id={technique.id}
+                    showIcon={false} /></strong
                 >{#if technique.description}: {singular(
                     technique.description,
                   )}{/if}

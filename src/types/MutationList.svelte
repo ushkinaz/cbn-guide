@@ -3,7 +3,7 @@ import { CBNData, singularName } from "../data";
 import { getContext } from "svelte";
 import { topologicalSortComponentsByRank } from "../toposort";
 import type { Mutation } from "../types";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 let data = getContext<CBNData>("data");
 
@@ -23,7 +23,7 @@ let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>
         {#each mg as m, i}
           {#if i > 0},
           {/if}
-          <ThingLink id={m.id} type="mutation" />
+          <ItemLink id={m.id} type="mutation" showIcon={false} />
         {/each}
       {/each}
     </li>

@@ -6,7 +6,7 @@ import { getContext } from "svelte";
 import { CBNData, singular, singularName } from "../data";
 import type { Bionic } from "../types";
 import MutationList from "./MutationList.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let item: Bionic;
 const data = getContext<CBNData>("data");
@@ -24,14 +24,16 @@ const containingBionics = data
   <dl>
     {#if correspondingItem}
       <dt>{t("Item")}</dt>
-      <dd><ThingLink type="item" id={correspondingItem.id} /></dd>
+      <dd>
+        <ItemLink type="item" id={correspondingItem.id} showIcon={false} />
+      </dd>
     {/if}
     {#if containingBionics.length}
       <dt>{t("Included In", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
           {#each containingBionics as b}
-            <li><ThingLink type="bionic" id={b.id} /></li>
+            <li><ItemLink type="bionic" id={b.id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -95,7 +97,9 @@ const containingBionics = data
       <dd>
         <ul class="comma-separated">
           {#each item.fuel_options as material_id}
-            <li><ThingLink type="material" id={material_id} /></li>
+            <li>
+              <ItemLink type="material" id={material_id} showIcon={false} />
+            </li>
           {/each}
         </ul>
       </dd>
@@ -130,14 +134,14 @@ const containingBionics = data
     {/if}
     {#if item.fake_weapon}
       <dt>{t("Acts As", { _context })}</dt>
-      <dd><ThingLink type="item" id={item.fake_weapon} /></dd>
+      <dd><ItemLink type="item" id={item.fake_weapon} showIcon={false} /></dd>
     {/if}
     {#if item.toggled_pseudo_items?.length}
       <dt>{t("Acts As", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
           {#each item.toggled_pseudo_items as item_id}
-            <li><ThingLink type="item" id={item_id} /></li>
+            <li><ItemLink type="item" id={item_id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -147,7 +151,7 @@ const containingBionics = data
       <dd>
         <ul class="comma-separated">
           {#each item.passive_pseudo_items as item_id}
-            <li><ThingLink type="item" id={item_id} /></li>
+            <li><ItemLink type="item" id={item_id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -157,7 +161,7 @@ const containingBionics = data
       <dd>
         <ul class="comma-separated">
           {#each item.included_bionics as bionic_id}
-            <li><ThingLink type="bionic" id={bionic_id} /></li>
+            <li><ItemLink type="bionic" id={bionic_id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -169,7 +173,7 @@ const containingBionics = data
       {#if item.flags?.length}
         <ul class="comma-separated">
           {#each item.flags as flag}
-            <li><ThingLink type="json_flag" id={flag} /></li>
+            <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
           {/each}
         </ul>
       {:else}
@@ -181,7 +185,7 @@ const containingBionics = data
       <dd>
         <ul class="comma-separated">
           {#each item.active_flags as flag}
-            <li><ThingLink type="json_flag" id={flag} /></li>
+            <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>

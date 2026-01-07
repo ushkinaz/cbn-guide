@@ -3,7 +3,7 @@ import { getContext } from "svelte";
 import { CBNData, itemGroupFromVehicle } from "../../data";
 import { showProbability } from "./utils";
 import LimitedList from "../../LimitedList.svelte";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 
 export let item_id: string;
@@ -27,7 +27,9 @@ vehiclesAndProbabilities.sort((a, b) => b.prob - a.prob);
   <section>
     <h1>{t("In Vehicle", { _context: "Obtaining" })}</h1>
     <LimitedList items={vehiclesAndProbabilities} let:item={{ vehicle, prob }}>
-      <ThingLink id={vehicle.id} type="vehicle" /> ({showProbability(prob)})
+      <ItemLink id={vehicle.id} type="vehicle" showIcon={false} /> ({showProbability(
+        prob,
+      )})
     </LimitedList>
   </section>
 {/if}

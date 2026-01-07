@@ -6,9 +6,8 @@ import { getContext } from "svelte";
 import { CBNData, showProbability, singular, singularName } from "../data";
 import type { Terrain } from "../types";
 import Construction from "./Construction.svelte";
-import ItemSymbol from "./item/ItemSymbol.svelte";
+import ItemLink from "./ItemLink.svelte";
 import TerFurnActivity from "./TerFurnActivity.svelte";
-import ThingLink from "./ThingLink.svelte";
 import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
 
@@ -47,10 +46,7 @@ const constructions = data
   .filter((c) => c.post_terrain === item.id);
 </script>
 
-<h1>
-  <ItemSymbol {item} />
-  {singularName(item)}
-</h1>
+<h1><ItemLink type="terrain" id={item.id} link={false} /></h1>
 
 <section>
   <dl>
@@ -61,30 +57,29 @@ const constructions = data
     {#if item.transforms_into}
       <dt>{t("Transforms Into", { _context })}</dt>
       <dd>
-        <ItemSymbol item={data.byId("terrain", item.transforms_into)} />
-        <ThingLink id={item.transforms_into} type="terrain" />
+        <ItemLink id={item.transforms_into} type="terrain" />
       </dd>
     {/if}
     {#if item.boltcut}
-      <dt><ThingLink type="item_action" id="BOLTCUTTERS" /></dt>
+      <dt><ItemLink type="item_action" id="BOLTCUTTERS" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.boltcut} resultType="terrain" />
       </dd>
     {/if}
     {#if item.hacksaw}
-      <dt><ThingLink type="item_action" id="HACKSAW" /></dt>
+      <dt><ItemLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.hacksaw} resultType="terrain" />
       </dd>
     {/if}
     {#if item.oxytorch}
-      <dt><ThingLink type="item_action" id="OXYTORCH" /></dt>
+      <dt><ItemLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.oxytorch} resultType="terrain" />
       </dd>
     {/if}
     {#if item.prying}
-      <dt><ThingLink type="item_action" id="CROWBAR" /></dt>
+      <dt><ItemLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.prying} resultType="terrain" />
       </dd>
@@ -96,7 +91,7 @@ const constructions = data
           <ul class="comma-separated">
             <!-- prettier-ignore -->
             {#each arr as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ThingLink type="item" {id} />{
+            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({showProbability(prob)}){/if}</span></li>
             {/each}
@@ -109,7 +104,7 @@ const constructions = data
     <dd>
       <ul class="comma-separated">
         {#each item.flags ?? [] as flag}
-          <li><ThingLink type="json_flag" id={flag} /></li>
+          <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
         {:else}
           <li><em>{t("none")}</em></li>
         {/each}

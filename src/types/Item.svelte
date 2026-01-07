@@ -36,8 +36,8 @@ import DroppedBy from "./item/DroppedBy.svelte";
 import Foraged from "./item/Foraged.svelte";
 import GrownFrom from "./item/GrownFrom.svelte";
 import HarvestedFrom from "./item/HarvestedFrom.svelte";
+import ItemLink from "./ItemLink.svelte";
 import MilledFrom from "./item/MilledFrom.svelte";
-import ItemSymbol from "./item/ItemSymbol.svelte";
 import MagazineInfo from "./item/MagazineInfo.svelte";
 import MeleeInfo from "./item/MeleeInfo.svelte";
 import Recipes from "./item/Recipes.svelte";
@@ -48,7 +48,6 @@ import SpawnedInVehicle from "./item/SpawnedInVehicle.svelte";
 import ToolInfo from "./item/ToolInfo.svelte";
 import TransformedFrom from "./item/TransformedFrom.svelte";
 import WheelInfo from "./item/WheelInfo.svelte";
-import ThingLink from "./ThingLink.svelte";
 import UsageDescription from "./UsageDescription.svelte";
 import ColorText from "./ColorText.svelte";
 import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
@@ -176,7 +175,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 }
 </script>
 
-<h1><ItemSymbol {item} /> {singularName(item)}</h1>
+<h1><ItemLink type="item" id={item.id} link={false} /></h1>
 <section>
   <h1>{t("General", { _context })}</h1>
   <div class="side-by-side no-margin">
@@ -189,9 +188,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
               {#each materials as m}
                 <!-- prettier-ignore -->
                 <li>
-                  <ThingLink
+                  <ItemLink
                     type="material"
-                    id={m.type} />{#if materials.length > 1}{" "}({(
+                    id={m.type}  showIcon={false} />{#if materials.length > 1}{" "}({(
                       (m.portion / totalMaterialPortion) *
                       100
                     ).toFixed(0)}%){/if}</li>{/each}
@@ -213,7 +212,12 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dd>
             <ul class="comma-separated">
               {#each item.weapon_category as category_id}
-                <li><ThingLink type="weapon_category" id={category_id} /></li>
+                <li>
+                  <ItemLink
+                    type="weapon_category"
+                    id={category_id}
+                    showIcon={false} />
+                </li>
               {/each}
             </ul>
           </dd>
@@ -226,13 +230,13 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
               {#each flags as f}
                 <li>
                   {#if "info" in f && f.info}
-                    <ThingLink type="json_flag" id={f.id} />
+                    <ItemLink type="json_flag" id={f.id} showIcon={false} />
                     <span style="color: var(--cata-color-gray)"
                       >(<ColorText
                         text={singular(f.info)}
                         fgOnly={true} />)</span>
                   {:else}
-                    <ThingLink type="json_flag" id={f.id} />
+                    <ItemLink type="json_flag" id={f.id} showIcon={false} />
                   {/if}
                 </li>
               {/each}
@@ -245,7 +249,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dd>
             <ul class="comma-separated">
               {#each faults as fault}
-                <li><ThingLink type="fault" id={fault.id} /></li>
+                <li>
+                  <ItemLink type="fault" id={fault.id} showIcon={false} />
+                </li>
               {/each}
             </ul>
           </dd>
@@ -268,7 +274,11 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                     slot0="level"
                     slot1="quality">
                     <strong slot="0">{level}</strong>
-                    <ThingLink slot="1" type="tool_quality" id={quality.id} />
+                    <ItemLink
+                      slot="1"
+                      type="tool_quality"
+                      id={quality.id}
+                      showIcon={false} />
                   </InterpolatedTranslation>
                 </li>
               {/each}
@@ -276,8 +286,10 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                 <li>
                   Has level <strong
                     >{level}
-                    <ThingLink type="tool_quality" id={quality.id} /></strong> quality
-                  (when charged).
+                    <ItemLink
+                      type="tool_quality"
+                      id={quality.id}
+                      showIcon={false} /></strong> quality (when charged).
                 </li>
               {/each}
             </ul>
@@ -289,7 +301,12 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dd>
             <ul class="comma-separated">
               {#each vparts as vpart}
-                <li><ThingLink type="vehicle_part" id={vpart.id} /></li>
+                <li>
+                  <ItemLink
+                    type="vehicle_part"
+                    id={vpart.id}
+                    showIcon={false} />
+                </li>
               {/each}
             </ul>
           </dd>
@@ -300,7 +317,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dd>
             <ul class="comma-separated">
               {#each uncraft.components as [id, count]}
-                <li><ThingLink {id} {count} type="item" /></li>
+                <li><ItemLink {id} {count} type="item" showIcon={false} /></li>
               {/each}
             </ul>
             {#if uncraft.qualities?.length || uncraft.tools?.length}
@@ -331,7 +348,13 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dd>
             <ul class="comma-separated">
               {#each Object.entries(results) as [result_id, count]}
-                <li><ThingLink type="item" id={result_id} {count} /></li>
+                <li>
+                  <ItemLink
+                    type="item"
+                    id={result_id}
+                    {count}
+                    showIcon={false} />
+                </li>
               {/each}
             </ul>
             ({item.brewable.time ?? "1 turn"})
@@ -341,7 +364,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         {#if item.milling?.into}
           <dt>{t("Mills Into", { _context })}</dt>
           <dd>
-            <ThingLink type="item" id={item.milling.into} />
+            <ItemLink type="item" id={item.milling.into} showIcon={false} />
             (×{item.milling.conversion_rate ?? 0})
           </dd>
         {/if}
@@ -351,7 +374,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dd>
             <ul class="comma-separated">
               {#each grantedByMutation as { id }}
-                <li><ThingLink type="mutation" {id} /></li>
+                <li><ItemLink type="mutation" {id} showIcon={false} /></li>
               {/each}
             </ul>
           </dd>
@@ -366,8 +389,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
             <ul>
               {#each items as { id, prob }}
                 <li>
-                  <ItemSymbol item={data.byId("item", id)} />
-                  <ThingLink type="item" {id} />
+                  <ItemLink type="item" {id} />
                   ({(prob * 100).toFixed(1)}%)
                 </li>
               {/each}
@@ -433,7 +455,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
             .concat(item.seed_data.byproducts ?? [])
             .concat((item.seed_data.seeds ?? true) ? [item.id] : [])
             .filter((x) => x !== "null") as id}
-            <li><ThingLink type="item" {id} /></li>
+            <li><ItemLink type="item" {id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -454,8 +476,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <section>
     <h1>{t("Fuel For", { _context })}</h1>
     <LimitedList items={fuelForItems} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type={item.type} id={item.id} />
+      <ItemLink type={item.type} id={item.id} />
     </LimitedList>
   </section>
 {/if}
@@ -463,7 +484,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <section>
     <h1>{t("Used to Repair", { _context })}</h1>
     <LimitedList items={usedToRepair} let:item>
-      <ThingLink type="fault" id={item.id} />
+      <ItemLink type="fault" id={item.id} showIcon={false} />
     </LimitedList>
   </section>
 {/if}

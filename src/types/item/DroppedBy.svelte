@@ -5,8 +5,7 @@ import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Harvest } from "../../types";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 import ItemTable from "./ItemTable.svelte";
 
 export let item_id: string;
@@ -48,8 +47,7 @@ const harvestableFrom = data
   <section>
     <h1>{t("Butcher", { _context: "Obtaining" })}</h1>
     <LimitedList items={harvestableFrom} let:item={m}>
-      <ItemSymbol item={m} />
-      <ThingLink id={m.id} type="monster" />
+      <ItemLink id={m.id} type="monster" />
     </LimitedList>
   </section>
 {/if}

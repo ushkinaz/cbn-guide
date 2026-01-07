@@ -3,8 +3,7 @@ import LimitedList from "../../LimitedList.svelte";
 import { getContext } from "svelte";
 import { byName, CBNData } from "../../data";
 import type { ItemBasicInfo, MagazineSlot } from "../../types";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 import CompatibleItems from "./CompatibleItems.svelte";
 
@@ -34,7 +33,9 @@ const compatibleGuns = data
       <dd>
         <ul class="comma-separated inline" style="display: inline; padding: 0;">
           {#each ammo_types as at}
-            <li><ThingLink type="ammunition_type" id={at} /></li>
+            <li>
+              <ItemLink type="ammunition_type" id={at} showIcon={false} />
+            </li>
           {/each}
         </ul>
       </dd>
@@ -53,7 +54,7 @@ const compatibleGuns = data
     {/if}
     {#if item.linkage}
       <dt>{t("Linkage")}</dt>
-      <dd><ThingLink type="item" id={item.linkage} /></dd>
+      <dd><ItemLink type="item" id={item.linkage} showIcon={false} /></dd>
     {/if}
   </dl>
 </section>
@@ -63,8 +64,7 @@ const compatibleGuns = data
     <section>
       <h1>{t("Weapons", { _context: "Item Magazine Info" })}</h1>
       <LimitedList items={compatibleGuns} let:item>
-        <ItemSymbol {item} />
-        <ThingLink type="item" id={item.id} />
+        <ItemLink type="item" id={item.id} />
       </LimitedList>
     </section>
   {/if}

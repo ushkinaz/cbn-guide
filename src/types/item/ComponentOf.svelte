@@ -3,8 +3,7 @@ import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import { CBNData, i18n, singularName } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let item_id: string;
 const _context = "Item Basic Info";
@@ -65,8 +64,7 @@ const toolResults = [...toolRecipes].sort((a, b) =>
       })}
     </h1>
     <LimitedList items={providedByVparts} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type={item.type} id={item.id} />
+      <ItemLink type={item.type} id={item.id} />
     </LimitedList>
   </section>
 {/if}
@@ -77,8 +75,7 @@ const toolResults = [...toolRecipes].sort((a, b) =>
       {t("Provided By Furniture", { _context, _comment: "Section heading" })}
     </h1>
     <LimitedList items={providedByFurniture} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type={item.type} id={item.id} />
+      <ItemLink type={item.type} id={item.id} />
     </LimitedList>
   </section>
 {/if}
@@ -89,8 +86,7 @@ const toolResults = [...toolRecipes].sort((a, b) =>
       <section>
         <h1>{t("Component Of", { _context, _comment: "Section heading" })}</h1>
         <LimitedList items={results} let:item>
-          <ItemSymbol item={data.byId("item", item)} />
-          <ThingLink type="item" id={item} />
+          <ItemLink type="item" id={item} />
         </LimitedList>
       </section>
     {/if}
@@ -101,8 +97,7 @@ const toolResults = [...toolRecipes].sort((a, b) =>
           {t("Tool For Crafting", { _context, _comment: "Section heading" })}
         </h1>
         <LimitedList items={toolResults} let:item>
-          <ItemSymbol item={data.byId("item", item)} />
-          <ThingLink type="item" id={item} />
+          <ItemLink type="item" id={item} />
         </LimitedList>
       </section>
     {/if}
@@ -117,15 +112,14 @@ const toolResults = [...toolRecipes].sort((a, b) =>
           {t("Used In Construction", { _context, _comment: "Section heading" })}
         </h1>
         <LimitedList items={constructions} let:item={f}>
-          <ThingLink id={f.group} type="construction_group" />
+          <ItemLink id={f.group} type="construction_group" showIcon={false} />
           {#if f.pre_terrain}
             on {#each [f.pre_terrain].flat() as preTerrain, i}
               {@const itemType = preTerrain.startsWith("f_")
                 ? "furniture"
                 : "terrain"}
               {#if i !== 0}{i18n.__(" OR ")}{/if}
-              <ItemSymbol item={data.byId(itemType, preTerrain)} />
-              <ThingLink type={itemType} id={preTerrain} />
+              <ItemLink type={itemType} id={preTerrain} />
             {/each}
           {/if}
         </LimitedList>
@@ -140,15 +134,14 @@ const toolResults = [...toolRecipes].sort((a, b) =>
           })}
         </h1>
         <LimitedList items={toolConstructions} let:item={f}>
-          <ThingLink id={f.group} type="construction_group" />
+          <ItemLink id={f.group} type="construction_group" showIcon={false} />
           {#if f.pre_terrain}
             on {#each [f.pre_terrain].flat() as preTerrain, i}
               {@const itemType = preTerrain.startsWith("f_")
                 ? "furniture"
                 : "terrain"}
               {#if i !== 0}{i18n.__(" OR ")}{/if}
-              <ItemSymbol item={data.byId(itemType, preTerrain)} />
-              <ThingLink type={itemType} id={preTerrain} />
+              <ItemLink type={itemType} id={preTerrain} />
             {/each}
           {/if}
         </LimitedList>

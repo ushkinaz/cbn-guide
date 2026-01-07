@@ -16,9 +16,8 @@ import {
 import LimitedList from "../LimitedList.svelte";
 
 import type { ItemGroupData, VehiclePart } from "../types";
-import ItemSymbol from "./item/ItemSymbol.svelte";
 import RequirementData from "./item/RequirementData.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 const _context = "Vehicle Part";
 
@@ -78,20 +77,13 @@ vehiclesContainingPart.sort((a, b) =>
 );
 </script>
 
-<h1>
-  <ItemSymbol {item} />
-  {item.name
-    ? singularName(item)
-    : item.item
-      ? singularName(data.byId("item", item.item))
-      : item.id}
-</h1>
+<h1><ItemLink type="vehicle_part" id={item.id} link={false} /></h1>
 
 <section>
   <h1>{t("Vehicle Part")}</h1>
   <dl>
     <dt>{t("Item")}</dt>
-    <dd><ThingLink id={item.item} type="item" /></dd>
+    <dd><ItemLink id={item.item} type="item" showIcon={false} /></dd>
     <dt>{t("Location")}</dt>
     <dd>
       {item.flags?.includes("APPLIANCE")
@@ -105,13 +97,13 @@ vehiclesContainingPart.sort((a, b) =>
       <dd>
         <ul class="comma-separated or">
           {#each item.fuel_options as fuel_id}
-            <li><ThingLink type="item" id={fuel_id} /></li>
+            <li><ItemLink type="item" id={fuel_id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
     {:else if item.fuel_type}
       <dt>{t("Charge", { _context })}</dt>
-      <dd><ThingLink type="item" id={item.fuel_type} /></dd>
+      <dd><ItemLink type="item" id={item.fuel_type} showIcon={false} /></dd>
     {/if}
     <dt title="Maximum damage part can sustain before being destroyed">
       {t("Durability", { _context })}
@@ -143,7 +135,10 @@ vehiclesContainingPart.sort((a, b) =>
             <li>
               Has level <strong
                 >{level ?? 1}
-                <ThingLink type="tool_quality" id={quality} /></strong> quality.
+                <ItemLink
+                  type="tool_quality"
+                  id={quality}
+                  showIcon={false} /></strong> quality.
             </li>
           {/each}
         </ul>
@@ -190,7 +185,7 @@ vehiclesContainingPart.sort((a, b) =>
       <dd>
         <ul class="comma-separated">
           {#each item.pseudo_tools as { id }}
-            <li><ThingLink type="item" {id} /></li>
+            <li><ItemLink type="item" {id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -207,7 +202,7 @@ vehiclesContainingPart.sort((a, b) =>
         <ul class="comma-separated">
           {#each breaksIntoGroupFlattened as { id, count, prob }}
             <!-- prettier-ignore -->
-            <li><ThingLink {id} {count} type="item" />{#if prob !== 1} ({showProbability(prob)}){/if}</li>
+            <li><ItemLink {id} {count} type="item"  showIcon={false} />{#if prob !== 1} ({showProbability(prob)}){/if}</li>
           {/each}
         </ul>
       </dd>
@@ -216,7 +211,7 @@ vehiclesContainingPart.sort((a, b) =>
     <dd>
       <ul class="comma-separated">
         {#each item.flags ?? [] as flag}
-          <li><ThingLink type="json_flag" id={flag} /></li>
+          <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
         {:else}
           <em>{t("none")}</em>
         {/each}
@@ -238,7 +233,7 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements?.install?.skills ?? [] as [skill, level], i}
-          <ThingLink type="skill" id={skill} /> ({level}){#if i + 2 === item.requirements?.install?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.install?.skills?.length}{", "}{/if}
+          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.install?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.install?.skills?.length}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
@@ -263,7 +258,7 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements?.removal?.skills ?? [] as [skill, level], i}
-          <ThingLink type="skill" id={skill} /> ({level}){#if i + 2 === item.requirements?.removal?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.removal?.skills?.length}{", "}{/if}
+          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.removal?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.removal?.skills?.length}{", "}{/if}
         {:else}
           none
         {/each}
@@ -293,7 +288,7 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements.repair?.skills ?? [] as [skill, level], i}
-          <ThingLink type="skill" id={skill} /> ({level}){#if i + 2 === item.requirements?.repair?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.repair?.skills?.length}{", "}{/if}
+          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.repair?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.repair?.skills?.length}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
@@ -322,7 +317,7 @@ vehiclesContainingPart.sort((a, b) =>
       })}
     </h1>
     <LimitedList items={vehiclesContainingPart} let:item>
-      <ThingLink type="vehicle" id={item.id} />
+      <ItemLink type="vehicle" id={item.id} showIcon={false} />
     </LimitedList>
   </section>
 {/if}

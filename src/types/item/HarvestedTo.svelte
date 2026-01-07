@@ -1,9 +1,8 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import { CBNData, i18n } from "../../data";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 import type { MapDataCommon } from "../../types";
-import ItemSymbol from "./ItemSymbol.svelte";
 import { t } from "@transifex/native";
 
 /**
@@ -41,8 +40,7 @@ harvestBySeasonList.sort(
           <ul>
             {#each harvests as harvestId}
               <li>
-                <ItemSymbol item={data.byId("item", harvestId)} />
-                <ThingLink type="item" id={harvestId} />
+                <ItemLink type="item" id={harvestId} />
               </li>
             {/each}
           </ul>

@@ -6,9 +6,7 @@ import { getContext } from "svelte";
 import { byName, CBNData, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Material } from "../types";
-import ItemSymbol from "./item/ItemSymbol.svelte";
-
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 const data = getContext<CBNData>("data");
 
@@ -85,11 +83,11 @@ let itemsWithMaterial = data
 
     {#if item.repaired_with}
       <dt>{t("Repaired With", { _context })}</dt>
-      <dd><ThingLink type="item" id={item.repaired_with} /></dd>
+      <dd><ItemLink type="item" id={item.repaired_with} showIcon={false} /></dd>
     {/if}
     {#if item.salvaged_into}
       <dt>{t("Salvaged Into", { _context })}</dt>
-      <dd><ThingLink type="item" id={item.salvaged_into} /></dd>
+      <dd><ItemLink type="item" id={item.salvaged_into} showIcon={false} /></dd>
     {/if}
     <dt>{t("Edible", { _context })}</dt>
     <dd>{item.edible ? t("Yes") : t("No")}</dd>
@@ -104,8 +102,7 @@ let itemsWithMaterial = data
   <section>
     <h1>{t("Items Made From {material}", { material: singularName(item) })}</h1>
     <LimitedList items={itemsWithMaterial} let:item>
-      <ItemSymbol {item} />
-      <ThingLink id={item.id} type="item" />
+      <ItemLink id={item.id} type="item" />
     </LimitedList>
   </section>
 {/if}

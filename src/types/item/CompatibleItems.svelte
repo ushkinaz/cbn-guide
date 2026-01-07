@@ -3,8 +3,7 @@ import { getContext } from "svelte";
 import { t } from "@transifex/native";
 import { byName, CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 import type { SupportedTypes } from "../../types";
 
 export let ammo_type: string;
@@ -47,8 +46,7 @@ const items = data
   <section>
     <h1>{config.title}</h1>
     <LimitedList {items} let:item limit={5} grace={2}>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
+      <ItemLink type="item" id={item.id} />
     </LimitedList>
   </section>
 {/if}

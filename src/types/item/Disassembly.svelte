@@ -4,8 +4,7 @@ import { getContext } from "svelte";
 import { CBNData, singularName } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Recipe } from "../../types";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let item_id: string;
 
@@ -36,8 +35,7 @@ const uncraftableFrom = [...uncraftableFromSet].sort((a, b) =>
   <section>
     <h1>{t("Disassemble", { _context: "Obtaining" })}</h1>
     <LimitedList items={uncraftableFrom} let:item={id}>
-      <ItemSymbol item={data.byId("item", id)} />
-      <ThingLink type="item" {id} />
+      <ItemLink type="item" {id} />
     </LimitedList>
   </section>
 {/if}
