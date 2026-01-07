@@ -445,6 +445,17 @@ export async function initializeRouting(): Promise<InitialAppState> {
   }
   const builds: BuildInfo[] = await response.json();
 
+  // Sort builds by date descending
+  builds.sort((a, b) => {
+    const tsA = getBuildTimestamp(a);
+    const tsB = getBuildTimestamp(b);
+    if (tsA !== tsB) return tsB - tsA;
+    return b.build_number.localeCompare(a.build_number, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+  });
+
   const latestStableBuild = pickLatestBuild(
     builds,
     (build) => !build.prerelease,
