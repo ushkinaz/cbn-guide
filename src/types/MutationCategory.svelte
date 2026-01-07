@@ -6,7 +6,7 @@ import { getContext } from "svelte";
 import { byName, CBNData, singularName } from "../data";
 import type { MutationCategory } from "../types";
 import MutationList from "./MutationList.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 let data = getContext<CBNData>("data");
 const _context = "Mutation";
@@ -37,7 +37,7 @@ const postThreshold = mutationsInCategory.filter(
   <dl>
     {#if item.vitamin}
       <dt>{t("Vitamin", { _context })}</dt>
-      <dd><ThingLink id={item.vitamin} type="vitamin" /></dd>
+      <dd><ItemLink id={item.vitamin} type="vitamin" showIcon={false} /></dd>
     {/if}
     {#if preThreshold.length}
       <dt>{t("Pre-Threshold Mutations", { _context })}</dt>
@@ -47,7 +47,9 @@ const postThreshold = mutationsInCategory.filter(
     {/if}
     {#if item.threshold_mut}
       <dt>{t("Threshold Mutation", { _context })}</dt>
-      <dd><ThingLink id={item.threshold_mut} type="mutation" /></dd>
+      <dd>
+        <ItemLink id={item.threshold_mut} type="mutation" showIcon={false} />
+      </dd>
     {/if}
     {#if postThreshold.length}
       <dt>{t("Post-Threshold Mutations", { _context })}</dt>

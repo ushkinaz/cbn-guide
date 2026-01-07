@@ -1,8 +1,8 @@
 <script lang="ts">
 import type { GunAttack } from "../../../types";
-import ThingLink from "../../ThingLink.svelte";
+import ItemLink from "../../ItemLink.svelte";
 
 export let attack: GunAttack & { cooldown?: number };
 </script>
 
-<ThingLink type="item" id={attack.gun_type} /> (cooldown: {attack.cooldown})
+<ItemLink type="item" id={attack.gun_type} showIcon={false} /> (cooldown: {attack.cooldown})

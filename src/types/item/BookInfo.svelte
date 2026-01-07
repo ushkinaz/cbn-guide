@@ -4,7 +4,7 @@ import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 
 import type { BookSlot } from "../../types";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let item: BookSlot & { id: string; type: "BOOK" };
 const _context = "Item Book Info";
@@ -40,7 +40,7 @@ for (const recipe of data.byType("recipe")) {
   <dl>
     {#if item.skill}
       <dt>{t("Skill", { _context })}</dt>
-      <dd><ThingLink id={item.skill} type="skill" /></dd>
+      <dd><ItemLink id={item.skill} type="skill" showIcon={false} /></dd>
       <dt>{t("Required Level", { _context })}</dt>
       <dd>{item.required_level ?? 0}</dd>
       <dt>{t("Maximum Level", { _context })}</dt>
@@ -58,7 +58,9 @@ for (const recipe of data.byType("recipe")) {
     {/if}
     {#if item.martial_art}
       <dt>{t("Martial Art", { _context })}</dt>
-      <dd><ThingLink type="martial_art" id={item.martial_art} /></dd>
+      <dd>
+        <ItemLink type="martial_art" id={item.martial_art} showIcon={false} />
+      </dd>
     {/if}
     {#if bookRecipes.size}
       <dt>{t("Recipes", { _context })}</dt>
@@ -67,7 +69,7 @@ for (const recipe of data.byType("recipe")) {
           {#each [...bookRecipes.entries()].sort((a, b) => {
             return a[1].level - b[1].level || a[1].recipe_name.localeCompare(b[1].recipe_name);
           }) as [id, { recipe_name, level }]}
-            <li><ThingLink {id} type="item" /> ({level})</li>
+            <li><ItemLink {id} type="item" showIcon={false} /> ({level})</li>
           {/each}
         </ul>
       </dd>

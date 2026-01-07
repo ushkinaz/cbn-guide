@@ -5,8 +5,7 @@ import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Furniture, Terrain, VehiclePart } from "../../types";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let item_id: string;
 
@@ -21,8 +20,7 @@ let bashFrom = (
   <section>
     <h1>{t("Bash", { _context: "Obtaining" })}</h1>
     <LimitedList items={bashFrom} let:item={f}>
-      <ItemSymbol item={data.byId(f.type, f.id)} />
-      <ThingLink id={f.id} type={f.type} />
+      <ItemLink id={f.id} type={f.type} />
       {#if f.bash?.str_min}
         <span style="color: var(--cata-color-gray)">
           (≥ {f.bash.str_min} STR)

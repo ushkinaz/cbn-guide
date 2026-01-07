@@ -3,8 +3,7 @@ import { t } from "@transifex/native";
 import type { CBNData } from "src/data";
 import type { ActivityDataCommon } from "src/types";
 import { getContext } from "svelte";
-import ItemSymbol from "./item/ItemSymbol.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let act: ActivityDataCommon & { result?: string };
 export let resultType: "terrain" | "furniture";
@@ -18,9 +17,10 @@ const _comment = "activity (prying, hacksawing, etc.)";
 <ul class="comma-separated">
   {#each act.byproducts ?? [] as { item: i, count }}
     <li>
-      <ThingLink
+      <ItemLink
         id={i}
-        type="item" />{#if typeof count === "number"}&nbsp;({count}){:else if Array.isArray(count)}&nbsp;({count[0]}–{count[1]}){/if}
+        type="item"
+        showIcon={false} />{#if typeof count === "number"}&nbsp;({count}){:else if Array.isArray(count)}&nbsp;({count[0]}–{count[1]}){/if}
     </li>
   {/each}
 </ul>
@@ -32,10 +32,11 @@ const _comment = "activity (prying, hacksawing, etc.)";
     <dd>{act.prying_data.difficulty ?? 0}</dd>
     <dt>{t("Requires", { _context, _comment })}</dt>
     <dd>
-      <ThingLink id="PRY" type="tool_quality" />
-      {act.prying_data.prying_level ?? 0}{#if act.prying_data.prying_nails}, <ThingLink
+      <ItemLink id="PRY" type="tool_quality" showIcon={false} />
+      {act.prying_data.prying_level ?? 0}{#if act.prying_data.prying_nails}, <ItemLink
           id="PRYING_NAIL"
-          type="tool_quality" />&nbsp;1{/if}
+          type="tool_quality"
+          showIcon={false} />&nbsp;1{/if}
     </dd>
     <dt>{t("Noisy", { _context, _comment })}</dt>
     <dd>{act.prying_data.noisy ? t("Yes") : t("No")}</dd>
@@ -47,8 +48,7 @@ const _comment = "activity (prying, hacksawing, etc.)";
   {#if act.result && act.result !== "t_null"}
     <dt>{t("Result", { _context, _comment })}</dt>
     <dd>
-      <ItemSymbol item={data.byId(resultType, act.result)} />
-      <ThingLink id={act.result} type={resultType} />
+      <ItemLink id={act.result} type={resultType} />
     </dd>
   {/if}
 </dl>

@@ -6,8 +6,7 @@ import { getContext } from "svelte";
 import { byName, CBNData, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
-import ItemSymbol from "./item/ItemSymbol.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let item: Skill;
 
@@ -98,7 +97,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
         <dd>
           <ul>
             {#each books as book}
-              <li><ThingLink id={book.id} type="item" /></li>
+              <li><ItemLink id={book.id} type="item" showIcon={false} /></li>
             {/each}
           </ul>
         </dd>
@@ -116,7 +115,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
         <dd>
           <ul>
             {#each items as item}
-              <li><ThingLink id={item.id} type="item" /></li>
+              <li><ItemLink id={item.id} type="item" showIcon={false} /></li>
             {/each}
           </ul>
         </dd>
@@ -129,8 +128,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
   <section>
     <h1>{t("Used By", { _context: "Skill" })}</h1>
     <LimitedList items={itemsUsingSkill} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
+      <ItemLink type="item" id={item.id} />
     </LimitedList>
   </section>
 {/if}

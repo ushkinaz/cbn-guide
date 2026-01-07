@@ -7,10 +7,9 @@ import {
   singularName,
 } from "../data";
 import { getContext } from "svelte";
-import ThingLink from "./ThingLink.svelte";
 import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
-import ItemSymbol from "./item/ItemSymbol.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let item: ItemAction;
 
@@ -41,8 +40,7 @@ const providerQualities = data
   <section>
     <h1>{t("Provided By", { _context: "Use action" })}</h1>
     <LimitedList items={providers} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
+      <ItemLink type="item" id={item.id} />
     </LimitedList>
   </section>
 {/if}
@@ -51,8 +49,7 @@ const providerQualities = data
   <section>
     <h1>{t("Provided By Quality", { _context: "Use action" })}</h1>
     <LimitedList items={providerQualities} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type={item.type} id={item.id} />
+      <ItemLink type={item.type} id={item.id} />
     </LimitedList>
   </section>
 {/if}

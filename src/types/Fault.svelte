@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { CBNData } from "../data";
 import { i18n, singular, singularName } from "../data";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 import { getContext } from "svelte";
 import type { Fault, RequirementData } from "../types";
 import { t } from "@transifex/native";
@@ -85,7 +85,7 @@ const fault_flag_descriptions: Record<string, string> = {
       <dt>{t("Skills Used", { _context })}</dt>
       <dd>
         {#each mending_method.skills as { id, level }, i}
-          <ThingLink type="skill" {id} /> ({level}){#if i === mending_method.skills.length - 2}{" and "}{:else if i !== mending_method.skills.length - 1}{", "}{/if}
+          <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i === mending_method.skills.length - 2}{" and "}{:else if i !== mending_method.skills.length - 1}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
@@ -101,7 +101,7 @@ const fault_flag_descriptions: Record<string, string> = {
               <li>
                 {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}
                   {#if i !== 0}{i18n.__(" OR ")}{/if}
-                  <ThingLink {id} {count} type="item" />
+                  <ItemLink {id} {count} type="item" showIcon={false} />
                 {/each}
               </li>
             {/each}
@@ -110,7 +110,12 @@ const fault_flag_descriptions: Record<string, string> = {
       {/if}
       {#if mending_method.turns_into}
         <dt>{t("Turns Into", { _context })}</dt>
-        <dd><ThingLink type="fault" id={mending_method.turns_into} /></dd>
+        <dd>
+          <ItemLink
+            type="fault"
+            id={mending_method.turns_into}
+            showIcon={false} />
+        </dd>
       {/if}
     </dl>
   </section>

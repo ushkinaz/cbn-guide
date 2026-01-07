@@ -5,9 +5,8 @@ import JsonView from "../JsonView.svelte";
 import { getContext } from "svelte";
 import { CBNData, i18n, singular, singularName } from "../data";
 import type { Construction, RequirementData } from "../types";
-import ItemSymbol from "./item/ItemSymbol.svelte";
+import ItemLink from "./ItemLink.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
-import ThingLink from "./ThingLink.svelte";
 
 const data = getContext<CBNData>("data");
 const _context = "Construction";
@@ -44,10 +43,6 @@ if (construction.pre_flags)
       preFlags.push({ flag });
     } else preFlags.push(flag);
   }
-
-function terrainOrFurniture(id: string) {
-  return data.byId(id.startsWith("f_") ? "furniture" : "terrain", id);
-}
 </script>
 
 <section>
@@ -58,7 +53,7 @@ function terrainOrFurniture(id: string) {
     <dt>{t("Required Skills")}</dt>
     <dd>
       {#each construction.required_skills ?? [] as [id, level], i}
-        <ThingLink type="skill" {id} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
+        <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
       {/each}
     </dd>
     <dt>{t("Time", { _context })}</dt>
@@ -70,8 +65,7 @@ function terrainOrFurniture(id: string) {
     {#if construction.pre_terrain}
       <dt>{t("Requires", { _context })}</dt>
       <dd>
-        <ItemSymbol item={terrainOrFurniture(construction.pre_terrain)} />
-        <ThingLink
+        <ItemLink
           type={construction.pre_terrain.startsWith("f_")
             ? "furniture"
             : "terrain"}
@@ -83,7 +77,7 @@ function terrainOrFurniture(id: string) {
       <dd>
         <ul class="comma-separated">
           {#each preFlags as { flag }}
-            <li><ThingLink type="json_flag" id={flag} /></li>
+            <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -97,7 +91,7 @@ function terrainOrFurniture(id: string) {
             <li>
               {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}
                 {#if i !== 0}{i18n.__(" OR ")}{/if}
-                <ThingLink {id} {count} type="item" />
+                <ItemLink {id} {count} type="item" showIcon={false} />
               {/each}
             </li>{/each}
         </ul>
@@ -109,8 +103,7 @@ function terrainOrFurniture(id: string) {
         <ul class="comma-separated">
           {#each byproducts as { id, count }}
             <li>
-              <ItemSymbol item={data.byId("item", id)} />
-              <ThingLink type="item" {id} {count} />
+              <ItemLink type="item" {id} {count} />
             </li>
           {/each}
         </ul>
@@ -127,8 +120,7 @@ function terrainOrFurniture(id: string) {
                 'The furniture/terrain "created" by a deconstruction is...',
             })}</em>
         {:else}
-          <ItemSymbol item={terrainOrFurniture(construction.post_terrain)} />
-          <ThingLink
+          <ItemLink
             type={construction.post_terrain.startsWith("f_")
               ? "furniture"
               : "terrain"}

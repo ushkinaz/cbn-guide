@@ -2,9 +2,8 @@
 import { getContext } from "svelte";
 import { byName, CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 import type { Furniture, Terrain } from "../../types";
-import ItemSymbol from "./ItemSymbol.svelte";
 import { t } from "@transifex/native";
 
 export let item_id: string;
@@ -43,8 +42,7 @@ harvestedFrom.sort(byName);
   <section>
     <h1>{t("Harvest", { _context: "Obtaining" })}</h1>
     <LimitedList items={harvestedFrom} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type={item.type} id={item.id} />
+      <ItemLink type={item.type} id={item.id} />
     </LimitedList>
   </section>
 {/if}

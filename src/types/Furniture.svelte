@@ -1,10 +1,9 @@
 <script lang="ts">
 import { CBNData, singular, singularName } from "../data";
 import type { Furniture } from "../types";
-import ThingLink from "./ThingLink.svelte";
 import { getContext } from "svelte";
 import Construction from "./Construction.svelte";
-import ItemSymbol from "./item/ItemSymbol.svelte";
+import ItemLink from "./ItemLink.svelte";
 import { t } from "@transifex/native";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
@@ -57,7 +56,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
   : [];
 </script>
 
-<h1><ItemSymbol {item} /> {singularName(item)}</h1>
+<h1><ItemLink type="furniture" id={item.id} link={false} /></h1>
 
 <section>
   <h1>{t("General", { _context })}</h1>
@@ -84,31 +83,31 @@ const pseudo_items: string[] = item.crafting_pseudo_item
       <dd>
         <ul class="comma-separated">
           {#each pseudo_items as pseudo_item}
-            <li><ThingLink type="item" id={pseudo_item} /></li>
+            <li><ItemLink type="item" id={pseudo_item} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
     {/if}
     {#if item.boltcut}
-      <dt><ThingLink type="item_action" id="BOLTCUTTERS" /></dt>
+      <dt><ItemLink type="item_action" id="BOLTCUTTERS" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.boltcut} resultType="furniture" />
       </dd>
     {/if}
     {#if item.hacksaw}
-      <dt><ThingLink type="item_action" id="HACKSAW" /></dt>
+      <dt><ItemLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.hacksaw} resultType="furniture" />
       </dd>
     {/if}
     {#if item.oxytorch}
-      <dt><ThingLink type="item_action" id="OXYTORCH" /></dt>
+      <dt><ItemLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.oxytorch} resultType="furniture" />
       </dd>
     {/if}
     {#if item.prying}
-      <dt><ThingLink type="item_action" id="CROWBAR" /></dt>
+      <dt><ItemLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.prying} resultType="furniture" />
       </dd>
@@ -119,7 +118,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
         <ul class="comma-separated">
           <!-- prettier-ignore -->
           {#each deconstruct as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ThingLink type="item" {id} />{
+            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({showProbability(prob)}){/if}</span></li>
             {/each}
@@ -129,8 +128,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
           <dl>
             <dt>{t("Becomes", { _context })}</dt>
             <dd>
-              <ItemSymbol item={data.byId("furniture", becomes)} />
-              <ThingLink type="furniture" id={becomes} />
+              <ItemLink type="furniture" id={becomes} />
             </dd>
           </dl>
         {/if}
@@ -142,7 +140,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
         <ul class="comma-separated">
           <!-- prettier-ignore -->
           {#each bash as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ThingLink type="item" {id} />{
+            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({showProbability(prob)}){/if}</span></li>
             {/each}
@@ -154,8 +152,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
             {@const becomes = item.bash.furn_set}
             <dt>{t("Becomes", { _context })}</dt>
             <dd>
-              <ItemSymbol item={data.byId("furniture", becomes)} />
-              <ThingLink type="furniture" id={becomes} />
+              <ItemLink type="furniture" id={becomes} />
             </dd>
           {/if}
         </dl>
@@ -166,7 +163,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
     <dd>
       <ul class="comma-separated">
         {#each item.flags ?? [] as flag}
-          <li><ThingLink type="json_flag" id={flag} /></li>
+          <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
         {:else}
           <li><em>{t("none")}</em></li>
         {/each}
@@ -187,8 +184,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
   <section>
     <h1>{t("Bashed From", { _context })}</h1>
     <LimitedList items={bashedFrom} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="furniture" id={item.id} />
+      <ItemLink type="furniture" id={item.id} />
     </LimitedList>
   </section>
 {/if}

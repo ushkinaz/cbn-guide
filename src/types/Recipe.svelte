@@ -6,7 +6,7 @@ import { CBNData, i18n } from "../data";
 
 import type { Recipe } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let recipe: Recipe;
 export let showResult: boolean = false;
@@ -85,12 +85,12 @@ function activityLevelName(level: number) {
   <dl>
     {#if showResult && recipe.result}
       <dt>{t("Result", { _context })}</dt>
-      <dd><ThingLink id={recipe.result} type="item" /></dd>
+      <dd><ItemLink id={recipe.result} type="item" showIcon={false} /></dd>
     {/if}
     <dt>{t("Primary Skill", { _context })}</dt>
     <dd>
       {#if recipe.skill_used}
-        <ThingLink type="skill" id={recipe.skill_used} /> ({recipe.difficulty ??
+        <ItemLink type="skill" id={recipe.skill_used} showIcon={false} /> ({recipe.difficulty ??
           0})
       {:else}
         {t("none")}
@@ -100,7 +100,7 @@ function activityLevelName(level: number) {
       <dt>{t("Other Skills", { _context })}</dt>
       <dd>
         {#each skillsRequired as [skill, level], i}
-          <ThingLink type="skill" id={skill} /> ({level}){#if i === skillsRequired.length - 2}{" and "}{:else if i !== skillsRequired.length - 1}{", "}{/if}
+          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i === skillsRequired.length - 2}{" and "}{:else if i !== skillsRequired.length - 1}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
@@ -137,7 +137,13 @@ function activityLevelName(level: number) {
       <dd>
         <ul>
           {#each recipe.byproducts as c}
-            <li><ThingLink type="item" id={c[0]} count={c[1] ?? 1} /></li>
+            <li>
+              <ItemLink
+                type="item"
+                id={c[0]}
+                count={c[1] ?? 1}
+                showIcon={false} />
+            </li>
           {/each}
         </ul>
       </dd>
@@ -152,18 +158,18 @@ function activityLevelName(level: number) {
         <ul class="comma-separated">
           {#if Array.isArray(recipe.autolearn)}
             {#each recipe.autolearn as [skill, level]}
-              <li><ThingLink type="skill" id={skill} /> ({level})</li>
+              <li><ItemLink type="skill" id={skill}  showIcon={false} /> ({level})</li>
             {/each}
           {:else}
             {#if recipe.skill_used}
               <li>
-                <ThingLink type="skill" id={recipe.skill_used} /> ({recipe.difficulty ??
+                <ItemLink type="skill" id={recipe.skill_used}  showIcon={false} /> ({recipe.difficulty ??
                   0})
               </li>
             {/if}
             {#if skillsRequired.length}
               {#each skillsRequired as [skill, level]}
-                <li><ThingLink type="skill" id={skill} /> ({level})</li>
+                <li><ItemLink type="skill" id={skill}  showIcon={false} /> ({level})</li>
               {/each}
             {/if}
             {#if !recipe.skill_used && !skillsRequired.length}
@@ -186,7 +192,7 @@ function activityLevelName(level: number) {
         <ul class="comma-separated">
           {#each writtenIn as [item_id, level = 0]}
             <!-- prettier-ignore -->
-            <li><span style="white-space: nowrap"><ThingLink id={item_id} type="item" /> ({level})</span></li>
+            <li><span style="white-space: nowrap"><ItemLink id={item_id} type="item"  showIcon={false} /> ({level})</span></li>
           {/each}
         </ul>
       </dd>

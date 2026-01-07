@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import type { ComestibleSlot } from "../../types";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 import { CBNData, parseDuration } from "../../data";
 import { getContext } from "svelte";
 
@@ -29,7 +29,9 @@ const data = getContext<CBNData>("data");
     <dd>{item.healthy ?? 0}</dd>
     {#if item.smoking_result}
       <dt>{t("Smoking Result", { _context })}</dt>
-      <dd><ThingLink type="item" id={item.smoking_result} /></dd>
+      <dd>
+        <ItemLink type="item" id={item.smoking_result} showIcon={false} />
+      </dd>
     {/if}
     {#if item.parasites ?? 0 !== 0}
       <dt>{t("Parasites", { _context })}</dt>
@@ -45,7 +47,7 @@ const data = getContext<CBNData>("data");
             {@const mass = (rdapct / 100) * unitsPerDay}
             {@const rda = (mass / unitsPerDay) * 100}
             <dt>
-              <ThingLink id={vitamin} type="vitamin" />
+              <ItemLink id={vitamin} type="vitamin" showIcon={false} />
             </dt>
             <dd>
               {#if v.vit_type === "counter" || v.vit_type === "drug"}

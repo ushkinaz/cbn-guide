@@ -5,7 +5,7 @@ import { getContext } from "svelte";
 
 import { CBNData, plural, singular, singularName } from "../data";
 import type { Achievement } from "../types";
-import ThingLink from "./ThingLink.svelte";
+import ItemLink from "./ItemLink.svelte";
 
 export let item: Achievement;
 const data = getContext<CBNData>("data");
@@ -32,7 +32,7 @@ const unlocks = data
       <dd>
         <ul class="comma-separated and">
           {#each [item.hidden_by].flat() as id}
-            <li><ThingLink type={item.type} {id} /></li>
+            <li><ItemLink type={item.type} {id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -42,7 +42,7 @@ const unlocks = data
       <dd>
         <ul class="comma-separated and">
           {#each unlocks as a}
-            <li><ThingLink type={item.type} id={a.id} /></li>
+            <li><ItemLink type={item.type} id={a.id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>

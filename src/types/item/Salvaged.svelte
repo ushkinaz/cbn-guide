@@ -5,8 +5,7 @@ import { getContext } from "svelte";
 import { byName, CBNData, parseMass } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Item, Material } from "../../types";
-import ThingLink from "../ThingLink.svelte";
-import ItemSymbol from "./ItemSymbol.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let item_id: string;
 
@@ -39,8 +38,7 @@ const salvagedFromMaterials = data
   <section>
     <h1>{t("Salvage", { _context: "Obtaining" })}</h1>
     <LimitedList items={salvagedFromMaterials} let:item>
-      <ItemSymbol {item} />
-      <ThingLink type="item" id={item.id} />
+      <ItemLink type="item" id={item.id} />
     </LimitedList>
   </section>
 {/if}

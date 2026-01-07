@@ -12,8 +12,7 @@ import type {
   VehiclePart,
 } from "./types";
 import MutationCategory from "./types/MutationCategory.svelte";
-import ThingLink from "./types/ThingLink.svelte";
-import ItemSymbol from "./types/item/ItemSymbol.svelte";
+import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./types/item/utils";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
 
@@ -86,12 +85,17 @@ const groupFilter = ({
         items={group.filter(groupFilter)}
         let:item
         limit={groupsList.length === 1 ? Infinity : 10}>
-        {#if type === "item" || type === "terrain" || type === "furniture" || type === "monster" || type === "vehicle_part"}<ItemSymbol
-            {item} />{/if}
         {#if (type === "overmap_special" || type === "city_building") && item.subtype !== "mutable"}
           <OvermapAppearance overmapSpecial={item} />
         {/if}
-        <ThingLink type={typeWithCorrectType} id={item.id} />
+        <ItemLink
+          type={typeWithCorrectType}
+          id={item.id}
+          showIcon={type === "item" ||
+            type === "terrain" ||
+            type === "furniture" ||
+            type === "monster" ||
+            type === "vehicle_part"} />
       </LimitedList>
     </section>
   {/if}

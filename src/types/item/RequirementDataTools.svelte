@@ -7,7 +7,7 @@ import { CBNData, i18n, singularName } from "../../data";
 import { getVersionedBasePath } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
-import ThingLink from "../ThingLink.svelte";
+import ItemLink from "../ItemLink.svelte";
 
 export let requirement: RequirementData & { using?: Recipe["using"] };
 export let direction: "uncraft" | "craft" = "craft";
@@ -41,7 +41,11 @@ let { tools, qualities } =
                 )
                 .replace(/\$./g, "")}
               slot0="tool_quality">
-              <ThingLink type="tool_quality" id={quality.id} slot="0" />
+              <ItemLink
+                type="tool_quality"
+                id={quality.id}
+                slot="0"
+                showIcon={false} />
             </InterpolatedTranslation>{/each}
         </li>
       {/each}
@@ -57,7 +61,7 @@ let { tools, qualities } =
                   )}{location.search}"
                   >{singularName(data.byId("item", toolId))}</a>
               {:else}
-                <ThingLink type="item" id={toolId} />
+                <ItemLink type="item" id={toolId} showIcon={false} />
               {/if}
             {:else}
               <InterpolatedTranslation
@@ -81,7 +85,7 @@ let { tools, qualities } =
                       )}{location.search}"
                       >{singularName(data.byId("item", toolId))}</a>
                   {:else}
-                    <ThingLink type="item" id={toolId} />
+                    <ItemLink type="item" id={toolId} showIcon={false} />
                   {/if}
                 </svelte:fragment>
               </InterpolatedTranslation>
