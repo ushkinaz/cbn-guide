@@ -72,9 +72,6 @@ const href = `${getVersionedBasePath()}${type}/${id}${location.search}`;
 </script>
 
 <span class="item-link__wrap" class:item-link__wrap--count={count != null}>
-  {#if count != null}
-    {#if !countsByCharges(linkItem)}{countToString(count)}{/if}
-  {/if}
   <svelte:element
     this={link ? "a" : "span"}
     class="item-link"
@@ -94,24 +91,36 @@ const href = `${getVersionedBasePath()}${type}/${id}${location.search}`;
       </span>
     {/if}
   </svelte:element>
-  {#if count != null && countsByCharges(linkItem)}{" "}({countToString(
-      count,
-    )}){/if}
-  {#if showText && linkItem?.type === "mutation"}&nbsp;<MutationColor
-      mutation={linkItem} />{/if}
+  {#if count != null}
+    <span class="item-link__count">
+      {#if !countsByCharges(linkItem)}
+        {countToString(count)}
+      {:else}
+        ({countToString(count)})
+      {/if}
+    </span>
+  {/if}
+  {#if showText && linkItem?.type === "mutation"}
+    <MutationColor mutation={linkItem} />
+  {/if}
 </span>
 
 <!--suppress CssUnusedSymbol -->
 <style>
+.item-link__wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .item-link {
   display: inline-flex;
   align-items: center;
   gap: 0.25em;
   text-decoration: none;
-}
-
-.item-link--icon {
-  white-space: nowrap;
+  vertical-align: middle;
 }
 
 a.item-link:hover,
@@ -126,9 +135,5 @@ a.item-link:focus-visible {
 a.item-link:hover .item-link__text,
 a.item-link:focus-visible .item-link__text {
   text-decoration: underline;
-}
-
-.item-link__wrap--count {
-  white-space: nowrap;
 }
 </style>

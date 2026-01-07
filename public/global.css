@@ -83,17 +83,32 @@ ul.comma-separated, ul.no-bullets {
 	list-style: none;
 	padding: 0;
 }
-ul.comma-separated, ul.comma-separated > li {
+ul.comma-separated {
 	display: inline;
+	word-spacing: -1em;
 }
-ul.comma-separated > li:not(:first-child)::before {
-	content: ', '
+ul.comma-separated>li {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+	word-spacing: normal;
+}
+ul.comma-separated>li:not(:last-child)::after {
+	content: ',';
+	margin-right: 0.5em;
+	vertical-align: middle;
 }
 ul.comma-separated.or > li:last-child:not(:first-child)::before {
-	content: ' or '
+	content: 'or';
+	margin-left: 0.5em;
+	/*margin-right: 0.5em;*/
+	vertical-align: middle;
 }
 ul.comma-separated.and > li:last-child:not(:first-child)::before {
-	content: ' and '
+	content: 'and';
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+	vertical-align: middle;
 }
 
 dl {
