@@ -13,11 +13,11 @@ export let fullScreen: boolean = false;
     <span>
       <em>{text}</em>
       {#if $loadProgress}
-        ({($loadProgress[0] / 1024 / 1024).toFixed(1)}/{(
-          $loadProgress[1] /
-          1024 /
-          1024
-        ).toFixed(1)} MB)
+        ({($loadProgress[0] / 1024 / 1024).toFixed(1)}
+        {#if $loadProgress[1] > 0}
+          /{($loadProgress[1] / 1024 / 1024).toFixed(1)}
+        {/if}
+        MB)
       {/if}
     </span>
   </div>

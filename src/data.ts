@@ -1793,7 +1793,7 @@ const fetchJsonWithProgress = (
       else reject(`Unknown error fetching JSON from ${url}`);
     };
     xhr.onprogress = (e) => {
-      if (e.lengthComputable) progress(e.loaded, e.total);
+      progress(e.loaded, e.lengthComputable ? e.total : 0);
     };
     xhr.onerror = () => {
       reject(`Error ${xhr.status} (${xhr.statusText}) fetching ${url}`);
@@ -1893,8 +1893,9 @@ export const data = {
     const updateProgress = () => {
       const total = totals.reduce((a, b) => a + b, 0);
       const received = receiveds.reduce((a, b) => a + b, 0);
-      loadProgressStore.set([received, total]);
+      loadProgressStore.set(received > 0 ? [received, total] : null);
     };
+    updateProgress();
     const [dataJson, localeJson, pinyinNameJson] = await Promise.all([
       retry(() =>
         fetchJson(version, (receivedBytes, totalBytes) => {
