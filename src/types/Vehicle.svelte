@@ -10,7 +10,6 @@ import {
   singularName,
 } from "../data";
 import LimitedList from "../LimitedList.svelte";
-import * as Sentry from "@sentry/browser";
 
 import type { Vehicle, VehiclePart } from "../types";
 import { groupBy } from "./item/utils";
@@ -156,14 +155,8 @@ const zForPart = (partId: string): number => {
     // TODO: https://github.com/CleverRaven/Cataclysm-DDA/pull/59563
     if (partId.startsWith("turret_")) return zForPart("turret_generic");
     else {
-      Sentry.captureException(new Error("Vehicle referenced unknown part"), {
-        contexts: {
-          item: {
-            id: item.id,
-            partId,
-          },
-        },
-      });
+      console.error(`Vehicle referenced unknown part: ${partId}`);
+      return -1;
     }
   }
   const location = vehiclePart?.location ?? "";

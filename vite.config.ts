@@ -8,24 +8,7 @@ export default defineConfig({
   base: "/",
   build: {
     sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            if (id.includes("@sentry")) return "sentry";
-            if (id.includes("@transifex") || id.includes("gettext.js"))
-              return "i18n";
-            if (
-              id.includes("svelte") ||
-              id.includes("vite") ||
-              id.includes("workbox")
-            )
-              return "framework";
-            return "vendor";
-          }
-        },
-      },
-    },
+    chunkSizeWarningLimit: 1000, //I'm so sorry, Chuck
   },
   server: {
     port: 3000,

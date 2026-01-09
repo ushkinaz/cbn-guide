@@ -641,7 +641,6 @@ footer #credits a:hover {
   margin: 0;
 }
 
-.select-group label,
 .select-group select {
   margin: 0;
   font-size: 0.9rem;

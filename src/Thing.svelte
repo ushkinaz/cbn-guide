@@ -27,7 +27,6 @@ import ConstructionGroup from "./types/ConstructionGroup.svelte";
 import Achievement from "./types/Achievement.svelte";
 import ObsoletionWarning from "./ObsoletionWarning.svelte";
 import Bionic from "./types/Bionic.svelte";
-import * as Sentry from "@sentry/browser";
 import type { SupportedTypes } from "./types";
 import JsonView from "./JsonView.svelte";
 import OvermapSpecial from "./types/OvermapSpecial.svelte";
@@ -42,14 +41,6 @@ let error: Error | null = null;
 
 function onError(e: Error) {
   error = e;
-  Sentry.captureException(e, {
-    contexts: {
-      item: {
-        type: item.type,
-        id: item.id,
-      },
-    },
-  });
 }
 
 function defaultItem(id: string, type: string) {
