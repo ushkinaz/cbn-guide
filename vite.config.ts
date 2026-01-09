@@ -48,7 +48,7 @@ export default defineConfig({
         display: "standalone",
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,svg,woff2}"],
+        globPatterns: ["**/*.{js,css,html,png,svg,woff2,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
@@ -77,7 +77,32 @@ export default defineConfig({
               },
             },
           },
-          // all the other all.json files are the same forever, so if we have
+          {
+            // latest lang files
+            urlPattern:
+              /^https:\/\/cbn-data\.pages\.dev\/data\/latest\/lang\/.+\.json$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "latest-lang-cache",
+              expiration: {
+                maxEntries: 3,
+                maxAgeSeconds: 60 * 60 * 12,
+              },
+            },
+          },
+          {
+            // latest gfx files
+            urlPattern:
+              /^https:\/\/cbn-data\.pages\.dev\/data\/latest\/gfx\/.+$/,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "latest-gfx-cache",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 12,
+              },
+            },
+          },
           {
             // Stable releases
             urlPattern:
@@ -92,6 +117,31 @@ export default defineConfig({
             },
           },
           {
+            // Stable lang files
+            urlPattern:
+              /^https:\/\/cbn-data\.pages\.dev\/data\/v.*\/lang\/.+\.json$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "stable-lang-cache",
+              expiration: {
+                maxEntries: 9,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
+            // Stable gfx files
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/v.*\/gfx\/.+$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "stable-gfx-cache",
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
             // Nightly releases
             urlPattern:
               /^https:\/\/cbn-data\.pages\.dev\/data\/20.*\/all\.json$/,
@@ -99,8 +149,33 @@ export default defineConfig({
             options: {
               cacheName: "nightly-data-cache",
               expiration: {
-                maxEntries: 10,
+                maxEntries: 5,
                 maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+              },
+            },
+          },
+          {
+            // Nightly lang files
+            urlPattern:
+              /^https:\/\/cbn-data\.pages\.dev\/data\/20.*\/lang\/.+\.json$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "nightly-lang-cache",
+              expiration: {
+                maxEntries: 15,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
+              },
+            },
+          },
+          {
+            // Nightly gfx files
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/20.*\/gfx\/.+$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "nightly-gfx-cache",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7,
               },
             },
           },
