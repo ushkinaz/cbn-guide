@@ -13,7 +13,14 @@ const fetchJson = async (url: string) => {
   const json = await res.json();
   await Promise.all(
     json["tiles-new"].map(async (chunk: any) => {
-      const blob = await fetch(`${url}/${chunk.file}`).then((b) => b.blob());
+      // ARCHITECTURE: Tileset WebP Migration (see docs/adr/001-tileset-webp-format.md)
+      // The tile_config.json metadata references .png files, but the server now serves .webp.
+      // We mutate chunk.file here so the correct extension is used downstream when:
+      // 1. ItemSymbol.svelte constructs background-image URLs from chunk.file
+      // 2. Other components reference tile metadata for rendering
+      const filename = chunk.file.replace(/\.png$/, ".webp");
+      chunk.file = filename;
+      const blob = await fetch(`${url}/${filename}`).then((b) => b.blob());
       const blobUrl = URL.createObjectURL(blob);
       const img = new Image();
       img.src = blobUrl;
@@ -89,7 +96,7 @@ export function isValidTileset(tilesetID: string | null) {
  * @returns {string}
  */
 export const getTilesetUrl = (version: string, path: string): string =>
-  `https://raw.githubusercontent.com/${GAME_REPO_PATH}/${version}/gfx/${path}`;
+  `https://cbn-data.pages.dev/data/${version}/gfx/${path}`;
 
 export const TILESETS = [
   {

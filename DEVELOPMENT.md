@@ -53,6 +53,10 @@ You may encounter non-standard patterns (e.g., in `App.svelte` or `SearchResults
 
 When refactoring, prioritize moving logic out of `$:` side-effects and into clearer `Event -> Action -> Store Update` flows.
 
+## Architecture Decision Records
+
+Significant architectural decisions are documented in [docs/adr/](../docs/adr/README.md) using the Lightweight Architecture Decision Records format. When making important design choices, create a new ADR to document the context, decision, and consequences.
+
 ## Testing
 
 This project uses `vitest` for testing. The tests cover a range of functionality from data parsing and validation to UI component rendering.
