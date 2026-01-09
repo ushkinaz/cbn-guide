@@ -17,14 +17,17 @@ Date: YYYY-MM-DD
 ## Consequences
 
 ### Positive
+
 - [Benefit 1]
 - [Benefit 2]
 
 ### Negative
+
 - [Drawback 1]
 - [Drawback 2]
 
 ### Neutral
+
 - [Observation 1]
 - [Observation 2]
 
