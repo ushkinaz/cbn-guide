@@ -7,7 +7,7 @@ import EnvironmentPlugin from "vite-plugin-environment";
 export default defineConfig({
   base: "/",
   build: {
-    sourcemap: true,
+    sourcemap: process.env.VITE_SOURCEMAP === "true",
     chunkSizeWarningLimit: 1000, //I'm so sorry, Chuck
   },
   server: {
