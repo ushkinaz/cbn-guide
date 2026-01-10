@@ -54,7 +54,6 @@
     "@transifex/cli": "^7.1.3",
     "@tsconfig/svelte": "^5.0.4",
     "@types/gettext.js": "^2.0.0",
-    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.19.3",
     "@types/requestidlecallback": "^0.3.7",
     "ajv": "^8.17.1",
@@ -81,7 +80,6 @@
     "@transifex/native": "^7.1.5",
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",
-    "lodash": "^4.17.21",
     "workbox-window": "^7.4.0"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610",

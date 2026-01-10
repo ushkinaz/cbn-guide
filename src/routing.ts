@@ -9,8 +9,6 @@
  * - URL generation and manipulation
  */
 
-import debounce from "lodash/debounce";
-
 import { BUILDS_URL } from "./constants";
 
 // ============================================================================
@@ -65,6 +63,38 @@ export type InitialAppState = {
 // ============================================================================
 // Internal Helper Functions
 // ============================================================================
+
+type Debounced<T extends (...args: any[]) => void> = ((
+  ...args: Parameters<T>
+) => void) & {
+  cancel: () => void;
+};
+
+function debounce<T extends (...args: any[]) => void>(
+  fn: T,
+  waitMs: number,
+): Debounced<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  const debounced = ((...args: Parameters<T>) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      fn(...args);
+    }, waitMs);
+  }) as Debounced<T>;
+
+  debounced.cancel = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  };
+
+  return debounced;
+}
 
 /**
  * Get path segments relative to BASE_URL
@@ -306,7 +336,6 @@ export function isSupportedVersion(buildNumber: string): boolean {
 const debouncedReplaceState = debounce(
   (url: string) => history.replaceState(null, "", url),
   400,
-  { trailing: true },
 );
 
 /**
