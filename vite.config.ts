@@ -24,7 +24,6 @@ export default defineConfig({
       devOptions: {
         enabled: true,
       },
-      includeAssets: ["robots.txt", "sitemap.xml", "opensearch.xml"],
       manifest: {
         short_name: "Cataclysm: Bright Nights Guide",
         name: "The Hitchhiker's Guide to the Cataclysm: Bright Nights",
