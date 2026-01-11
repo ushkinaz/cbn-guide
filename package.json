@@ -77,6 +77,7 @@
     "workbox-build": "^7.3.0"
   },
   "dependencies": {
+    "@sentry/browser": "^10.32.1",
     "@transifex/native": "^7.1.5",
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",
