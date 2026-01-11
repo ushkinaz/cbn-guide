@@ -1,6 +1,3 @@
-# Primary Landing
-/ /stable 301
-
 # Version Aliases
 /latest/* /nightly/:splat 301
 
