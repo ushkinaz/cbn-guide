@@ -11,13 +11,12 @@ export let fullScreen: boolean = false;
     <div class="loading-spinner" style="--spinner-src: url({spinnerIcon})">
     </div>
     <span>
-      <em>{text}</em>
+      <span class="loading-text">{text}</span>
       {#if $loadProgress}
-        ({($loadProgress[0] / 1024 / 1024).toFixed(1)}
-        {#if $loadProgress[1] > 0}
-          /{($loadProgress[1] / 1024 / 1024).toFixed(1)}
-        {/if}
-        MB)
+        <span class="loading-progress-stats">
+          ({($loadProgress[0] / 1024 / 1024).toFixed(1)}
+          MB)
+        </span>
       {/if}
     </span>
   </div>
@@ -69,8 +68,18 @@ export let fullScreen: boolean = false;
   animation-iteration-count: infinite;
 }
 
-.loading-content em {
+.loading-text {
+  font-family: UnifontSubset, monospace;
   line-height: 1; /* Help with bottom alignment */
   display: inline-block;
+}
+
+.loading-progress-stats {
+  font-family: UnifontSubset, monospace;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  min-width: 8.5em; /* Ensure enough space for " (XXX.X/XXX.X MB)" */
+  text-align: left;
+  margin-left: 0.25rem;
 }
 </style>
