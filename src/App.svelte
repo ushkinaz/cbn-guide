@@ -24,6 +24,7 @@ import {
   buildUrl,
   changeVersion,
   getCurrentVersionSlug,
+  getVersionedBasePath,
   getUrlConfig,
   handleInternalNavigation,
   initializeRouting,
@@ -229,7 +230,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
       <!-- svelte-ignore a11y-invalid-attribute -->
       <strong>
         <a
-          href={import.meta.env.BASE_URL + location.search}
+          href={getVersionedBasePath() + location.search}
           on:click={() => (search = "")}
           ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow"
             >HHG</span
