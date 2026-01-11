@@ -47,7 +47,7 @@ export default defineConfig({
         display: "standalone",
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,png,svg,woff2,webp}"],
+        globPatterns: ["**/*.{css,html,png,svg,woff2,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: "index.html",
         navigateFallbackDenylist: [
@@ -76,122 +76,55 @@ export default defineConfig({
               cacheName: "builds-cache",
               expiration: {
                 maxEntries: 1,
-                maxAgeSeconds: 60 * 60 * 12, // 12 hours, matches schedule of data puller
-              },
-            },
-          },
-          {
-            // the latest / all.json updates regularly
-            urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/data\/latest\/all\.json$/,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "latest-cache",
-              expiration: {
-                maxEntries: 1,
-                maxAgeSeconds: 60 * 60 * 12, // 12 hours, matches schedule of data puller
-              },
-            },
-          },
-          {
-            // latest lang files
-            urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/data\/latest\/lang\/.+\.json$/,
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "latest-lang-cache",
-              expiration: {
-                maxEntries: 3,
                 maxAgeSeconds: 60 * 60 * 12,
               },
             },
           },
           {
-            // latest gfx files
-            urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/data\/latest\/gfx\/.+$/,
-            handler: "StaleWhileRevalidate",
+            // The latest nightly / updates regularly
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/nightly\//,
+            handler: "NetworkFirst",
             options: {
-              cacheName: "latest-gfx-cache",
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 12,
-              },
-            },
-          },
-          {
-            // Stable releases
-            urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/data\/v.*\/all\.json$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "stable-data-cache",
-              expiration: {
-                maxEntries: 3,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 1 month
-              },
-            },
-          },
-          {
-            // Stable lang files
-            urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/data\/v.*\/lang\/.+\.json$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "stable-lang-cache",
-              expiration: {
-                maxEntries: 9,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-            },
-          },
-          {
-            // Stable gfx files
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/v.*\/gfx\/.+$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "stable-gfx-cache",
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 30,
-              },
-            },
-          },
-          {
-            // Nightly releases
-            urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/data\/20.*\/all\.json$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "nightly-data-cache",
-              expiration: {
-                maxEntries: 5,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
-              },
-            },
-          },
-          {
-            // Nightly lang files
-            urlPattern:
-              /^https:\/\/cbn-data\.pages\.dev\/data\/20.*\/lang\/.+\.json$/,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "nightly-lang-cache",
+              cacheName: "nightly-cache",
               expiration: {
                 maxEntries: 15,
-                maxAgeSeconds: 60 * 60 * 24 * 7,
+                maxAgeSeconds: 60 * 60 * 6,
               },
             },
           },
           {
-            // Nightly gfx files
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/20.*\/gfx\/.+$/,
+            // The latest stable / rarely updates
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/stable\//,
+            handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "stable-cache",
+              expiration: {
+                maxEntries: 15,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
+            // Stable named releases / never updates
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/v/,
             handler: "CacheFirst",
             options: {
-              cacheName: "nightly-gfx-cache",
+              cacheName: "stable-named-cache",
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7,
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
+          {
+            // Nightly named releases / never updates
+            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/20/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "nightly-named-cache",
+              expiration: {
+                maxEntries: 45,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
               },
             },
           },
@@ -199,6 +132,13 @@ export default defineConfig({
             // Use saved translations if possible, update in the background.
             urlPattern: /^https:\/\/cds\.svc\.transifex\.net\//,
             handler: "StaleWhileRevalidate",
+            options: {
+              cacheName: "i18n-cache",
+              expiration: {
+                maxEntries: 5,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+              },
+            },
           },
         ],
         // Without this, a stale service worker can be alive for a long time
