@@ -1884,7 +1884,11 @@ let _hasSetVersion = false;
 const { subscribe, set } = writable<CBNData | null>(null);
 export const data = {
   subscribe,
-  async setVersion(version: string, locale: string | null) {
+  async setVersion(
+    version: string,
+    locale: string | null,
+    versionSlug?: string,
+  ) {
     if (_hasSetVersion && !(globalThis as any).__isTesting__)
       throw new Error("can only set version once");
     _hasSetVersion = true;
@@ -1896,9 +1900,10 @@ export const data = {
       loadProgressStore.set(received > 0 ? [received, total] : null);
     };
     updateProgress();
+    const urlVersion = versionSlug ?? version;
     const [dataJson, localeJson, pinyinNameJson] = await Promise.all([
       retry(() =>
-        fetchJson(version, (receivedBytes, totalBytes) => {
+        fetchJson(urlVersion, (receivedBytes, totalBytes) => {
           totals[0] = totalBytes;
           receiveds[0] = receivedBytes;
           updateProgress();

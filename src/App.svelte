@@ -51,6 +51,8 @@ let builds: BuildInfo[] | null = null;
 
 const requestedVersion = parseRoute().version;
 let resolvedVersion: string;
+const isBranchAlias =
+  requestedVersion === STABLE_VERSION || requestedVersion === NIGHTLY_VERSION;
 
 let latestStableBuild: BuildInfo | undefined;
 let latestNightlyBuild: BuildInfo | undefined;
@@ -63,7 +65,11 @@ initializeRouting()
     latestStableBuild = result.latestStableBuild;
     latestNightlyBuild = result.latestNightlyBuild;
 
-    data.setVersion(resolvedVersion, localeParam);
+    data.setVersion(
+      resolvedVersion,
+      localeParam,
+      isBranchAlias ? requestedVersion : undefined,
+    );
   })
   .catch((e) => {
     console.error(e);
