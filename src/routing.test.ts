@@ -509,17 +509,33 @@ describe("Routing E2E Tests", () => {
 
   describe("Version Handling", () => {
     test("navigates to correct version with incorrect typed-in URL", async () => {
-      // Start with invalid version
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const originalReplace = window.location.replace;
+      let replaceCalled = false;
+      delete (window.location as any).replace;
+      window.location.replace = vi.fn((url: string | URL) => {
+        replaceCalled = true;
+        const u = new URL(url as string, window.location.origin);
+        window.location.pathname = u.pathname;
+        window.location.search = u.search;
+        window.location.href = u.href;
+      }) as any;
+
+      // Start with invalid version - should prepend /stable/
       updateLocation("invalid-version-999/");
 
       render(App, {
         target: container,
       });
 
-      await waitForDataLoad();
+      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
-      // App should load successfully (version exists in testBuilds)
-      expect(document.body).toBeTruthy();
+      // Should have called location.replace to prepend /stable/
+      expect(replaceCalled).toBe(true);
+      expect(window.location.pathname).toContain("stable/invalid-version-999");
+
+      warnSpy.mockRestore();
+      window.location.replace = originalReplace;
     });
 
     test("navigates to correct version when clicking an internal link", async () => {
@@ -648,37 +664,221 @@ describe("Routing E2E Tests", () => {
   });
 
   describe("Redirection & Fallbacks", () => {
-    test("redirects to latest stable when version is not found", async () => {
-      // Mock console.warn to avoid cluttering test output
+    test("prepends /stable/ to invalid version paths", async () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      // Support history.replaceState for redirect
-      const replaceSpy = vi
-        .spyOn(window.history, "replaceState")
-        .mockImplementation((state, title, url) => {
-          if (typeof url === "string") {
-            const u = new URL(url, window.location.origin);
-            window.location.pathname = u.pathname;
-            window.location.search = u.search;
-            window.location.href = u.href;
-          }
-        });
+      const originalReplace = window.location.replace;
+      let replaceCalled = false;
+      let replaceUrl = "";
+      delete (window.location as any).replace;
+      window.location.replace = vi.fn((url: string | URL) => {
+        replaceCalled = true;
+        replaceUrl = url.toString();
+        const u = new URL(url as string, window.location.origin);
+        window.location.pathname = u.pathname;
+        window.location.search = u.search;
+        window.location.href = u.href;
+      }) as any;
 
-      // Use a version that definitely doesn't exist in mocks
-      updateLocation("non-existent-version/");
+      // Use a version that doesn't exist - should prepend /stable/
+      updateLocation("non-existent-version/item/rock");
 
       render(App, {
         target: container,
       });
 
-      // waitForDataLoad will wait for "Hitchhiker" which appears on Home after redirect
-      await waitForDataLoad();
+      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
-      // Should have redirected to stable
-      expect(window.location.pathname).toContain("v0.9.1");
-      expect(document.body.textContent).toContain("Hitchhiker");
+      // Should prepend /stable/ to the path
+      expect(replaceCalled).toBe(true);
+      expect(replaceUrl).toContain("stable/non-existent-version/item/rock");
 
       warnSpy.mockRestore();
-      replaceSpy.mockRestore();
+      window.location.replace = originalReplace;
+    });
+
+    test("prepends /stable when accessing data type path without version", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      // Mock location.replace to simulate page reload
+      const originalReplace = window.location.replace;
+      let replaceCalled = false;
+      let replaceUrl = "";
+      delete (window.location as any).replace;
+      window.location.replace = vi.fn((url: string | URL) => {
+        replaceCalled = true;
+        replaceUrl = url.toString();
+        const u = new URL(url as string, window.location.origin);
+        window.location.pathname = u.pathname;
+        window.location.search = u.search;
+        window.location.href = u.href;
+      }) as any;
+
+      // Navigate to /mutation (missing version prefix)
+      updateLocation("mutation");
+
+      render(App, {
+        target: container,
+      });
+
+      // Wait a bit for the async initialization
+      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+
+      // Should have called location.replace to redirect to /stable/mutation
+      expect(replaceCalled).toBe(true);
+      expect(replaceUrl).toContain("stable/mutation");
+
+      warnSpy.mockRestore();
+      window.location.replace = originalReplace;
+    });
+
+    test("preserves URL encoding when redirecting versionless paths", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const originalReplace = window.location.replace;
+      let replaceCalled = false;
+      let replaceUrl = "";
+      delete (window.location as any).replace;
+      window.location.replace = vi.fn((url: string | URL) => {
+        replaceCalled = true;
+        replaceUrl = url.toString();
+        const u = new URL(url as string, window.location.origin);
+        window.location.pathname = u.pathname;
+        window.location.search = u.search;
+        window.location.href = u.href;
+      }) as any;
+
+      // Navigate to /search/fire%2Faxe (encoded slash in search query)
+      updateLocation("search/fire%2Faxe");
+
+      render(App, {
+        target: container,
+      });
+
+      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+
+      // Should preserve %2F encoding, not turn it into /
+      expect(replaceCalled).toBe(true);
+      expect(replaceUrl).toContain("stable/search/fire%2Faxe");
+      expect(replaceUrl).not.toContain("stable/search/fire/axe");
+
+      warnSpy.mockRestore();
+      window.location.replace = originalReplace;
+    });
+
+    test("prepends /stable for various data types without version", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const originalReplace = window.location.replace;
+      let replaceCalled = false;
+      let replaceUrl = "";
+      delete (window.location as any).replace;
+      window.location.replace = vi.fn((url: string | URL) => {
+        replaceCalled = true;
+        replaceUrl = url.toString();
+        const u = new URL(url as string, window.location.origin);
+        window.location.pathname = u.pathname;
+        window.location.search = u.search;
+        window.location.href = u.href;
+      }) as any;
+
+      const dataTypes = [
+        "item",
+        "monster",
+        "terrain",
+        "tool_quality",
+        "vehicle",
+        "skill",
+        "mutation_category",
+      ];
+
+      for (const type of dataTypes) {
+        cleanup();
+        if (container && container.parentNode) {
+          container.parentNode.removeChild(container);
+        }
+        container = document.createElement("div");
+        document.body.appendChild(container);
+
+        replaceCalled = false;
+        replaceUrl = "";
+        updateLocation(type);
+
+        render(App, {
+          target: container,
+        });
+
+        await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+
+        expect(replaceCalled).toBe(true);
+        expect(replaceUrl).toContain(`stable/${type}`);
+      }
+
+      warnSpy.mockRestore();
+      window.location.replace = originalReplace;
+    });
+
+    test("after redirect from /mutation, links use correct version slug", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const originalReplace = window.location.replace;
+      let replaceCalled = false;
+      let replaceUrl = "";
+      delete (window.location as any).replace;
+      window.location.replace = vi.fn((url: string | URL) => {
+        replaceCalled = true;
+        replaceUrl = url.toString();
+        const u = new URL(url as string, window.location.origin);
+        window.location.pathname = u.pathname;
+        window.location.search = u.search;
+        window.location.href = u.href;
+      }) as any;
+
+      // Navigate to /mutation
+      updateLocation("mutation");
+
+      render(App, {
+        target: container,
+      });
+
+      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+
+      // Should have called location.replace
+      expect(replaceCalled).toBe(true);
+      expect(replaceUrl).toContain("stable/mutation");
+
+      // Simulate the page reload by updating location manually
+      updateLocation("stable/mutation");
+
+      // Re-render App with the corrected URL
+      cleanup();
+      if (container && container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+      container = document.createElement("div");
+      document.body.appendChild(container);
+
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+
+      // After redirect, getCurrentVersionSlug should return "stable"
+      const { getCurrentVersionSlug } = await import("./routing");
+      expect(getCurrentVersionSlug()).toBe("stable");
+
+      // Links should use /stable or /nightly, not /mutation as version
+      const links = document.querySelectorAll("a[href]");
+      const internalLinks = Array.from(links).filter((link) =>
+        (link as HTMLAnchorElement).href.includes("localhost:3000"),
+      );
+
+      for (const link of internalLinks) {
+        const href = (link as HTMLAnchorElement).href;
+        const path = new URL(href).pathname;
+        // Path should not start with /mutation/ (that would mean mutation is the version)
+        // but /stable/mutation/ or /nightly/mutation/ is fine (mutation is the data type)
+        expect(path).not.toMatch(/^\/mutation\//);
+      }
+
+      warnSpy.mockRestore();
+      window.location.replace = originalReplace;
     });
   });
 

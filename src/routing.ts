@@ -97,13 +97,21 @@ function debounce<T extends (...args: any[]) => void>(
 }
 
 /**
- * Get path segments relative to BASE_URL
+ * Extract and decode path segments from the current URL
+ *
+ * Handles:
+ * - Base URL stripping
+ * - Empty segment filtering (e.g., //vehicle → ["vehicle"])
+ * - URI decoding (%2F → /)
+ *
+ * @returns Array of decoded path segments
  */
 function getPathSegments(): string[] {
   const path = location.pathname.slice(import.meta.env.BASE_URL.length - 1);
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
   if (!cleanPath) return [];
-  return cleanPath.split("/").map(decodeURIComponent);
+  // filter(Boolean) removes empty segments from double slashes
+  return cleanPath.split("/").filter(Boolean).map(decodeURIComponent);
 }
 
 /**
@@ -411,38 +419,38 @@ export function updateQueryParamNoReload(
 }
 
 /**
- * Handle click events to intercept internal navigation
- * Returns true if navigation was handled, false otherwise
+ * Handle click events on internal links for SPA navigation
  *
  * @param event - Mouse click event
- * @returns true if internal navigation was handled, false if external/not handled
+ * @returns true if navigation was handled, false if default should proceed
  */
 export function handleInternalNavigation(event: MouseEvent): boolean {
-  const target = event.target as HTMLElement | null;
-  const anchor = target?.closest("a") as HTMLAnchorElement | null;
+  const anchor = (event.target as Element).closest("a");
 
-  if (anchor && anchor.href) {
-    // Standard browser behavior: let browser handle modifier keys and middle click
-    if (
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey ||
-      event.button !== 0
-    ) {
-      return false;
-    }
+  // Ignore modified clicks (new tab, etc.)
+  if (
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    event.defaultPrevented
+  ) {
+    return false;
+  }
 
-    // Use anchor element properties directly instead of creating URL object
+  // Check if this is an internal navigation
+  if (anchor) {
     if (
       anchor.origin === location.origin &&
       anchor.pathname.startsWith(import.meta.env.BASE_URL)
     ) {
       event.preventDefault();
-      // Cancel any pending debounced URL updates - user is explicitly navigating
+      // Cancel pending debounced updates
       debouncedReplaceState.cancel();
-      // We push to history, calculating the path from the anchor
-      history.pushState(null, "", anchor.pathname + location.search);
+      // Use anchor's query params if present, otherwise preserve current
+      const targetUrl = anchor.pathname + (anchor.search || location.search);
+      history.pushState(null, "", targetUrl);
       return true;
     }
   }
@@ -509,22 +517,46 @@ export async function initializeRouting(): Promise<InitialAppState> {
       latestNightlyBuild,
     ) ?? fallbackVersion;
 
-  // Verify if the version actually exists in the build list
+  // Version validation and automatic /stable/ prefixing
+  // If first segment isn't a valid version (stable/nightly/v0.9.1), prepend /stable/
+  // This simple heuristic handles:
+  // - Data type paths: /mutation/ID → /stable/mutation/ID
+  // - Future types: automatically works with new types
+  // - Typos: /stabke/item → /stable/stabke/item (404 with clear error)
   if (!versionExists(builds, resolvedVersion)) {
-    // Fallback logic. We are here only if slug pointed to an incorrect version.
-    if (fallbackVersion) {
-      console.warn(
-        `Version ${resolvedVersion} not found in builds list, falling back to ${fallbackVersion}.`,
-      );
-      //TODO: Notify user
-      resolvedVersion = fallbackVersion;
-      redirectToVersion(resolvedVersion, true);
-    } else {
-      //no fallback - should never be here
-      console.error("Can not load anything. Are we totally offline?");
-      //TODO: Notify user, we failed to load our app.
-      throw new Error("Failed to resolve any valid version");
-    }
+    console.warn(
+      `Version "${resolvedVersion}" not found, prepending /stable/ to path`,
+    );
+    resolvedVersion = latestStableBuild?.build_number ?? fallbackVersion;
+
+    // Preserve raw pathname to maintain URL encoding (e.g., %2F)
+    // Using decoded segments would corrupt paths like /search/fire%2Faxe
+    const rawRelativePath = location.pathname.startsWith(
+      import.meta.env.BASE_URL,
+    )
+      ? location.pathname.slice(import.meta.env.BASE_URL.length)
+      : location.pathname;
+    const cleanRawPath = rawRelativePath.startsWith("/")
+      ? rawRelativePath.slice(1)
+      : rawRelativePath;
+
+    // Use location.replace() to force full page reload
+    // history.replaceState() would only update URL without re-parsing route
+    const newPath =
+      import.meta.env.BASE_URL +
+      STABLE_VERSION +
+      "/" +
+      cleanRawPath +
+      location.search;
+    location.replace(newPath);
+
+    // Return early - page will reload with corrected URL
+    return {
+      builds,
+      resolvedVersion,
+      latestStableBuild,
+      latestNightlyBuild,
+    };
   }
 
   return {

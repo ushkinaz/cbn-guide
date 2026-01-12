@@ -1,17 +1,22 @@
 # Version Aliases
-/latest/* /nightly/:splat 301
+/latest/*                /nightly/:splat                301
 
-# Legacy Paths (redirecting to nightly, could be coming from the game)
-/achievement/* /nightly/achievement/:splat 301
-/furniture/* /nightly/furniture/:splat 301
-/item/* /nightly/item/:splat 301
-/item_action/* /nightly/item_action/:splat 301
-/json_flag/* /nightly/json_flag/:splat 301
-/martial_art/* /nightly/martial_art/:splat 301
-/monster/* /nightly/monster/:splat 301
-/mutation/* /nightly/mutation/:splat 301
-/overmap_special/* /nightly/overmap_special/:splat 301
-/search/* /nightly/search/:splat 301
-/terrain/* /nightly/terrain/:splat 301
-/tool_quality/* /nightly/tool_quality/:splat 301
-/vehicle_part/* /nightly/vehicle_part/:splat 301
+# Legacy Paths - External links without version prefix
+# Redirects to stable for consistency with SPA routing
+# (External links from game, bookmarks, search engines, shared links, etc.)
+/achievement/*           /stable/achievement/:splat     301
+/furniture/*             /stable/furniture/:splat       301
+/item/*                  /stable/item/:splat            301
+/item_action/*           /stable/item_action/:splat     301
+/json_flag/*              /stable/json_flag/:splat       301
+/martial_art/*           /stable/martial_art/:splat     301
+/monster/*               /stable/monster/:splat         301
+/mutation/*              /stable/mutation/:splat        301
+/mutation_category/*     /stable/mutation_category/:splat 301
+/overmap_special/*       /stable/overmap_special/:splat 301
+/search/*                /stable/search/:splat          301
+/skill/*                 /stable/skill/:splat           301
+/terrain/*               /stable/terrain/:splat         301
+/tool_quality/*          /stable/tool_quality/:splat    301
+/vehicle/*               /stable/vehicle/:splat         301
+/vehicle_part/*          /stable/vehicle_part/:splat    301
