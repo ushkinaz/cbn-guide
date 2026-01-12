@@ -18,6 +18,7 @@ export default defineConfig({
       GITHUB_SHA: null,
       CF_PAGES_COMMIT_SHA: null,
       SENTRY_DSN: null,
+      PERF_ENABLED: "false",
     }),
     svelte(),
     VitePWA({

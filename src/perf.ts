@@ -7,7 +7,9 @@
 // In Node.js (tsx/vitest): default to true for measurements
 const isDev =
   typeof import.meta !== "undefined" && import.meta.env
-    ? import.meta.env.DEV && !(globalThis as any).__isTesting__
+    ? import.meta.env.DEV &&
+      !(globalThis as any).__isTesting__ &&
+      process.env.PERF_ENABLED === "true"
     : true;
 
 interface PerfMarker {
