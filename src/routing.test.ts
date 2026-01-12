@@ -459,7 +459,7 @@ describe("Routing E2E Tests", () => {
         dispatchPopState();
       });
 
-      await waitForNavigation();
+      await waitForDataLoad();
       expect(window.location.pathname).toContain("search/rock");
       const text = document.body.textContent || "";
       expect(text.includes("Search Results") || text.includes("HHG")).toBe(
