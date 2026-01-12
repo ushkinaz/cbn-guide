@@ -53,6 +53,8 @@ export default defineConfig({
         navigateFallbackDenylist: [
           //refer /public/_redirects
           /^\/$/, // Root redirect to /stable
+          /(?:\.xml)$/, // WTF, Goolebot seems to fail to fetch sitemap.xml. -- All XML files (sitemap, opensearch, etc) should be network-only
+          /^\/robots\.txt$/, // Bots need straight access to robots.txt
           /^\/latest\//, // /latest/* -> /nightly/*
           // Legacy paths that redirect to nightly
           /^\/item\//,
