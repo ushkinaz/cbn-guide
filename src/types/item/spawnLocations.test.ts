@@ -5,6 +5,7 @@ import {
   collection,
   getFurnitureForMapgen,
   getLootForMapgen,
+  getTerrainForMapgen,
   parseItemGroup,
   parsePalette,
   repeatChance,
@@ -426,6 +427,39 @@ describe("loot", () => {
     //   e.v. for one chance = 75% * 2/3 = 0.5
     //   4x 0.5 = 2
     expect(loot.get("item_b")!.expected.toFixed(2)).toEqual("2.00");
+  });
+});
+
+describe("terrain", () => {
+  it("fills with fill_ter when rows are missing", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+        },
+      } as Mapgen,
+    ]);
+    const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 1 * 1 });
+  });
+
+  it("uses mapgensize when rows are missing", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+          mapgensize: [12, 12],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 12 * 12 });
   });
 });
 

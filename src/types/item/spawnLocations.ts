@@ -677,6 +677,7 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (terrainForMapgenCache.has(mapgen))
     return terrainForMapgenCache.get(mapgen)!;
   const palette = parseTerrainPalette(data, mapgen.object);
+  const rows = mapgen.object.rows ?? [];
   const fill_ter = mapgen.object.fill_ter
     ? getMapgenValueDistribution(mapgen.object.fill_ter)
     : new Map<string, number>();
@@ -686,11 +687,15 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   const additional_items = collection([...place_terrain]);
   const countByPalette = new Map<string, number>();
   let fillCount = 0;
-  for (const row of mapgen.object.rows ?? [])
+  for (const row of rows)
     for (const char of row)
       if (palette.has(char))
         countByPalette.set(char, (countByPalette.get(char) ?? 0) + 1);
       else fillCount += 1;
+  if (rows.length === 0) {
+    const [width, height] = mapgen.object.mapgensize ?? [1, 1];
+    fillCount = width * height;
+  }
   const items: Loot[] = [];
   for (const [sym, count] of countByPalette.entries()) {
     const loot = palette.get(sym)!;
