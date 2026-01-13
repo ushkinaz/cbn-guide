@@ -64,6 +64,24 @@ describe("Routing E2E Tests", () => {
           json: () => {},
         } as Response);
       }
+      // Mock tile_config.json and tile images to prevent stderr warnings
+      if (url.includes("tile_config.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              tile_info: [{ width: 32, height: 32, pixelscale: 1 }],
+              "tiles-new": [],
+            }),
+        } as Response);
+      }
+      if (url.includes(".webp") || url.includes(".png")) {
+        // Mock tile image fetches with empty blob
+        return Promise.resolve({
+          ok: true,
+          blob: () => Promise.resolve(new Blob()),
+        } as Response);
+      }
       return Promise.reject(new Error(`Unmocked fetch: ${url}`));
     }) as typeof fetch;
 
