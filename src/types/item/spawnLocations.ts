@@ -586,6 +586,7 @@ const lootForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
 export function getLootForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (lootForMapgenCache.has(mapgen)) return lootForMapgenCache.get(mapgen)!;
   const palette = parsePalette(data, mapgen.object);
+  const mappingPalette = parseMappingItems(data, mapgen.object.mapping);
   const place_items: Loot[] = (mapgen.object.place_items ?? []).map(
     ({ item, chance = 100, repeat }) =>
       parseItemGroup(data, item, repeat, chance / 100),
@@ -629,20 +630,12 @@ export function getLootForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
     }
     return multipliedLoot;
   });
-  const countByPalette = new Map<string, number>();
-  for (const row of mapgen.object.rows ?? [])
-    for (const char of row)
-      if (palette.has(char))
-        countByPalette.set(char, (countByPalette.get(char) ?? 0) + 1);
-  const items: Loot[] = [];
-  for (const [sym, count] of countByPalette.entries()) {
-    const loot = palette.get(sym)!;
-    const multipliedLoot: Loot = new Map();
-    for (const [id, chance] of loot.entries()) {
-      multipliedLoot.set(id, repeatItemChance(chance, [count, count]));
-    }
-    items.push(multipliedLoot);
-  }
+  const symbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
+  const counts = countSymbols(mapgen.object.rows, symbols);
+  const items: Loot[] = [
+    ...lootFromCounts(counts, palette),
+    ...lootFromCounts(counts, mappingPalette),
+  ];
   const loot = collection([
     ...place_items,
     ...place_item,
@@ -660,6 +653,7 @@ export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (furnitureForMapgenCache.has(mapgen))
     return furnitureForMapgenCache.get(mapgen)!;
   const palette = parseFurniturePalette(data, mapgen.object);
+  const mappingPalette = parseMappingFurniture(mapgen.object.mapping);
   const place_furniture: Loot[] = (mapgen.object.place_furniture ?? []).map(
     ({ furn, repeat }) =>
       new Map([
@@ -670,20 +664,12 @@ export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
       ]),
   );
   const additional_items = collection([...place_furniture]);
-  const countByPalette = new Map<string, number>();
-  for (const row of mapgen.object.rows ?? [])
-    for (const char of row)
-      if (palette.has(char))
-        countByPalette.set(char, (countByPalette.get(char) ?? 0) + 1);
-  const items: Loot[] = [];
-  for (const [sym, count] of countByPalette.entries()) {
-    const loot = palette.get(sym)!;
-    const multipliedLoot: Loot = new Map();
-    for (const [id, chance] of loot.entries()) {
-      multipliedLoot.set(id, repeatItemChance(chance, [count, count]));
-    }
-    items.push(multipliedLoot);
-  }
+  const symbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
+  const counts = countSymbols(mapgen.object.rows, symbols);
+  const items: Loot[] = [
+    ...lootFromCounts(counts, palette),
+    ...lootFromCounts(counts, mappingPalette),
+  ];
   items.push(additional_items);
   const loot = collection(items);
   loot.delete("f_null");
@@ -696,6 +682,7 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (terrainForMapgenCache.has(mapgen))
     return terrainForMapgenCache.get(mapgen)!;
   const palette = parseTerrainPalette(data, mapgen.object);
+  const mappingPalette = parseMappingTerrain(mapgen.object.mapping);
   const rows = mapgen.object.rows ?? [];
   const fill_ter = mapgen.object.fill_ter
     ? getMapgenValueDistribution(mapgen.object.fill_ter)
@@ -705,25 +692,21 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   );
   const additional_items = collection([...place_terrain]);
   const countByPalette = new Map<string, number>();
+  const terrainSymbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
   let fillCount = 0;
   for (const row of rows)
     for (const char of row)
-      if (palette.has(char))
+      if (terrainSymbols.has(char))
         countByPalette.set(char, (countByPalette.get(char) ?? 0) + 1);
       else fillCount += 1;
   if (rows.length === 0) {
     const [width, height] = mapgen.object.mapgensize ?? [1, 1];
     fillCount = width * height;
   }
-  const items: Loot[] = [];
-  for (const [sym, count] of countByPalette.entries()) {
-    const loot = palette.get(sym)!;
-    const multipliedLoot: Loot = new Map();
-    for (const [id, chance] of loot.entries()) {
-      multipliedLoot.set(id, repeatItemChance(chance, [count, count]));
-    }
-    items.push(multipliedLoot);
-  }
+  const items: Loot[] = [
+    ...lootFromCounts(countByPalette, palette),
+    ...lootFromCounts(countByPalette, mappingPalette),
+  ];
   if (fillCount > 0) {
     const loot = toLoot(fill_ter);
     const multipliedLoot: Loot = new Map();
@@ -805,6 +788,109 @@ function parsePlaceMappingAlternative<T>(
       ];
     }),
   );
+}
+
+function parseMappingItems(
+  data: CBNData,
+  mapping: undefined | Record<string, raw.MapgenMapping>,
+): Map<string, Loot> {
+  const entries = Object.entries(mapping ?? {}).flatMap(([sym, val]) => {
+    const loots: Loot[] = [];
+    const items = Array.isArray(val.items)
+      ? val.items
+      : val.items
+        ? [val.items]
+        : [];
+    for (const itemsEntry of items) {
+      loots.push(
+        parseItemGroup(
+          data,
+          itemsEntry.item,
+          itemsEntry.repeat,
+          (itemsEntry.chance ?? 100) / 100,
+        ),
+      );
+    }
+    const itemEntries = Array.isArray(val.item)
+      ? val.item
+      : val.item
+        ? [val.item]
+        : [];
+    for (const itemEntry of itemEntries) {
+      const itemNormalized = getMapgenValue(itemEntry.item);
+      if (!itemNormalized) continue;
+      loots.push(
+        new Map([
+          [
+            itemNormalized,
+            repeatItemChance(
+              {
+                prob: (itemEntry.chance ?? 100) / 100,
+                expected: (itemEntry.chance ?? 100) / 100,
+              },
+              normalizeMinMax(itemEntry.repeat),
+            ),
+          ],
+        ]),
+      );
+    }
+    if (loots.length === 0) return [];
+    return [[sym, collection(loots)] as const];
+  });
+  return new Map(entries);
+}
+
+function parseMappingFurniture(
+  mapping: undefined | Record<string, raw.MapgenMapping>,
+): Map<string, Loot> {
+  return new Map(
+    Object.entries(mapping ?? {}).flatMap(([sym, val]) =>
+      val.furniture
+        ? ([[sym, toLoot(getMapgenValueDistribution(val.furniture))]] as const)
+        : [],
+    ),
+  );
+}
+
+function parseMappingTerrain(
+  mapping: undefined | Record<string, raw.MapgenMapping>,
+): Map<string, Loot> {
+  return new Map(
+    Object.entries(mapping ?? {}).flatMap(([sym, val]) =>
+      val.terrain
+        ? ([[sym, toLoot(getMapgenValueDistribution(val.terrain))]] as const)
+        : [],
+    ),
+  );
+}
+
+function countSymbols(
+  rows: string[] | undefined,
+  symbols: Set<string>,
+): Map<string, number> {
+  const countBySymbol = new Map<string, number>();
+  for (const row of rows ?? [])
+    for (const char of row)
+      if (symbols.has(char))
+        countBySymbol.set(char, (countBySymbol.get(char) ?? 0) + 1);
+  return countBySymbol;
+}
+
+function lootFromCounts(
+  counts: Map<string, number>,
+  palette: Map<string, Loot>,
+): Loot[] {
+  const items: Loot[] = [];
+  for (const [sym, count] of counts.entries()) {
+    const loot = palette.get(sym);
+    if (!loot) continue;
+    const multipliedLoot: Loot = new Map();
+    for (const [id, chance] of loot.entries()) {
+      multipliedLoot.set(id, repeatItemChance(chance, [count, count]));
+    }
+    items.push(multipliedLoot);
+  }
+  return items;
 }
 
 const paletteCache = new WeakMap<raw.PaletteData, Map<string, Loot>>();
