@@ -461,6 +461,44 @@ describe("nested mapgen", () => {
     ]);
   });
 
+  it("reads place_nested else_chunks fallback", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+          rows: [],
+          place_nested: [
+            {
+              else_chunks: ["test_else_chunk"],
+              neighbors: { north: ["lab"] },
+              x: 0,
+              y: 0,
+            },
+          ],
+        },
+      } as Mapgen,
+      {
+        type: "mapgen",
+        method: "json",
+        nested_mapgen_id: "test_else_chunk",
+        object: {
+          mapgensize: [1, 1],
+          rows: ["L"],
+          item: {
+            L: { item: "test_item_else" },
+          },
+        },
+      } as Mapgen,
+    ]);
+    const loot = await getLootForMapgen(data, data.byType("mapgen")[0]);
+    expect([...loot.entries()]).toEqual([
+      ["test_item_else", { prob: 1, expected: 1 }],
+    ]);
+  });
+
   it("handles chunk weights", async () => {
     const data = new CBNData([
       {
