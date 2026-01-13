@@ -1134,7 +1134,7 @@ export interface MapgenObject {
   //liquids?: LiquidsClass;
   //place_liquids?: PlaceLiquid[];
   rotation?: [number, number] | [number] | number;
-  mapping?: any; // TODO:
+  mapping?: Record<string, MapgenMapping>;
   //place_fields?: PlaceField[];
   //fields?: Fields;
   //vendingmachines?: { [key: string]: Vendingmachine };
@@ -1255,8 +1255,8 @@ type MapgenParameter = {
 export interface MapgenMapping {
   items?: MapgenItemGroup | MapgenItemGroup[];
   item?: MapgenSpawnItem | MapgenSpawnItem[];
-  //furniture?: string;
-  //terrain?: string;
+  furniture?: MapgenValue;
+  terrain?: MapgenValue;
   //traps?: string;
   //fields?: Fields;
 }

@@ -728,3 +728,67 @@ describe("furniture", () => {
     expect(loot.get("f_test_furn")?.expected).toBeCloseTo(17.5);
   });
 });
+
+describe("mapping", () => {
+  it("includes mapping items", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["X"],
+          mapping: {
+            X: { items: { item: "test_group" } },
+          },
+        },
+      } as Mapgen,
+      {
+        type: "item_group",
+        id: "test_group",
+        subtype: "collection",
+        items: ["item_a"],
+      } as ItemGroupData,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("item_a")).toEqual({ prob: 1, expected: 1 });
+  });
+
+  it("includes mapping furniture", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["X"],
+          mapping: {
+            X: { furniture: "f_test_furn" },
+          },
+        },
+      } as Mapgen,
+    ]);
+    const loot = getFurnitureForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("f_test_furn")).toEqual({ prob: 1, expected: 1 });
+  });
+
+  it("includes mapping terrain and respects fill_ter", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+          rows: ["X."],
+          mapping: {
+            X: { terrain: "t_rock" },
+          },
+        },
+      } as Mapgen,
+    ]);
+    const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("t_rock")).toEqual({ prob: 1, expected: 1 });
+    expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 1 });
+  });
+});
