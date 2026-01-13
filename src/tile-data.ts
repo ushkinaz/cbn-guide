@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import { GAME_REPO_PATH } from "./constants";
+import { t } from "@transifex/native";
 import type { CBNData } from "./data";
 
 const fetchJson = async (url: string) => {
@@ -99,23 +99,34 @@ export const getTilesetUrl = (version: string, path: string): string =>
   `https://cbn-data.pages.dev/data/${version}/gfx/${path}`;
 
 export const TILESETS = [
+  //tileinfo prop contains pre-cached data used by initial layouting phase. Is overridden when actual data comes from the server.
   {
-    name: "None (ASCII)",
+    name: "undead_people",
+    displayName: t("Undead People (default)"),
+    path: "MSX++UnDeadPeopleEdition",
+    tile_info: { width: 32, height: 32, pixelscale: 1 },
+  },
+  {
+    name: "ascii",
+    displayName: t("None (ASCII)"),
     path: null,
     tile_info: { height: 16, width: 16, pixelscale: 1 },
   },
   {
-    name: "BrownLikeBears",
+    name: "brownlikebears",
+    displayName: t("BrownLikeBears"),
     path: "BrownLikeBears",
     tile_info: { width: 20, height: 20, pixelscale: 1 },
   },
   {
-    name: "ChestHole16",
+    name: "chesthole16",
+    displayName: t("ChestHole16"),
     path: "ChestHole16Tileset",
     tile_info: { width: 16, height: 16, pixelscale: 1 },
   },
   {
-    name: "HitButton iso",
+    name: "hitbutton",
+    displayName: t("HitButton iso"),
     path: "HitButton_iso",
     tile_info: {
       height: 20,
@@ -125,27 +136,26 @@ export const TILESETS = [
     },
   },
   {
-    name: "Hoder's",
+    name: "hoder",
+    displayName: t("Hoder's"),
     path: "HoderTileset",
     tile_info: { width: 16, height: 16, pixelscale: 1 },
   },
   {
-    name: "UNDEAD_PEOPLE",
-    path: "MSX++UnDeadPeopleEdition",
-    tile_info: { width: 32, height: 32, pixelscale: 1 },
-  },
-  {
-    name: "RetroDays+",
+    name: "retrodays_plus",
+    displayName: t("RetroDays+"),
     path: "RetroDays+Tileset",
     tile_info: { width: 10, height: 10, pixelscale: 2 },
   },
   {
-    name: "RetroDays",
+    name: "retrodays",
+    displayName: t("RetroDays"),
     path: "RetroDaysTileset",
     tile_info: { width: 10, height: 10, pixelscale: 2 },
   },
   {
-    name: "UltiCa",
+    name: "ultica",
+    displayName: t("UltiCa"),
     path: "UltimateCataclysm",
     tile_info: { width: 32, height: 32, pixelscale: 1 },
   },

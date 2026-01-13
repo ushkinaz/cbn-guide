@@ -388,8 +388,8 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
           saveTileset(tileset);
           updateQueryParamNoReload("t", tileset);
         }}>
-        {#each TILESETS as { name }}
-          <option value={name}>{name}</option>
+        {#each TILESETS as { name, displayName }}
+          <option value={name}>{displayName}</option>
         {/each}
       </select>
     </div>
