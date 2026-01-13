@@ -1,7 +1,8 @@
 <script lang="ts">
 import { setContext } from "svelte";
+import { t } from "@transifex/native";
 
-import { byName, CBNData, singularName } from "./data";
+import { byName, CBNData, singularName, pluralName, plural } from "./data";
 import LimitedList from "./LimitedList.svelte";
 import type {
   Item,
@@ -70,7 +71,7 @@ const groupFilter = ({
 }[type] ?? (() => true)) as (t: SupportedTypeMapped) => boolean;
 </script>
 
-<h1>{type}</h1>
+<h1 style="text-transform: capitalize;">{t(plural(type))}</h1>
 {#each groupsList as [groupName, group]}
   {#if type === "mutation" && groupName && data.byIdMaybe("mutation_category", groupName)}
     <MutationCategory
