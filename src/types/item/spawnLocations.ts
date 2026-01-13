@@ -648,7 +648,13 @@ export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
     return furnitureForMapgenCache.get(mapgen)!;
   const palette = parseFurniturePalette(data, mapgen.object);
   const place_furniture: Loot[] = (mapgen.object.place_furniture ?? []).map(
-    ({ furn }) => new Map([[furn, { prob: 1, expected: 1 }]]),
+    ({ furn, repeat }) =>
+      new Map([
+        [
+          furn,
+          repeatItemChance({ prob: 1, expected: 1 }, normalizeMinMax(repeat)),
+        ],
+      ]),
   );
   const additional_items = collection([...place_furniture]);
   const countByPalette = new Map<string, number>();
