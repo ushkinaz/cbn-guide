@@ -690,4 +690,41 @@ describe("furniture", () => {
     const loot = getFurnitureForMapgen(data, data.byType("mapgen")[0]);
     expect(loot.get("f_test_furn")).toEqual({ prob: 1, expected: 1 });
   });
+
+  it("place_furniture repeat", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+          rows: ["."],
+          place_furniture: [{ x: 0, y: 0, furn: "f_test_furn", repeat: 3 }],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getFurnitureForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("f_test_furn")).toEqual({ prob: 1, expected: 3 });
+  });
+
+  it("place_furniture repeat range", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+          rows: ["."],
+          place_furniture: [
+            { x: 0, y: 0, furn: "f_test_furn", repeat: [10, 25] },
+          ],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getFurnitureForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("f_test_furn")?.prob).toBeCloseTo(1);
+    expect(loot.get("f_test_furn")?.expected).toBeCloseTo(17.5);
+  });
 });
