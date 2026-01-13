@@ -11,7 +11,8 @@ function normalizeMinMax(
   if (v == null) return [1, 1];
   if (typeof v === "number") return [v, v];
   if (v.length === 1) return [v[0], v[0]];
-  return v;
+  //For malformed min-max arrays
+  return v[0] <= v[1] ? v : [v[1], v[0]];
 }
 
 export function repeatChance(

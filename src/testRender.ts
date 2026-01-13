@@ -78,12 +78,12 @@ export function makeRenderTests(chunkIdx: number, numChunks: number) {
       // Note: "technique" types are excluded as they may contain these strings legitimately
       // or are handled via a different rendering path.
       //TODO: enable later. /overmap_special/private_resort has multiple NaNs
-      // if (type !== "technique") {
-      //   expect(
-      //     container.textContent,
-      //     `Rendered output for ${type}:${id} contains "undefined", "NaN", or "[object Object]". This usually indicates a data binding error or a missing property.`,
-      //   ).not.toMatch(/undefined|NaN|object Object/);
-      // }
+      if (type !== "technique") {
+        expect(
+          container.textContent,
+          `Rendered output for ${type}:${id} contains "undefined", "NaN", or "[object Object]". This usually indicates a data binding error or a missing property.`,
+        ).not.toMatch(/undefined|NaN|object Object/);
+      }
     },
   );
 }
