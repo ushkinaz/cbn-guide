@@ -421,6 +421,7 @@ function flatAddItemChance(a: ItemChance, b: ItemChance): ItemChance {
 
 // Weighted average.
 export function mergeLoot(loots: { loot: Loot; weight: number }[]): Loot {
+  if (loots.length === 0) return new Map();
   if (loots.length === 1) return loots[0].loot;
   const totalWeight = loots.map((l) => l.weight).reduce((m, o) => m + o, 0);
   const mergedLoot: Loot = new Map();
@@ -537,6 +538,18 @@ function toLoot(distribution: Map<string, number>): Loot {
 }
 
 let onStack = 0;
+function resolveNestedChunks(
+  nested: raw.MapgenNested,
+): (raw.MapgenValue | [raw.MapgenValue, number])[] {
+  if (nested.chunks && nested.chunks.length > 0) return nested.chunks;
+  if (nested.else_chunks && nested.else_chunks.length > 0)
+    return nested.else_chunks as (
+      | raw.MapgenValue
+      | [raw.MapgenValue, number]
+    )[];
+  return [];
+}
+
 function lootForChunks(
   data: CBNData,
   chunks: (raw.MapgenValue | [raw.MapgenValue, number])[],
@@ -606,7 +619,7 @@ export function getLootForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
           : new Map<string, ItemChance>(),
   );
   const place_nested = (mapgen.object.place_nested ?? []).map((nested) => {
-    const loot = lootForChunks(data, nested.chunks ?? []);
+    const loot = lootForChunks(data, resolveNestedChunks(nested));
     const multipliedLoot: Loot = new Map();
     for (const [id, chance] of loot.entries()) {
       multipliedLoot.set(
@@ -840,8 +853,8 @@ export function parsePalette(
       yield parseItemGroup(data, item, repeat, chance / 100);
     },
   );
-  const nested = parsePlaceMapping(palette.nested, function* ({ chunks }) {
-    yield lootForChunks(data, chunks ?? []);
+  const nested = parsePlaceMapping(palette.nested, function* (nestedEntry) {
+    yield lootForChunks(data, resolveNestedChunks(nestedEntry));
   });
   const palettes = (palette.palettes ?? []).flatMap((val) => {
     if (typeof val === "string") {
