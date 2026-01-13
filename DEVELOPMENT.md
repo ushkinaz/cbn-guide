@@ -65,8 +65,8 @@ This project uses `vitest` for testing. The tests cover a range of functionality
 
 - **Run all tests**: `yarn test`
   - Runs formatting checks (`yarn verify:format`), type validation (`yarn verify:types`), and unit tests.
-- **Run tests with latest data**: `yarn test:latest`
-  - Fetches latest fixtures (`yarn fetch:fixtures:latest`) and runs tests.
+- **Run tests with latest nightly data**: `yarn test:nightly`
+  - Fetches latest fixtures (`yarn fetch:fixtures:nightly`) and runs tests.
 - **Watch mode**: `yarn test:watch`
   - Fetches fixtures, runs type checks, and starts Vitest in watch mode.
 - **Type Checking**: `yarn verify:types`
@@ -86,7 +86,7 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 #### Data & Assets
 
 - `yarn fetch:fixtures`: Download test data fixtures (default version).
-- `yarn fetch:fixtures:latest`: Download latest test data fixtures.
+- `yarn fetch:fixtures:nightly`: Download nightly test data fixtures.
 - `yarn fetch:icons`: Download item icons.
 - `yarn gen:css`: Generate `colors.css` from game data.
 - `yarn gen:sitemap`: Generate `sitemap.xml`.

@@ -1,6 +1,6 @@
 /**
  * @file fetch-fixtures.ts
- * @description This script fetches the latest or a specific build of the game data (all.json)
+ * @description This script fetches the nightly or a specific build of the game data (all.json)
  * and saves it for local development and testing purposes. It also updates the
  * metadata file (_test/all.meta.json) with the new build number and SHA.
  *
@@ -9,8 +9,8 @@
  * # Fetch the build specified in _test/all.meta.json
  * npx tsx scripts/fetch-fixtures.ts
  *
- * # Fetch the latest build and update metadata
- * npx tsx scripts/fetch-fixtures.ts latest
+ * # Fetch the nightly build and update metadata
+ * npx tsx scripts/fetch-fixtures.ts nightly
  * ```
  */
 
@@ -35,8 +35,8 @@ const projectRoot = path.resolve(__dirname, "..");
 
 const metaPath = path.join(projectRoot, "_test", "all.meta.json");
 const { buildNum, sha }: MetaData = JSON.parse(readFileSync(metaPath, "utf8"));
-const update = process.argv[2] === "latest";
-const dataUrl = getDataJsonUrl(update ? "latest" : buildNum, "all.json");
+const update = process.argv[2] === "nightly";
+const dataUrl = getDataJsonUrl(update ? "nightly" : buildNum, "all.json");
 
 function computeSha(file: string): Promise<string> {
   return new Promise((resolve) => {

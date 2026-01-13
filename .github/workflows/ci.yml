@@ -32,7 +32,7 @@ jobs:
         #        Run scheduled tests on a latest version of the game, on push - on commited in all.meta.json
         run: |
           if [ "$GITHUB_EVENT_NAME" != "push" ]; then
-            yarn test:latest
+            yarn test:nightly
           else
             yarn fetch:fixtures && yarn test
           fi
