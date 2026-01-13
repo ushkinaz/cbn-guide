@@ -71,6 +71,59 @@ function scaleItemChance(a: ItemChance, t: number): ItemChance {
   };
 }
 
+function averageMapgenInt(
+  v: undefined | number | [number] | [number, number],
+): number {
+  const [n0, n1] = normalizeMinMax(v);
+  return (n0 + n1) / 2;
+}
+
+function estimateLineTiles(set: raw.MapgenSet): number {
+  const x1 = averageMapgenInt(set.x);
+  const y1 = averageMapgenInt(set.y);
+  const x2 = averageMapgenInt(set.x2 ?? set.x);
+  const y2 = averageMapgenInt(set.y2 ?? set.y);
+  return Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1)) + 1;
+}
+
+function estimateSquareTiles(set: raw.MapgenSet): number {
+  const x1 = averageMapgenInt(set.x);
+  const y1 = averageMapgenInt(set.y);
+  const x2 = averageMapgenInt(set.x2 ?? set.x);
+  const y2 = averageMapgenInt(set.y2 ?? set.y);
+  return (Math.abs(x2 - x1) + 1) * (Math.abs(y2 - y1) + 1);
+}
+
+function setToLoot(
+  set: raw.MapgenSet,
+  kind: "furniture" | "terrain",
+): Loot | null {
+  const shape =
+    set.point === kind ? "point" : set.line === kind ? "line" : null;
+  const square = set.square === kind ? "square" : null;
+  if (!shape && !square) return null;
+  if (!set.id) return null;
+  const tiles =
+    square === "square"
+      ? estimateSquareTiles(set)
+      : shape === "line"
+        ? estimateLineTiles(set)
+        : 1;
+  const placementChance = (set.chance ?? 100) / 100;
+  const baseChance = {
+    prob: 1 - Math.pow(1 - placementChance, tiles),
+    expected: placementChance * tiles,
+  };
+  const itemChance = repeatItemChance(baseChance, normalizeMinMax(set.repeat));
+  return new Map([[set.id, itemChance]]);
+}
+
+function getSetLoot(mapgen: raw.Mapgen, kind: "furniture" | "terrain"): Loot[] {
+  return (mapgen.object.set ?? [])
+    .map((set) => setToLoot(set, kind))
+    .filter((set): set is Loot => Boolean(set));
+}
+
 const zeroItemChance = Object.freeze({ prob: 0, expected: 0 });
 export type Loot = Map</**item_id*/ string, ItemChance>;
 /** Independently choose whether to place each item  */
@@ -134,6 +187,14 @@ function offsetMapgen(mapgen: raw.Mapgen, x: number, y: number): raw.Mapgen {
     );
   if (object.place_nested)
     object.place_nested = object.place_nested.filter(
+      (p) =>
+        min(p.x) >= mx &&
+        min(p.y) >= my &&
+        min(p.x) < mx + 24 &&
+        min(p.y) < my + 24,
+    );
+  if (object.set)
+    object.set = object.set.filter(
       (p) =>
         min(p.x) >= mx &&
         min(p.y) >= my &&
@@ -663,7 +724,8 @@ export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
         ],
       ]),
   );
-  const additional_items = collection([...place_furniture]);
+  const set_furniture = getSetLoot(mapgen, "furniture");
+  const additional_items = collection([...place_furniture, ...set_furniture]);
   const symbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
   const counts = countSymbols(mapgen.object.rows, symbols);
   const items: Loot[] = [
@@ -690,7 +752,8 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   const place_terrain = (mapgen.object.place_terrain ?? []).map(({ ter }) =>
     toLoot(getMapgenValueDistribution(ter)),
   );
-  const additional_items = collection([...place_terrain]);
+  const set_terrain = getSetLoot(mapgen, "terrain");
+  const additional_items = collection([...place_terrain, ...set_terrain]);
   const countByPalette = new Map<string, number>();
   const terrainSymbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
   let fillCount = 0;
