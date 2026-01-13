@@ -639,6 +639,32 @@ describe("nested mapgen", () => {
 
   it.todo("handles repeat range");
 
+  it("handles deep nested chains", async () => {
+    const chain = Array.from(
+      { length: 5 },
+      (_, i) =>
+        ({
+          type: "mapgen",
+          method: "json",
+          ...(i === 0
+            ? { om_terrain: "test_ter" }
+            : { nested_mapgen_id: `mg${i}` }),
+          object: {
+            mapgensize: [1, 1],
+            rows: ["X"],
+            ...(i < 4
+              ? { place_nested: [{ x: 0, y: 0, chunks: [`mg${i + 1}`] }] }
+              : { item: { X: { item: "deep_item" } } }),
+          },
+        }) as Mapgen,
+    );
+    const data = new CBNData(chain);
+    const loot = await getLootForMapgen(data, data.byType("mapgen")[0]);
+    expect([...loot.entries()]).toEqual([
+      ["deep_item", { prob: 1, expected: 1 }],
+    ]);
+  });
+
   it("reads nested", async () => {
     const data = new CBNData([
       {
