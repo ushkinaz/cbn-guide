@@ -614,10 +614,8 @@ function resolveNestedChunks(
 function lootForChunks(
   data: CBNData,
   chunks: (raw.MapgenValue | [raw.MapgenValue, number])[],
+  stack: WeakSet<raw.Mapgen>,
 ): Loot {
-  onStack += 1;
-  // TODO: See https://github.com/nornagon/cdda-guide/issues/73
-  if (onStack > 4) return new Map();
   const normalizedChunks = (chunks ?? []).map((c) =>
     Array.isArray(c) && c.length === 2 && typeof c[1] === "number"
       ? (c as [raw.MapgenValue, number])
@@ -631,7 +629,7 @@ function lootForChunks(
         : [];
       const loot = mergeLoot(
         chunkMapgens.map((mg) => {
-          const loot = getLootForMapgen(data, mg);
+          const loot = getLootForMapgenInternal(data, mg, stack);
           const weight = mg.weight ?? 1000;
           return { loot, weight };
         }),
@@ -639,14 +637,23 @@ function lootForChunks(
       return { loot, weight };
     }),
   );
-  onStack -= 1;
   return loot;
 }
 
 const lootForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
 export function getLootForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
+  return getLootForMapgenInternal(data, mapgen, new WeakSet());
+}
+
+function getLootForMapgenInternal(
+  data: CBNData,
+  mapgen: raw.Mapgen,
+  stack: WeakSet<raw.Mapgen>,
+): Loot {
   if (lootForMapgenCache.has(mapgen)) return lootForMapgenCache.get(mapgen)!;
-  const palette = parsePalette(data, mapgen.object);
+  if (stack.has(mapgen)) return new Map();
+  stack.add(mapgen);
+  const palette = parsePalette(data, mapgen.object, stack);
   const mappingPalette = parseMappingItems(data, mapgen.object.mapping);
   const place_items: Loot[] = (mapgen.object.place_items ?? []).map(
     ({ item, chance = 100, repeat }) =>
@@ -681,7 +688,7 @@ export function getLootForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
           : new Map<string, ItemChance>(),
   );
   const place_nested = (mapgen.object.place_nested ?? []).map((nested) => {
-    const loot = lootForChunks(data, resolveNestedChunks(nested));
+    const loot = lootForChunks(data, resolveNestedChunks(nested), stack);
     const multipliedLoot: Loot = new Map();
     for (const [id, chance] of loot.entries()) {
       multipliedLoot.set(
@@ -706,6 +713,7 @@ export function getLootForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   ]);
   loot.delete("null");
   lootForMapgenCache.set(mapgen, loot);
+  stack.delete(mapgen);
   return loot;
 }
 
@@ -960,8 +968,10 @@ const paletteCache = new WeakMap<raw.PaletteData, Map<string, Loot>>();
 export function parsePalette(
   data: CBNData,
   palette: raw.PaletteData,
+  stack?: WeakSet<raw.Mapgen>,
 ): Map<string, Loot> {
   if (paletteCache.has(palette)) return paletteCache.get(palette)!;
+  const stackLocal = stack ?? new WeakSet<raw.Mapgen>();
   const sealed_item = parsePlaceMapping(
     palette.sealed_item,
     function* ({ item, items, chance = 100 }) {
@@ -1009,11 +1019,11 @@ export function parsePalette(
     },
   );
   const nested = parsePlaceMapping(palette.nested, function* (nestedEntry) {
-    yield lootForChunks(data, resolveNestedChunks(nestedEntry));
+    yield lootForChunks(data, resolveNestedChunks(nestedEntry), stackLocal);
   });
   const palettes = (palette.palettes ?? []).flatMap((val) => {
     if (typeof val === "string") {
-      return [parsePalette(data, data.byId("palette", val))];
+      return [parsePalette(data, data.byId("palette", val), stackLocal)];
     } else if ("distribution" in val) {
       const opts = val.distribution;
       function prob<T>(it: T | [T, number]) {
@@ -1025,7 +1035,7 @@ export function parsePalette(
       const totalProb = opts.reduce((m, it) => m + prob(it), 0);
       return opts.map((it) =>
         attenuatePalette(
-          parsePalette(data, data.byId("palette", id(it))),
+          parsePalette(data, data.byId("palette", id(it)), stackLocal),
           prob(it) / totalProb,
         ),
       );
@@ -1042,7 +1052,7 @@ export function parsePalette(
         const id = getMapgenValueDistribution(param.default);
         return [...id.entries()].map(([id, chance]) =>
           attenuatePalette(
-            parsePalette(data, data.byId("palette", id)),
+            parsePalette(data, data.byId("palette", id), stackLocal),
             chance,
           ),
         );
