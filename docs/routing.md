@@ -7,7 +7,9 @@ This document describes the routing and navigation architecture of the cbn-guide
 The application uses a **hybrid routing approach**:
 
 - **Full page reloads** for version, language, and tileset changes
+- **Full page reloads** for version, language, and tileset changes
 - **SPA (Single Page Application) navigation** for browsing items, searching, and catalog navigation
+- **Smart path correction** for legacy or incomplete URLs (e.g., `/item/rock` → `/stable/item/rock`)
 
 ### Key Principles
 
@@ -116,12 +118,12 @@ sequenceDiagram
     alt Version exists
         Init-->>App: Return InitialAppState
     else Version not found
-        Init->>Init: redirectToVersion(fallback)
-        Init-->>App: Return InitialAppState
+        Note over Init: e.g. /item/rock or /typo/item
+        Init->>Init: location.replace(/stable/...)
+        Note over Init: Full Page Reload
     end
 
     App->>Data: data.setVersion(resolvedVersion)
-
 ```
 
 ## URL Parsing and Routing
@@ -184,12 +186,16 @@ The version resolution follows this priority:
    - `"nightly"` or `"latest"` → Latest nightly build number
    - Other values → Pass through as-is
 3. **Validate** resolved version exists in builds list
-4. **Fallback** if version not found:
+4. **Correction (Prepend `/stable/`)**:
+   - If the version looks valid (e.g. `v0.9`), stay (let it error out later or handle as offline)
+   - If the segment is NOT a known version, assumes it is a legacy path or data type
+   - **ACTION**: Prepend `/stable/` to the current path and force a full page reload
+   - Example: `/item/rock` → `/stable/item/rock`
+5. **Fallback** (only if everything fails):
    - Use latest stable build, OR
    - Use latest nightly build, OR
    - Use first available build, OR
-   - Use `"Grinch-v1.0"` (hardcoded fallback)
-5. **Redirect** if fallback was used
+   - "Grinch-v1.0"
 
 ## API Reference
 
