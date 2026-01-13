@@ -5,8 +5,8 @@ import {
   collection,
   getFurnitureForMapgen,
   getLootForMapgen,
-  lootForOmSpecial,
   getTerrainForMapgen,
+  lootForOmSpecial,
   parseItemGroup,
   parsePalette,
   repeatChance,
@@ -810,5 +810,61 @@ describe("mapping", () => {
     const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
     expect(loot.get("t_rock")).toEqual({ prob: 1, expected: 1 });
     expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 1 });
+  });
+
+  it("set furniture", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: [],
+          set: [
+            {
+              point: "furniture",
+              id: "f_test_furn",
+              x: [1, 22],
+              y: [1, 22],
+              chance: 50,
+              repeat: [2, 4],
+            },
+          ],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getFurnitureForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("f_test_furn")!;
+    expect(entry.prob).toBeCloseTo(0.8541667, 5);
+    expect(entry.expected).toBeCloseTo(1.5, 5);
+  });
+});
+
+describe("terrain", () => {
+  it("set terrain", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: [],
+          set: [
+            {
+              point: "terrain",
+              id: "t_test_ter",
+              x: [0, 23],
+              y: [0, 23],
+              chance: 25,
+              repeat: [1, 3],
+            },
+          ],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("t_test_ter")!;
+    expect(entry.prob).toBeCloseTo(0.421875, 5);
+    expect(entry.expected).toBeCloseTo(0.5, 5);
   });
 });
