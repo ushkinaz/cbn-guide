@@ -5,6 +5,7 @@ import {
   collection,
   getFurnitureForMapgen,
   getLootForMapgen,
+  lootForOmSpecial,
   getTerrainForMapgen,
   parseItemGroup,
   parsePalette,
@@ -427,6 +428,25 @@ describe("loot", () => {
     //   e.v. for one chance = 75% * 2/3 = 0.5
     //   4x 0.5 = 2
     expect(loot.get("item_b")!.expected.toFixed(2)).toEqual("2.00");
+  });
+
+  it("handles overmap specials with no mapgens", async () => {
+    const data = new CBNData([
+      {
+        type: "overmap_special",
+        id: "test_special",
+        subtype: "fixed",
+        overmaps: [{ point: [0, 0, 0], overmap: "field_north" }],
+      },
+    ]);
+
+    const loot = await lootForOmSpecial(
+      data,
+      data.byId("overmap_special", "test_special"),
+      () => new Map(),
+    );
+
+    expect(loot).toStrictEqual(new Map());
   });
 });
 
