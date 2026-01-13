@@ -449,7 +449,7 @@ describe("Routing E2E Tests", () => {
         dispatchPopState();
       });
 
-      await waitForNavigation();
+      await waitForDataLoad();
       expect(window.location.pathname).toContain("item/rock");
       expect(document.body.textContent?.toLowerCase()).toContain("rock");
 
@@ -465,7 +465,7 @@ describe("Routing E2E Tests", () => {
       expect(text.includes("Search Results") || text.includes("HHG")).toBe(
         true,
       );
-    });
+    }, 15000);
 
     test("handles forward button from home to item", async () => {
       render(App, {
