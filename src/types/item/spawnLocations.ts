@@ -65,6 +65,14 @@ function repeatItemChance(
   };
 }
 
+function applyAmount(a: ItemChance, amount: raw.MapgenInt): ItemChance {
+  const avg = averageMapgenInt(amount);
+  return {
+    prob: a.prob,
+    expected: a.expected * avg,
+  };
+}
+
 function scaleItemChance(a: ItemChance, t: number): ItemChance {
   return {
     prob: a.prob * t,
@@ -663,14 +671,17 @@ function getLootForMapgenInternal(
   const place_item = [
     ...(mapgen.object.place_item ?? []),
     ...(mapgen.object.add ?? []),
-  ].map(({ item, chance = 100, repeat }) => {
+  ].map(({ item, chance = 100, repeat, amount }) => {
     const itemNormalized = getMapgenValue(item);
     return itemNormalized
       ? new Map([
           [
             itemNormalized,
             repeatItemChance(
-              { prob: chance / 100, expected: chance / 100 },
+              applyAmount(
+                { prob: chance / 100, expected: chance / 100 },
+                amount ?? 1,
+              ),
               normalizeMinMax(repeat),
             ),
           ],
@@ -912,10 +923,13 @@ function parseMappingItems(
           [
             itemNormalized,
             repeatItemChance(
-              {
-                prob: (itemEntry.chance ?? 100) / 100,
-                expected: (itemEntry.chance ?? 100) / 100,
-              },
+              applyAmount(
+                {
+                  prob: (itemEntry.chance ?? 100) / 100,
+                  expected: (itemEntry.chance ?? 100) / 100,
+                },
+                itemEntry.amount ?? 1,
+              ),
               normalizeMinMax(itemEntry.repeat),
             ),
           ],
@@ -1004,10 +1018,13 @@ export function parsePalette(
           [
             item.item,
             repeatItemChance(
-              {
-                prob: (chance / 100) * ((item.chance ?? 100) / 100),
-                expected: (chance / 100) * ((item.chance ?? 100) / 100),
-              },
+              applyAmount(
+                {
+                  prob: (chance / 100) * ((item.chance ?? 100) / 100),
+                  expected: (chance / 100) * ((item.chance ?? 100) / 100),
+                },
+                item.amount ?? 1,
+              ),
               normalizeMinMax(item.repeat),
             ),
           ],
@@ -1016,13 +1033,16 @@ export function parsePalette(
   );
   const item = parsePlaceMapping(
     palette.item,
-    function* ({ item, chance = 100, repeat }) {
+    function* ({ item, chance = 100, repeat, amount }) {
       if (typeof item === "string")
         yield new Map([
           [
             item,
             repeatItemChance(
-              { prob: chance / 100, expected: chance / 100 },
+              applyAmount(
+                { prob: chance / 100, expected: chance / 100 },
+                amount ?? 1,
+              ),
               normalizeMinMax(repeat),
             ),
           ],
