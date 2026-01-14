@@ -1175,6 +1175,7 @@ export interface MapgenObject {
 
   translate?: PlaceMappingAlternative<MapgenTranslate>;
   translate_ter?: PlaceList<MapgenTranslate>;
+  parameters?: Record<string, MapgenParameter>;
 }
 
 export interface MapgenField {
@@ -1372,7 +1373,7 @@ export interface Palette extends PaletteData {
   type: "palette";
 }
 
-type MapgenParameter = {
+export type MapgenParameter = {
   scope?: "overmap_special" | "omt" | "nest";
   type:
     | "void"

@@ -561,8 +561,11 @@ function addLoot(loots: Loot[]): Loot {
   return ret;
 }
 
-function getMapgenValue(val: raw.MapgenValue): string | undefined {
-  const distribution = getMapgenValueDistribution(val);
+function getMapgenValue(
+  val: raw.MapgenValue,
+  parameters?: Record<string, raw.MapgenParameter>,
+): string | undefined {
+  const distribution = getMapgenValueDistribution(val, parameters);
   let maxProb = -Infinity;
   let maxId: string | undefined;
   for (const [id, prob] of distribution.entries())
@@ -573,13 +576,16 @@ function getMapgenValue(val: raw.MapgenValue): string | undefined {
   return maxId;
 }
 
-function getMapgenValueDistribution(val: raw.MapgenValue): Map<string, number> {
+function getMapgenValueDistribution(
+  val: raw.MapgenValue,
+  parameters?: Record<string, raw.MapgenParameter>,
+): Map<string, number> {
   if (typeof val === "string") return new Map([[val, 1]]);
   if (Array.isArray(val)) {
     const totalProb = val.length;
     const dist = new Map<string, number>();
     for (const v of val) {
-      const d = getMapgenValueDistribution(v);
+      const d = getMapgenValueDistribution(v, parameters);
       for (const [id, p] of d) {
         dist.set(id, (dist.get(id) ?? 0) + p / totalProb);
       }
@@ -612,6 +618,9 @@ function getMapgenValueDistribution(val: raw.MapgenValue): Map<string, number> {
     );
   }
   if ("param" in val) {
+    if (parameters && val.param in parameters) {
+      return getMapgenValueDistribution(parameters[val.param].default);
+    }
     if ("fallback" in val && val.fallback) {
       return new Map([[val.fallback, 1]]);
     }
@@ -715,7 +724,7 @@ function getLootForMapgenInternal(
     ...(mapgen.object.place_item ?? []),
     ...(mapgen.object.add ?? []),
   ].map(({ item, chance = 100, repeat, amount }) => {
-    const itemNormalized = getMapgenValue(item);
+    const itemNormalized = getMapgenValue(item, mapgen.object.parameters);
     return itemNormalized
       ? new Map([
           [
@@ -736,12 +745,14 @@ function getLootForMapgenInternal(
     if ("item" in v) {
       return applyAmmoAndMagazine(
         new Map<string, ItemChance>([
-          [v.item,repeatItemChance(
-            { prob: chance / 100, expected: chance / 100 },
-        normalizeMinMax(v.repeat),
-          ),
-        ],
-      ]),
+          [
+            v.item,
+            repeatItemChance(
+              { prob: chance / 100, expected: chance / 100 },
+              normalizeMinMax(v.repeat),
+            ),
+          ],
+        ]),
         v.ammo,
         v.magazine,
       );
@@ -792,7 +803,10 @@ export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (furnitureForMapgenCache.has(mapgen))
     return furnitureForMapgenCache.get(mapgen)!;
   const palette = parseFurniturePalette(data, mapgen.object);
-  const mappingPalette = parseMappingFurniture(mapgen.object.mapping);
+  const mappingPalette = parseMappingFurniture(
+    mapgen.object.mapping,
+    mapgen.object.parameters,
+  );
   const place_furniture: Loot[] = (mapgen.object.place_furniture ?? []).map(
     ({ furn, repeat }) =>
       new Map([
@@ -822,13 +836,19 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (terrainForMapgenCache.has(mapgen))
     return terrainForMapgenCache.get(mapgen)!;
   const palette = parseTerrainPalette(data, mapgen.object);
-  const mappingPalette = parseMappingTerrain(mapgen.object.mapping);
+  const mappingPalette = parseMappingTerrain(
+    mapgen.object.mapping,
+    mapgen.object.parameters,
+  );
   const rows = mapgen.object.rows ?? [];
   const fill_ter = mapgen.object.fill_ter
-    ? getMapgenValueDistribution(mapgen.object.fill_ter)
+    ? getMapgenValueDistribution(
+        mapgen.object.fill_ter,
+        mapgen.object.parameters,
+      )
     : new Map<string, number>();
   const place_terrain = (mapgen.object.place_terrain ?? []).map(({ ter }) =>
-    toLoot(getMapgenValueDistribution(ter)),
+    toLoot(getMapgenValueDistribution(ter, mapgen.object.parameters)),
   );
   const set_terrain = getSetLoot(mapgen, "terrain");
   const additional_items = collection([...place_terrain, ...set_terrain]);
@@ -950,6 +970,7 @@ export function parsePlaceMappingAlternative<T>(
 function parseMappingItems(
   data: CBNData,
   mapping: undefined | Record<string, raw.MapgenMapping>,
+  parameters?: Record<string, raw.MapgenParameter>,
 ): Map<string, Loot> {
   const entries = Object.entries(mapping ?? {}).flatMap(([sym, val]) => {
     const loots: Loot[] = [];
@@ -976,7 +997,7 @@ function parseMappingItems(
         ? [val.item]
         : [];
     for (const itemEntry of itemEntries) {
-      const itemNormalized = getMapgenValue(itemEntry.item);
+      const itemNormalized = getMapgenValue(itemEntry.item, parameters);
       if (!itemNormalized) continue;
       loots.push(
         new Map([
@@ -1004,11 +1025,17 @@ function parseMappingItems(
 
 function parseMappingFurniture(
   mapping: undefined | Record<string, raw.MapgenMapping>,
+  parameters?: Record<string, raw.MapgenParameter>,
 ): Map<string, Loot> {
   return new Map(
     Object.entries(mapping ?? {}).flatMap(([sym, val]) =>
       val.furniture
-        ? ([[sym, toLoot(getMapgenValueDistribution(val.furniture))]] as const)
+        ? ([
+            [
+              sym,
+              toLoot(getMapgenValueDistribution(val.furniture, parameters)),
+            ],
+          ] as const)
         : [],
     ),
   );
@@ -1016,11 +1043,14 @@ function parseMappingFurniture(
 
 function parseMappingTerrain(
   mapping: undefined | Record<string, raw.MapgenMapping>,
+  parameters?: Record<string, raw.MapgenParameter>,
 ): Map<string, Loot> {
   return new Map(
     Object.entries(mapping ?? {}).flatMap(([sym, val]) =>
       val.terrain
-        ? ([[sym, toLoot(getMapgenValueDistribution(val.terrain))]] as const)
+        ? ([
+            [sym, toLoot(getMapgenValueDistribution(val.terrain, parameters))],
+          ] as const)
         : [],
     ),
   );
@@ -1081,10 +1111,12 @@ export function parsePalette(
             [
               item.item,
               repeatItemChance(
-                applyAmount({
-                  prob: (chance / 100) * ((item.chance ?? 100) / 100),
-                  expected: (chance / 100) * ((item.chance ?? 100) / 100),},
-                item.amount ?? 1,
+                applyAmount(
+                  {
+                    prob: (chance / 100) * ((item.chance ?? 100) / 100),
+                    expected: (chance / 100) * ((item.chance ?? 100) / 100),
+                  },
+                  item.amount ?? 1,
                 ),
                 normalizeMinMax(item.repeat),
               ),
@@ -1181,7 +1213,7 @@ export function parseFurniturePalette(
   const furniture = parsePlaceMappingAlternative(
     palette.furniture,
     function* (furn) {
-      const value = getMapgenValueDistribution(furn);
+      const value = getMapgenValueDistribution(furn, palette.parameters);
       for (const [f, prob] of value.entries())
         if (value) yield new Map([[f, { prob, expected: prob }]]);
     },
@@ -1221,7 +1253,7 @@ export function parseTerrainPalette(
   const terrain = parsePlaceMappingAlternative(
     palette.terrain,
     function* (ter) {
-      const value = getMapgenValueDistribution(ter);
+      const value = getMapgenValueDistribution(ter, palette.parameters);
       for (const [t, prob] of value.entries())
         if (value) yield new Map([[t, { prob, expected: prob }]]);
     },
