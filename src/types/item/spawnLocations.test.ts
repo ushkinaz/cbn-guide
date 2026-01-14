@@ -552,7 +552,7 @@ describe("terrain", () => {
       } as Mapgen,
     ]);
     const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
-    expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 1 * 1 });
+    expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 1 * 1 * 24 * 24 });
   });
 
   it("uses mapgensize when rows are missing", () => {
@@ -568,7 +568,10 @@ describe("terrain", () => {
       } as Mapgen,
     ]);
     const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
-    expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 12 * 12 });
+    expect(loot.get("t_floor")).toEqual({
+      prob: 1,
+      expected: 12 * 12 * 24 * 24,
+    });
   });
 });
 
@@ -981,6 +984,23 @@ describe("terrain", () => {
     const entry = loot.get("t_test_ter")!;
     expect(entry.prob).toBeCloseTo(0.421875, 5);
     expect(entry.expected).toBeCloseTo(0.5, 5);
+  });
+
+  it("counts fill_ter correctly when rows are missing", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_dirt",
+        },
+      } as any,
+    ]);
+    const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("t_dirt")!;
+    // 1x1 submap = 24x24 = 576 tiles
+    expect(entry.expected).toBe(576);
   });
 
   it("treats conditional nested chunks as conditional (averages chunks and else_chunks)", async () => {
