@@ -1203,3 +1203,26 @@ describe("parameters", () => {
     expect(loot.get("t_dirt")!.prob).toBeCloseTo(0.2);
   });
 });
+
+describe("chance > 100", () => {
+  it("handles chance > 100 in place_loot", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: [],
+          place_loot: [{ item: "test_item", x: 0, y: 0, chance: 150 }],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("test_item")!;
+    // prob should be capped at 1.0
+    expect(entry.prob).toBeLessThanOrEqual(1.0);
+    expect(entry.prob).toBeCloseTo(1.0);
+    // expected should reflect the actual average count (1.5)
+    expect(entry.expected).toBeCloseTo(1.5);
+  });
+});
