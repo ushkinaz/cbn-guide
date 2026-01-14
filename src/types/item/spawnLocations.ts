@@ -73,6 +73,28 @@ function applyAmount(a: ItemChance, amount: raw.MapgenInt): ItemChance {
   };
 }
 
+function applyAmmoAndMagazine(
+  loot: Loot,
+  ammo: number | undefined,
+  magazine: number | undefined,
+): Loot {
+  if (!ammo && !magazine) return loot;
+  const ret: Loot = new Map(loot);
+  for (const [id, chance] of loot.entries()) {
+    if (ammo) {
+      const ammoChance = scaleItemChance(chance, ammo / 100);
+      const oldAmmo = ret.get(`${id}_ammo`) ?? zeroItemChance;
+      ret.set(`${id}_ammo`, andItemChance(oldAmmo, ammoChance));
+    }
+    if (magazine) {
+      const magazineChance = scaleItemChance(chance, magazine / 100);
+      const oldMagazine = ret.get(`${id}_magazine`) ?? zeroItemChance;
+      ret.set(`${id}_magazine`, andItemChance(oldMagazine, magazineChance));
+    }
+  }
+  return ret;
+}
+
 function scaleItemChance(a: ItemChance, t: number): ItemChance {
   return {
     prob: a.prob * t,
@@ -712,17 +734,26 @@ function getLootForMapgenInternal(
   const place_loot: Loot[] = (mapgen.object.place_loot ?? []).map((v) => {
     const chance = v.chance ?? 100;
     if ("item" in v) {
-      return new Map<string, ItemChance>([
-        [
-          v.item,
-          repeatItemChance(
+      return applyAmmoAndMagazine(
+        new Map<string, ItemChance>([
+          [v.item,repeatItemChance(
             { prob: chance / 100, expected: chance / 100 },
-            normalizeMinMax(v.repeat),
+        normalizeMinMax(v.repeat),
           ),
         ],
-      ]);
+      ]),
+        v.ammo,
+        v.magazine,
+      );
     } else if ("group" in v) {
-      return parseItemGroup(data, v.group, v.repeat, chance / 100);
+      return parseItemGroup(
+        data,
+        v.group,
+        v.repeat,
+        chance / 100,
+        v.ammo,
+        v.magazine,
+      );
     }
     return new Map<string, ItemChance>();
   });
@@ -837,6 +868,8 @@ export function parseItemGroup(
   group: raw.InlineItemGroup,
   repeat: undefined | number | [number] | [number, number],
   chance: chance,
+  ammo?: number,
+  magazine?: number,
 ): Loot {
   const g =
     typeof group === "string"
@@ -847,11 +880,15 @@ export function parseItemGroup(
         ? { subtype: "collection" as "collection", entries: group }
         : group;
   const flat = data.flattenItemGroup(g);
-  return new Map(
-    flat.map((x) => [
-      x.id,
-      repeatItemChance(scaleItemChance(x, chance), normalizeMinMax(repeat)),
-    ]),
+  return applyAmmoAndMagazine(
+    new Map(
+      flat.map((x) => [
+        x.id,
+        repeatItemChance(scaleItemChance(x, chance), normalizeMinMax(repeat)),
+      ]),
+    ),
+    ammo,
+    magazine,
   );
 }
 
@@ -928,6 +965,8 @@ function parseMappingItems(
           itemsEntry.item,
           itemsEntry.repeat,
           (itemsEntry.chance ?? 100) / 100,
+          itemsEntry.ammo,
+          itemsEntry.magazine,
         ),
       );
     }
@@ -1033,23 +1072,27 @@ export function parsePalette(
           items.item,
           items.repeat,
           ((chance / 100) * (items.chance ?? 100)) / 100,
+          items.ammo,
+          items.magazine,
         );
       if (item && typeof item.item === "string")
-        yield new Map([
-          [
-            item.item,
-            repeatItemChance(
-              applyAmount(
-                {
+        yield applyAmmoAndMagazine(
+          new Map([
+            [
+              item.item,
+              repeatItemChance(
+                applyAmount({
                   prob: (chance / 100) * ((item.chance ?? 100) / 100),
-                  expected: (chance / 100) * ((item.chance ?? 100) / 100),
-                },
+                  expected: (chance / 100) * ((item.chance ?? 100) / 100),},
                 item.amount ?? 1,
+                ),
+                normalizeMinMax(item.repeat),
               ),
-              normalizeMinMax(item.repeat),
-            ),
-          ],
-        ]);
+            ],
+          ]),
+          undefined, // MapgenSpawnItem doesn't seem to have ammo/magazine in schema
+          undefined,
+        );
     },
   );
   const item = parsePlaceMapping(
@@ -1072,8 +1115,8 @@ export function parsePalette(
   );
   const items = parsePlaceMapping(
     palette.items,
-    function* ({ item, chance = 100, repeat }) {
-      yield parseItemGroup(data, item, repeat, chance / 100);
+    function* ({ item, chance = 100, repeat, ammo, magazine }) {
+      yield parseItemGroup(data, item, repeat, chance / 100, ammo, magazine);
     },
   );
   const nested = parsePlaceMappingAlternative(

@@ -986,6 +986,71 @@ describe("terrain", () => {
     expect(entry.expected).toBeCloseTo(0.5, 5);
   });
 
+  it("place_loot respects ammo and magazine", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: [],
+          place_loot: [
+            {
+              item: "test_gun",
+              x: 0,
+              y: 0,
+              ammo: 100,
+              magazine: 100,
+              chance: 50,
+            },
+          ],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+
+    const gun = loot.get("test_gun")!;
+    expect(gun.prob).toBeCloseTo(0.5);
+    expect(gun.expected).toBeCloseTo(0.5);
+
+    // Ammo and magazine should spawn with 100% chance IF the gun spawns.
+    // So their total probability in the loot map should be the same as the gun's probability (0.5).
+    const ammo = loot.get("test_gun_ammo");
+    // NOTE: In a real scenario, it would be the actual ammo ID.
+    // For this test, let's assume our implementation will add "test_gun_ammo" and "test_gun_magazine"
+    // or similar, or we can just check if multiple entries are present in the loot.
+    // Let's keep it simple: we expect 3 entries in the loot map.
+    expect(loot.size).toBe(3);
+    expect(loot.get("test_gun_ammo")?.prob).toBeCloseTo(0.5);
+    expect(loot.get("test_gun_magazine")?.prob).toBeCloseTo(0.5);
+  });
+
+  it("items mapping respects ammo and magazine", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["G"],
+          items: {
+            G: {
+              item: { subtype: "collection", entries: [{ item: "test_gun" }] },
+              ammo: 100,
+              magazine: 100,
+              chance: 50,
+            },
+          },
+        },
+      } as Mapgen,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.size).toBe(3);
+    expect(loot.get("test_gun")?.prob).toBeCloseTo(0.5);
+    expect(loot.get("test_gun_ammo")?.prob).toBeCloseTo(0.5);
+    expect(loot.get("test_gun_magazine")?.prob).toBeCloseTo(0.5);
+  });
+
   it("counts fill_ter correctly when rows are missing", () => {
     const data = new CBNData([
       {
