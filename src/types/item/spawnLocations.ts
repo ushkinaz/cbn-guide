@@ -102,6 +102,19 @@ function scaleItemChance(a: ItemChance, t: number): ItemChance {
   };
 }
 
+/**
+ * Convert a chance percentage (0-100+) to ItemChance.
+ * Probability is capped at 1.0: chance > 100 means "higher expected count",
+ * not "more than 100% probability".
+ */
+function chanceToItemChance(chance: number): ItemChance {
+  const p = chance / 100;
+  return {
+    prob: Math.min(1.0, p),
+    expected: p,
+  };
+}
+
 function averageMapgenInt(
   v: undefined | number | [number] | [number, number],
 ): number {
@@ -748,7 +761,7 @@ function getLootForMapgenInternal(
           [
             v.item,
             repeatItemChance(
-              { prob: chance / 100, expected: chance / 100 },
+              chanceToItemChance(chance),
               normalizeMinMax(v.repeat),
             ),
           ],
