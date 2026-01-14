@@ -839,7 +839,7 @@ function parsePlaceMapping<T>(
   );
 }
 
-function parsePlaceMappingAlternative<T>(
+export function parsePlaceMappingAlternative<T>(
   mapping: undefined | raw.PlaceMappingAlternative<T>,
   extract: (t: T) => Iterable<Loot>,
 ): Map<string, Loot> {
@@ -850,14 +850,24 @@ function parsePlaceMappingAlternative<T>(
           Array.isArray(x) ? x : ([x, 1] as [T, number]),
       );
       const total = vals.reduce((m, x) => m + x[1], 0);
-      return [
-        sym,
-        collection(
-          vals.flatMap(([x, weight]: [T, number]) =>
-            [...extract(x)].map((v) => attenuateLoot(v, weight / total)),
-          ),
-        ),
-      ];
+
+      const items: Loot[] = vals.flatMap(([x, weight]: [T, number]) =>
+        [...extract(x)].map((v) => attenuateLoot(v, weight / total)),
+      );
+
+      // Mutually exclusive alternatives: sum probabilities for each item_id
+      const combinedLoot: Loot = new Map();
+      for (const loot of items) {
+        for (const [item_id, chance] of loot.entries()) {
+          const current = combinedLoot.get(item_id) ?? zeroItemChance;
+          combinedLoot.set(item_id, {
+            prob: current.prob + chance.prob,
+            expected: current.expected + chance.expected,
+          });
+        }
+      }
+
+      return [sym, combinedLoot];
     }),
   );
 }

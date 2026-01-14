@@ -9,6 +9,7 @@ import {
   lootForOmSpecial,
   parseItemGroup,
   parsePalette,
+  parsePlaceMappingAlternative,
   repeatChance,
 } from "./spawnLocations";
 import { CBNData } from "../../data";
@@ -892,5 +893,26 @@ describe("terrain", () => {
     const entry = loot.get("t_test_ter")!;
     expect(entry.prob).toBeCloseTo(0.421875, 5);
     expect(entry.expected).toBeCloseTo(0.5, 5);
+  });
+});
+
+describe("parsePlaceMappingAlternative", () => {
+  it("sums probabilities for repeated items (weighted choice)", () => {
+    const data = new CBNData([]);
+    // ["t_grass", "t_grass", "t_grass", "t_grass", "t_dirt"]
+    // total = 5, t_grass weight = 4, t_dirt weight = 1
+    // expected: t_grass prob = 0.8, t_dirt prob = 0.2
+    const mapping = {
+      ".": ["t_grass", "t_grass", "t_grass", "t_grass", "t_dirt"],
+    };
+    const got = parsePlaceMappingAlternative(mapping, (ter) => [
+      new Map([[ter, { prob: 1, expected: 1 }]]),
+    ]);
+
+    const grass = got.get(".")!.get("t_grass")!;
+    const dirt = got.get(".")!.get("t_dirt")!;
+
+    expect(grass.prob).toBeCloseTo(0.8);
+    expect(dirt.prob).toBeCloseTo(0.2);
   });
 });
