@@ -1297,8 +1297,25 @@ export interface MapgenLoot {
   repeat?: MapgenInt;
 }
 
+export type NestedDirection =
+  | "north"
+  | "south"
+  | "east"
+  | "west"
+  | "above"
+  | "below";
+
+export type NestedRelations =
+  | Partial<Record<NestedDirection, string | string[]>>
+  | Array<[number, number, string]>; // [relative x, relative y, overmap_terrain_id][]
+
+/** mapping directions to overmap_terrain_id */
+export type NestedJoins = Partial<Record<NestedDirection, string>> | string[];
+
 export interface MapgenNested {
-  neighbors?: any; // TODO:
+  neighbors?: NestedRelations;
+  connections?: NestedRelations;
+  joins?: NestedJoins;
   chunks?: Array<[MapgenValue, number] | MapgenValue>;
   else_chunks?: Array<[string, number] | string>;
 }
