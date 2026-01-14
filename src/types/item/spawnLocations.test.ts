@@ -1171,3 +1171,35 @@ describe("parsePlaceMappingAlternative", () => {
     expect(dirt.prob).toBeCloseTo(0.2);
   });
 });
+
+describe("parameters", () => {
+  it("resolves parameters without fallback using default distribution", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["X"],
+          parameters: {
+            roof_type: {
+              type: "ter_id",
+              default: {
+                distribution: [
+                  ["t_grass", 4],
+                  ["t_dirt", 1],
+                ],
+              },
+            },
+          },
+          mapping: {
+            X: { terrain: { param: "roof_type" } },
+          },
+        },
+      } as Mapgen,
+    ]);
+    const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("t_grass")!.prob).toBeCloseTo(0.8);
+    expect(loot.get("t_dirt")!.prob).toBeCloseTo(0.2);
+  });
+});
