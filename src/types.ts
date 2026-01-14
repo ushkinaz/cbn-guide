@@ -1418,8 +1418,8 @@ export interface MapgenMapping {
   item?: MapgenSpawnItem | MapgenSpawnItem[];
   furniture?: MapgenValue;
   terrain?: MapgenValue;
-  //traps?: string;
-  //fields?: Fields;
+  traps?: MapgenValue;
+  fields?: MapgenValue;
 }
 
 export type ToolQuality = {
