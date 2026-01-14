@@ -1019,9 +1019,12 @@ export function parsePalette(
       yield parseItemGroup(data, item, repeat, chance / 100);
     },
   );
-  const nested = parsePlaceMapping(palette.nested, function* (nestedEntry) {
-    yield lootForChunks(data, resolveNestedChunks(nestedEntry), stackLocal);
-  });
+  const nested = parsePlaceMappingAlternative(
+    palette.nested,
+    function* (nestedEntry) {
+      yield lootForChunks(data, resolveNestedChunks(nestedEntry), stackLocal);
+    },
+  );
   const palettes = (palette.palettes ?? []).flatMap((val) => {
     if (typeof val === "string") {
       return [parsePalette(data, data.byId("palette", val), stackLocal)];

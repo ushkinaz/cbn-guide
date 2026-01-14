@@ -1123,33 +1123,137 @@ export interface MapgenObject {
   place_nested?: PlaceList<MapgenNested>;
   nested?: PlaceMapping<MapgenNested>;
   set?: MapgenSet[];
-  //place_rubble?: PlaceFurnitureElement[];
-  //place_furniture?: PlaceFurnitureElement[];
-  //gaspumps?: Gaspumps;
-  //place_gaspumps?: PlaceGaspumpElement[];
-  //place_npcs?: PlaceNpc[];
-  //npcs?: Npcs;
-  //computers?: Computers;
+
+  rubble?: PlaceMappingAlternative<MapgenRubble>;
+  place_rubble?: PlaceList<MapgenRubble>;
+
+  gaspumps?: PlaceMappingAlternative<MapgenGaspump>;
+  place_gaspumps?: PlaceList<MapgenGaspump>;
+
+  place_npcs?: PlaceList<MapgenNpc>;
+  npcs?: PlaceMappingAlternative<MapgenNpc>;
+
+  computers?: PlaceMappingAlternative<MapgenComputer>;
+  place_computers?: PlaceList<MapgenComputer>;
+
   mapgensize?: [number, number];
-  //liquids?: LiquidsClass;
-  //place_liquids?: PlaceLiquid[];
+
+  liquids?: PlaceMappingAlternative<MapgenLiquid>;
+  place_liquids?: PlaceList<MapgenLiquid>;
+
   rotation?: [number, number] | [number] | number;
   mapping?: Record<string, MapgenMapping>;
-  //place_fields?: PlaceField[];
-  //fields?: Fields;
-  //vendingmachines?: { [key: string]: Vendingmachine };
-  //place_vendingmachines?: PlaceVendingmachine[];
-  //traps?: Traps;
-  //place_traps?: PlaceTrap[];
-  //signs?: Signs;
-  //place_signs?: PlaceGraffitiElement[];
-  //place_toilets?: PlaceGaspumpElement[];
-  //faction_owner?: FactionOwner[];
+
+  place_fields?: PlaceList<MapgenField>;
+  fields?: PlaceMappingAlternative<MapgenField>;
+
+  vendingmachines?: PlaceMappingAlternative<MapgenVendingMachine>;
+  place_vendingmachines?: PlaceList<MapgenVendingMachine>;
+
+  traps?: PlaceMappingAlternative<MapgenTrap>;
+  place_traps?: PlaceList<MapgenTrap>;
+
+  signs?: PlaceMappingAlternative<MapgenSign>;
+  place_signs?: PlaceList<MapgenSign>;
+
+  toilets?: PlaceMappingAlternative<MapgenToilet>;
+  place_toilets?: PlaceList<MapgenToilet>;
+
+  faction_owner?: PlaceList<MapgenFaction>; // "faction_owner" is for the list (load_objects)
+  faction_owner_character?: PlaceMappingAlternative<MapgenFaction>; // "faction_owner_character" is for mapping
+
   predecessor_mapgen?: string;
-  //place_graffiti?: PlaceGraffitiElement[];
-  //place_ter_furn_transforms?: PlaceTerFurnTransform[];
-  //ter_furn_transforms?: TerFurnTransforms;
-  //place_zones?: PlaceZone[];
+
+  graffiti?: PlaceMappingAlternative<MapgenGraffiti>;
+  place_graffiti?: PlaceList<MapgenGraffiti>;
+
+  place_ter_furn_transforms?: PlaceList<MapgenTerFurnTransform>;
+  ter_furn_transforms?: PlaceMappingAlternative<MapgenTerFurnTransform>;
+
+  place_zones?: PlaceList<MapgenZone>;
+  zones?: PlaceMappingAlternative<MapgenZone>;
+
+  translate?: PlaceMappingAlternative<MapgenTranslate>;
+  translate_ter?: PlaceList<MapgenTranslate>;
+}
+
+export interface MapgenField {
+  field: string; // field_type_id
+  intensity?: number; // default 1
+  age?: number; // default 0
+}
+
+export interface MapgenNpc {
+  class: string; // npc_template_id
+  target?: boolean; // default false
+  add_trait?: string | string[]; // trait_id
+}
+
+export interface MapgenFaction {
+  id: string; // faction_id
+}
+
+export interface MapgenSign {
+  signage?: string;
+  snippet?: string;
+}
+
+export interface MapgenGraffiti {
+  text?: string;
+  snippet?: string;
+  // TODO: validate that at least one is present
+}
+
+export interface MapgenVendingMachine {
+  reinforced?: boolean; // default false
+  item_group?: string; // item_group_id, default "default_vending_machine"
+}
+
+export interface MapgenToilet {
+  amount?: MapgenInt; // water charges, default 0
+}
+
+export interface MapgenGaspump {
+  amount?: MapgenInt; // fuel charges, default 0
+  fuel?: string; // itype_id
+}
+
+export interface MapgenLiquid {
+  liquid: string; // itype_id
+  amount?: MapgenInt;
+  chance?: MapgenInt; // default 1
+}
+
+export type MapgenTrap = MapgenValue | { trap: MapgenValue };
+
+export interface MapgenRubble {
+  rubble_type?: MapgenValue; // furn_id, default f_rubble
+  floor_type?: MapgenValue; // ter_id, default t_dirt
+  overwrite?: boolean; // default false
+}
+
+export interface MapgenTranslate {
+  from: MapgenValue; // ter_id
+  to: MapgenValue; // ter_id
+}
+
+export interface MapgenZone {
+  type: MapgenValue; // zone_type_id
+  faction: MapgenValue; // faction_id
+  name?: string;
+}
+
+export interface MapgenTerFurnTransform {
+  transform: MapgenValue; // ter_furn_transform_id
+}
+
+export interface MapgenComputer {
+  name?: Translation;
+  access_denied?: Translation;
+  security?: number; // default 0
+  target?: boolean; // default false
+  options?: any[]; // TODO: strictly type ComputerOption
+  failures?: any[]; // TODO: strictly type ComputerFailure
 }
 
 export type MapgenInt = number | [number] | [number, number];
@@ -1214,41 +1318,83 @@ export interface MapgenSet {
 }
 
 export interface PaletteData {
-  items?: PlaceMapping<MapgenItemGroup>;
-  item?: PlaceMapping<MapgenSpawnItem>;
-  sealed_item?: PlaceMapping<MapgenSealedItem>;
-}
-
-export interface Palette extends PaletteData {
-  id: string;
-  type: "palette";
-}
-export interface PaletteData {
   furniture?: PlaceMappingAlternative<MapgenValue>;
   terrain?: PlaceMappingAlternative<MapgenValue>;
-  //toilets?: ToiletsClass;
+
   items?: PlaceMapping<MapgenItemGroup>;
-  //vendingmachines?: Vendingmachines;
-  mapping?: Record<string, MapgenMapping>;
-  //computers?: Computers;
-  //liquids?: Liquids;
-  //monster?: MonsterClass;
   item?: PlaceMapping<MapgenSpawnItem>;
   sealed_item?: PlaceMapping<MapgenSealedItem>;
-  //vehicles?: Vehicles;
-  //monsters?: Monsters;
-  //gaspumps?: Gaspumps;
-  //signs?: Signs;
+
   nested?: PlaceMapping<MapgenNested>;
+
+  fields?: PlaceMappingAlternative<MapgenField>;
+  npcs?: PlaceMappingAlternative<MapgenNpc>;
+  signs?: PlaceMappingAlternative<MapgenSign>;
+  vendingmachines?: PlaceMappingAlternative<MapgenVendingMachine>;
+  toilets?: PlaceMappingAlternative<MapgenToilet>;
+  gaspumps?: PlaceMappingAlternative<MapgenGaspump>;
+  liquids?: PlaceMappingAlternative<MapgenLiquid>;
+  traps?: PlaceMappingAlternative<MapgenTrap>;
+  rubble?: PlaceMappingAlternative<MapgenRubble>;
+  computers?: PlaceMappingAlternative<MapgenComputer>;
+  graffiti?: PlaceMappingAlternative<MapgenGraffiti>;
+  translate?: PlaceMappingAlternative<MapgenTranslate>;
+  zones?: PlaceMappingAlternative<MapgenZone>;
+  ter_furn_transforms?: PlaceMappingAlternative<MapgenTerFurnTransform>;
+  faction_owner_character?: PlaceMappingAlternative<MapgenFaction>;
+
+  mapping?: Record<string, MapgenMapping>;
 
   palettes?: MapgenValue[];
 
   parameters?: Record<string, MapgenParameter>;
 }
 
+export interface Palette extends PaletteData {
+  id: string;
+  type: "palette";
+}
+
 type MapgenParameter = {
   scope?: "overmap_special" | "omt" | "nest";
-  type: "palette_id"; // TODO: more enum types?
+  type:
+    | "void"
+    | "add_type"
+    | "bionic_id"
+    | "body_part"
+    | "bool"
+    | "character_id"
+    | "character_movemode"
+    | "efftype_id"
+    | "flag_id"
+    | "faction_id"
+    | "field_type_id"
+    | "field_type_str_id"
+    | "furn_id"
+    | "furn_str_id"
+    | "int"
+    | "item_group_id"
+    | "itype_id"
+    | "matype_id"
+    | "mongroup_id"
+    | "mtype_id"
+    | "mutagen_technique"
+    | "mutation_category_id"
+    | "npc_template_id"
+    | "oter_id"
+    | "palette_id"
+    | "skill_id"
+    | "species_id"
+    | "spell_id"
+    | "string"
+    | "ter_id"
+    | "ter_furn_transform_id"
+    | "ter_str_id"
+    | "trait_id"
+    | "trap_id"
+    | "trap_str_id"
+    | "vgroup_id"
+    | "zone_type_id";
   default: MapgenValue;
 };
 
