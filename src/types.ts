@@ -1420,8 +1420,8 @@ export interface MapgenMapping {
   item?: MapgenSpawnItem | MapgenSpawnItem[];
   furniture?: MapgenValue;
   terrain?: MapgenValue;
-  traps?: MapgenValue;
-  fields?: MapgenValue;
+  traps?: MapgenTrap;
+  fields?: MapgenField;
 }
 
 export type ToolQuality = {
