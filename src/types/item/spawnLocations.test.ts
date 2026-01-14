@@ -430,6 +430,28 @@ describe("loot", () => {
     expect(loot.get("item_b")!.expected.toFixed(2)).toEqual("2.00");
   });
 
+  it("place_loot item respects repeat", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: [],
+          place_loot: [
+            { item: "test_item", x: 0, y: 0, repeat: 5, chance: 50 },
+          ],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("test_item")!;
+    // prob: 1 - (1 - 0.5)^5 = 1 - 0.03125 = 0.96875
+    expect(entry.prob).toBeCloseTo(0.96875);
+    // expected: 5 * 0.5 = 2.5
+    expect(entry.expected).toBeCloseTo(2.5);
+  });
+
   it("handles overmap specials with no mapgens", async () => {
     const data = new CBNData([
       {

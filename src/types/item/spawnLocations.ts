@@ -681,7 +681,13 @@ function getLootForMapgenInternal(
     const chance = v.chance ?? 100;
     if ("item" in v) {
       return new Map<string, ItemChance>([
-        [v.item, { prob: chance / 100, expected: chance / 100 }],
+        [
+          v.item,
+          repeatItemChance(
+            { prob: chance / 100, expected: chance / 100 },
+            normalizeMinMax(v.repeat),
+          ),
+        ],
       ]);
     } else if ("group" in v) {
       return parseItemGroup(data, v.group, v.repeat, chance / 100);
