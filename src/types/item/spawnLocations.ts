@@ -811,7 +811,7 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
       else fillCount += 1;
   if (rows.length === 0) {
     const [width, height] = mapgen.object.mapgensize ?? [1, 1];
-    fillCount = width * height;
+    fillCount = width * height * 24 * 24;
   }
   const items: Loot[] = [
     ...lootFromCounts(countByPalette, palette),
