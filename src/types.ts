@@ -1271,6 +1271,8 @@ export interface MapgenItemGroup {
   item: InlineItemGroup /* subtype collection */;
   chance?: number;
   repeat?: MapgenInt;
+  ammo?: number;
+  magazine?: number;
 }
 
 export interface MapgenSpawnItem {
