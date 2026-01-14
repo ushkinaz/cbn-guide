@@ -728,7 +728,6 @@ function getLootForMapgenInternal(
   if (stack.has(mapgen)) return new Map();
   stack.add(mapgen);
   const palette = parsePalette(data, mapgen.object, stack);
-  const mappingPalette = parseMappingItems(data, mapgen.object.mapping);
   const place_items: Loot[] = (mapgen.object.place_items ?? []).map(
     ({ item, chance = 100, repeat }) =>
       parseItemGroup(data, item, repeat, chance / 100),
@@ -792,12 +791,9 @@ function getLootForMapgenInternal(
     }
     return multipliedLoot;
   });
-  const symbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
+  const symbols = new Set([...palette.keys()]);
   const counts = countSymbols(mapgen.object.rows, symbols);
-  const items: Loot[] = [
-    ...lootFromCounts(counts, palette),
-    ...lootFromCounts(counts, mappingPalette),
-  ];
+  const items: Loot[] = [...lootFromCounts(counts, palette)];
   const loot = collection([
     ...place_items,
     ...place_item,
@@ -1170,6 +1166,7 @@ export function parsePalette(
       yield lootForChunks(data, resolveNestedChunks(nestedEntry), stackLocal);
     },
   );
+  const mapping = parseMappingItems(data, palette.mapping, palette.parameters);
   const palettes = (palette.palettes ?? []).flatMap((val) => {
     if (typeof val === "string") {
       return [parsePalette(data, data.byId("palette", val), stackLocal)];
@@ -1211,7 +1208,14 @@ export function parsePalette(
       }
     } else return [];
   });
-  const ret = mergePalettes([item, items, sealed_item, nested, ...palettes]);
+  const ret = mergePalettes([
+    item,
+    items,
+    sealed_item,
+    nested,
+    mapping,
+    ...palettes,
+  ]);
   paletteCache.set(palette, ret);
   return ret;
 }

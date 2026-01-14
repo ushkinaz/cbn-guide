@@ -359,6 +359,79 @@ describe("parsePalette()", () => {
       ]),
     );
   });
+
+  it("knows about .mapping entries with items", () => {
+    const data = new CBNData([
+      {
+        id: "fake_item_group",
+        type: "item_group",
+        subtype: "collection",
+        items: ["fake_item"],
+      },
+    ]);
+    const rawPalette = {
+      mapping: {
+        X: {
+          items: { item: "fake_item_group", chance: 50 },
+        },
+      },
+    };
+
+    const got = parsePalette(data, rawPalette);
+
+    expect(got).toStrictEqual(
+      new Map([["X", new Map([["fake_item", { prob: 0.5, expected: 0.5 }]])]]),
+    );
+  });
+
+  it("knows about .mapping entries with item", () => {
+    const data = new CBNData([]);
+    const rawPalette = {
+      mapping: {
+        Y: {
+          item: { item: "single_item", chance: 25, amount: 2 },
+        },
+      },
+    };
+
+    const got = parsePalette(data, rawPalette);
+
+    expect(got).toStrictEqual(
+      new Map([
+        ["Y", new Map([["single_item", { prob: 0.25, expected: 0.5 }]])],
+      ]),
+    );
+  });
+
+  it("merges mapping entries from referenced palettes", () => {
+    const data = new CBNData([
+      {
+        type: "palette",
+        id: "referenced_palette",
+        mapping: {
+          c: {
+            items: { item: "palette_mapping_item", chance: 100 },
+          },
+        },
+      },
+      {
+        id: "palette_mapping_item",
+        type: "item_group",
+        subtype: "collection",
+        items: ["item_from_palette_mapping"],
+      },
+    ]);
+    const rawPalette = {
+      palettes: ["referenced_palette"],
+    };
+
+    const got = parsePalette(data, rawPalette);
+
+    expect(got.has("c")).toBe(true);
+    expect(got.get("c")).toStrictEqual(
+      new Map([["item_from_palette_mapping", { prob: 1, expected: 1 }]]),
+    );
+  });
 });
 
 describe("repeatChance()", () => {
