@@ -638,7 +638,7 @@ describe("nested mapgen", () => {
     ]);
     const loot = await getLootForMapgen(data, data.byType("mapgen")[0]);
     expect([...loot.entries()]).toEqual([
-      ["test_item_else", { prob: 1, expected: 1 }],
+      ["test_item_else", { prob: 0.5, expected: 0.5 }],
     ]);
   });
 
@@ -981,6 +981,88 @@ describe("terrain", () => {
     const entry = loot.get("t_test_ter")!;
     expect(entry.prob).toBeCloseTo(0.421875, 5);
     expect(entry.expected).toBeCloseTo(0.5, 5);
+  });
+
+  it("treats conditional nested chunks as conditional (averages chunks and else_chunks)", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+          rows: [],
+          place_nested: [
+            {
+              chunks: ["chunk_a"],
+              else_chunks: ["chunk_b"],
+              neighbors: { north: ["lab"] },
+              x: 0,
+              y: 0,
+            },
+          ],
+        },
+      } as Mapgen,
+      {
+        type: "mapgen",
+        method: "json",
+        nested_mapgen_id: "chunk_a",
+        object: {
+          mapgensize: [1, 1],
+          rows: ["A"],
+          item: { A: { item: "item_a" } },
+        },
+      } as Mapgen,
+      {
+        type: "mapgen",
+        method: "json",
+        nested_mapgen_id: "chunk_b",
+        object: {
+          mapgensize: [1, 1],
+          rows: ["B"],
+          item: { B: { item: "item_b" } },
+        },
+      } as Mapgen,
+    ]);
+    const loot = await getLootForMapgen(data, data.byType("mapgen")[0]);
+    // Should contain both item_a and item_b with 0.5 prob/expected
+    expect(loot.get("item_a")).toEqual({ prob: 0.5, expected: 0.5 });
+    expect(loot.get("item_b")).toEqual({ prob: 0.5, expected: 0.5 });
+  });
+
+  it("handles conditional nested chunks with only chunks", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          fill_ter: "t_floor",
+          rows: [],
+          place_nested: [
+            {
+              chunks: ["chunk_a"],
+              neighbors: { north: ["lab"] },
+              x: 0,
+              y: 0,
+            },
+          ],
+        },
+      } as Mapgen,
+      {
+        type: "mapgen",
+        method: "json",
+        nested_mapgen_id: "chunk_a",
+        object: {
+          mapgensize: [1, 1],
+          rows: ["A"],
+          item: { A: { item: "item_a" } },
+        },
+      } as Mapgen,
+    ]);
+    const loot = await getLootForMapgen(data, data.byType("mapgen")[0]);
+    // Only item_a with 0.5 prob/expected (since else_chunks is missing)
+    expect(loot.get("item_a")).toEqual({ prob: 0.5, expected: 0.5 });
   });
 });
 

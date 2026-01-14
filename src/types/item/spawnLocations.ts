@@ -611,13 +611,34 @@ let onStack = 0;
 function resolveNestedChunks(
   nested: raw.MapgenNested,
 ): (raw.MapgenValue | [raw.MapgenValue, number])[] {
-  if (nested.chunks && nested.chunks.length > 0) return nested.chunks;
-  if (nested.else_chunks && nested.else_chunks.length > 0)
-    return nested.else_chunks as (
-      | raw.MapgenValue
-      | [raw.MapgenValue, number]
-    )[];
-  return [];
+  const hasCond = nested.neighbors || nested.connections || nested.joins;
+  const chunks = nested.chunks || [];
+  const elseChunks = (nested.else_chunks as any[]) || [];
+
+  if (!hasCond) {
+    return chunks.length > 0 ? chunks : elseChunks;
+  }
+
+  const sumWeights = (list: any[]) =>
+    list.reduce((s, c) => s + (Array.isArray(c) ? c[1] : 100), 0);
+
+  const wChunks = sumWeights(chunks);
+  const wElse = sumWeights(elseChunks);
+
+  if (wChunks === 0 && wElse === 0) return [];
+
+  // If one branch is empty, we need to balance it with a null entry
+  if (wChunks === 0) return [...elseChunks, ["null", wElse]];
+  if (wElse === 0) return [...chunks, ["null", wChunks]];
+
+  // If both have content, scale else_chunks to match wChunks
+  // This effectively gives 50/50 split between branches in weight-based pick
+  const scale = wChunks / wElse;
+  const scaledElse = elseChunks.map((c) =>
+    Array.isArray(c) ? [c[0], c[1] * scale] : [c, 100 * scale],
+  );
+
+  return [...chunks, ...scaledElse] as any;
 }
 
 function lootForChunks(
