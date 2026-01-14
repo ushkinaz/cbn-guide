@@ -448,6 +448,72 @@ describe("loot", () => {
 
     expect(loot).toStrictEqual(new Map());
   });
+
+  it("place_item respects amount", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: [],
+          place_item: [
+            { item: "test_item", x: 0, y: 0, amount: [5, 10], chance: 50 },
+          ],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("test_item")!;
+    // prob: 0.5
+    expect(entry.prob).toBeCloseTo(0.5);
+    // expected: 0.5 * avg(5, 10) = 0.5 * 7.5 = 3.75
+    expect(entry.expected).toBeCloseTo(3.75);
+  });
+
+  it("symbol item mapping respects amount", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["I"],
+          item: {
+            I: { item: "test_item", amount: 10, chance: 50 },
+          },
+        },
+      } as Mapgen,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("test_item")!;
+    // prob: 0.5
+    expect(entry.prob).toBeCloseTo(0.5);
+    // expected: 0.5 * 10 = 5
+    expect(entry.expected).toBeCloseTo(5);
+  });
+
+  it("mapping.item respects amount", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["I"],
+          mapping: {
+            I: { item: { item: "test_item", amount: [2, 4] } },
+          },
+        },
+      } as Mapgen,
+    ]);
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    const entry = loot.get("test_item")!;
+    // prob: 1.0 (default chance)
+    expect(entry.prob).toBeCloseTo(1.0);
+    // expected: 1.0 * avg(2, 4) = 3
+    expect(entry.expected).toBeCloseTo(3);
+  });
 });
 
 describe("terrain", () => {
