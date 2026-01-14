@@ -677,17 +677,17 @@ function getLootForMapgenInternal(
         ])
       : new Map();
   });
-  const place_loot: Loot[] = (mapgen.object.place_loot ?? []).map(
-    ({ item, group, chance = 100, repeat }) =>
-      // This assumes that .item and .group are mutually exclusive
-      item
-        ? new Map<string, ItemChance>([
-            [item, { prob: chance / 100, expected: chance / 100 }],
-          ])
-        : group
-          ? parseItemGroup(data, group, repeat, chance / 100)
-          : new Map<string, ItemChance>(),
-  );
+  const place_loot: Loot[] = (mapgen.object.place_loot ?? []).map((v) => {
+    const chance = v.chance ?? 100;
+    if ("item" in v) {
+      return new Map<string, ItemChance>([
+        [v.item, { prob: chance / 100, expected: chance / 100 }],
+      ]);
+    } else if ("group" in v) {
+      return parseItemGroup(data, v.group, v.repeat, chance / 100);
+    }
+    return new Map<string, ItemChance>();
+  });
   const place_nested = (mapgen.object.place_nested ?? []).map((nested) => {
     const loot = lootForChunks(data, resolveNestedChunks(nested), stack);
     const multipliedLoot: Loot = new Map();

@@ -773,8 +773,8 @@ export class CBNData {
     }
 
     for (const v of mapgen.object.place_loot ?? []) {
-      if (v.item) ret.add(v.item);
-      if (v.group)
+      if ("item" in v) ret.add(v.item);
+      if ("group" in v)
         for (const { id } of this.flattenTopLevelItemGroup(
           this.byId("item_group", v.group),
         ))

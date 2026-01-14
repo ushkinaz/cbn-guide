@@ -1288,14 +1288,12 @@ export interface MapgenSealedItem {
   items?: MapgenItemGroup;
 }
 
-export interface MapgenLoot {
+export type MapgenLoot = {
   ammo?: number; // int
   magazine?: number; // int
   chance?: number; // int, default 100
-  group?: string; // item_group_id
-  item?: string; // item_id
   repeat?: MapgenInt;
-}
+} & ({ group: string } | { item: string });
 
 export type NestedDirection =
   | "north"
