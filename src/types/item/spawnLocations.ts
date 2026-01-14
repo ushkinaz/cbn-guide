@@ -2,8 +2,33 @@ import type { CBNData } from "../../data";
 import type * as raw from "../../types";
 import { multimap } from "./utils";
 
+// Map generation constants
+const DEFAULT_CHANCE_PERCENTAGE = 100;
+const DEFAULT_MAPGEN_WEIGHT = 1000;
+const OMAP_TILE_SIZE = 24;
+
+// Performance/scheduling constants
+const IDLE_YIELD_TIMEOUT_MS = 1;
+const MIN_TIME_REMAINING_MS = 0;
+
 /** 0.0 <= chance <= 1.0 */
 type chance = number;
+
+/**
+ * Extract weight from a weighted value tuple.
+ * If value is not weighted (plain T), returns default weight of 1.
+ */
+function extractWeight<T>(it: T | [T, number]): number {
+  return Array.isArray(it) ? it[1] : 1;
+}
+
+/**
+ * Extract the actual value from a potentially weighted tuple.
+ * If value is not weighted (plain T), returns the value itself.
+ */
+function extractValue<T>(it: T | [T, number]): T {
+  return Array.isArray(it) ? it[0] : it;
+}
 
 function normalizeMinMax(
   v: undefined | number | [number] | [number, number],
@@ -22,8 +47,8 @@ export function repeatChance(
   const [n0, n1] = normalizeMinMax(repeat);
   let sum = 0;
   let count = 0;
-  // It would me more efficient to use the formula
-  // for the sum of a geometric progerssion,
+  // It would be more efficient to use the formula
+  // for the sum of a geometric progression,
   // but this should be easier to understand
   for (let r = n0; r <= n1; ++r) {
     sum += 1 - Math.pow(1 - chance, r);
@@ -40,18 +65,34 @@ export type ItemChance = {
   expected: number;
 };
 
-// Combine two item chances, assuming they are independent.
-// i.e. both |a| and |b| will be rolled independently.
+/**
+ * Combine two item chances, assuming they are independent.
+ * i.e. both |a| and |b| will be rolled independently.
+ * @param inPlace - If true, mutates `a` for performance in hot paths; otherwise returns new object
+ */
+function combineItemChances(
+  a: ItemChance,
+  b: ItemChance,
+  inPlace = false,
+): ItemChance {
+  const newProb = 1 - (1 - a.prob) * (1 - b.prob);
+  const newExpected = a.expected + b.expected;
+
+  if (inPlace) {
+    a.prob = newProb;
+    a.expected = newExpected;
+    return a;
+  }
+
+  return { prob: newProb, expected: newExpected };
+}
+
+// Convenience aliases for readability
 function andItemChance(a: ItemChance, b: ItemChance): ItemChance {
-  return {
-    prob: 1 - (1 - a.prob) * (1 - b.prob),
-    expected: a.expected + b.expected,
-  };
+  return combineItemChances(a, b, false);
 }
 function andItemChanceInPlace(a: ItemChance, b: ItemChance): ItemChance {
-  a.prob = 1 - (1 - a.prob) * (1 - b.prob);
-  a.expected = a.expected + b.expected;
-  return a;
+  return combineItemChances(a, b, true);
 }
 
 // |a| is repeated between |n0| and |n1| times.
@@ -100,6 +141,29 @@ function scaleItemChance(a: ItemChance, t: number): ItemChance {
     prob: a.prob * t,
     expected: a.expected * t,
   };
+}
+
+/**
+ * Scale all item chances in a Loot map by a factor.
+ */
+function attenuateLoot(loot: Loot, t: number): Loot {
+  const attenuatedLoot: Loot = new Map();
+  for (const [k, v] of loot.entries())
+    attenuatedLoot.set(k, scaleItemChance(v, t));
+  return attenuatedLoot;
+}
+
+/**
+ * Scale all item chances in a Palette (Map of Loots) by a factor.
+ */
+function attenuatePalette<T extends Map<string, Loot>>(
+  palette: T,
+  t: number,
+): T {
+  const attenuatedPalette = new Map() as T;
+  for (const [k, v] of palette.entries())
+    attenuatedPalette.set(k, attenuateLoot(v, t));
+  return attenuatedPalette;
 }
 
 /**
@@ -153,7 +217,7 @@ function setToLoot(
       : shape === "line"
         ? estimateLineTiles(set)
         : 1;
-  const placementChance = (set.chance ?? 100) / 100;
+  const placementChance = (set.chance ?? DEFAULT_CHANCE_PERCENTAGE) / 100;
   const baseChance = {
     prob: 1 - Math.pow(1 - placementChance, tiles),
     expected: placementChance * tiles,
@@ -190,60 +254,60 @@ function offsetMapgen(mapgen: raw.Mapgen, x: number, y: number): raw.Mapgen {
   const object = {
     ...mapgen.object,
     rows: (mapgen.object.rows ?? [])
-      .slice(y * 24, (y + 1) * 24)
-      .map((row) => row.slice(x * 24, (x + 1) * 24)),
+      .slice(y * OMAP_TILE_SIZE, (y + 1) * OMAP_TILE_SIZE)
+      .map((row) => row.slice(x * OMAP_TILE_SIZE, (x + 1) * OMAP_TILE_SIZE)),
   };
   const min = (x: number | [number] | [number, number]) =>
     Array.isArray(x) ? x[0] : x;
-  const mx = x * 24;
-  const my = y * 24;
+  const mx = x * OMAP_TILE_SIZE;
+  const my = y * OMAP_TILE_SIZE;
   if (object.place_items)
     object.place_items = object.place_items.filter(
       (p) =>
         min(p.x) >= mx &&
         min(p.y) >= my &&
-        min(p.x) < mx + 24 &&
-        min(p.y) < my + 24,
+        min(p.x) < mx + OMAP_TILE_SIZE &&
+        min(p.y) < my + OMAP_TILE_SIZE,
     );
   if (object.place_item)
     object.place_item = object.place_item.filter(
       (p) =>
         min(p.x) >= mx &&
         min(p.y) >= my &&
-        min(p.x) < mx + 24 &&
-        min(p.y) < my + 24,
+        min(p.x) < mx + OMAP_TILE_SIZE &&
+        min(p.y) < my + OMAP_TILE_SIZE,
     );
   if (object.add)
     object.add = object.add.filter(
       (p) =>
         min(p.x) >= mx &&
         min(p.y) >= my &&
-        min(p.x) < mx + 24 &&
-        min(p.y) < my + 24,
+        min(p.x) < mx + OMAP_TILE_SIZE &&
+        min(p.y) < my + OMAP_TILE_SIZE,
     );
   if (object.place_loot)
     object.place_loot = object.place_loot.filter(
       (p) =>
         min(p.x) >= mx &&
         min(p.y) >= my &&
-        min(p.x) < mx + 24 &&
-        min(p.y) < my + 24,
+        min(p.x) < mx + OMAP_TILE_SIZE &&
+        min(p.y) < my + OMAP_TILE_SIZE,
     );
   if (object.place_nested)
     object.place_nested = object.place_nested.filter(
       (p) =>
         min(p.x) >= mx &&
         min(p.y) >= my &&
-        min(p.x) < mx + 24 &&
-        min(p.y) < my + 24,
+        min(p.x) < mx + OMAP_TILE_SIZE &&
+        min(p.y) < my + OMAP_TILE_SIZE,
     );
   if (object.set)
     object.set = object.set.filter(
       (p) =>
         min(p.x) >= mx &&
         min(p.y) >= my &&
-        min(p.x) < mx + 24 &&
-        min(p.y) < my + 24,
+        min(p.x) < mx + OMAP_TILE_SIZE &&
+        min(p.y) < my + OMAP_TILE_SIZE,
     );
   return { ...mapgen, object };
 }
@@ -270,7 +334,7 @@ function yieldUntilIdle(): Promise<IdleDeadline> {
       timeRemaining: () => 100,
     });
   return new Promise<IdleDeadline>((resolve) => {
-    requestIdleCallback(resolve, { timeout: 1 });
+    requestIdleCallback(resolve, { timeout: IDLE_YIELD_TIMEOUT_MS });
   });
 }
 
@@ -346,7 +410,7 @@ export function lootForOmt(
   const mapgens = mapgensByOmt.get(omt_id) ?? [];
   const loot = mergeLoot(
     mapgens.map((mg) => ({
-      weight: mg.weight ?? 1000,
+      weight: mg.weight ?? DEFAULT_MAPGEN_WEIGHT,
       loot: lootFn(mg),
     })),
   );
@@ -546,23 +610,6 @@ export function mergeLoot(loots: { loot: Loot; weight: number }[]): Loot {
   return mergedLoot;
 }
 
-function attenuateLoot(loot: Loot, t: number): Loot {
-  const attenuatedLoot: Loot = new Map();
-  for (const [k, v] of loot.entries())
-    attenuatedLoot.set(k, scaleItemChance(v, t));
-  return attenuatedLoot;
-}
-
-function attenuatePalette(
-  palette: Map<string, Loot>,
-  t: number,
-): Map<string, Loot> {
-  const attenuatedPalette: Map<string, Loot> = new Map();
-  for (const [k, v] of palette.entries())
-    attenuatedPalette.set(k, attenuateLoot(v, t));
-  return attenuatedPalette;
-}
-
 function addLoot(loots: Loot[]): Loot {
   const ret: Loot = new Map();
   for (const loot of loots) {
@@ -641,8 +688,12 @@ function getMapgenValueDistribution(
   return new Map();
 }
 
+/**
+ * Convert a probability distribution (ID -> probability) into a Loot map.
+ * In this conversion, the probability is used as both the chance of placement
+ * and the expected count.
+ */
 function toLoot(distribution: Map<string, number>): Loot {
-  // TODO: i'm not sure this is correct?
   return new Map(
     [...distribution.entries()].map(([id, prob]) => [
       id,
@@ -651,7 +702,57 @@ function toLoot(distribution: Map<string, number>): Loot {
   );
 }
 
-let onStack = 0;
+/**
+ * Calculate the total weight of a list of chunks.
+ * Each chunk can be either a plain value (default weight: 100) or a [value, weight] tuple.
+ */
+function sumChunkWeights(chunks: any[]): number {
+  return chunks.reduce(
+    (s, c) => s + (Array.isArray(c) ? c[1] : DEFAULT_CHANCE_PERCENTAGE),
+    0,
+  );
+}
+
+/**
+ * Balance two conditional branches (chunks vs else_chunks) for mapgen placement.
+ * Returns a combined list that gives equal probability to both branches.
+ *
+ * When conditions exist, both branches should have equal weight in the final selection.
+ * This function scales the else_chunks to match the chunks weight, ensuring 50/50 split.
+ */
+function balanceConditionalBranches(
+  chunks: any[],
+  elseChunks: any[],
+  wChunks: number,
+  wElse: number,
+): any[] {
+  if (wChunks === 0 && wElse === 0) return [];
+
+  // If one branch is empty, balance with a null entry
+  if (wChunks === 0) return [...elseChunks, ["null", wElse]];
+  if (wElse === 0) return [...chunks, ["null", wChunks]];
+
+  // Both branches have content: scale else_chunks to achieve 50/50 split
+  const scale = wChunks / wElse;
+  const scaledElse = elseChunks.map((c) =>
+    Array.isArray(c)
+      ? [c[0], c[1] * scale]
+      : [c, DEFAULT_CHANCE_PERCENTAGE * scale],
+  );
+
+  return [...chunks, ...scaledElse];
+}
+
+/**
+ * Resolve nested mapgen chunks, handling conditional placement.
+ *
+ * If the nested placement has conditions (neighbors, connections, joins):
+ * - Both `chunks` and `else_chunks` branches are balanced to have equal probability
+ * - Empty branches are filled with null entries to maintain proper weight distribution
+ *
+ * If there are no conditions:
+ * - Use `chunks` if available, otherwise use `else_chunks`
+ */
 function resolveNestedChunks(
   nested: raw.MapgenNested,
 ): (raw.MapgenValue | [raw.MapgenValue, number])[] {
@@ -659,30 +760,16 @@ function resolveNestedChunks(
   const chunks = nested.chunks || [];
   const elseChunks = (nested.else_chunks as any[]) || [];
 
+  // If there are no conditions, use chunks if available, otherwise use else_chunks
   if (!hasCond) {
     return chunks.length > 0 ? chunks : elseChunks;
   }
 
-  const sumWeights = (list: any[]) =>
-    list.reduce((s, c) => s + (Array.isArray(c) ? c[1] : 100), 0);
+  // Conditional placement: balance both branches for equal probability
+  const wChunks = sumChunkWeights(chunks);
+  const wElse = sumChunkWeights(elseChunks);
 
-  const wChunks = sumWeights(chunks);
-  const wElse = sumWeights(elseChunks);
-
-  if (wChunks === 0 && wElse === 0) return [];
-
-  // If one branch is empty, we need to balance it with a null entry
-  if (wChunks === 0) return [...elseChunks, ["null", wElse]];
-  if (wElse === 0) return [...chunks, ["null", wChunks]];
-
-  // If both have content, scale else_chunks to match wChunks
-  // This effectively gives 50/50 split between branches in weight-based pick
-  const scale = wChunks / wElse;
-  const scaledElse = elseChunks.map((c) =>
-    Array.isArray(c) ? [c[0], c[1] * scale] : [c, 100 * scale],
-  );
-
-  return [...chunks, ...scaledElse] as any;
+  return balanceConditionalBranches(chunks, elseChunks, wChunks, wElse);
 }
 
 function lootForChunks(
@@ -693,7 +780,7 @@ function lootForChunks(
   const normalizedChunks = (chunks ?? []).map((c) =>
     Array.isArray(c) && c.length === 2 && typeof c[1] === "number"
       ? (c as [raw.MapgenValue, number])
-      : ([c, 100] as [raw.MapgenValue, number]),
+      : ([c, DEFAULT_CHANCE_PERCENTAGE] as [raw.MapgenValue, number]),
   );
   const loot = mergeLoot(
     normalizedChunks.map(([chunkIdValue, weight]) => {
@@ -704,7 +791,7 @@ function lootForChunks(
       const loot = mergeLoot(
         chunkMapgens.map((mg) => {
           const loot = getLootForMapgenInternal(data, mg, stack);
-          const weight = mg.weight ?? 1000;
+          const weight = mg.weight ?? DEFAULT_MAPGEN_WEIGHT;
           return { loot, weight };
         }),
       );
@@ -729,13 +816,13 @@ function getLootForMapgenInternal(
   stack.add(mapgen);
   const palette = parsePalette(data, mapgen.object, stack);
   const place_items: Loot[] = (mapgen.object.place_items ?? []).map(
-    ({ item, chance = 100, repeat }) =>
+    ({ item, chance = DEFAULT_CHANCE_PERCENTAGE, repeat }) =>
       parseItemGroup(data, item, repeat, chance / 100),
   );
   const place_item = [
     ...(mapgen.object.place_item ?? []),
     ...(mapgen.object.add ?? []),
-  ].map(({ item, chance = 100, repeat, amount }) => {
+  ].map(({ item, chance = DEFAULT_CHANCE_PERCENTAGE, repeat, amount }) => {
     const itemNormalized = getMapgenValue(item, mapgen.object.parameters);
     return itemNormalized
       ? new Map([
@@ -753,7 +840,7 @@ function getLootForMapgenInternal(
       : new Map();
   });
   const place_loot: Loot[] = (mapgen.object.place_loot ?? []).map((v) => {
-    const chance = v.chance ?? 100;
+    const chance = v.chance ?? DEFAULT_CHANCE_PERCENTAGE;
     if ("item" in v) {
       return applyAmmoAndMagazine(
         new Map<string, ItemChance>([
@@ -871,7 +958,7 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
       else fillCount += 1;
   if (rows.length === 0) {
     const [width, height] = mapgen.object.mapgensize ?? [1, 1];
-    fillCount = width * height * 24 * 24;
+    fillCount = width * height * OMAP_TILE_SIZE * OMAP_TILE_SIZE;
   }
   const items: Loot[] = [
     ...lootFromCounts(countByPalette, palette),
@@ -921,59 +1008,80 @@ export function parseItemGroup(
   );
 }
 
+/**
+ * Merge multiple palettes into one by combining loot for shared symbols.
+ * Symbols across palettes are treated as independent rolls (using collection).
+ */
 function mergePalettes(palettes: Map<string, Loot>[]): Map<string, Loot> {
-  return [palettes]
-    .map((x) => x.flatMap((p) => [...p]))
-    .map((x) => [...multimap(x)])
-    .map((x) => x.map(([k, v]) => [k, collection(v)] as const))
-    .map((x: (readonly [string, Loot])[]) => new Map(x))[0];
+  const allEntries = palettes.flatMap((p) => [...p]);
+  const grouped = multimap(allEntries);
+  return new Map([...grouped].map(([k, v]) => [k, collection(v)]));
 }
 
-function parsePlaceMapping<T>(
-  mapping: undefined | raw.PlaceMapping<T>,
+/**
+ * Common logic for processing a mapping (Record<string, T | T[]>) where each symbol
+ * can result in one or more Loots.
+ *
+ * @param mapping - The mapping object to process
+ * @param extract - Function to turn a single entry into an iterable of Loots
+ * @param strategy - 'independent' (collection) or 'alternative' (sum weights)
+ */
+function processMapping<T>(
+  mapping: undefined | Record<string, T | T[] | [T, number][]>,
   extract: (t: T) => Iterable<Loot>,
-): Map<string, Loot> {
-  return new Map(
-    Object.entries(mapping ?? {}).map(([sym, val]) => [
-      sym,
-      collection(
-        (Array.isArray(val) ? val : [val]).flatMap((x: T) => [...extract(x)]),
-      ),
-    ]),
-  );
-}
-
-export function parsePlaceMappingAlternative<T>(
-  mapping: undefined | raw.PlaceMappingAlternative<T>,
-  extract: (t: T) => Iterable<Loot>,
+  strategy: "independent" | "alternative" = "independent",
 ): Map<string, Loot> {
   return new Map(
     Object.entries(mapping ?? {}).map(([sym, val]) => {
-      const vals = (Array.isArray(val) ? val : [val]).map(
-        (x: T | [T, number]) =>
-          Array.isArray(x) ? x : ([x, 1] as [T, number]),
-      );
-      const total = vals.reduce((m, x) => m + x[1], 0);
-
-      const items: Loot[] = vals.flatMap(([x, weight]: [T, number]) =>
-        [...extract(x)].map((v) => attenuateLoot(v, weight / total)),
+      // Normalize to array of [value, weight]
+      const entries = (Array.isArray(val) ? val : [val]).map((x) =>
+        Array.isArray(x) && typeof x[1] === "number"
+          ? (x as [T, number])
+          : ([x, 1] as [T, number]),
       );
 
-      // Mutually exclusive alternatives: sum probabilities for each item_id
-      const combinedLoot: Loot = new Map();
-      for (const loot of items) {
-        for (const [item_id, chance] of loot.entries()) {
-          const current = combinedLoot.get(item_id) ?? zeroItemChance;
-          combinedLoot.set(item_id, {
-            prob: current.prob + chance.prob,
-            expected: current.expected + chance.expected,
-          });
+      if (strategy === "independent") {
+        // All items roll independently: simple collect-all
+        return [
+          sym,
+          collection(entries.flatMap(([x]) => [...extract(x)])),
+        ] as const;
+      } else {
+        // Mutually exclusive alternatives: we sum the weighted probabilities
+        const totalWeight = entries.reduce((m, x) => m + x[1], 0);
+        const weightedLoots = entries.flatMap(([x, weight]) =>
+          [...extract(x)].map((v) => attenuateLoot(v, weight / totalWeight)),
+        );
+
+        const combinedLoot: Loot = new Map();
+        for (const loot of weightedLoots) {
+          for (const [item_id, chance] of loot.entries()) {
+            const current = combinedLoot.get(item_id) ?? zeroItemChance;
+            combinedLoot.set(item_id, {
+              prob: current.prob + chance.prob,
+              expected: current.expected + chance.expected,
+            });
+          }
         }
+        return [sym, combinedLoot] as const;
       }
-
-      return [sym, combinedLoot];
     }),
   );
+}
+
+// Keep aliases for backward compatibility or clarity if preferred
+function parsePlaceMapping<T>(
+  mapping: undefined | Record<string, T | T[]>,
+  extract: (t: T) => Iterable<Loot>,
+): Map<string, Loot> {
+  return processMapping(mapping, extract, "independent");
+}
+
+export function parsePlaceMappingAlternative<T>(
+  mapping: undefined | Record<string, T | T[] | [T, number][]>,
+  extract: (t: T) => Iterable<Loot>,
+): Map<string, Loot> {
+  return processMapping(mapping, extract, "alternative");
 }
 
 function parseMappingItems(
@@ -994,7 +1102,7 @@ function parseMappingItems(
           data,
           itemsEntry.item,
           itemsEntry.repeat,
-          (itemsEntry.chance ?? 100) / 100,
+          (itemsEntry.chance ?? DEFAULT_CHANCE_PERCENTAGE) / 100,
           itemsEntry.ammo,
           itemsEntry.magazine,
         ),
@@ -1015,8 +1123,9 @@ function parseMappingItems(
             repeatItemChance(
               applyAmount(
                 {
-                  prob: (itemEntry.chance ?? 100) / 100,
-                  expected: (itemEntry.chance ?? 100) / 100,
+                  prob: (itemEntry.chance ?? DEFAULT_CHANCE_PERCENTAGE) / 100,
+                  expected:
+                    (itemEntry.chance ?? DEFAULT_CHANCE_PERCENTAGE) / 100,
                 },
                 itemEntry.amount ?? 1,
               ),
@@ -1032,37 +1141,37 @@ function parseMappingItems(
   return new Map(entries);
 }
 
+/**
+ * Common logic for parsing mapping entries that distribute furniture or terrain.
+ */
+function parseMappingDistribution(
+  mapping: undefined | Record<string, raw.MapgenMapping>,
+  field: "furniture" | "terrain",
+  parameters?: Record<string, raw.MapgenParameter>,
+): Map<string, Loot> {
+  return new Map(
+    Object.entries(mapping ?? {}).flatMap(([sym, val]) => {
+      const dist = val[field];
+      if (!dist) return [];
+      return [
+        [sym, toLoot(getMapgenValueDistribution(dist, parameters))] as const,
+      ];
+    }),
+  );
+}
+
 function parseMappingFurniture(
   mapping: undefined | Record<string, raw.MapgenMapping>,
   parameters?: Record<string, raw.MapgenParameter>,
 ): Map<string, Loot> {
-  return new Map(
-    Object.entries(mapping ?? {}).flatMap(([sym, val]) =>
-      val.furniture
-        ? ([
-            [
-              sym,
-              toLoot(getMapgenValueDistribution(val.furniture, parameters)),
-            ],
-          ] as const)
-        : [],
-    ),
-  );
+  return parseMappingDistribution(mapping, "furniture", parameters);
 }
 
 function parseMappingTerrain(
   mapping: undefined | Record<string, raw.MapgenMapping>,
   parameters?: Record<string, raw.MapgenParameter>,
 ): Map<string, Loot> {
-  return new Map(
-    Object.entries(mapping ?? {}).flatMap(([sym, val]) =>
-      val.terrain
-        ? ([
-            [sym, toLoot(getMapgenValueDistribution(val.terrain, parameters))],
-          ] as const)
-        : [],
-    ),
-  );
+  return parseMappingDistribution(mapping, "terrain", parameters);
 }
 
 function countSymbols(
@@ -1094,23 +1203,92 @@ function lootFromCounts(
   return items;
 }
 
+/**
+ * Process palette references (raw.PaletteData["palettes"]), handling:
+ * - Simple string references to other palettes
+ * - Distribution of weighted palette options
+ * - Parameterized palette selection
+ *
+ * This is shared logic used by parsePalette, parseFurniturePalette, and parseTerrainPalette.
+ *
+ * @param paletteRefs - The `palettes` field from a palette definition
+ * @param parseFn - The specific palette parsing function to apply (e.g., parsePalette)
+ * @param data - The CBN data instance
+ * @param currentPalette - The current palette being processed (for parameter resolution)
+ * @param stack - Optional recursion guard for nested palettes
+ * @returns Array of processed palettes (possibly attenuated by distribution weights)
+ */
+function processPaletteDistributions(
+  paletteRefs: raw.PaletteData["palettes"],
+  parseFn: (
+    data: CBNData,
+    palette: raw.PaletteData,
+    stack?: WeakSet<raw.Mapgen>,
+  ) => Map<string, Loot>,
+  data: CBNData,
+  currentPalette: raw.PaletteData,
+  stack?: WeakSet<raw.Mapgen>,
+): Map<string, Loot>[] {
+  return (paletteRefs ?? []).flatMap((val) => {
+    // Simple string reference: just parse the referenced palette
+    if (typeof val === "string") {
+      return [parseFn(data, data.byId("palette", val), stack)];
+    }
+
+    // Distribution: parse each palette option and attenuate by its weight
+    if ("distribution" in val) {
+      const opts = val.distribution;
+      const totalWeight = opts.reduce((m, it) => m + extractWeight(it), 0);
+      return opts.map((it) =>
+        attenuatePalette(
+          parseFn(data, data.byId("palette", extractValue(it)), stack),
+          extractWeight(it) / totalWeight,
+        ),
+      );
+    }
+
+    // Parameterized palette: resolve parameter and parse resulting palette(s)
+    if ("param" in val) {
+      const parameters = currentPalette.parameters;
+      if (parameters && val.param in parameters) {
+        const param = parameters[val.param];
+        if (param.type !== "palette_id") {
+          console.warn(
+            `unexpected parameter type (was ${param.type}, expected palette_id)`,
+          );
+          return [];
+        }
+        const distribution = getMapgenValueDistribution(param.default);
+        return [...distribution.entries()].map(([id, chance]) =>
+          attenuatePalette(
+            parseFn(data, data.byId("palette", id), stack),
+            chance,
+          ),
+        );
+      } else {
+        console.warn(`missing parameter ${val.param}`);
+        return [];
+      }
+    }
+
+    return [];
+  });
+}
+
 const paletteCache = new WeakMap<raw.PaletteData, Map<string, Loot>>();
-export function parsePalette(
+function parsePaletteSealedMapping(
   data: CBNData,
   palette: raw.PaletteData,
-  stack?: WeakSet<raw.Mapgen>,
 ): Map<string, Loot> {
-  if (paletteCache.has(palette)) return paletteCache.get(palette)!;
-  const stackLocal = stack ?? new WeakSet<raw.Mapgen>();
-  const sealed_item = parsePlaceMapping(
+  return parsePlaceMapping(
     palette.sealed_item,
-    function* ({ item, items, chance = 100 }) {
+    function* ({ item, items, chance = DEFAULT_CHANCE_PERCENTAGE }) {
       if (items)
         yield parseItemGroup(
           data,
           items.item,
           items.repeat,
-          ((chance / 100) * (items.chance ?? 100)) / 100,
+          ((chance / 100) * (items.chance ?? DEFAULT_CHANCE_PERCENTAGE)) / 100,
           items.ammo,
           items.magazine,
         );
@@ -1122,8 +1300,12 @@ export function parsePalette(
               repeatItemChance(
                 applyAmount(
                   {
-                    prob: (chance / 100) * ((item.chance ?? 100) / 100),
-                    expected: (chance / 100) * ((item.chance ?? 100) / 100),
+                    prob:
+                      (chance / 100) *
+                      ((item.chance ?? DEFAULT_CHANCE_PERCENTAGE) / 100),
+                    expected:
+                      (chance / 100) *
+                      ((item.chance ?? DEFAULT_CHANCE_PERCENTAGE) / 100),
                   },
                   item.amount ?? 1,
                 ),
@@ -1131,14 +1313,20 @@ export function parsePalette(
               ),
             ],
           ]),
-          undefined, // MapgenSpawnItem doesn't seem to have ammo/magazine in schema
+          undefined,
           undefined,
         );
     },
   );
-  const item = parsePlaceMapping(
+}
+
+function parsePaletteItemMapping(
+  data: CBNData,
+  palette: raw.PaletteData,
+): Map<string, Loot> {
+  return parsePlaceMapping(
     palette.item,
-    function* ({ item, chance = 100, repeat, amount }) {
+    function* ({ item, chance = DEFAULT_CHANCE_PERCENTAGE, repeat, amount }) {
       if (typeof item === "string")
         yield new Map([
           [
@@ -1154,66 +1342,56 @@ export function parsePalette(
         ]);
     },
   );
-  const items = parsePlaceMapping(
+}
+
+function parsePaletteItemsMapping(
+  data: CBNData,
+  palette: raw.PaletteData,
+): Map<string, Loot> {
+  return parsePlaceMapping(
     palette.items,
-    function* ({ item, chance = 100, repeat, ammo, magazine }) {
+    function* ({
+      item,
+      chance = DEFAULT_CHANCE_PERCENTAGE,
+      repeat,
+      ammo,
+      magazine,
+    }) {
       yield parseItemGroup(data, item, repeat, chance / 100, ammo, magazine);
     },
   );
-  const nested = parsePlaceMappingAlternative(
-    palette.nested,
-    function* (nestedEntry) {
-      yield lootForChunks(data, resolveNestedChunks(nestedEntry), stackLocal);
-    },
-  );
-  const mapping = parseMappingItems(data, palette.mapping, palette.parameters);
-  const palettes = (palette.palettes ?? []).flatMap((val) => {
-    if (typeof val === "string") {
-      return [parsePalette(data, data.byId("palette", val), stackLocal)];
-    } else if ("distribution" in val) {
-      const opts = val.distribution;
-      function prob<T>(it: T | [T, number]) {
-        return Array.isArray(it) ? it[1] : 1;
-      }
-      function id<T>(it: T | [T, number]) {
-        return Array.isArray(it) ? it[0] : it;
-      }
-      const totalProb = opts.reduce((m, it) => m + prob(it), 0);
-      return opts.map((it) =>
-        attenuatePalette(
-          parsePalette(data, data.byId("palette", id(it)), stackLocal),
-          prob(it) / totalProb,
-        ),
-      );
-    } else if ("param" in val) {
-      const parameters = palette.parameters;
-      if (parameters && val.param in parameters) {
-        const param = parameters[val.param];
-        if (param.type !== "palette_id") {
-          console.warn(
-            `unexpected parameter type (was ${param.type}, expected palette_id)`,
-          );
-          return [];
-        }
-        const id = getMapgenValueDistribution(param.default);
-        return [...id.entries()].map(([id, chance]) =>
-          attenuatePalette(
-            parsePalette(data, data.byId("palette", id), stackLocal),
-            chance,
-          ),
-        );
-      } else {
-        console.warn(`missing parameter ${val.param}`);
-        return [];
-      }
-    } else return [];
+}
+
+function parsePaletteNestedMapping(
+  data: CBNData,
+  palette: raw.PaletteData,
+  stack: WeakSet<raw.Mapgen>,
+): Map<string, Loot> {
+  return parsePlaceMappingAlternative(palette.nested, function* (nestedEntry) {
+    yield lootForChunks(data, resolveNestedChunks(nestedEntry), stack);
   });
+}
+
+export function parsePalette(
+  data: CBNData,
+  palette: raw.PaletteData,
+  stack?: WeakSet<raw.Mapgen>,
+): Map<string, Loot> {
+  if (paletteCache.has(palette)) return paletteCache.get(palette)!;
+  const stackLocal = stack ?? new WeakSet<raw.Mapgen>();
+  const palettes = processPaletteDistributions(
+    palette.palettes,
+    parsePalette,
+    data,
+    palette,
+    stackLocal,
+  );
   const ret = mergePalettes([
-    item,
-    items,
-    sealed_item,
-    nested,
-    mapping,
+    parsePaletteItemMapping(data, palette),
+    parsePaletteItemsMapping(data, palette),
+    parsePaletteSealedMapping(data, palette),
+    parsePaletteNestedMapping(data, palette, stackLocal),
+    parseMappingItems(data, palette.mapping, palette.parameters),
     ...palettes,
   ]);
   paletteCache.set(palette, ret);
@@ -1230,31 +1408,20 @@ export function parseFurniturePalette(
   const furniture = parsePlaceMappingAlternative(
     palette.furniture,
     function* (furn) {
-      const value = getMapgenValueDistribution(furn, palette.parameters);
+      const value = getMapgenValueDistribution(
+        extractValue(furn),
+        palette.parameters,
+      );
       for (const [f, prob] of value.entries())
         if (value) yield new Map([[f, { prob, expected: prob }]]);
     },
   );
-  const palettes = (palette.palettes ?? []).flatMap((val) => {
-    if (typeof val === "string") {
-      return [parseFurniturePalette(data, data.byId("palette", val))];
-    } else if ("distribution" in val) {
-      const opts = val.distribution;
-      function prob<T>(it: T | [T, number]) {
-        return Array.isArray(it) ? it[1] : 1;
-      }
-      function id<T>(it: T | [T, number]) {
-        return Array.isArray(it) ? it[0] : it;
-      }
-      const totalProb = opts.reduce((m, it) => m + prob(it), 0);
-      return opts.map((it) =>
-        attenuatePalette(
-          parseFurniturePalette(data, data.byId("palette", id(it))),
-          prob(it) / totalProb,
-        ),
-      );
-    } else return [];
-  });
+  const palettes = processPaletteDistributions(
+    palette.palettes,
+    parseFurniturePalette,
+    data,
+    palette,
+  );
   const ret = mergePalettes([furniture, ...palettes]);
   furniturePaletteCache.set(palette, ret);
   return ret;
@@ -1270,31 +1437,20 @@ export function parseTerrainPalette(
   const terrain = parsePlaceMappingAlternative(
     palette.terrain,
     function* (ter) {
-      const value = getMapgenValueDistribution(ter, palette.parameters);
+      const value = getMapgenValueDistribution(
+        extractValue(ter),
+        palette.parameters,
+      );
       for (const [t, prob] of value.entries())
         if (value) yield new Map([[t, { prob, expected: prob }]]);
     },
   );
-  const palettes = (palette.palettes ?? []).flatMap((val) => {
-    if (typeof val === "string") {
-      return [parseTerrainPalette(data, data.byId("palette", val))];
-    } else if ("distribution" in val) {
-      const opts = val.distribution;
-      function prob<T>(it: T | [T, number]) {
-        return Array.isArray(it) ? it[1] : 1;
-      }
-      function id<T>(it: T | [T, number]) {
-        return Array.isArray(it) ? it[0] : it;
-      }
-      const totalProb = opts.reduce((m, it) => m + prob(it), 0);
-      return opts.map((it) =>
-        attenuatePalette(
-          parseTerrainPalette(data, data.byId("palette", id(it))),
-          prob(it) / totalProb,
-        ),
-      );
-    } else return [];
-  });
+  const palettes = processPaletteDistributions(
+    palette.palettes,
+    parseTerrainPalette,
+    data,
+    palette,
+  );
   const ret = mergePalettes([terrain, ...palettes]);
   terrainPaletteCache.set(palette, ret);
   return ret;
