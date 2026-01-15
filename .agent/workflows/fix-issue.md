@@ -19,7 +19,7 @@ Follow these steps to fix an issue from the user provided file:
    - Copy the renamed issue file to the root of the new worktree.
 
 4. **Worktree Setup**:
-   - Run `yarn install` and `yarn fetch:fixtures:nightly` inside the worktree directory.
+   - Run `pnpm install` and `pnpm fetch:fixtures:nightly` inside the worktree directory.
 
 5. **Test-Driven Development (TDD)**:
    - Create a new test case in the relevant `.test.ts` file that reproduces the issue and fails.
@@ -35,7 +35,7 @@ Follow these steps to fix an issue from the user provided file:
    - Verify the fix by running the reproduction tests (they should now pass).
 
 8. **Verification**:
-   - Run mandatory schema tests: `yarn vitest schema.test.ts --run --bail 1`.
+   - Run mandatory schema tests: `pnpm vitest schema.test.ts --run --bail 1`.
    - Address any regressions.
 
 9. **Completion**:

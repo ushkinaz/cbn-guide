@@ -15,8 +15,8 @@ Optional:
   --help, -h            Show this help message
 
 Examples:
-  yarn bench:report
-  yarn bench:report --input bench-results/ --output my-report.html
+  pnpm bench:report
+  pnpm bench:report --input bench-results/ --output my-report.html
 `);
     process.exit(0);
   }

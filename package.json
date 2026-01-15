@@ -25,13 +25,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "verify": "yarn verify:format && yarn verify:types",
+    "verify": "pnpm verify:format && pnpm verify:types",
     "verify:format": "prettier -c .",
     "verify:types": "svelte-check && tsc --noEmit",
     "fix:format": "prettier -w .",
-    "test": "yarn verify && vitest run src",
-    "test:nightly": "yarn fetch:fixtures:nightly && yarn test",
-    "test:watch": "yarn fetch:fixtures && yarn verify:types && vitest run src --watch",
+    "test": "pnpm verify && vitest run src",
+    "test:nightly": "pnpm fetch:fixtures:nightly && pnpm test",
+    "test:watch": "pnpm fetch:fixtures && pnpm verify:types && vitest run src --watch",
     "fetch:fixtures": "tsx scripts/fetch-fixtures.ts",
     "fetch:fixtures:nightly": "tsx scripts/fetch-fixtures.ts nightly",
     "fetch:builds": "tsx scripts/fetch-builds.ts",
@@ -51,6 +51,7 @@
   "devDependencies": {
     "@babel/traverse": "^7.26.10",
     "@sveltejs/vite-plugin-svelte": "^3",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/svelte": "^4",
     "@transifex/cli": "^7.1.3",
     "@tsconfig/svelte": "^5.0.4",
@@ -83,9 +84,5 @@
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",
     "workbox-window": "^7.4.0"
-  },
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610",
-  "resolutions": {
-    "esbuild": ">=0.25.0"
   }
 }

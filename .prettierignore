@@ -6,3 +6,5 @@
 /public/global.css
 /schema.json
 /tmp/
+pnpm-lock.yaml
+pnpm-workspace.yaml

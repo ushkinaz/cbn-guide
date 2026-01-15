@@ -7,7 +7,7 @@ This project is a Svelte 4 application that uses Vite 5 for building and Vitest 
 ### Prerequisites
 
 - **Node.js**: version 18 or higher, 22 recommended
-- **Yarn**: version 1.x (Classic).
+- **pnpm**: version 10.x
 - **Python**: version 3.x (Required for Unifont generation).
 
 ### Recommended Tools
@@ -18,16 +18,16 @@ This project is a Svelte 4 application that uses Vite 5 for building and Vitest 
 
 1.  **Install dependencies**:
     ```bash
-    yarn install
+    pnpm install
     ```
 2.  **Fetch game data**:
     ```bash
-    yarn fetch:fixtures
+    pnpm fetch:fixtures
     ```
     This script downloads the necessary JSON fixtures from the builds repository. It's not required for the app, but usefull for testing.
 3.  **Start development server**:
     ```bash
-    yarn dev
+    pnpm dev
     ```
     The application will be available at [http://localhost:3000](http://localhost:3000).
 
@@ -97,14 +97,14 @@ This project uses `vitest` for testing. The tests cover a range of functionality
 
 ### Running Tests
 
-- **Run all tests**: `yarn test`
-  - Runs formatting checks (`yarn verify:format`), type validation (`yarn verify:types`), and unit tests.
+- **Run all tests**: `pnpm test`
+  - Runs formatting checks (`pnpm verify:format`), type validation (`pnpm verify:types`), and unit tests.
   - Takes long time to run.
-- **Run tests with latest nightly data**: `yarn test:nightly`
-  - Fetches latest fixtures (`yarn fetch:fixtures:nightly`) and runs tests.
-- **Watch mode**: `yarn test:watch`
+- **Run tests with latest nightly data**: `pnpm test:nightly`
+  - Fetches latest fixtures (`pnpm fetch:fixtures:nightly`) and runs tests.
+- **Watch mode**: `pnpm test:watch`
   - Fetches fixtures, runs type checks, and starts Vitest in watch mode.
-- **Type Checking**: `yarn verify:types`
+- **Type Checking**: `pnpm verify:types`
   - Runs `svelte-check` and `tsc` to ensure type safety.
 
 ### Project Scripts
@@ -113,25 +113,25 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 #### Code Quality
 
-- `yarn verify`: Run all static checks (formatting & types).
-- `yarn verify:format`: Check code formatting.
-- `yarn verify:types`: Run type checking.
-- `yarn fix:format`: Auto-fix formatting issues.
+- `pnpm verify`: Run all static checks (formatting & types).
+- `pnpm verify:format`: Check code formatting.
+- `pnpm verify:types`: Run type checking.
+- `pnpm fix:format`: Auto-fix formatting issues.
 
 #### Data & Assets
 
-- `yarn fetch:fixtures`: Download test data fixtures (default version).
-- `yarn fetch:fixtures:nightly`: Download nightly test data fixtures.
-- `yarn fetch:builds`: Download build metadata for versions.
-- `yarn fetch:icons`: Download item icons.
-- `yarn gen:css`: Generate `colors.css` from game data.
-- `yarn gen:sitemap`: Generate `sitemap.xml`.
-- `yarn gen:unifont`: Generate a subset of Unifont for the specific game data.
-- `yarn gen:unifont:verify`: CI check to ensure font subset covers current data.
+- `pnpm fetch:fixtures`: Download test data fixtures (default version).
+- `pnpm fetch:fixtures:nightly`: Download nightly test data fixtures.
+- `pnpm fetch:builds`: Download build metadata for versions.
+- `pnpm fetch:icons`: Download item icons.
+- `pnpm gen:css`: Generate `colors.css` from game data.
+- `pnpm gen:sitemap`: Generate `sitemap.xml`.
+- `pnpm gen:unifont`: Generate a subset of Unifont for the specific game data.
+- `pnpm gen:unifont:verify`: CI check to ensure font subset covers current data.
 
 #### Deployment
 
-- `yarn i18n:push`: Upload source strings to Transifex.
+- `pnpm i18n:push`: Upload source strings to Transifex.
 
 ### Test Files Overview
 
@@ -170,10 +170,10 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 The project includes benchmarking scripts to track performance across different environments.
 
-- **`yarn bench:node`**: Runs performance benchmarks in the Node.js environment.
-- **`yarn bench:browser`**: Runs benchmarks in a headless browser environment.
-- **`yarn bench:browser:batch`**: Runs benchmarks in the browser across multiple versions or data sets.
-- **`yarn bench:report`**: Aggregates benchmark results and generates a summary report.
+- **`pnpm bench:node`**: Runs performance benchmarks in the Node.js environment.
+- **`pnpm bench:browser`**: Runs benchmarks in a headless browser environment.
+- **`pnpm bench:browser:batch`**: Runs benchmarks in the browser across multiple versions or data sets.
+- **`pnpm bench:report`**: Aggregates benchmark results and generates a summary report.
 
 ### Test Helpers
 

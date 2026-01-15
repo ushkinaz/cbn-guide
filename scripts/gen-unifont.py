@@ -232,7 +232,7 @@ def verify_mode() -> int:
     current_data_chars = get_data_chars()
 
     if not CHARS_FILE.is_file():
-        print(f"Error: {rel(CHARS_FILE)} missing. Run 'yarn gen:unifont' to create it.")
+        print(f"Error: {rel(CHARS_FILE)} missing. Run 'pnpm gen:unifont' to create it.")
         return 1
 
     print(f"2/2: Comparing against {rel(CHARS_FILE)}...")
@@ -243,7 +243,7 @@ def verify_mode() -> int:
         missing_str = "".join(missing)
         print("Error: New characters found in game data! They are not covered by the current subset.")
         print(f"Missing characters: {missing_str}")
-        print("Please run 'yarn gen:unifont' to update the font subset.")
+        print("Please run 'pnpm gen:unifont' to update the font subset.")
         return 1
     else:
         print("Verification successful: All characters are covered.")

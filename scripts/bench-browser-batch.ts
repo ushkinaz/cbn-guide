@@ -27,15 +27,15 @@ Example bench-results/browser-urls.txt:
   # Core pages
   http://localhost:3000/stable/item/pretzels
   http://localhost:3000/stable/recipe/soup_dumplings
-  
+
   # Heavy pages
   http://localhost:3000/stable/item/katana
 
 Examples:
-  yarn bench:browser:batch
-  yarn bench:browser:batch --runs 10
-  yarn bench:browser:batch --no-throttle
-  yarn bench:browser:batch --urls my-urls.txt
+  pnpm bench:browser:batch
+  pnpm bench:browser:batch --runs 10
+  pnpm bench:browser:batch --no-throttle
+  pnpm bench:browser:batch --urls my-urls.txt
 `);
     process.exit(0);
   }
@@ -104,7 +104,7 @@ async function main() {
 
     try {
       const cmd = [
-        "yarn",
+        "pnpm",
         "bench:browser",
         "--url",
         url,

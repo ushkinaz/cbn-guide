@@ -42,8 +42,8 @@ Output:
   <output>/browser-<slug>-stats.json  Aggregated statistics (overwritten)
 
 Examples:
-  yarn bench:browser --url http://localhost:3000/v0.9.1/item/pretzels
-  yarn bench:browser --url http://localhost:3000/stable/item/fire_axe --runs 20
+  pnpm bench:browser --url http://localhost:3000/v0.9.1/item/pretzels
+  pnpm bench:browser --url http://localhost:3000/stable/item/fire_axe --runs 20
 `);
     process.exit(0);
   }

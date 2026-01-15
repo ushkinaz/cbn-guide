@@ -10,4 +10,4 @@ description: Use when debugging game content, investigating data values, updatin
   - Find items with specific property: `jq '.data[] | select(.color == "RED")' _test/all.json`
 - **Inheritance**: Raw JSON uses `copy-from`. If a property is missing, check the parent.
 - **Resolution**: Use `src/data.ts` (`CBNData` / `_flatten`) to see ultimate resolved values as they appear in-app.
-- **Tests**: `yarn vitest --run schema.test.ts --bail 1`
+- **Tests**: `pnpm vitest --run schema.test.ts --bail 1`

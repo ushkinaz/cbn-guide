@@ -4,12 +4,12 @@ This directory contains Git hooks that help maintain code quality and automate c
 
 ## Installation
 
-Husky hooks are typically installed automatically during `yarn install` via the `prepare` script in `package.json`.
+Husky hooks are typically installed automatically during `pnpm install` via the `prepare` script in `package.json`.
 
 If you need to manually install or re-install them (e.g., after a fresh clone):
 
 ```bash
-yarn prepare
+pnpm prepare
 ```
 
 ## Active Hooks

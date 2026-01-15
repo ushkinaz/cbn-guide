@@ -99,7 +99,7 @@ function loadTestData(): any[] {
   const testDataPath = path.resolve("_test/all.json");
   if (!fs.existsSync(testDataPath)) {
     console.error(
-      `Error: Test data not found at ${testDataPath}. Run 'yarn fetch:fixtures' first.`,
+      `Error: Test data not found at ${testDataPath}. Run 'pnpm fetch:fixtures' first.`,
     );
     process.exit(1);
   }
@@ -158,9 +158,9 @@ Output:
   <output>/node-<scenario>-stats.json  Aggregated statistics (overwritten)
 
 Examples:
-  yarn bench:node                              # Run all scenarios
-  yarn bench:node --scenario constructor
-  yarn bench:node --scenario lazy-indexes --runs 20
+  pnpm bench:node                              # Run all scenarios
+  pnpm bench:node --scenario constructor
+  pnpm bench:node --scenario lazy-indexes --runs 20
 `);
     process.exit(0);
   }

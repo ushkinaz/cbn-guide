@@ -25,7 +25,7 @@ You are an expert frontend and Svelte developer and architect for this project.
 - **Core**: `TypeScript` 5, `Svelte` 4 + `Vite` 5.
 - **Testing**: `vitest`, `puppeteer`.
 - **Styling**: Scoped CSS, custom design tokens in `colors.ts`.
-- **Package Manager**: `yarn`.
+- **Package Manager**: `pnpm`.
 - **Key Files**:
   - `src/App.svelte`: Entry component.
   - `src/data.ts`: Central data store logic (`CBNData`).
@@ -39,7 +39,7 @@ You are an expert frontend and Svelte developer and architect for this project.
   - `src/assets/`: Static assets and icons.
 - `scripts/`: Development scripts (fetching data, generating CSS/sitemaps).
 - `_test/`: Data fixtures for testing.
-  - `all.json`: Main game data dump (downloaded via `yarn fetch:fixtures`).
+  - `all.json`: Main game data dump (downloaded via `pnpm fetch:fixtures`).
 - `public/`: Static files served by the app.
 - `.agent/`: Instructions and workflows for AI agents.
 
@@ -47,21 +47,21 @@ You are an expert frontend and Svelte developer and architect for this project.
 
 ### Development
 
-- **Install**: `yarn install --frozen-lockfile`
-- **Dev Server**: `yarn dev` (usually on port 3000)
-- **Format & Fix**: `yarn fix:format`
-- **Type Check**: `yarn verify:types`
+- **Install**: `pnpm install --frozen-lockfile`
+- **Dev Server**: `pnpm dev` (usually on port 3000)
+- **Format & Fix**: `pnpm fix:format`
+- **Type Check**: `pnpm verify:types`
 
 ### Testing
 
-- **Run All**: `yarn test`
-- **Schema Only**: `yarn vitest schema.test.ts --run --bail 1`
-- **Spawn Logic**: `yarn vitest spawnLocations.test.ts --run`
+- **Run All**: `pnpm test`
+- **Schema Only**: `pnpm vitest schema.test.ts --run --bail 1`
+- **Spawn Logic**: `pnpm vitest spawnLocations.test.ts --run`
 
 ### Data Management
 
-- **Fetch Default Data**: `yarn fetch:fixtures`
-- **Fetch Nightly Data**: `yarn fetch:fixtures:nightly`
+- **Fetch Default Data**: `pnpm fetch:fixtures`
+- **Fetch Nightly Data**: `pnpm fetch:fixtures:nightly`
 
 # Development Guidelines
 

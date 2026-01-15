@@ -8,7 +8,7 @@ This workflow guides you through resolving schema validation errors, typically c
    Run the schema validation tests to isolate the failure.
 
    ```bash
-   yarn vitest --run schema.test.ts --bail 2
+   pnpm vitest --run schema.test.ts --bail 2
    ```
 
    - Look for errors like `schema matches <type> <id>`.
@@ -55,5 +55,5 @@ This workflow guides you through resolving schema validation errors, typically c
    // turbo
 
    ```bash
-   yarn fix:format && yarn vitest --run schema.test.ts --bail 2
+   pnpm fix:format && pnpm vitest --run schema.test.ts --bail 2
    ```
