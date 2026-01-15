@@ -2,3 +2,6 @@ onlyBuiltDependencies:
   - esbuild
   - puppeteer
   - sharp
+
+overrides:
+    "esbuild": "^0.27.2"
