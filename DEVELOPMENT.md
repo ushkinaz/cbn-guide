@@ -12,8 +12,7 @@ The reactive label `$:` should be reserved primarily for **derived state** (comp
 
 - **derived state**:
   ```svelte
-  $: filteredItems = items.filter(i => i.name.includes(search)); $: count =
-  filteredItems.length;
+  $: filteredItems = items.filter(i => i.name.includes(search)); $: count =  filteredItems.length;
   ```
 - **logging/debugging** (during dev only):
   ```svelte
@@ -43,6 +42,7 @@ The reactive label `$:` should be reserved primarily for **derived state** (comp
     - URL state (version, search) is the source of truth.
     - The app reacts to URL changes to update the `data` store.
     - Components should react to `$data` changes gracefully.
+    - Details in [[docs/routing.md]]
 
 ### Legacy Code Note
 
@@ -55,7 +55,7 @@ When refactoring, prioritize moving logic out of `$:` side-effects and into clea
 
 ## Architecture Decision Records
 
-Significant architectural decisions are documented in [docs/adr/](../docs/adr/README.md) using the Lightweight Architecture Decision Records format. When making important design choices, create a new ADR to document the context, decision, and consequences.
+Significant architectural decisions are documented in `docs/adr/`, see [[docs/adr/README.md]] using the Lightweight Architecture Decision Records format. When making important design choices, create a new ADR to document the context, decision, and consequences.
 
 ## Testing
 
@@ -65,6 +65,7 @@ This project uses `vitest` for testing. The tests cover a range of functionality
 
 - **Run all tests**: `yarn test`
   - Runs formatting checks (`yarn verify:format`), type validation (`yarn verify:types`), and unit tests.
+  - Takes long time to run.
 - **Run tests with latest nightly data**: `yarn test:nightly`
   - Fetches latest fixtures (`yarn fetch:fixtures:nightly`) and runs tests.
 - **Watch mode**: `yarn test:watch`

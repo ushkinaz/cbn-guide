@@ -1,63 +1,98 @@
-# cbn-guide Agent Handbook
+You are an expert frontend and Svelte developer and architect for this project.
 
-Focused rules for AI agents. Keep this open while working.
+# Overview
 
-## Scope & precedence
+- **The Hitchhiker's Guide to the Cataclysm: Bright Nights** is an interactive encyclopedia and companion tool for the "Cataclysm: Bright Nights" game.
+- It provides a searchable, visual interface for items, monsters, and mechanics.
+- **Data-Driven**: The app is a mirror of game data. Upstream source code and data may live at `../Cataclysm-BN`.
+- **Additional resources**: Read [[DEVELOPMENT.md]].
 
-- This file covers the whole repo; nested `AGENTS.md` files override for their folders.
-- Specialized rules live in `./.agent/rules/*.md`; workflows in `./.agent/workflows/*.md`.
-- Stay in the repo root (no `cd`). Yarn only.
+# Quick Decision Tree
 
-## Start-of-session checklist
+1.  **Touching schema, fixtures, or filtering JSON?**
+    Read [[.agent/rules/data-source.md]].
+2.  **Touching UI/layout/colors?**
+    Read [[.agent/rules/colors.md]] and [[.agent/rules/ui-verification.md]].
+3.  **Adding/changing UI text?**
+    Read [[.agent/rules/localization.md]].
+4.  **Using browser agent?**
+    Read [[.agent/rules/browser-nightly.md]].
+5.  **Starting a new feature or fixing a bug?**
+    Check [[.agent/workflows/]] for [[.agent/workflows/fix-issue.md]], [[.agent/workflows/create-adr.md]], [[.agent/workflows/create-feature.md]], etc.
 
-- Disable shell history to avoid pollution: `unset HISTFILE; unsetopt share_history`.
-- Scan for nested `AGENTS.md` if you touch new directories.
-- Note whether the task touches UI, localization, or data schema so you can pull the matching rule file early.
+# Tech Stack
 
-## Project snapshot
+- **Core**: `TypeScript` 5, `Svelte` 4 + `Vite` 5.
+- **Testing**: `vitest`, `puppeteer`.
+- **Styling**: Scoped CSS, custom design tokens in `colors.ts`.
+- **Package Manager**: `yarn`.
+- **Key Files**:
+  - `src/App.svelte`: Entry component.
+  - `src/data.ts`: Central data store logic (`CBNData`).
+  - `src/types.ts`: Core TypeScript definitions.
+  - `src/routing.ts`: URL-based routing logic.
 
-- Svelte 4 + Vite, TypeScript (ES2023), Vitest, scoped CSS. Prettier formatting.
-- App mirrors Cataclysm: Bright Nights data; upstream checkout may live at `../Cataclysm-BN` for cross-reference.
-- Core files: `src/App.svelte`, `src/Thing.svelte`, `src/data.ts`, `src/colors.ts`, `src/types.ts`, `src/types/*`, assets in `src/assets`, tests as `*.test.ts`, static files in `public/`.
-- Test fixtures: `_test/all.meta.json` (tracked), `_test/all.json` (downloaded), `_test/builds.json` (downloaded). `yarn fetch:fixtures` populates `_test/all.json`.
-- Developer primers live in `README.md` and `DEVELOPMENT.md`; keep agent-facing rules here.
+# Project Structure
 
-## Commands you actually need
+- `src/`: Application source code.
+  - `src/types/`: Type-specific logic and specialized components (e.g., `src/types/item/`).
+  - `src/assets/`: Static assets and icons.
+- `scripts/`: Development scripts (fetching data, generating CSS/sitemaps).
+- `_test/`: Data fixtures for testing.
+  - `all.json`: Main game data dump (downloaded via `yarn fetch:fixtures`).
+- `public/`: Static files served by the app.
+- `.agent/`: Instructions and workflows for AI agents.
 
-- Install deps: `yarn install`
-- Dev server: `yarn dev` (http://localhost:3000)
-- Build: `yarn build`
-- Full check (downloads fixtures if missing): `yarn test --bail 2`
-- Type checks: `yarn verify`
-- Lint / format: `yarn verify:format`, `yarn fix:format` (run before committing)
+# Useful Commands
 
-## Data handling (always-on truthiness)
+### Development
 
-- Source of truth is `_test/all.json`; use `jq` filters to avoid loading everything:
-  - `jq '.data[] | select(.id==\"<id>\" and .type==\"<type>\")' _test/all.json`
-- Raw JSON inherits via `copy-from`; rely on `src/data.ts` (`CBNData` + `_flatten`) to resolve final values.
-- For schema issues, run `yarn vitest --run schema.test.ts --bail 1` or follow `.agent/workflows/fix-schema-validation.md`.
+- **Install**: `yarn install --frozen-lockfile`
+- **Dev Server**: `yarn dev` (usually on port 3000)
+- **Format & Fix**: `yarn fix:format`
+- **Type Check**: `yarn verify:types`
 
-## UI, styling, and colors
+### Testing
 
-- Keep game palette (`--cata-color-*`) for in-game data only; keep app UI colors from `global.css` separate. Never mix palettes.
-- Verify UI changes visually via the browser subagent against `http://localhost:3000/` when you touch components.
+- **Run All**: `yarn test`
+- **Schema Only**: `yarn vitest schema.test.ts --run --bail 1`
+- **Spawn Logic**: `yarn vitest spawnLocations.test.ts --run`
 
-## Localization
+### Data Management
 
-- Use `t` from `@transifex/native` for UI strings: `t("Text")`, `t("Cost: {n}", { n })`.
-- Avoid string concatenation; prefer inline interpolation.
-- Game-derived strings should come from the i18n helpers in `data.ts` (`singular`, `plural`, `translate`, etc.).
+- **Fetch Default Data**: `yarn fetch:fixtures`
+- **Fetch Nightly Data**: `yarn fetch:fixtures:nightly`
 
-## Engineering hygiene
+# Development Guidelines
 
-- Always TypeScript (`<script lang="ts">` in Svelte). Keep heavy data logic in `.ts` modules, not Svelte templates.
-- Maintain reactivity; avoid side effects during render.
-- Preserve compatibility with current and latest-stable Cataclysm-BN when it does not add significant complexity.
+## Key Principles
 
-## Quick decision tree
+- **Clean Code**: Prioritize readability and maintainability.
+- **SRP**: Keep components and modules focused on a single responsibility.
+- **TDD**: When fixing bugs, always start with a failing test case.
+- **Data Immortality**: The `data` store is effectively immutable; replace it wholesale on version changes.
 
-1. Touching schema, fixtures, or filtering JSON (`jq`)? Read `.agent/rules/data-source.md`.
-2. Touching UI/layout/colors? Read `.agent/rules/colors.md` and `.agent/rules/ui-verification.md`.
-3. Adding/changing UI text? Read `.agent/rules/localization.md`.
-4. Using browser agent? Read `.agent/rules/browser-nightly.md`.
+## Best Practices
+
+- **Reactivity**: Use `$:` for derived state only. Avoid side effects in reactive statements. See [DEVELOPMENT.md](DEVELOPMENT.md#L3-L33).
+- **Architecture**: Move heavy data logic into `.ts` modules, keep `.svelte` components focused on rendering.
+- **Styling**: Never mix game palette (`--cata-color-*`) with app UI colors.
+- **Localization**: Use `t()` from `@transifex/native`. Avoid string concatenation for translatable strings.
+
+## Engineering Hygiene
+
+- **Environment**: **Always** disable terminal shell history to avoid pollution: `unset HISTFILE; unsetopt share_history`.
+- **Cross-Version Compatibility**: Maintain compatibility with stable and nightly Cataclysm-BN where feasible.
+
+# Testing Strategy
+
+- **Integration Tests (`src/all.X.test.ts`)**: Renders every item to catch runtime errors and binding issues.
+- **Schema Tests (`src/schema.test.ts`)**: Validates that game data matches expected TypeScript interfaces.
+- **Feature Tests**: Unit and integration tests for specific functionality (Search, Routing, Spawning).
+- **UI Verification**: Use the browser subagent to visually verify changes against the local dev server.
+
+# Boundaries & Security
+
+- **Secrets**: Never commit or log API keys or sensitive environment variables.
+- **History**: Ensure `terminal-history.md` rule is followed (unset `HISTFILE`).
+- **Data Volume**: Don't `cat` `_test/all.json`. Use `jq` filters as specified in `data-source.md`.
