@@ -1,5 +1,38 @@
 # Development Guide
 
+## Getting started
+
+This project is a Svelte 4 application that uses Vite 5 for building and Vitest for testing. It requires a local copy of the game data to function correctly during development.
+
+### Prerequisites
+
+- **Node.js**: version 18 or higher, 22 recommended
+- **Yarn**: version 1.x (Classic).
+- **Python**: version 3.x (Required for Unifont generation).
+
+### Recommended Tools
+
+- **[jq](https://jqlang.github.io/jq/)**: Highly recommended for querying, filtering, and inspecting the large game data files (e.g., `_test/all.json`).
+
+### Initial Setup
+
+1.  **Install dependencies**:
+    ```bash
+    yarn install
+    ```
+2.  **Fetch game data**:
+    ```bash
+    yarn fetch:fixtures
+    ```
+    This script downloads the necessary JSON fixtures from the builds repository. It's not required for the app, but usefull for testing.
+3.  **Start development server**:
+    ```bash
+    yarn dev
+    ```
+    The application will be available at [http://localhost:3000](http://localhost:3000).
+
+---
+
 ## Svelte Reactivity & Architecture
 
 This project follows specific patterns for Svelte reactivity and state management to ensure performance and predictability.
@@ -12,7 +45,8 @@ The reactive label `$:` should be reserved primarily for **derived state** (comp
 
 - **derived state**:
   ```svelte
-  $: filteredItems = items.filter(i => i.name.includes(search)); $: count =  filteredItems.length;
+  $: filteredItems = items.filter(i => i.name.includes(search)); $: count =
+  filteredItems.length;
   ```
 - **logging/debugging** (during dev only):
   ```svelte
@@ -88,10 +122,12 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 - `yarn fetch:fixtures`: Download test data fixtures (default version).
 - `yarn fetch:fixtures:nightly`: Download nightly test data fixtures.
+- `yarn fetch:builds`: Download build metadata for versions.
 - `yarn fetch:icons`: Download item icons.
 - `yarn gen:css`: Generate `colors.css` from game data.
 - `yarn gen:sitemap`: Generate `sitemap.xml`.
 - `yarn gen:unifont`: Generate a subset of Unifont for the specific game data.
+- `yarn gen:unifont:verify`: CI check to ensure font subset covers current data.
 
 #### Deployment
 
@@ -129,6 +165,15 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 - **`src/types/item/utils.test.ts`**
   - Helper unit tests for utility functions like `multimap`.
+
+## Benchmarks
+
+The project includes benchmarking scripts to track performance across different environments.
+
+- **`yarn bench:node`**: Runs performance benchmarks in the Node.js environment.
+- **`yarn bench:browser`**: Runs benchmarks in a headless browser environment.
+- **`yarn bench:browser:batch`**: Runs benchmarks in the browser across multiple versions or data sets.
+- **`yarn bench:report`**: Aggregates benchmark results and generates a summary report.
 
 ### Test Helpers
 
