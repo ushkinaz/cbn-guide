@@ -45,7 +45,10 @@ const ranged_damage = Array.isArray(item.ranged_damage)
     </dd>
     <dt>{t("Armor Penetration", { _context })}</dt>
     <dd>{ranged_damage.armor_penetration ?? 0}</dd>
-    <!-- TODO: Critical multiplier -->
+    {#if item.critical_multiplier}
+      <dt>{t("Critical Multiplier", { _context })}</dt>
+      <dd>{item.critical_multiplier}</dd>
+    {/if}
     <dt title="Added to ammo range">{t("Range Bonus", { _context })}</dt>
     <dd>{item.range ?? 0}</dd>
     <dt title="Added to ammo dispersion">
