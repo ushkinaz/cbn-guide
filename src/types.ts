@@ -2113,6 +2113,25 @@ export type MagazineSlot = {
   linkage?: string;
 };
 
+export type MonsterAttackType = {
+  type: "monster_attack";
+  id: string;
+  cooldown?: number;
+
+  hit_dmg_u?: Translation;
+  hit_dmg_npc?: Translation;
+  no_dmg_msg_u?: Translation;
+  no_dmg_msg_npc?: Translation;
+  miss_msg_u?: Translation;
+  miss_msg_npc?: Translation;
+} & (
+  | ({ attack_type: "melee" } & Omit<MeleeAttack, "type">)
+  | ({ attack_type: "bite" } & Omit<BiteAttack, "type">)
+  | ({ attack_type: "gun" } & Omit<GunAttack, "type">)
+  | ({ attack_type: "leap" } & Omit<LeapAttack, "type">)
+  | ({ attack_type: "spell" } & Omit<SpellAttack, "type">)
+);
+
 export type SupportedTypes = {
   // Item types.
   AMMO: { type: "AMMO" } & ItemBasicInfo & AmmoSlot;
@@ -2181,8 +2200,7 @@ export type SupportedTypes = {
   vitamin: Vitamin;
   weapon_category: WeaponCategory;
 
-  // TODO: used, but not yet typed
-  monster_attack: { type: "monster_attack"; id: string };
+  monster_attack: MonsterAttackType;
 };
 
 export type SupportedTypesWithMapped = SupportedTypes & {
