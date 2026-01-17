@@ -1248,13 +1248,23 @@ export interface MapgenTerFurnTransform {
   transform: MapgenValue; // ter_furn_transform_id
 }
 
+export type ComputerOption = {
+  name: Translation;
+  action: string;
+  security?: number;
+};
+
+export type ComputerFailure = {
+  action: string;
+};
+
 export interface MapgenComputer {
   name?: Translation;
   access_denied?: Translation;
   security?: number; // default 0
   target?: boolean; // default false
-  options?: any[]; // TODO: strictly type ComputerOption
-  failures?: any[]; // TODO: strictly type ComputerFailure
+  options?: ComputerOption[];
+  failures?: ComputerFailure[];
 }
 
 export type MapgenInt = number | [number] | [number, number];
