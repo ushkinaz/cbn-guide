@@ -142,8 +142,5 @@ const display = (obj && displays[obj.type]) ?? Unknown;
     </ErrorBoundary>
   {/if}
 
-  <details>
-    <summary>{t("Raw JSON")}</summary>
-    <JsonView {obj} buildNumber={data.build_number} />
-  </details>
+  <JsonView {obj} buildNumber={data.build_number} />
 {/if}

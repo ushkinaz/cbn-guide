@@ -198,10 +198,7 @@ function activityLevelName(level: number) {
       </dd>
     {/if}
   </dl>
-  <details>
-    <summary>{t("Recipe JSON")}</summary>
-    <JsonView obj={recipe} buildNumber={data.build_number} />
-  </details>
+  <JsonView obj={recipe} buildNumber={data.build_number} />
 </section>
 
 <style>

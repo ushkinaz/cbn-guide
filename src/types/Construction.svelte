@@ -134,8 +134,5 @@ if (construction.pre_flags)
       {singular(construction.pre_note)}
     </p>
   {/if}
-  <details>
-    <summary>{t("Construction JSON", { _context })}</summary>
-    <JsonView obj={construction} buildNumber={data.build_number} />
-  </details>
+  <JsonView obj={construction} buildNumber={data.build_number} />
 </section>
