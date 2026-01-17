@@ -5,20 +5,18 @@ You are an expert frontend and Svelte developer and architect for this project.
 - **The Hitchhiker's Guide to the Cataclysm: Bright Nights** is an interactive encyclopedia and companion tool for the "Cataclysm: Bright Nights" game.
 - It provides a searchable, visual interface for items, monsters, and mechanics.
 - **Data-Driven**: The app is a mirror of game data. Upstream source code and data may live at `../Cataclysm-BN`.
-- **Additional resources**: Read [[DEVELOPMENT.md]].
+- **Additional resources**: Read [DEVELOPMENT.md](DEVELOPMENT.md).
 
 # Quick Decision Tree
 
 1.  **Touching schema, fixtures, or filtering JSON?**
-    Read [[.agent/rules/data-source.md]].
+    Read [data-source.md](.agent/rules/data-source.md).
 2.  **Touching UI/layout/colors?**
-    Read [[.agent/rules/colors.md]] and [[.agent/rules/ui-verification.md]].
+    Read [ui-verification.md](.agent/rules/colors.md) and [ui-verification.md](.agent/rules/ui-verification.MD).
 3.  **Adding/changing UI text?**
-    Read [[.agent/rules/localization.md]].
+    Read [localization.md](.agent/rules/localization.md).
 4.  **Using browser agent?**
-    Read [[.agent/rules/browser-nightly.md]].
-5.  **Starting a new feature or fixing a bug?**
-    Check [[.agent/workflows/]] for [[.agent/workflows/fix-issue.md]], [[.agent/workflows/create-adr.md]], [[.agent/workflows/create-feature.md]], etc.
+    Read [browser-nightly.md](.agent/rules/browser-nightly.md).
 
 # Tech Stack
 
@@ -74,7 +72,7 @@ You are an expert frontend and Svelte developer and architect for this project.
 
 ## Best Practices
 
-- **Reactivity**: Use `$:` for derived state only. Avoid side effects in reactive statements. See [DEVELOPMENT.md](DEVELOPMENT.md#L3-L33).
+- **Reactivity**: Use `$:` for derived state only. Avoid side effects in reactive statements. See [DEVELOPMENT.md](DEVELOPMENT.md#reactive-statements).
 - **Architecture**: Move heavy data logic into `.ts` modules, keep `.svelte` components focused on rendering.
 - **Styling**: Never mix game palette (`--cata-color-*`) with app UI colors.
 - **Localization**: Use `t()` from `@transifex/native`. Avoid string concatenation for translatable strings.
@@ -94,5 +92,5 @@ You are an expert frontend and Svelte developer and architect for this project.
 # Boundaries & Security
 
 - **Secrets**: Never commit or log API keys or sensitive environment variables.
-- **History**: Ensure `terminal-history.md` rule is followed (unset `HISTFILE`).
-- **Data Volume**: Don't `cat` `_test/all.json`. Use `jq` filters as specified in `data-source.md`.
+- **History**: Ensure [terminal-history.md](.agent/rules/terminal-history.md) rule is followed.
+- **Data Volume**: Don't `cat` `_test/all.json`. Use `jq` filters as specified in [data-source.md](.agent/rules/data-source.md).

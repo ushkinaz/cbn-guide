@@ -37,7 +37,7 @@ This project is a Svelte 4 application that uses Vite 5 for building and Vitest 
 
 This project follows specific patterns for Svelte reactivity and state management to ensure performance and predictability.
 
-### Reactive Statements (`$:`)
+### Reactive Statements
 
 The reactive label `$:` should be reserved primarily for **derived state** (computed values) required for rendering.
 
