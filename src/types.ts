@@ -191,8 +191,6 @@ export type DamageType = {
   magic_color?: string;
 
   derived_from?: [string /* damage_type_id */, number /* float */];
-
-  // TODO: onhit_eocs
 };
 
 export type DamageInfoOrderEntry = {
@@ -460,7 +458,6 @@ export type UseFunction =
   | CloningSyringeUseFunction
   | DnaEditorUseFunction
   | {
-      // TODO
       type:
         | "ammobelt"
         | "bandolier"

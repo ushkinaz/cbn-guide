@@ -77,7 +77,6 @@ export function makeRenderTests(chunkIdx: number, numChunks: number) {
       // accidental object rendering ([object Object]).
       // Note: "technique" types are excluded as they may contain these strings legitimately
       // or are handled via a different rendering path.
-      //TODO: enable later. /overmap_special/private_resort has multiple NaNs
       if (type !== "technique") {
         expect(
           container.textContent,
