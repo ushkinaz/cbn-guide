@@ -294,7 +294,6 @@ export type GunSlot = {
   min_cycle_recoil?: number; // int, default: 0
   ammo_effects?: string[];
   ammo_to_fire?: number; // int, default: 1
-  critical_multiplier?: number; // float
 
   valid_mod_locations?: [string, number][]; // [gunmod_location, count]
 
