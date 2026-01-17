@@ -283,6 +283,7 @@ export class CBNData {
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
+  _aliases: Map<string, Map<string, string>> = new Map();
 
   release: any;
   build_number: string | undefined;
@@ -315,12 +316,21 @@ export class CBNData {
           for (const id of obj.id)
             this._byTypeById.get(mappedType)!.set(id, obj);
 
-        // TODO: proper alias handling. We want to e.g. be able to collapse them in loot tables.
-        if (Array.isArray(obj.alias))
-          for (const id of obj.alias)
+        if (Array.isArray(obj.alias)) {
+          for (const id of obj.alias) {
             this._byTypeById.get(mappedType)!.set(id, obj);
-        else if (typeof obj.alias === "string")
+            if (!this._aliases.has(mappedType))
+              this._aliases.set(mappedType, new Map());
+            const canonicalId = Array.isArray(obj.id) ? obj.id[0] : obj.id;
+            this._aliases.get(mappedType)!.set(id, canonicalId);
+          }
+        } else if (typeof obj.alias === "string") {
           this._byTypeById.get(mappedType)!.set(obj.alias, obj);
+          if (!this._aliases.has(mappedType))
+            this._aliases.set(mappedType, new Map());
+          const canonicalId = Array.isArray(obj.id) ? obj.id[0] : obj.id;
+          this._aliases.get(mappedType)!.set(obj.alias, canonicalId);
+        }
       }
       // recipes are id'd by their result
       if (
@@ -388,6 +398,11 @@ export class CBNData {
       return this.byIdMaybe(type, this._migrations.get(id)!);
     const obj = byId?.get(id);
     if (obj) return this._flatten(obj);
+  }
+
+  resolveAlias(type: string, id: string): string {
+    const mappedType = mapType(type as any);
+    return this._aliases.get(mappedType)?.get(id) ?? id;
   }
 
   byId<TypeName extends keyof SupportedTypesWithMapped>(
@@ -841,6 +856,7 @@ export class CBNData {
       string,
       { prob: number; expected: number; count: [number, number] }
     >();
+    const data = this;
 
     function addOne({
       id,
@@ -852,11 +868,12 @@ export class CBNData {
       count: [number, number];
     }) {
       if (id === "null") return;
+      const resolvedId = data.resolveAlias("item", id);
       const {
         prob: prevProb,
         count: prevCount,
         expected: prevExpected,
-      } = retMap.get(id) ?? {
+      } = retMap.get(resolvedId) ?? {
         prob: 0,
         count: [0, 0],
         expected: 0,
@@ -870,7 +887,11 @@ export class CBNData {
 
       const newExpected = prevExpected + (prob * (count[0] + count[1])) / 2;
 
-      retMap.set(id, { prob: newProb, expected: newExpected, count: newCount });
+      retMap.set(resolvedId, {
+        prob: newProb,
+        expected: newExpected,
+        count: newCount,
+      });
     }
 
     function add(
@@ -923,7 +944,6 @@ export class CBNData {
       };
     }
 
-    const data = this;
     function normalizeCount(entry: ItemGroupEntry): [number, number] {
       if (entry.count)
         if (typeof entry.count === "number") return [entry.count, entry.count];
