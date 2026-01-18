@@ -21,7 +21,7 @@ import randomIcon from "./assets/category-icons/random.svg";
 import terrainIcon from "./assets/category-icons/terrain.svg";
 //https://game-icons.net/1x1/delapouite/car-wheel.html
 import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
-import { t } from "@transifex/native";
+import { t } from "./i18n";
 import { CBNData, data, mapType } from "./data";
 import { getVersionedBasePath } from "./routing";
 import type { SupportedTypeMapped } from "./types";

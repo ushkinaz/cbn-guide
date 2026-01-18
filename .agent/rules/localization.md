@@ -1,9 +1,9 @@
 ---
 trigger: model_decision
-description: Apply when adding or modifying user-facing text in the UI to ensure total localizability using the @transifex/native "t" function.
+description: Apply when adding or modifying user-facing text in the UI to ensure total localizability using the @i18n/native "t" function.
 ---
 
-Use `t` from `@transifex/native`.
+Use `t` from `@i18n/native`.
 
 - **Static**: `t("Text")`
 - **Interpolation**: `t("Cost: {n}", { n: value })`

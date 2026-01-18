@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "@transifex/native";
+import { t } from "../../i18n";
 import type { ComestibleSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import { CBNData, parseDuration } from "../../data";

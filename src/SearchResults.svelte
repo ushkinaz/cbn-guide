@@ -16,7 +16,7 @@ import type {
   SupportedTypesWithMapped,
 } from "./types";
 import { setContext } from "svelte";
-import { t } from "@transifex/native";
+import { t } from "./i18n";
 import LimitedList from "./LimitedList.svelte";
 import LimitedTableList from "./LimitedTableList.svelte";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";

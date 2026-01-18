@@ -47,7 +47,7 @@ export function getByproductsIndex(data: CBNData) {
 </script>
 
 <script lang="ts">
-import { t } from "@transifex/native";
+import { t } from "../../i18n";
 
 import { getContext } from "svelte";
 import { CBNData } from "../../data";

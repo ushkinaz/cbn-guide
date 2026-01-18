@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "@transifex/native";
+import { t } from "./i18n";
 import { GAME_REPO_URL } from "./constants";
 
 export let obj: any;

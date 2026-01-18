@@ -3,7 +3,7 @@ import LimitedTableList from "../../LimitedTableList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import type { Loot } from "./spawnLocations";
 import { showNumber, showProbability } from "./utils";
-import { t } from "@transifex/native";
+import { t } from "../../i18n";
 import type { SupportedTypesWithMapped } from "src/types";
 
 export let loot: Loot | Promise<Loot> | (() => Loot | Promise<Loot>);

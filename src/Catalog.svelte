@@ -1,6 +1,6 @@
 <script lang="ts">
 import { setContext } from "svelte";
-import { t } from "@transifex/native";
+import { t } from "./i18n";
 
 import { byName, CBNData, singularName, pluralName, plural } from "./data";
 import LimitedList from "./LimitedList.svelte";

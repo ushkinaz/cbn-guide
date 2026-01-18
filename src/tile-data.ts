@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import { t } from "@transifex/native";
+import { t } from "./i18n";
 import type { CBNData } from "./data";
 
 const fetchJson = async (url: string) => {

@@ -14,12 +14,12 @@ C4Context
 
     System_Ext(bn_repo, "Cataclysm: BN", "Game repository with JSON data")
     System_Ext(cloudflare, "Cloudflare Pages", "Hosting & CDN")
-    System_Ext(transifex, "Transifex", "Translation management")
+    System_Ext(i18n, "Transifex", "Translation management")
 
     Rel(user, guide, "Browses items, recipes, monsters", "HTTPS")
     Rel(guide, bn_repo, "Extracts game data", "GitHub API")
     Rel(guide, cloudflare, "Deployed to", "CI/CD")
-    Rel(guide, transifex, "Syncs translations", "API")
+    Rel(guide, i18n, "Syncs translations", "API")
 ```
 
 ## High-Level Architecture

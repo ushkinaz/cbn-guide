@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "@transifex/native";
+import { t } from "../i18n";
 import type { CBNData } from "src/data";
 import type { ActivityDataCommon } from "src/types";
 import { getContext } from "svelte";

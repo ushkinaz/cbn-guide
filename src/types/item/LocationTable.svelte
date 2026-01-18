@@ -6,7 +6,7 @@ import type { ItemChance, Loot } from "./spawnLocations";
 import { showNumber, showProbability } from "./utils";
 import type { OvermapSpecial } from "../../types";
 import OvermapAppearance from "./OvermapAppearance.svelte";
-import { t } from "@transifex/native";
+import { t } from "../../i18n";
 import LimitedTableList from "../../LimitedTableList.svelte";
 
 export let id: string;

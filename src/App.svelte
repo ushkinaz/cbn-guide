@@ -15,7 +15,7 @@ import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
 import { GAME_REPO_URL, GUIDE_NAME, UI_GUIDE_NAME } from "./constants";
-import { t } from "@transifex/native";
+import { t } from "./i18n";
 import {
   NIGHTLY_VERSION,
   STABLE_VERSION,

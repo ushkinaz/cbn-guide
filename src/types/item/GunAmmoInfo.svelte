@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "@transifex/native";
+import { t } from "../../i18n";
 import { getContext } from "svelte";
 import { byName, CBNData } from "../../data";
 import type { GunSlot, ItemBasicInfo } from "../../types";

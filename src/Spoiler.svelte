@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "@transifex/native";
+import { t } from "./i18n";
 
 const isTesting =
   typeof globalThis !== undefined && (globalThis as any)?.__isTesting__;

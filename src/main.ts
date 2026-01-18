@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/browser";
 import { browserTracingIntegration } from "@sentry/browser";
 import "./assets/fonts.css";
 import { registerSW } from "virtual:pwa-register";
-import { tx } from "@transifex/native";
+import { tx } from "./i18n";
 
 tx.init({
   token: "1/1d8c1f9e14b4c21d70dd3f6fccdd0ab16b691105",

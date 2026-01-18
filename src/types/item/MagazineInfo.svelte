@@ -4,7 +4,7 @@ import { getContext } from "svelte";
 import { byName, CBNData } from "../../data";
 import type { ItemBasicInfo, MagazineSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
-import { t } from "@transifex/native";
+import { t } from "../../i18n";
 import CompatibleItems from "./CompatibleItems.svelte";
 
 export let item: ItemBasicInfo & MagazineSlot;

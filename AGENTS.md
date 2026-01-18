@@ -75,7 +75,7 @@ You are an expert frontend and Svelte developer and architect for this project.
 - **Reactivity**: Use `$:` for derived state only. Avoid side effects in reactive statements. See [DEVELOPMENT.md](DEVELOPMENT.md#reactive-statements).
 - **Architecture**: Move heavy data logic into `.ts` modules, keep `.svelte` components focused on rendering.
 - **Styling**: Never mix game palette (`--cata-color-*`) with app UI colors.
-- **Localization**: Use `t()` from `@transifex/native`. Avoid string concatenation for translatable strings.
+- **Localization**: Use `t()` from `@i18n/native`. Avoid string concatenation for translatable strings.
 
 ## Engineering Hygiene
 
