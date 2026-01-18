@@ -72,7 +72,7 @@ setGlobalDispatcher(agent);
 const cwd = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(cwd, "..");
 const outputRoot = path.join(projectRoot, "tmp", "item-icons");
-const tilesetName = process.env.TILESET ?? "UNDEAD_PEOPLE";
+const tilesetName = process.env.TILESET ?? "undead_people";
 let version = process.env.GAME_VERSION;
 const force = process.argv.includes("--force");
 const parsedConcurrency = Number(process.env.ICON_CONCURRENCY ?? "8");
@@ -125,10 +125,10 @@ async function downloadFile(url: string, dest: string) {
 }
 
 async function loadTileset(): Promise<LoadedTileset> {
-  const tileset = TILESETS.find((t) => t.name === tilesetName);
+  const tileset = TILESETS.find((t) => t.name.toLowerCase() === tilesetName.toLowerCase());
   if (!tileset)
     throw new Error(
-      `Tileset ${tilesetName} not found in constants.ts. Available: ${TILESETS.map((t) => t.name).join(", ")}`,
+      `Tileset ${tilesetName} not found. Available: ${TILESETS.map((t) => t.name).join(", ")}`,
     );
 
   const baseUrl = getTilesetUrl(version!, tileset.path ?? ""); //Null check is actually redundant - it only applied to ASCII "tileset"
@@ -148,6 +148,9 @@ async function loadTileset(): Promise<LoadedTileset> {
   const idMap = new Map<string, TileInfo>();
 
   await runWithConcurrency(config["tiles-new"], concurrency, async (chunk) => {
+    // ARCHITECTURE: Tileset WebP Migration (see docs/adr/001-tileset-webp-format.md)
+    // The tile_config.json metadata references .png files, but the server now serves .webp.
+    chunk.file = chunk.file.replace(/\.png$/, ".webp");
     const chunkPath = path.join(cacheDir, chunk.file);
     chunkPathMap.set(chunk.file, chunkPath);
     await downloadFile(`${baseUrl}/${chunk.file}`, chunkPath);
