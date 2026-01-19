@@ -96,7 +96,7 @@ export function isValidTileset(tilesetID: string | null) {
  * @returns {string}
  */
 export const getTilesetUrl = (version: string, path: string): string =>
-  `https://cbn-data.pages.dev/data/${version}/gfx/${path}`;
+  `https://data.cataclysmbn-guide.com/data/${version}/gfx/${path}`;
 
 export const TILESETS = [
   //tileinfo prop contains pre-cached data used by initial layouting phase. Is overridden when actual data comes from the server.

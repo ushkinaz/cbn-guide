@@ -73,7 +73,8 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/builds\.json$/,
+            urlPattern:
+              /^https:\/\/data\.cataclysmbn-guide\.com\/builds\.json$/,
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "builds-cache",
@@ -85,7 +86,8 @@ export default defineConfig({
           },
           {
             // The latest nightly / updates regularly
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/nightly\//,
+            urlPattern:
+              /^https:\/\/data\.cataclysmbn-guide\.com\/data\/nightly\//,
             handler: "NetworkFirst",
             options: {
               cacheName: "nightly-cache",
@@ -97,7 +99,8 @@ export default defineConfig({
           },
           {
             // The latest stable / rarely updates
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/stable\//,
+            urlPattern:
+              /^https:\/\/data\.cataclysmbn-guide\.com\/data\/stable\//,
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "stable-cache",
@@ -109,7 +112,7 @@ export default defineConfig({
           },
           {
             // Stable named releases / never updates
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/v/,
+            urlPattern: /^https:\/\/data\.cataclysmbn-guide\.com\/data\/v/,
             handler: "CacheFirst",
             options: {
               cacheName: "stable-named-cache",
@@ -121,7 +124,7 @@ export default defineConfig({
           },
           {
             // Nightly named releases / never updates
-            urlPattern: /^https:\/\/cbn-data\.pages\.dev\/data\/20/,
+            urlPattern: /^https:\/\/data\.cataclysmbn-guide\.com\/data\/20/,
             handler: "CacheFirst",
             options: {
               cacheName: "nightly-named-cache",

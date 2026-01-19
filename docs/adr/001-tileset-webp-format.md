@@ -12,7 +12,7 @@ The tileset graphics have been migrated from PNG to WebP format on the data serv
 
 This creates a mismatch:
 
-- Server serves: `https://cbn-data.pages.dev/data/{version}/gfx/{tileset}/image.webp`
+- Server serves: `https://data.cataclysmbn-guide.com/data/{version}/gfx/{tileset}/image.webp`
 - Metadata references: `image.png`
 
 We need a solution that:

@@ -1,14 +1,14 @@
 /stable
-  Link: <https://cbn-data.pages.dev/data/stable/all.json>; rel=preload; as=fetch; crossorigin=anonymous
+  Link: <https://data.cataclysmbn-guide.com/data/stable/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /stable/*
-  Link: <https://cbn-data.pages.dev/data/stable/all.json>; rel=preload; as=fetch; crossorigin=anonymous
+  Link: <https://data.cataclysmbn-guide.com/data/stable/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /nightly
-  Link: <https://cbn-data.pages.dev/data/nightly/all.json>; rel=preload; as=fetch; crossorigin=anonymous
+  Link: <https://data.cataclysmbn-guide.com/data/nightly/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /nightly/*
-  Link: <https://cbn-data.pages.dev/data/nightly/all.json>; rel=preload; as=fetch; crossorigin=anonymous
+  Link: <https://data.cataclysmbn-guide.com/data/nightly/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /opensearch.xml
   Cache-Control: public, max-age=86400, must-revalidate
