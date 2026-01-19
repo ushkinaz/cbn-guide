@@ -3,9 +3,9 @@
   <ShortName>Cataclysm: Bright Nights Guide</ShortName>
   <LongName>The Hitchhiker's Guide to the Cataclysm: Bright Nights</LongName>
   <Description>Search the Hitchhiker's Guide to the Cataclysm: Bright Nights</Description>
-  <Url type="text/html" method="get" template="https://cbn-guide.pages.dev/stable/search/{searchTerms}"/>
-  <Image height="16" width="16" type="image/png">https://cbn-guide.pages.dev/icon-16.png</Image>
-  <Image height="192" width="192" type="image/png">https://cbn-guide.pages.dev/icon-192.png</Image>
+  <Url type="text/html" method="get" template="https://cataclysmbn-guide.com/stable/search/{searchTerms}"/>
+  <Image height="16" width="16" type="image/png">https://cataclysmbn-guide.com/icon-16.png</Image>
+  <Image height="192" width="192" type="image/png">https://cataclysmbn-guide.com/icon-192.png</Image>
   <Query role="example" searchTerms="flashlight" />
   <InputEncoding>UTF-8</InputEncoding>
   <OutputEncoding>UTF-8</OutputEncoding>

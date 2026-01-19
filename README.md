@@ -6,7 +6,7 @@
 
 Whether you're looking for the exact calorie count of a tainted lung or trying to figure out which bionic will stop you from being dissolved by acid, the Guide has you covered. Data is extracted directly from the game's JSON files, ensuring accuracy down to the last milliliter of mutagen.
 
-[📕 **Open the Guide**](https://cbn-guide.pages.dev/)
+[📕 **Open the Guide**](https://cataclysmbn-guide.com/)
 
 ## Features
 

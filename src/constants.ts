@@ -3,7 +3,7 @@ export const GUIDE_NAME =
 
 export const UI_GUIDE_NAME = "Cataclysm: Bright Nights Guide";
 
-export const CANONICAL_URL = "https://cbn-guide.pages.dev";
+export const CANONICAL_URL = "https://cataclysmbn-guide.com";
 
 export const CBN_DATA_BASE_URL = "https://data.cataclysmbn-guide.com";
 

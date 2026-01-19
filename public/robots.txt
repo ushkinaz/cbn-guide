@@ -3,4 +3,4 @@ Allow: /stable
 Disallow: /nightly/
 Disallow: /latest/
 
-Sitemap: https://cbn-guide.pages.dev/sitemap.xml
+Sitemap: https://cataclysmbn-guide.com/sitemap.xml
