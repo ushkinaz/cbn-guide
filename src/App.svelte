@@ -16,6 +16,7 @@ import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
 import { GAME_REPO_URL, GUIDE_NAME, UI_GUIDE_NAME } from "./constants";
 import { t } from "./i18n";
+import { buildMetaDescription } from "./seo";
 import {
   NIGHTLY_VERSION,
   STABLE_VERSION,
@@ -106,6 +107,18 @@ function saveTileset(tileset: string | null) {
   }
 }
 
+function setMetaDescription(value: string) {
+  const meta = document.querySelector('meta[name="description"]');
+  if (meta) {
+    meta.setAttribute("content", value);
+    return;
+  }
+  const created = document.createElement("meta");
+  created.name = "description";
+  created.content = value;
+  document.head.appendChild(created);
+}
+
 let tileset: string =
   (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
 
@@ -120,6 +133,34 @@ $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
 } else {
   document.title = UI_GUIDE_NAME;
 }
+
+const defaultMetaDescription = t(
+  "{guide} data reference for Cataclysm: Bright Nights.",
+  {
+    guide: UI_GUIDE_NAME,
+  },
+);
+
+let metaDescription = defaultMetaDescription;
+
+$: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
+  const it = $data.byId(item.type as any, item.id);
+  metaDescription = buildMetaDescription(it);
+} else if (item && !item.id && item.type) {
+  metaDescription = t("{type} catalog in {guide}.", {
+    type: item.type,
+    guide: UI_GUIDE_NAME,
+  });
+} else if (search) {
+  metaDescription = t("Search {guide} for {query}.", {
+    guide: UI_GUIDE_NAME,
+    query: search,
+  });
+} else {
+  metaDescription = defaultMetaDescription;
+}
+
+$: if (metaDescription) setMetaDescription(metaDescription);
 
 let search: string = "";
 
