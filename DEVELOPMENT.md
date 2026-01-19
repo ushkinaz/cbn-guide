@@ -52,7 +52,7 @@ Use `$:` reactive statements in these specific cases:
 Skip `$:` for prop-change reactivity in:
 
 - **`Thing.svelte` and descendants** — remounted via `{#key item}`
-- **`Catalog.svelte` and descendants** — remounted via `{#key item}`  
+- **`Catalog.svelte` and descendants** — remounted via `{#key item}`
 - **`SearchResults.svelte` and descendants** — remounted via `{#key search}`
 
 ### Anti-Patterns to Avoid
@@ -64,6 +64,7 @@ Skip `$:` for prop-change reactivity in:
 ### State Management
 
 **Global Data**: `data` store from `src/data.ts`
+
 - Write-once per page load (throws if set twice)
 - Replaced wholesale on version change
 - Access via `$data` subscription or props, never `$: setContext('data', data)`
@@ -71,7 +72,6 @@ Skip `$:` for prop-change reactivity in:
 **URL as Source of Truth**: Version and search params drive app state. Details: [docs/routing.md](docs/routing.md)
 
 **For comprehensive details**: See [docs/reactivity.md](docs/reactivity.md)
-
 
 ## Architecture Decision Records
 
