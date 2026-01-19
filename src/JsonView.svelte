@@ -13,9 +13,7 @@ function toggle() {
   expanded = !expanded;
 }
 
-$: githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${
-  obj.__filename
-}`;
+const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`;
 </script>
 
 <section class="json-view">
