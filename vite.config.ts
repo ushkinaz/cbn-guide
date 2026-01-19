@@ -29,7 +29,7 @@ export default defineConfig({
         short_name: "Cataclysm: Bright Nights Guide",
         name: "The Hitchhiker's Guide to the Cataclysm: Bright Nights",
         description:
-          "The Hitchhiker's Guide to the Cataclysm: Bright Nights. Search items, monsters, and more in this offline-capable guide for the zombie survival roguelike.",
+          "The Hitchhiker's Guide to the Cataclysm: Bright Nights. Search items, monsters, and more.",
         icons: [
           {
             src: "icon-192.png",
