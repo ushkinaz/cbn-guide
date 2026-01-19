@@ -390,6 +390,7 @@ cbn-guide/
 ## Related Documentation
 
 - [Routing Architecture](./routing.md) — Detailed routing documentation
+- [Reactivity Guide](./reactivity.md) — How reactivity works in this app
 - [Development Guide](../DEVELOPMENT.md) — Development workflows
 - [Architecture Decision Records](./adr/) — Design decision history
 - [AGENTS.md](../AGENTS.md) — AI agent guidelines

@@ -35,57 +35,43 @@ This project is a Svelte 4 application that uses Vite 5 for building and Vitest 
 
 ## Svelte Reactivity & Architecture
 
-This project follows specific patterns for Svelte reactivity and state management to ensure performance and predictability.
+**Core Architecture**: This project uses **route-driven remounting** — main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#key}` blocks and destroyed/recreated on every navigation.
 
-### Reactive Statements
+**Implication**: Most components don't need `$:` reactive statements for prop changes. They start fresh on each route change.
 
-The reactive label `$:` should be reserved primarily for **derived state** (computed values) required for rendering.
+### When Reactivity IS Needed
 
-**Recommended Usage:**
+Use `$:` reactive statements in these specific cases:
 
-- **derived state**:
-  ```svelte
-  $: filteredItems = items.filter(i => i.name.includes(search)); $: count =
-  filteredItems.length;
-  ```
-- **logging/debugging** (during dev only):
-  ```svelte
-  $: console.log('Items changed:', items);
-  ```
+1. **Long-lived components** (app shell, header, footer) that react to route/store changes
+2. **Store subscriptions** that update without remount: `$tileData` (user can change tileset without reload)
+3. **Local state derivation** within a component: `$: visible = items.slice(0, expanded ? items.length : limit)`
 
-**Non-Standard / Discouraged Usage:**
+### When Reactivity is UNNECESSARY
 
-- **Side Effects**: Avoid using `$:` to trigger significant side effects (e.g., API calls, complex DOM manipulation, global store updates).
-  - _Why_: It makes data flow hard to trace. Use `onMount`, event handlers, or methods called from the user interaction point instead.
-- **Context Updates (`setContext`)**: **Never** call `setContext` inside a reactive statement.
-  - _Why_: `setContext` is synchronous and must be called during component initialization. Calls inside `$:` happen after mount and **do not** propagate to existing children (who read context only once at valid init time).
-  - _Alternative_: Pass a `Store` via context, or use Props, or import the Global Store directly.
-- **Opaque Expressions**: Avoid comma-operator hacks to force updates.
-  - _Bad_: `$: (item, search, (currentHref = location.href));`
-  - _Why_: This is unreadable and relies on side-effects of property access or global state polling. Use explicit assignments or event listeners.
+Skip `$:` for prop-change reactivity in:
+
+- **`Thing.svelte` and descendants** — remounted via `{#key item}`
+- **`Catalog.svelte` and descendants** — remounted via `{#key item}`  
+- **`SearchResults.svelte` and descendants** — remounted via `{#key search}`
+
+### Anti-Patterns to Avoid
+
+❌ **Never** `$: setContext(...)` — doesn't propagate to existing children  
+❌ **Avoid** `$:` for side effects — use `onMount` or event handlers  
+❌ **Don't** add prop-watching `$:` inside keyed blocks — the component already remounts
 
 ### State Management
 
-1.  **Global Data (`src/data.ts`)**:
-    The application relies on a central `data` store (`CBNData` instance).
-    - **Effectively Immutable**: The `CBNData` instance itself is effectively immutable. It is replaced wholesale when a new game version is loaded. It does not mutate internally.
-    - Components should subscribe to `$data` or accept it as a prop.
-    - **Do not** attempt to re-provide `$data` via context in every component (`$: setContext('data', data)`). This is an anti-pattern. Since `data` is a global export, prefer verifying if `import { data } from '...'` suffices, or pass it explicitly.
+**Global Data**: `data` store from `src/data.ts`
+- Write-once per page load (throws if set twice)
+- Replaced wholesale on version change
+- Access via `$data` subscription or props, never `$: setContext('data', data)`
 
-2.  **Versioning & Routing**:
-    - URL state (version, search) is the source of truth.
-    - The app reacts to URL changes to update the `data` store.
-    - Components should react to `$data` changes gracefully.
-    - Details in [[docs/routing.md]]
+**URL as Source of Truth**: Version and search params drive app state. Details: [docs/routing.md](docs/routing.md)
 
-### Legacy Code Note
+**For comprehensive details**: See [docs/reactivity.md](docs/reactivity.md)
 
-You may encounter non-standard patterns (e.g., in `App.svelte` or `SearchResults.svelte`).
-
-- **`App.svelte`**: Contains reactive store updates `$: tileData.setURL(...)`. This should eventually be refactored to a derived store pattern.
-- **`SearchResults.svelte`**: Contains `$: setContext("data", data)`. This is technically incorrect (does not update children reactively) but may appear working if the component is continually destroyed/recreated (keyed).
-
-When refactoring, prioritize moving logic out of `$:` side-effects and into clearer `Event -> Action -> Store Update` flows.
 
 ## Architecture Decision Records
 

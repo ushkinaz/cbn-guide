@@ -519,6 +519,10 @@ parseRoute().search; // Should be "C++" (correctly decoded)
 
 1. **Search in URL**: Search queries are in the path (`/search/{query}`) rather than query params for cleaner URLs. Special characters are properly encoded with `encodeURIComponent`.
 
+## Related Documentation
+
+- [Reactivity Guide](./reactivity.md) — Route-driven remounting and where `$:` matters
+
 2. **Error handling**: When builds.json fails to load, app shows error in console with TODO to notify user visually.
 
 3. **Version fallback**: Uses hardcoded `"Grinch-v1.0"` as ultimate fallback. This is an unlikely edge case (totally offline with no builds).
