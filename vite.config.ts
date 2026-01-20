@@ -48,27 +48,12 @@ export default defineConfig({
         display: "standalone",
       },
       workbox: {
-        globPatterns: ["**/*.{css,html,png,svg,woff2,webp}"],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-        navigateFallback: "index.html",
+        // Change fallback to / to avoid 308 redirects if it ever hits
+        navigateFallback: "/",
         navigateFallbackDenylist: [
-          //refer /public/_redirects
-          /^\/$/, // Root redirect to /stable
-          /(?:\.xml)$/, // WTF, Goolebot seems to fail to fetch sitemap.xml. -- All XML files (sitemap, opensearch, etc) should be network-only
-          /^\/robots\.txt$/, // Bots need straight access to robots.txt
-          /^\/latest\//, // /latest/* -> /nightly/*
-          // Legacy paths that redirect to nightly
-          /^\/item\//,
-          /^\/monster\//,
-          /^\/furniture\//,
-          /^\/terrain\//,
-          /^\/vehicle_part\//,
-          /^\/tool_quality\//,
-          /^\/mutation\//,
-          /^\/martial_art\//,
-          /^\/json_flag\//,
-          /^\/achievement\//,
-          /^\/search\//,
+          // Force ALL navigation to network to avoid SW "redirected response" errors
+          // and ensure the Trojan Horse index.html is loaded fresh from the server.
+          /./,
         ],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
@@ -150,6 +135,7 @@ export default defineConfig({
         // Without this, a stale service worker can be alive for a long time
         // and get out of date with the server.
         skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],

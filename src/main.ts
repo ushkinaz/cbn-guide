@@ -1,3 +1,6 @@
+import { evacuateLegacyDomain } from "./utils/legacy-evacuation";
+evacuateLegacyDomain();
+
 import App from "./App.svelte";
 import * as Sentry from "@sentry/browser";
 import { browserTracingIntegration } from "@sentry/browser";
