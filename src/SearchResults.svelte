@@ -9,6 +9,7 @@ import {
 } from "./data";
 import { getVersionedBasePath } from "./routing";
 import { debounce } from "./utils/debounce";
+import { isTesting } from "./utils/env";
 import * as fuzzysort from "fuzzysort";
 import ItemLink from "./types/ItemLink.svelte";
 import type {
@@ -125,6 +126,8 @@ const cjkRegex =
 let matchingObjects: Map<string, SearchResult[]> | null = null;
 let matchingObjectsList: [string, SearchResult[]][] | null = null;
 
+const searchDebounceMs = isTesting ? 0 : 200;
+
 const updateSearchResults = debounce((query: string) => {
   if (query && (query.length >= 2 || cjkRegex.test(query)) && data) {
     matchingObjects = filter(query);
@@ -135,7 +138,7 @@ const updateSearchResults = debounce((query: string) => {
     matchingObjects = null;
     matchingObjectsList = null;
   }
-}, 200);
+}, searchDebounceMs);
 
 $: updateSearchResults(search);
 

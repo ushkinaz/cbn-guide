@@ -3,13 +3,13 @@
  * All measurements are NO-OP in production builds.
  */
 
+import { isTesting } from "./env";
+
 // In browser (Vite): use import.meta.env.DEV
 // In Node.js (tsx/vitest): default to true for measurements
 const isDev =
   typeof import.meta !== "undefined" && import.meta.env
-    ? import.meta.env.DEV &&
-      !(globalThis as any).__isTesting__ &&
-      process.env.PERF_ENABLED === "true"
+    ? import.meta.env.DEV && !isTesting && process.env.PERF_ENABLED === "true"
     : true;
 
 interface PerfMarker {

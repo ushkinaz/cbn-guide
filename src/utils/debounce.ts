@@ -11,6 +11,10 @@ export function debounce<T extends (...args: any[]) => void>(
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   const debounced = ((...args: Parameters<T>) => {
+    if (waitMs <= 0) {
+      fn(...args);
+      return;
+    }
     if (timeoutId) {
       clearTimeout(timeoutId);
     }

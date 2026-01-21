@@ -5,6 +5,7 @@ import type { Loot } from "./spawnLocations";
 import { formatFixed2, formatPercent } from "../../utils/format";
 import { t } from "../../i18n";
 import type { SupportedTypesWithMapped } from "src/types";
+import { isTesting } from "../../utils/env";
 
 export let loot: Loot | Promise<Loot> | (() => Loot | Promise<Loot>);
 export let type: keyof SupportedTypesWithMapped = "item";
@@ -15,7 +16,7 @@ export let heading: string =
       ? t("Terrain", { _context: "Loot Table" })
       : t("Loot", { _context: "Loot Table" });
 
-let showData = (globalThis as any).__isTesting__;
+let showData = isTesting;
 </script>
 
 {#if showData}

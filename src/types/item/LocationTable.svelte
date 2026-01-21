@@ -8,6 +8,7 @@ import type { OvermapSpecial } from "../../types";
 import OvermapAppearance from "./OvermapAppearance.svelte";
 import { t } from "../../i18n";
 import LimitedTableList from "../../LimitedTableList.svelte";
+import { isTesting } from "../../utils/env";
 
 export let id: string;
 export let loots:
@@ -15,7 +16,7 @@ export let loots:
   | (() => Promise<Map<string, { loot: Loot; ids: string[] }>>);
 export let heading: string;
 
-let showData = (globalThis as any).__isTesting__;
+let showData = isTesting;
 
 const data = getContext<CBNData>("data");
 

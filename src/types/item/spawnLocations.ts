@@ -1,6 +1,7 @@
 import type { CBNData } from "../../data";
 import type * as raw from "../../types";
 import { multimap } from "../../utils/collections";
+import { isTesting } from "../../utils/env";
 
 // Map generation constants
 const DEFAULT_CHANCE_PERCENTAGE = 100;
@@ -328,7 +329,7 @@ const requestIdleCallback: typeof window.requestIdleCallback =
       };
 
 function yieldUntilIdle(): Promise<IdleDeadline> {
-  if ((globalThis as any).__isTesting__)
+  if (isTesting)
     return Promise.resolve({
       didTimeout: false,
       timeRemaining: () => 100,

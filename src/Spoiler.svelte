@@ -1,8 +1,7 @@
 <script lang="ts">
 import { t } from "./i18n";
 
-const isTesting =
-  typeof globalThis !== undefined && (globalThis as any)?.__isTesting__;
+import { isTesting } from "./utils/env";
 
 export let spoily = false;
 export let revealed = isTesting; // Spoilers are revealed in test mode.

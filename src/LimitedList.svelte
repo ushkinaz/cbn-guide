@@ -1,5 +1,6 @@
 <script lang="ts">
 import { t } from "./i18n";
+import { isTesting } from "./utils/env";
 
 export let items: any[];
 
@@ -9,9 +10,6 @@ export let grace = 4;
 
 // In test mode, always render the expanded list to catch any render bugs that
 // only show up when the full list is shown.
-const isTesting =
-  typeof globalThis !== undefined && (globalThis as any)?.__isTesting__;
-
 $: initialLimit = isTesting
   ? Infinity
   : items.length <= limit + grace

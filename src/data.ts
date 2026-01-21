@@ -12,6 +12,7 @@
 import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";
 import * as perf from "./utils/perf";
+import { isTesting } from "./utils/env";
 
 import type {
   Bionic,
@@ -1778,7 +1779,7 @@ const fetchJsonWithProgress = (
   // serve it double-gzipped JSON.
   if (/latest/.test(url) && /googlebot/i.test(navigator.userAgent))
     return fetchGzippedJsonForGoogleBot(url);
-  if ((globalThis as any).__isTesting__) {
+  if (isTesting) {
     progress(100, 100);
     return fetch(url).then((r) => r.json());
   }
@@ -1885,7 +1886,7 @@ export const data = {
     locale: string | null,
     versionSlug?: string,
   ) {
-    if (_hasSetVersion && !(globalThis as any).__isTesting__)
+    if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
     _hasSetVersion = true;
     let totals = [0, 0, 0];
