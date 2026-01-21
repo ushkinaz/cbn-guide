@@ -1,27 +1,47 @@
 # The Hitchhiker's Guide to the Cataclysm: Bright Nights
 
-<img src="public/dont_panic.png" width=908 style=float:right  alt="Don't panic"/>
+<img src="public/dont_panic.png" width=908 alt="Don't panic" style="display: block; margin: 0 auto; max-width: 100%; height: auto;"/>
 
-**The Hitchhiker's Guide to the Cataclysm** is the essential, comprehensive companion to the zombie survival roguelike [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN#readme).
+**The essential, comprehensive companion to your survival in the roguelike [Cataclysm: Bright Nights](https://github.com/cataclysmbnteam/Cataclysm-BN#readme).**
 
-Whether you're looking for the exact calorie count of a tainted lung or trying to figure out which bionic will stop you from being dissolved by acid, the Guide has you covered. Data is extracted directly from the game's JSON files, ensuring accuracy down to the last milliliter of mutagen.
+Whether you're calculating the exact nutritional value of a tainted kidney or optimizing your bionic array for laboratory infiltration, the Guide has everything you need to survive (and thrive) in the post-apocalypse.
 
 [📕 **Open the Guide**](https://cataclysmbn-guide.com/)
 
-## Features
+---
 
-- 🛠 **Up-to-Date**: Daily updates covering both **Stable** and **Nightly** builds.
-- 🎨 **Visual Survival**: Full tileset support (UltiCa, UndeadPeople, RetroDays, and more) to see exactly what's about to bite you.
-- 🛰 **Offline First**: PWA support means it works deep in a lab or a bunker. Visit it once, and it's yours forever—even without internet.
-- 🔍 **Instant Search**: Cross-reference items, recipes, monsters, mutations, and bionics at terminal velocity.
-- 🌍 **Multilingual**: Support for a vast array of languages, localized directly from the game's community translations.
+## 🛡️ Survival at Your Fingertips
 
-## Acknowledgements
+The Guide is designed to be the ultimate reference for every survivor, from fresh spawns to seasoned veterans.
 
-The Original Hitchhiker's Guide to the Cataclysm is maintained by [@nornagon](https://github.com/nornagon) on [GitHub](https://github.com/nornagon/cdda-guide).
+- **🔍 Power Search**: Find items, recipes, monsters, and bionics at terminal velocity. Search through thousands of entries instantly.
+- **🎨 Visual Identification**: Full support for popular tilesets including **UltiCa**, **UndeadPeople**, **RetroDays**, and more. See exactly what's lurking in the dark.
+- **🛠️ Forge Your Future**: Detailed recipe breakdowns including tool requirements, skill levels, and component alternatives.
+- **🛰️ Bunker-Ready (Offline First)**: As a Progressive Web App (PWA), the Guide works even when you're deep underground in a lab. Visit once, and it's cached for your next session—no internet required.
+- **🌍 Daily Intel**: Content is automatically synchronized with the latest **Stable** and **Nightly** game builds.
+- **🌐 Localized Knowledge**: Available in multiple languages, powered by the game's dedicated community of translators.
 
-This version is forked from the original and adapted for Cataclysm: Bright Nights by [@mythosmod](https://github.com/mythosmod), continued by [@ushkinaz](https://github.com/ushkinaz).
+---
 
-SVG icons are provided by [game-icons.net](https://game-icons.net/) under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+## 🤝 Acknowledgements
 
-Further, thanks to everyone who files bugs and feature requests in the issue tracker. You all help make the Guide what it is!
+The Guide is a community effort, built upon the hard work of many survivors.
+
+- **Foundations**: The original [Hitchhiker's Guide to the Cataclysm](https://github.com/nornagon/cdda-guide) was created and is maintained by [@nornagon](https://github.com/nornagon).
+- **Adaptation**: This version was forked and adapted for _Bright Nights_ by [@mythosmod](https://github.com/mythosmod).
+- **Evolution**: Development is currently continued by [@ushkinaz](https://github.com/ushkinaz).
+- **Visuals**: Splendid SVG icons are provided by [game-icons.net](https://game-icons.net/) under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+- **Community**: A huge thanks to everyone who reports bugs, suggests features, and helps keep the Guide sharp.
+
+---
+
+## ⚙️ Technical Details
+
+This application is built with Svelte and Vite, optimized for speed and reliability. For those interested in the machinery behind the scenes:
+
+- **Data Source**: Deep-dive into game data is powered by our sister project, [cbn-data](https://github.com/ushkinaz/cbn-data).
+- **Developer Info**: If you're a developer looking to contribute, please check out [DEVELOPMENT.md](DEVELOPMENT.md).
+
+---
+
+_“Don't Panic.”_
