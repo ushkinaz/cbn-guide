@@ -49,7 +49,7 @@ export default defineConfig({
       },
       workbox: {
         // Change fallback to / to avoid 308 redirects if it ever hits
-        navigateFallback: "/",
+        navigateFallback: "index.html",
         navigateFallbackDenylist: [
           // Force ALL navigation to network to avoid SW "redirected response" errors
           // and ensure the Trojan Horse index.html is loaded fresh from the server.
