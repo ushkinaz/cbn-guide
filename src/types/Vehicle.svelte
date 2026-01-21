@@ -13,7 +13,7 @@ import LimitedList from "../LimitedList.svelte";
 import * as Sentry from "@sentry/browser";
 
 import type { Vehicle, VehiclePart } from "../types";
-import { groupBy } from "./item/utils";
+import { groupBy } from "../utils/collections";
 import ItemLink from "./ItemLink.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 

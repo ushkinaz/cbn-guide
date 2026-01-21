@@ -3,7 +3,7 @@ import { t } from "../i18n";
 
 import { getContext } from "svelte";
 
-import { CBNData, showProbability, singular, singularName } from "../data";
+import { CBNData, formatPercent, singular, singularName } from "../data";
 import type { Terrain } from "../types";
 import Construction from "./Construction.svelte";
 import ItemLink from "./ItemLink.svelte";
@@ -93,7 +93,7 @@ const constructions = data
             {#each arr as {id, prob, count}}
             <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
-              ''}{#if prob !== 1}&nbsp;({showProbability(prob)}){/if}</span></li>
+              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
           </ul>
         </dd>

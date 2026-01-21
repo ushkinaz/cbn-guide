@@ -1,7 +1,7 @@
 <script lang="ts">
 import { CBNData, singularName } from "../data";
 import { getContext } from "svelte";
-import { topologicalSortComponentsByRank } from "../toposort";
+import { topologicalSortComponentsByRank } from "../utils/toposort";
 import type { Mutation } from "../types";
 import ItemLink from "./ItemLink.svelte";
 

@@ -9,7 +9,7 @@ import {
   CBNData,
   getVehiclePartIdAndVariant,
   parseDuration,
-  showProbability,
+  formatPercent,
   singular,
   singularName,
 } from "../data";
@@ -202,7 +202,7 @@ vehiclesContainingPart.sort((a, b) =>
         <ul class="comma-separated">
           {#each breaksIntoGroupFlattened as { id, count, prob }}
             <!-- prettier-ignore -->
-            <li><ItemLink {id} {count} type="item"  showIcon={false} />{#if prob !== 1} ({showProbability(prob)}){/if}</li>
+            <li><ItemLink {id} {count} type="item"  showIcon={false} />{#if prob !== 1} ({formatPercent(prob)}){/if}</li>
           {/each}
         </ul>
       </dd>

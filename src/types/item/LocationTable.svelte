@@ -3,7 +3,7 @@ import { getContext } from "svelte";
 import { CBNData, omsName } from "../../data";
 import { getVersionedBasePath } from "../../routing";
 import type { ItemChance, Loot } from "./spawnLocations";
-import { showNumber, showProbability } from "./utils";
+import { formatFixed2, formatPercent } from "../../utils/format";
 import type { OvermapSpecial } from "../../types";
 import OvermapAppearance from "./OvermapAppearance.svelte";
 import { t } from "../../i18n";
@@ -36,7 +36,7 @@ function filterLocations(
     }
   }
   spawnLocations.sort((a, b) =>
-    (b.chance.prob * 100).toFixed(2) === (a.chance.prob * 100).toFixed(2)
+    formatFixed2(b.chance.prob * 100) === formatFixed2(a.chance.prob * 100)
       ? b.chance.expected - a.chance.expected
       : b.chance.prob - a.chance.prob,
   );
@@ -79,9 +79,9 @@ function filterLocations(
               {/if}
             </td>
             <td style="text-align: right; padding-left: 1em;"
-              >{showNumber(loc.chance.expected)}</td>
+              >{formatFixed2(loc.chance.expected)}</td>
             <td style="text-align: right; padding-left: 1em;"
-              >{showProbability(loc.chance.prob)}</td>
+              >{formatPercent(loc.chance.prob)}</td>
           </tr>
         </LimitedTableList>
       </section>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { multimap } from "./utils";
+import { multimap } from "./collections";
 
 describe("multimap()", () => {
   it("correcty handles empty input", () => {

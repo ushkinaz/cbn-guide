@@ -1,6 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import { CBNData, singular } from "../../data";
+import { formatFixed2 } from "../../utils/format";
 import type {
   ArmorPortionData,
   ArmorSlot,
@@ -277,66 +278,70 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
           {#if materials.length}
             <dt>Bash</dt>
             <dd>
-              {(
+              {formatFixed2(
                 (materials.reduce(
                   (m, o) =>
                     m + (o.material.bash_resist ?? 0) * (o.portion ?? 1),
                   0,
                 ) *
                   (item.material_thickness ?? 0)) /
-                totalMaterialPortion
-              ).toFixed(2)}
+                  totalMaterialPortion,
+              )}
             </dd>
             <dt>Cut</dt>
             <dd>
-              {(
+              {formatFixed2(
                 (materials.reduce(
                   (m, o) => m + (o.material.cut_resist ?? 0) * (o.portion ?? 1),
                   0,
                 ) *
                   (item.material_thickness ?? 0)) /
-                totalMaterialPortion
-              ).toFixed(2)}
+                  totalMaterialPortion,
+              )}
             </dd>
             <dt>Ballistic</dt>
             <dd>
-              {(
+              {formatFixed2(
                 (materials.reduce(
                   (m, o) =>
                     m + (o.material.bullet_resist ?? 0) * (o.portion ?? 1),
                   0,
                 ) *
                   (item.material_thickness ?? 0)) /
-                totalMaterialPortion
-              ).toFixed(2)}
+                  totalMaterialPortion,
+              )}
             </dd>
             <dt>Acid</dt>
             <dd>
-              {(() => {
-                let resist =
-                  materials.reduce(
-                    (m, o) =>
-                      m + (o.material.acid_resist ?? 0) * (o.portion ?? 1),
-                    0,
-                  ) / totalMaterialPortion;
-                const env = item.environmental_protection ?? 0;
-                if (env < 10) resist *= env / 10;
-                return resist;
-              })().toFixed(2)}
+              {formatFixed2(
+                (() => {
+                  let resist =
+                    materials.reduce(
+                      (m, o) =>
+                        m + (o.material.acid_resist ?? 0) * (o.portion ?? 1),
+                      0,
+                    ) / totalMaterialPortion;
+                  const env = item.environmental_protection ?? 0;
+                  if (env < 10) resist *= env / 10;
+                  return resist;
+                })(),
+              )}
             </dd>
             <dt>Fire</dt>
             <dd>
-              {(() => {
-                let resist =
-                  materials.reduce(
-                    (m, o) =>
-                      m + (o.material.fire_resist ?? 0) * (o.portion ?? 1),
-                    0,
-                  ) / totalMaterialPortion;
-                const env = item.environmental_protection ?? 0;
-                if (env < 10) resist *= env / 10;
-                return resist;
-              })().toFixed(2)}
+              {formatFixed2(
+                (() => {
+                  let resist =
+                    materials.reduce(
+                      (m, o) =>
+                        m + (o.material.fire_resist ?? 0) * (o.portion ?? 1),
+                      0,
+                    ) / totalMaterialPortion;
+                  const env = item.environmental_protection ?? 0;
+                  if (env < 10) resist *= env / 10;
+                  return resist;
+                })(),
+              )}
             </dd>
           {/if}
           <dt title="Environmental">Environ.</dt>

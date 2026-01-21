@@ -8,12 +8,10 @@ import type {
   SupportedTypes,
   VehiclePart,
 } from "./types";
+import { cleanText, formatDisplayValue, formatNumeric } from "./utils/format";
 
 const MAX_DESCRIPTION_LENGTH = 160;
 const TRIM_DESCRIPTION_LENGTH = 155;
-const COLOR_TAG_REGEX = /<\/?color[^>]*>/gi;
-const WHITESPACE_REGEX = /\s+/g;
-
 const TOOL_LIKE_TYPES = new Set([
   "GENERIC",
   "TOOL",
@@ -32,26 +30,8 @@ const ARMOR_TYPES = new Set(["ARMOR", "PET_ARMOR", "TOOL_ARMOR"]);
 
 const WEAPON_TYPES = new Set(["GUN", "GUNMOD"]);
 
-const cleanText = (value: string): string =>
-  value
-    .replace(COLOR_TAG_REGEX, "")
-    .replace(/\r?\n/g, " ")
-    .replace(WHITESPACE_REGEX, " ")
-    .trim();
-
-const formatNumber = (value: number): string => {
-  if (Number.isInteger(value)) return value.toString();
-  return value
-    .toFixed(2)
-    .replace(/\.0+$/, "")
-    .replace(/(\.\d*[1-9])0+$/, "$1");
-};
-
-const formatValue = (value: number | string): string =>
-  typeof value === "number" ? formatNumber(value) : cleanText(value);
-
 const formatStat = (label: string, value: number | string): string =>
-  `${label} ${formatValue(value)}`;
+  `${label} ${formatDisplayValue(value)}`;
 
 const formatStatList = (stats: string[]): string => {
   if (stats.length === 0) return "";
@@ -94,7 +74,7 @@ const formatQualities = (qualities?: [string, number][]): string | null => {
   if (!qualities || qualities.length === 0) return null;
   return qualities
     .slice(0, 2)
-    .map(([id, level]) => `${cleanText(id)} ${formatNumber(level)}`)
+    .map(([id, level]) => `${cleanText(id)} ${formatNumeric(level)}`)
     .join(", ");
 };
 

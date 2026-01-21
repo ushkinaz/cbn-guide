@@ -1,13 +1,3 @@
-export function showProbability(prob: number) {
-  return showNumber(prob * 100) + "%";
-}
-
-export function showNumber(v: number) {
-  const ret = v.toFixed(2);
-  if (ret === "0.00") return "< 0.01";
-  return ret;
-}
-
 export function multimap<K, V>(entries: [K, V][]): Map<K, V[]> {
   let ret = new Map<K, V[]>();
   for (const [k, v] of entries) {
@@ -18,7 +8,10 @@ export function multimap<K, V>(entries: [K, V][]): Map<K, V[]> {
   return ret;
 }
 
-export function groupBy<T>(things: T[], groupsFor: (x: T) => string[]) {
+export function groupBy<T>(
+  things: T[],
+  groupsFor: (x: T) => string[],
+): Map<string, T[]> {
   const map = new Map<string, T[]>();
   for (const thing of things) {
     const groups = groupsFor(thing);

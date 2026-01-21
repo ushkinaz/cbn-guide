@@ -6,6 +6,7 @@ import {
   asKilograms,
   asLiters,
   CBNData,
+  formatPercent,
   i18n,
   normalizeDamageInstance,
   singular,
@@ -482,7 +483,7 @@ let upgrades =
           {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
             {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
               <li>
-                <ItemLink type="item" {id} /> ({(prob * 100).toFixed(2)}%)
+                <ItemLink type="item" {id} /> ({formatPercent(prob)})
               </li>
             {/each}
           {:else}

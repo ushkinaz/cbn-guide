@@ -1,7 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import { CBNData, itemGroupFromVehicle } from "../../data";
-import { showProbability } from "./utils";
+import { formatPercent } from "../../utils/format";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import { t } from "../../i18n";
@@ -27,7 +27,7 @@ vehiclesAndProbabilities.sort((a, b) => b.prob - a.prob);
   <section>
     <h1>{t("In Vehicle", { _context: "Obtaining" })}</h1>
     <LimitedList items={vehiclesAndProbabilities} let:item={{ vehicle, prob }}>
-      <ItemLink id={vehicle.id} type="vehicle" showIcon={false} /> ({showProbability(
+      <ItemLink id={vehicle.id} type="vehicle" showIcon={false} /> ({formatPercent(
         prob,
       )})
     </LimitedList>

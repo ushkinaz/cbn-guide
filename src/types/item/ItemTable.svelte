@@ -2,7 +2,7 @@
 import LimitedTableList from "../../LimitedTableList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import type { Loot } from "./spawnLocations";
-import { showNumber, showProbability } from "./utils";
+import { formatFixed2, formatPercent } from "../../utils/format";
 import { t } from "../../i18n";
 import type { SupportedTypesWithMapped } from "src/types";
 
@@ -29,7 +29,7 @@ let showData = (globalThis as any).__isTesting__;
   {:then loot}
     {#if loot.size}
       {@const sortedLoot = [...loot.entries()].sort((a, b) =>
-        (b[1].prob * 100).toFixed(2) === (a[1].prob * 100).toFixed(2)
+        formatFixed2(b[1].prob * 100) === formatFixed2(a[1].prob * 100)
           ? b[1].expected - a[1].expected
           : b[1].prob - a[1].prob,
       )}
@@ -58,8 +58,8 @@ let showData = (globalThis as any).__isTesting__;
             <td style="padding-left: 5px;">
               <ItemLink {type} id={item_id} showIcon={true} />
             </td>
-            <td class="numeric">{showNumber(chance.expected)}</td>
-            <td class="numeric">{showProbability(chance.prob)}</td>
+            <td class="numeric">{formatFixed2(chance.expected)}</td>
+            <td class="numeric">{formatPercent(chance.prob)}</td>
           </tr>
         </LimitedTableList>
       </section>

@@ -11,7 +11,7 @@
  */
 import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";
-import * as perf from "./perf";
+import * as perf from "./utils/perf";
 
 import type {
   Bionic,
@@ -40,6 +40,8 @@ import type {
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
+import { formatKg, formatL } from "./utils/format";
+export { formatKg, formatL, formatPercent } from "./utils/format";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
   ["AMMO", "item"],
@@ -145,12 +147,6 @@ export const pluralName = (
 
 export const byName = (a: any, b: any) =>
   singularName(a).localeCompare(singularName(b));
-
-export function showProbability(prob: number) {
-  const ret = (prob * 100).toFixed(2);
-  if (ret === "0.00") return "< 0.01%";
-  return ret + "%";
-}
 
 // Returns ml
 export function parseVolume(string: string | number): number {
@@ -265,12 +261,12 @@ export function asHumanReadableDuration(duration: string | number) {
 
 export function asLiters(string: string | number): string {
   const ml = parseVolume(string);
-  return `${(ml / 1000).toFixed(2)} L`;
+  return formatL(ml);
 }
 
 export function asKilograms(string: string | number): string {
   const g = parseMass(string);
-  return `${(g / 1000).toFixed(2)} kg`;
+  return formatKg(g);
 }
 
 export class CBNData {

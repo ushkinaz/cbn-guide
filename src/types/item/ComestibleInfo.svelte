@@ -1,9 +1,11 @@
 <script lang="ts">
+import { getContext } from "svelte";
+
+import { CBNData, parseDuration } from "../../data";
 import { t } from "../../i18n";
+import { formatFixed2 } from "../../utils/format";
 import type { ComestibleSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
-import { CBNData, parseDuration } from "../../data";
-import { getContext } from "svelte";
 
 export let item: ComestibleSlot;
 
@@ -53,7 +55,7 @@ const data = getContext<CBNData>("data");
               {#if v.vit_type === "counter" || v.vit_type === "drug"}
                 {rda} U
               {:else}
-                {rda?.toFixed(2)}%{" "}
+                {formatFixed2(rda)}%{" "}
                 {#if mass}
                   {#if mass >= 0.001}
                     ({(mass * 1000).toFixed(1)} mg)

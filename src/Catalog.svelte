@@ -14,7 +14,7 @@ import type {
 } from "./types";
 import MutationCategory from "./types/MutationCategory.svelte";
 import ItemLink from "./types/ItemLink.svelte";
-import { groupBy } from "./types/item/utils";
+import { groupBy } from "./utils/collections";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
 
 export let type: string;

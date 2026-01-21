@@ -1,6 +1,6 @@
 import type { CBNData } from "../../data";
 import type * as raw from "../../types";
-import { multimap } from "./utils";
+import { multimap } from "../../utils/collections";
 
 // Map generation constants
 const DEFAULT_CHANCE_PERCENTAGE = 100;

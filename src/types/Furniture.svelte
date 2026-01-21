@@ -1,5 +1,5 @@
 <script lang="ts">
-import { CBNData, singular, singularName } from "../data";
+import { CBNData, formatPercent, singular, singularName } from "../data";
 import type { Furniture } from "../types";
 import { getContext } from "svelte";
 import Construction from "./Construction.svelte";
@@ -34,12 +34,6 @@ const bash = item.bash?.items
           : item.bash.items,
     })
   : [];
-
-function showProbability(prob: number) {
-  const ret = (prob * 100).toFixed(2);
-  if (ret === "0.00") return "< 0.01%";
-  return ret + "%";
-}
 
 const constructions = data
   .byType("construction")
@@ -120,7 +114,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
           {#each deconstruct as {id, prob, count}}
             <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
-              ''}{#if prob !== 1}&nbsp;({showProbability(prob)}){/if}</span></li>
+              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
         </ul>
         {#if item.deconstruct?.furn_set}
@@ -142,7 +136,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
           {#each bash as {id, prob, count}}
             <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
-              ''}{#if prob !== 1}&nbsp;({showProbability(prob)}){/if}</span></li>
+              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
         </ul>
         <dl>
