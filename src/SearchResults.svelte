@@ -8,6 +8,7 @@ import {
   singularName,
 } from "./data";
 import { getVersionedBasePath } from "./routing";
+import { debounce } from "./utils/debounce";
 import * as fuzzysort from "fuzzysort";
 import ItemLink from "./types/ItemLink.svelte";
 import type {
@@ -120,14 +121,23 @@ function filter(text: string): Map<string, SearchResult[]> {
 
 const cjkRegex =
   /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f\u3131-\ud79d]/;
-$: matchingObjects =
-  search &&
-  (search.length >= 2 || cjkRegex.test(search)) &&
-  data &&
-  filter(search);
-$: matchingObjectsList = matchingObjects
-  ? [...matchingObjects.entries()]
-  : null;
+
+let matchingObjects: Map<string, SearchResult[]> | null = null;
+let matchingObjectsList: [string, SearchResult[]][] | null = null;
+
+const updateSearchResults = debounce((query: string) => {
+  if (query && (query.length >= 2 || cjkRegex.test(query)) && data) {
+    matchingObjects = filter(query);
+    matchingObjectsList = matchingObjects
+      ? [...matchingObjects.entries()]
+      : null;
+  } else {
+    matchingObjects = null;
+    matchingObjectsList = null;
+  }
+}, 200);
+
+$: updateSearchResults(search);
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();
