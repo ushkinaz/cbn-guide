@@ -73,7 +73,6 @@ button:focus {
 	border-color: #666;
 }
 
-.fg_only { background: transparent !important; }
 
 body { color: var(--cata-color-white); background: var(--cata-color-black); }
 td { vertical-align: top; }

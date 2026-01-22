@@ -41,7 +41,7 @@ import type {
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
-import { formatKg, formatL } from "./utils/format";
+import { formatKg, formatL, stripColorTags } from "./utils/format";
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
@@ -117,10 +117,10 @@ export function translate(
 ): string {
   const sg = getMsgId(t);
   const pl = needsPlural ? getMsgIdPlural(t) : "";
-  return (
+  const raw =
     i18n.dcnpgettext(domain, undefined, sg, pl, n) ||
-    (n === 1 ? sg : (pl ?? sg))
-  );
+    (n === 1 ? sg : (pl ?? sg));
+  return stripColorTags(raw);
 }
 
 export const singular = (name: Translation): string =>

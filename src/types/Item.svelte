@@ -49,7 +49,6 @@ import ToolInfo from "./item/ToolInfo.svelte";
 import TransformedFrom from "./item/TransformedFrom.svelte";
 import WheelInfo from "./item/WheelInfo.svelte";
 import UsageDescription from "./UsageDescription.svelte";
-import ColorText from "./ColorText.svelte";
 import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
@@ -234,9 +233,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                   {#if "info" in f && f.info}
                     <ItemLink type="json_flag" id={f.id} showIcon={false} />
                     <span style="color: var(--cata-color-gray)"
-                      >(<ColorText
-                        text={singular(f.info)}
-                        fgOnly={true} />)</span>
+                      >({singular(f.info)})</span>
                   {:else}
                     <ItemLink type="json_flag" id={f.id} showIcon={false} />
                   {/if}
@@ -402,7 +399,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
       {#if item.description}
         <p
           style="color: var(--cata-color-gray); margin-bottom: 0; white-space: pre-wrap;">
-          <ColorText text={singular(item.description)} fgOnly={true} />
+          {singular(item.description)}
         </p>
       {/if}
     </div>

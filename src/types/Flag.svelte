@@ -5,7 +5,6 @@ import { getContext } from "svelte";
 import { byName, CBNData, singular } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { JsonFlag } from "../types";
-import ColorText from "./ColorText.svelte";
 import ItemLink from "./ItemLink.svelte";
 
 export let item: JsonFlag;
@@ -38,7 +37,7 @@ const bionicWithFlag = data
 <h1>{t("Flag", { _comment: "Section heading" })}: {item.id}</h1>
 {#if item.info}
   <section>
-    <p><ColorText text={singular(item.info)} /></p>
+    <p>{singular(item.info)}</p>
   </section>
 {/if}
 {#if itemsWithFlag.length}

@@ -8,8 +8,12 @@ export function formatFixed2(v: number): string {
   return ret;
 }
 
-const COLOR_TAG_REGEX = /<\/?color[^>]*>/gi;
+const COLOR_TAG_REGEX = /<\/?(?:info|good|bad|neutral|color(?:_[^>]+)?)>/gi;
 const WHITESPACE_REGEX = /\s+/g;
+
+export function stripColorTags(value: string): string {
+  return value.replace(COLOR_TAG_REGEX, "");
+}
 
 export function cleanText(value: string): string {
   return value

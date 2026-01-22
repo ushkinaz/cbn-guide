@@ -152,7 +152,6 @@ flowchart TB
 
     subgraph Shared["Shared Components"]
         ItemLink[ItemLink.svelte]
-        ColorText[ColorText.svelte]
         Spoiler[Spoiler.svelte]
         LimitedList[LimitedList.svelte]
     end
@@ -223,6 +222,12 @@ classDiagram
     Item --> Translation : uses
     Monster --> Translation : uses
 ```
+
+## Text Rendering
+
+Game data can include inline color tags like `<color_red>` or `<info>`. These
+tags are stripped at the translation layer, so UI components should treat
+translated strings as plain text and apply styling explicitly where needed.
 
 ## Routing System
 

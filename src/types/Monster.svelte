@@ -7,7 +7,6 @@ import {
   asLiters,
   CBNData,
   formatPercent,
-  i18n,
   normalizeDamageInstance,
   singular,
   singularName,
@@ -16,7 +15,6 @@ import ItemLink from "./ItemLink.svelte";
 import type { Harvest, Monster, MonsterGroup } from "../types";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
-import ColorText from "./ColorText.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 
 const _context = "Monster";
@@ -57,19 +55,50 @@ function difficulty(mon: Monster): number {
   return Math.max(1, Math.floor(difficulty));
 }
 
-function difficultyDescription(diff: number) {
+function difficultyDescription(diff: number): {
+  text: string;
+  className: string;
+} {
   if (diff < 3) {
-    return i18n.__("<color_light_gray>Minimal threat.</color>");
+    return {
+      text: t("Minimal threat."),
+      className: "difficulty-minimal",
+    };
   } else if (diff < 10) {
-    return i18n.__("<color_light_gray>Mildly dangerous.</color>");
+    return {
+      text: t("Mildly dangerous."),
+      className: "difficulty-low",
+    };
   } else if (diff < 20) {
-    return i18n.__("<color_light_red>Dangerous.</color>");
+    return {
+      text: t("Dangerous."),
+      className: "difficulty-medium",
+    };
   } else if (diff < 30) {
-    return i18n.__("<color_red>Very dangerous.</color>");
+    return {
+      text: t("Very dangerous."),
+      className: "difficulty-high",
+    };
   } else if (diff < 50) {
-    return i18n.__("<color_red>Extremely dangerous.</color>");
+    return {
+      text: t("Extremely dangerous."),
+      className: "difficulty-very-high",
+    };
   }
-  return i18n.__("<color_red>Fatally dangerous!</color>");
+  return {
+    text: t("Fatally dangerous!"),
+    className: "difficulty-fatal",
+  };
+}
+
+function difficultyInfo(mon: Monster): {
+  value: number;
+  text: string;
+  className: string;
+} {
+  const value = difficulty(mon);
+  const { text, className } = difficultyDescription(value);
+  return { value, text, className };
 }
 
 function damage(mon: Monster) {
@@ -297,10 +326,10 @@ let upgrades =
     {/if}
     <dt>{t("Difficulty", { _context })}</dt>
     <dd>
-      {difficulty(item)}
-      (<ColorText
-        text={difficultyDescription(difficulty(item))}
-        fgOnly={true} />)
+      {#each [difficultyInfo(item)] as info}
+        {info.value}
+        (<span class={`difficulty-label ${info.className}`}>{info.text}</span>)
+      {/each}
     </dd>
   </dl>
   {#if item.description}
@@ -496,3 +525,27 @@ let upgrades =
     </section>
   {/if}
 </Spoiler>
+
+<style>
+.difficulty-label {
+  font-weight: 600;
+}
+.difficulty-minimal {
+  color: hsl(210deg 12% 70%);
+}
+.difficulty-low {
+  color: hsl(145deg 45% 55%);
+}
+.difficulty-medium {
+  color: hsl(45deg 90% 60%);
+}
+.difficulty-high {
+  color: hsl(20deg 85% 60%);
+}
+.difficulty-very-high {
+  color: hsl(5deg 80% 58%);
+}
+.difficulty-fatal {
+  color: hsl(350deg 70% 60%);
+}
+</style>
