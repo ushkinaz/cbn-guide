@@ -270,6 +270,11 @@ export function asKilograms(string: string | number): string {
   return formatKg(g);
 }
 
+/**
+ * Central data store for the application.
+ * Handles loading, indexing, and accessing game data.
+ * Implements lazy flattening of objects (resolving inheritance).
+ */
 export class CBNData {
   _raw: any[];
   _byType: Map<string, any[]> = new Map();
@@ -371,6 +376,14 @@ export class CBNData {
     p.finish();
   }
 
+  /**
+   * Retrieves an object by type and ID, resolving inheritance.
+   * Returns undefined if the object is not found.
+   *
+   * @param type The type of the object (e.g., 'item', 'monster').
+   * @param id The ID of the object.
+   * @returns The flattened object or undefined.
+   */
   byIdMaybe<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
     id: string,
@@ -387,6 +400,15 @@ export class CBNData {
     if (obj) return this._flatten(obj);
   }
 
+  /**
+   * Retrieves an object by type and ID, resolving inheritance.
+   * Throws an error if the object is not found.
+   *
+   * @param type The type of the object.
+   * @param id The ID of the object.
+   * @returns The flattened object.
+   * @throws {Error} If the object is not found.
+   */
   byId<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
     id: string,
@@ -399,6 +421,12 @@ export class CBNData {
     return ret;
   }
 
+  /**
+   * Retrieves all objects of a given type.
+   *
+   * @param type The type of objects to retrieve.
+   * @returns An array of flattened objects.
+   */
   byType<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
   ): SupportedTypesWithMapped[TypeName][] {
@@ -452,6 +480,14 @@ export class CBNData {
     return this._raw;
   }
 
+  /**
+   * Internal method to flatten an object by resolving its 'copy-from' inheritance.
+   * Applies relative, proportional, extend, and delete modifiers.
+   * Caches the result.
+   *
+   * @param _obj The raw object to flatten.
+   * @returns The flattened object.
+   */
   _flatten<T = any>(_obj: T): T {
     const p = perf.mark("CBNData._flatten", true);
     try {
