@@ -1113,7 +1113,6 @@ export interface MapgenObject {
   //place_monster?: PurplePlaceMonster[];
   //monster?: MonsterClass;
   //monsters?: Monsters;
-  // TODO: handle param/distribution/switch
   palettes?: MapgenValue[];
   //place_vehicles?: PlaceVehicle[];
   //vehicles?: ObjectVehicles;

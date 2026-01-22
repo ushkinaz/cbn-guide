@@ -655,15 +655,20 @@ function getMapgenValueDistribution(
   }
   if ("ter" in val) return new Map([[val.ter, 1]]);
   if ("furn" in val) return new Map([[val.furn, 1]]);
-  if (
-    "switch" in val &&
-    typeof val.switch === "object" &&
-    "fallback" in val.switch &&
-    val.switch.fallback &&
-    val.switch.fallback in val.cases &&
-    val.cases[val.switch.fallback]
-  )
-    return new Map([[val.cases[val.switch.fallback], 1]]);
+  if ("switch" in val) {
+    const conditionDist = getMapgenValueDistribution(val.switch, parameters);
+    const resultDist = new Map<string, number>();
+    for (const [condVal, condProb] of conditionDist) {
+      const resultCase = val.cases[condVal];
+      if (resultCase) {
+        resultDist.set(
+          resultCase,
+          (resultDist.get(resultCase) ?? 0) + condProb,
+        );
+      }
+    }
+    return resultDist;
+  }
   if ("distribution" in val) {
     const opts = val.distribution;
     const totalProb = opts.reduce(
@@ -1270,6 +1275,25 @@ function processPaletteDistributions(
         console.warn(`missing parameter ${val.param}`);
         return [];
       }
+    }
+
+    // Switch: resolve condition and parse resulting palette(s)
+    if ("switch" in val) {
+      const conditionDist = getMapgenValueDistribution(
+        val.switch,
+        currentPalette.parameters,
+      );
+      return [...conditionDist.entries()].flatMap(([condValue, condProb]) => {
+        const targetId = val.cases[condValue];
+        if (!targetId) return [];
+        const parsed = parseFn(data, data.byId("palette", targetId), stack);
+        return [
+          attenuatePalette(
+            parsed,
+            condProb,
+          ),
+        ];
+      });
     }
 
     return [];
