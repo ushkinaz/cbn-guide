@@ -10,7 +10,7 @@
  * npx tsx scripts/fetch-icons.ts
  *
  * # With custom parameters
- * TILESET=UNDEAD_PEOPLE GAME_VERSION=v0.9.1 ICON_CONCURRENCY=16 npx tsx scripts/fetch-icons.ts --force
+ * TILESET=undead_people GAME_VERSION=v0.9.1 ICON_CONCURRENCY=16 npx tsx scripts/fetch-icons.ts --force
  * ```
  */
 
@@ -26,37 +26,12 @@ import { colorForName } from "../src/colors";
 import { BUILDS_URL, getDataJsonUrl } from "../src/constants";
 import { CBNData, mapType } from "../src/data";
 import { getTilesetUrl, TILESETS } from "../src/tile-data";
+import type { TileChunk, TileInfo, TilePosition, TilesetData } from "../src/tile-data";
 
-type TilePosition = {
-  file: string;
-  tx: number;
-  ty: number;
-  width: number;
-  height: number;
-  offx: number;
-  offy: number;
-};
+type TilesetChunk = TileChunk & { ascii?: any[] };
 
-type TileInfo = {
-  fg?: TilePosition;
-  bg?: TilePosition;
-};
-
-type TilesetChunk = {
-  file: string;
-  nx: number;
-  ny: number;
-  tiles: any[];
-  ascii?: any[];
-  sprite_width?: number;
-  sprite_height?: number;
-  sprite_offset_x?: number;
-  sprite_offset_y?: number;
-};
-
-type TilesetJson = {
+type TilesetJson = Omit<NonNullable<TilesetData>, "tiles-new"> & {
   "tiles-new": TilesetChunk[];
-  tile_info: [{ width: number; height: number; pixelscale?: number }];
   baseUrl: string;
 };
 
