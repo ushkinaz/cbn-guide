@@ -190,12 +190,12 @@ t("A") + b  // ❌ Wrong
 - **Inheritance**: Raw JSON uses `copy-from` - check parent if property missing
 - **Resolution**: Use `src/data.ts` (`CBNData._flatten`) for resolved values
 
-### Terminal History (.agent/rules/terminal-history.md)
+### Running commands (.agent/rules/running-commands.md)
 
 **Always** start new terminal sessions with:
 
 ```zsh
-unset HISTFILE; unsetopt share_history
+unset HISTFILE; unsetopt share_history; unset PAGER
 ```
 
 ### UI Verification (.agent/rules/ui-verification.md)
