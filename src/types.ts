@@ -1696,6 +1696,8 @@ export type VehiclePart = {
   symbols?: Record<string, string>;
   symbol?: string;
   color?: string;
+  looks_like?: string;
+  "copy-from"?: string;
 };
 
 export type AsciiArt = {
