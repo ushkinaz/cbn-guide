@@ -21,6 +21,8 @@ import randomIcon from "./assets/category-icons/random.svg";
 import terrainIcon from "./assets/category-icons/terrain.svg";
 //https://game-icons.net/1x1/delapouite/car-wheel.html
 import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
+//https://game-icons.net/1x1/skoll/apc.html
+import vehicleIcon from "./assets/category-icons/vehicle.svg";
 import { t } from "./i18n";
 import { CBNData, data, mapType } from "./data";
 import { getVersionedBasePath } from "./routing";
@@ -43,9 +45,14 @@ const categories = [
     icon: furnitureIcon,
   },
   {
-    label: "Terrain",
+    label: "Terrains",
     href: "terrain",
     icon: terrainIcon,
+  },
+  {
+    label: "Vehicles",
+    href: "vehicle",
+    icon: vehicleIcon,
   },
   {
     label: "Vehicle Parts",
@@ -79,11 +86,11 @@ const categories = [
   },
 ];
 
-const randomableItemTypes = new Set([
+const randomizableItemTypes = new Set([
   "item",
   "monster",
   "furniture",
-  "terrain",
+  // "terrain",
   "vehicle_part",
   // "tool_quality",
   // "mutation",
@@ -104,7 +111,7 @@ async function getRandomPage() {
   const items = d
     .all()
     .filter(
-      (x) => "id" in x && randomableItemTypes.has(mapType(x.type)),
+      (x) => "id" in x && randomizableItemTypes.has(mapType(x.type)),
     ) as (SupportedTypeMapped & { id: string })[];
   return items[(Math.random() * items.length) | 0];
 }
