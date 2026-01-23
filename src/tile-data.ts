@@ -12,7 +12,7 @@ const fetchJson = async (url: string) => {
     );
   const json = await res.json();
   await Promise.all(
-    json["tiles-new"].map(async (chunk: any) => {
+    json["tiles-new"].map(async (chunk: TileChunk) => {
       // ARCHITECTURE: Tileset WebP Migration (see docs/adr/001-tileset-webp-format.md)
       // The tile_config.json metadata references .png files, but the server now serves .webp.
       // We mutate chunk.file here so the correct extension is used downstream when:
@@ -45,9 +45,41 @@ const fetchJson = async (url: string) => {
   return json;
 };
 
-type TilesetData = {
+export type TilePosition = {
+  file: string;
+  tx: number;
+  ty: number;
+  width: number;
+  height: number;
+  offx: number;
+  offy: number;
+};
+
+export type TileInfo = {
+  fg?: TilePosition;
+  bg?: TilePosition;
+};
+
+export type TileEntry = {
+  id: string | string[];
+  fg?: number | number[] | { sprite: number };
+  bg?: number | number[] | { sprite: number };
+};
+
+export type TileChunk = {
+  file: string;
+  nx: number;
+  ny: number;
+  sprite_width?: number;
+  sprite_height?: number;
+  sprite_offset_x?: number;
+  sprite_offset_y?: number;
+  tiles: TileEntry[];
+};
+
+export type TilesetData = {
   tile_info: { width: number; height: number; pixelscale: number }[];
-  "tiles-new": any[];
+  "tiles-new": TileChunk[];
   baseUrl?: string;
 } | null;
 
