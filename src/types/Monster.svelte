@@ -499,10 +499,10 @@ const upgradesFrom = data
       {#if upgrades}
         <dt>{t("Upgrades Into", { _context })}</dt>
         <dd>
-          <ul class="comma-separated or">
+          <ul class="comma-separated">
             <!-- prettier-ignore -->
             {#each upgrades.monsters as mon}
-			<li><ItemLink type="monster" id={mon} showIcon={true} /></li>{/each}
+			<li><ItemLink type="monster" id={mon} showIcon={false} /></li>{/each}
           </ul>
           {#if upgrades.age_grow}
             {t("in {days} {days, plural, =1 {day} other {days}}", {
@@ -520,9 +520,28 @@ const upgradesFrom = data
       {#if upgradesFrom.length}
         <dt>{t("Upgrades From", { _context })}</dt>
         <dd>
-          <ul class="comma-separated or">
+          <ul class="comma-separated">
             {#each upgradesFrom as mon}
-              <li><ItemLink type="monster" id={mon.id} showIcon={true} /></li>
+              <li>
+                <ItemLink type="monster" id={mon.id} showIcon={false} />
+                {#if mon.upgrades}
+                  {#if mon.upgrades.age_grow}
+                    <!--               //FIX: nbsp shenanigans, apply proper styling-->
+                    &nbsp;{t(
+                      "in {days} {days, plural, =1 {day} other {days}}",
+                      {
+                        _context,
+                        days: mon.upgrades.age_grow,
+                      },
+                    )}
+                  {:else if mon.upgrades.half_life}
+                    &nbsp;({t(
+                      "with a half-life of {half_life} {half_life, plural, =1 {day} other {days}}",
+                      { _context, half_life: mon.upgrades.half_life },
+                    )})
+                  {/if}
+                {/if}
+              </li>
             {/each}
           </ul>
         </dd>
