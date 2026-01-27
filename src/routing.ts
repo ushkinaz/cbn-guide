@@ -12,6 +12,8 @@
 import { BUILDS_URL } from "./constants";
 import type { Debounced } from "./utils/debounce";
 import { debounce } from "./utils/debounce";
+import { metrics } from "./metrics";
+import { mark } from "./utils/perf";
 
 // ============================================================================
 // Constants
@@ -328,6 +330,10 @@ export function changeVersion(newVersion: string): void {
   }
 
   const newPath = import.meta.env.BASE_URL + segments.join("/");
+  metrics.count("version.switch", 1, {
+    from: getCurrentVersionSlug(),
+    to: newVersion,
+  });
   location.href = newPath + location.search;
 }
 
@@ -444,6 +450,7 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
  * @throws Error if builds.json fails to load
  */
 export async function initializeRouting(): Promise<InitialAppState> {
+  const start = performance.now();
   const response = await fetch(BUILDS_URL);
   if (!response.ok) {
     throw new Error(
@@ -527,6 +534,15 @@ export async function initializeRouting(): Promise<InitialAppState> {
       latestStableBuild,
       latestNightlyBuild,
     };
+  }
+
+  metrics.distribution("routing.init_time", performance.now() - start, {
+    unit: "millisecond",
+  });
+
+  const buildNum = parseInt(resolvedVersion.replace(/\D/g, ""), 10);
+  if (!isNaN(buildNum)) {
+    metrics.gauge("data.resolved_version", buildNum);
   }
 
   return {

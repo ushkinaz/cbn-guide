@@ -1,6 +1,7 @@
 <script lang="ts">
 import { t } from "./i18n";
 import { GAME_REPO_URL } from "./constants";
+import { metrics } from "./metrics";
 
 export let obj: any;
 export let buildNumber: string | undefined;
@@ -11,6 +12,9 @@ let expanded = false;
 
 function toggle() {
   expanded = !expanded;
+  if (expanded) {
+    metrics.count("json.view_opened", 1, { type: obj.type, id: obj.id });
+  }
 }
 
 const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`;

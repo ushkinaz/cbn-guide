@@ -1,5 +1,6 @@
 <script lang="ts">
 import LimitedTableList from "../../LimitedTableList.svelte";
+import { metrics } from "../../metrics";
 import ItemLink from "../ItemLink.svelte";
 import type { Loot } from "./spawnLocations";
 import { formatFixed2, formatPercent } from "../../utils/format";
@@ -68,7 +69,12 @@ let showData = isTesting;
   {/await}
 {:else}
   <section>
-    <button on:click={() => (showData = true)} class="disclosure">
+    <button
+      on:click={() => {
+        showData = true;
+        metrics.count("loot_table.load", 1, { type, heading });
+      }}
+      class="disclosure">
       {t("Load {heading}...", { heading })}
     </button>
   </section>

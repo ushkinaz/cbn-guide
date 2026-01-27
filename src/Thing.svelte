@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "./i18n";
-import { setContext, SvelteComponent } from "svelte";
+import { onMount, setContext, SvelteComponent } from "svelte";
 
 import type { CBNData } from "./data";
 import Monster from "./types/Monster.svelte";
@@ -33,6 +33,7 @@ import JsonView from "./JsonView.svelte";
 import OvermapSpecial from "./types/OvermapSpecial.svelte";
 import ItemAction from "./types/ItemAction.svelte";
 import Technique from "./types/Technique.svelte";
+import { metrics } from "./metrics";
 
 export let item: { id: string; type: string };
 
@@ -42,6 +43,7 @@ let error: Error | null = null;
 
 function onError(e: Error) {
   error = e;
+  metrics.count("error_boundary.catch", 1, { type: item.type, id: item.id });
   Sentry.captureException(e, {
     contexts: {
       item: {
@@ -59,6 +61,15 @@ function defaultItem(id: string, type: string) {
     return undefined;
   }
 }
+
+const renderStart = performance.now();
+
+onMount(() => {
+  metrics.distribution("render.item_latency", performance.now() - renderStart, {
+    unit: "millisecond",
+    type: item.type,
+  });
+});
 
 let obj =
   data.byIdMaybe(item.type as keyof SupportedTypes, item.id) ??

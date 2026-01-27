@@ -9,6 +9,7 @@ import OvermapAppearance from "./OvermapAppearance.svelte";
 import { t } from "../../i18n";
 import LimitedTableList from "../../LimitedTableList.svelte";
 import { isTesting } from "../../utils/env";
+import { metrics } from "../../metrics";
 
 export let id: string;
 export let loots:
@@ -90,7 +91,12 @@ function filterLocations(
   {/await}
 {:else}
   <section>
-    <button on:click={() => (showData = true)} class="disclosure">
+    <button
+      on:click={() => {
+        showData = true;
+        metrics.count("obtaining_table.load", 1, { id, heading });
+      }}
+      class="disclosure">
       {t("Load {heading}...", { heading })}
     </button>
   </section>

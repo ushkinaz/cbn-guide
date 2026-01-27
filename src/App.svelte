@@ -36,6 +36,9 @@ import {
   updateSearchRoute,
 } from "./routing";
 
+import { metrics } from "./metrics";
+import { mark } from "./utils/perf";
+
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
@@ -45,6 +48,7 @@ let scrollY = 0;
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
+  metrics.count("scroll_to_top.use");
 }
 
 let item: { type: string; id: string } | null = null;
@@ -60,6 +64,8 @@ let latestStableBuild: BuildInfo | undefined;
 let latestNightlyBuild: BuildInfo | undefined;
 
 // Initialize routing and fetch builds
+const appStart = performance.now();
+mark("app-routing-start");
 initializeRouting()
   .then((result: InitialAppState) => {
     builds = result.builds;
@@ -67,11 +73,17 @@ initializeRouting()
     latestStableBuild = result.latestStableBuild;
     latestNightlyBuild = result.latestNightlyBuild;
 
-    data.setVersion(
-      resolvedVersion,
-      localeParam,
-      isBranchAlias ? requestedVersion : undefined,
-    );
+    data
+      .setVersion(
+        resolvedVersion,
+        localeParam,
+        isBranchAlias ? requestedVersion : undefined,
+      )
+      .then(() => {
+        metrics.distribution("data.load_time", performance.now() - appStart, {
+          unit: "millisecond",
+        });
+      });
   })
   .catch((e) => {
     console.error(e);
@@ -141,6 +153,17 @@ const defaultMetaDescription = t(
   },
 );
 
+// Monitor storage usage once per session
+try {
+  navigator.storage.estimate().then((estimate) => {
+    metrics.gauge("storage.usage_bytes", estimate?.usage ?? -1, {
+      unit: "byte",
+    });
+  });
+} catch (e) {
+  /* ignore */
+}
+
 let metaDescription = defaultMetaDescription;
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
@@ -175,11 +198,20 @@ function loadRoute() {
 loadRoute();
 
 const handleSearchInput = () => {
+  if (search === "") {
+    metrics.count("search.cleared");
+  }
   updateSearchRoute(search, item);
   item = null;
 };
 
 function handleNavigation(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+  const link = target.closest("a");
+  if (link && link.hostname !== window.location.hostname) {
+    metrics.count("external_link.click", 1, { domain: link.hostname });
+  }
+
   if (handleInternalNavigation(event)) {
     loadRoute();
   }
@@ -390,6 +422,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
             value={requestedVersion}
             on:change={(e) => {
               const v = e.currentTarget.value;
+              metrics.count("version.change", 1, { v });
               changeVersion(v);
             }}>
             <optgroup label={t("Branch")}>
@@ -428,6 +461,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
           updateQueryParamNoReload("t", tileset);
+          metrics.count("tileset.change", 1, { tileset });
         }}>
         {#each TILESETS as { name, displayName }}
           <option value={name}>{displayName}</option>

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { t } from "./i18n";
 import { isTesting } from "./utils/env";
+import { metrics } from "./metrics";
 
 export let items: any[];
 
@@ -37,6 +38,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
       on:click={(e) => {
         e.preventDefault();
         expanded = true;
+        metrics.count("limited-table.expand", 1, { count: items.length });
       }}
       >{t("See all {n}...", {
         n: Number(items.length).toLocaleString(),

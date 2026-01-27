@@ -13,6 +13,7 @@ import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";
 import * as perf from "./utils/perf";
 import { isTesting } from "./utils/env";
+import { metrics } from "./metrics";
 
 import type {
   Bionic,

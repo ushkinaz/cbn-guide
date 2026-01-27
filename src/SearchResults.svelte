@@ -10,6 +10,7 @@ import {
 import { getVersionedBasePath } from "./routing";
 import { debounce } from "./utils/debounce";
 import { isTesting } from "./utils/env";
+import { metrics } from "./metrics";
 import * as fuzzysort from "fuzzysort";
 import ItemLink from "./types/ItemLink.svelte";
 import type {
@@ -82,21 +83,27 @@ function searchableName(data: CBNData, item: SupportedTypeMapped) {
   return singularName(item);
 }
 
-$: targets = [...(data?.all() ?? [])]
-  .filter(
-    (x) =>
-      "id" in x &&
-      typeof x.id === "string" &&
-      SEARCHABLE_TYPES.has(mapType(x.type)),
-  )
-  .filter((x) => (x.type === "mutation" ? !/Fake\d$/.test(x.id) : true))
-  .flatMap((x) => [
-    {
-      id: (x as any).id,
-      name: searchableName(data, x),
-      type: mapType(x.type),
-    },
-  ]);
+$: {
+  const start = performance.now();
+  targets = [...(data?.all() ?? [])]
+    .filter(
+      (x) =>
+        "id" in x &&
+        typeof x.id === "string" &&
+        SEARCHABLE_TYPES.has(mapType(x.type)),
+    )
+    .filter((x) => (x.type === "mutation" ? !/Fake\d$/.test(x.id) : true))
+    .flatMap((x) => [
+      {
+        id: (x as any).id,
+        name: searchableName(data, x),
+        type: mapType(x.type),
+      },
+    ]);
+  metrics.distribution("search.index_calc_time", performance.now() - start, {
+    unit: "millisecond",
+  });
+}
 
 export let search: string;
 
@@ -104,10 +111,18 @@ type SearchResult = {
   item: SearchableType;
 };
 function filter(text: string): Map<string, SearchResult[]> {
+  metrics.distribution("search.query_length", text.length);
+  const start = performance.now();
   const results = fuzzysort.go(text, targets, {
     keys: ["id", "name"],
     threshold: -10000,
   });
+  metrics.distribution("search.execution_time", performance.now() - start, {
+    unit: "millisecond",
+  });
+  if (results.length === 0) {
+    metrics.count("search.no_results", 1, { query: text });
+  }
   const byType = new Map<string, SearchResult[]>();
   for (const { obj: item } of results) {
     const mappedType = item.type;

@@ -18,6 +18,7 @@ if (import.meta.env.PROD) {
     process.env.CF_PAGES_COMMIT_SHA ?? process.env.GITHUB_SHA ?? "none";
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
+    enableMetrics: true,
     integrations: [browserTracingIntegration],
     tracesSampleRate: 1,
     ...(commitSHA && {

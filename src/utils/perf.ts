@@ -13,40 +13,30 @@ const isDev =
     : true;
 
 interface PerfMarker {
-  finish(): void;
+  finish(): number;
 }
-
-const noopMarker: PerfMarker = {
-  finish: () => {},
-};
 
 /**
  * Mark the start of a performance measurement and return a marker to finish it.
- * NO-OP in production.
+ * In production, it uses a lightweight implementation just returning the duration.
+ * In development, it also creates performance marks and measures for browser devtools.
  *
  * @param name - Name of the measurement
- * @param addTimestamp - If true, adds a unique timestamp to the mark names
- * @returns Object with finish() method to complete the measurement
- *
- * @example
- * // Simple case
- * const p = perf.mark("CBNData.constructor");
- * // ... code to measure ...
- * p.finish();
- *
- * @example
- * // With timestamp for unique measurements
- * const p = perf.mark("CBNData._flatten", true);
- * // ... code to measure ...
- * p.finish();
+ * @param addTimestamp - If true, adds a unique timestamp to the mark names (dev only)
+ * @returns Object with finish() method that returns the duration in ms
  */
 export function mark(name: string, addTimestamp: boolean = false): PerfMarker {
+  const start = performance.now();
+
   if (!isDev) {
-    return noopMarker;
+    return {
+      finish() {
+        return performance.now() - start;
+      },
+    };
   }
 
-  const measureName = name;
-  const uniqueSuffix = addTimestamp ? `:${performance.now()}` : "";
+  const uniqueSuffix = addTimestamp ? `:${start}` : "";
   const startMark = `${name}${uniqueSuffix}:start`;
   const endMark = `${name}${uniqueSuffix}:end`;
 
@@ -54,21 +44,20 @@ export function mark(name: string, addTimestamp: boolean = false): PerfMarker {
 
   return {
     finish() {
+      const end = performance.now();
       performance.mark(endMark);
-      performance.measure(measureName, startMark, endMark);
+      performance.measure(name, startMark, endMark);
+      return end - start;
     },
   };
 }
 
 /**
  * Get current high-resolution timestamp.
- * Returns 0 in production to avoid overhead.
+ * Always returns performance.now() to support metrics in production.
  */
 export function now(): number {
-  if (isDev) {
-    return performance.now();
-  }
-  return 0;
+  return performance.now();
 }
 
 /**
