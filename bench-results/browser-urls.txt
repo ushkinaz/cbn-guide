@@ -13,3 +13,4 @@ http://localhost:3000/v0.9.1/item/vac_sealer
 http://localhost:3000/v0.9.1/overmap_special/Lake%20Cabin
 http://localhost:3000/v0.9.1/item/soup_dumplings
 http://localhost:3000/v0.9.1/vitamin/calcium
+http://localhost:3000/nightly/monster/mon_ant_acid
