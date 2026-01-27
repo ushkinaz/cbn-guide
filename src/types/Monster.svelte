@@ -304,20 +304,72 @@ let upgrades =
           .map((m) => m.id),
       }
     : null;
-//TODO: This iterates over 900 items, see if we can optimize it somehow, if it's even needed
-const upgradesFrom = data
-  .byType("monster")
-  .filter((m) => {
-    if (!m.upgrades || m.id === item.id) return false;
-    if (m.upgrades.into === item.id) return true;
-    if (m.upgrades.into_group) {
-      return flattenGroup(
-        data.byId("monstergroup", m.upgrades.into_group),
-      ).includes(item.id);
-    }
-    return false;
-  })
-  .sort(byName);
+
+interface UpgradeFromInfo {
+  monsterId: string;
+  age_grow?: number;
+  half_life?: number;
+}
+
+// TODO: This iterates over all monsters (~900 items), see if we can optimize it somehow
+let upgradesFromRaw: UpgradeFromInfo[] = [];
+
+for (const monster of data.byType("monster")) {
+  const { upgrades } = monster;
+  if (!upgrades || monster.id === item.id) continue;
+
+  const matches =
+    upgrades.into === item.id ||
+    (upgrades.into_group &&
+      flattenGroup(data.byId("monstergroup", upgrades.into_group)).includes(
+        item.id,
+      ));
+
+  if (matches) {
+    upgradesFromRaw.push({
+      monsterId: monster.id,
+      age_grow: upgrades.age_grow,
+      half_life: upgrades.half_life,
+    });
+  }
+}
+
+// Group by timing and sort groups
+const upgradesFromGrouped = new Map<string, string[]>();
+
+for (const upgrade of upgradesFromRaw) {
+  let timingKey = "";
+
+  if (upgrade.age_grow) {
+    timingKey = `age_grow:${upgrade.age_grow}`;
+  } else if (upgrade.half_life) {
+    timingKey = `half_life:${upgrade.half_life}`;
+  } else {
+    timingKey = "no_timing";
+  }
+
+  if (!upgradesFromGrouped.has(timingKey)) {
+    upgradesFromGrouped.set(timingKey, []);
+  }
+
+  upgradesFromGrouped.get(timingKey)!.push(upgrade.monsterId);
+}
+
+for (const [_, monsters] of upgradesFromGrouped) {
+  monsters.sort((a, b) =>
+    byName(data.byIdMaybe("monster", a), data.byIdMaybe("monster", b)),
+  );
+}
+
+/**
+ * Returns a numerical value for the timing key to allow sorting.
+ * age_grow/half_life are sorted numerically, items without timing go last.
+ */
+function getTimingValue(key: string): number {
+  if (key.startsWith("age_grow:")) return parseInt(key.split(":")[1], 10);
+  if (key.startsWith("half_life:")) return parseInt(key.split(":")[1], 10);
+  return Number.MAX_SAFE_INTEGER;
+}
 </script>
 
 <h1><ItemLink type="monster" id={item.id} link={false} /></h1>
@@ -518,33 +570,35 @@ const upgradesFrom = data
           {/if}
         </dd>
       {/if}
-      {#if upgradesFrom.length}
+      {#if upgradesFromGrouped.size}
         <dt>{t("Upgrades From", { _context })}</dt>
         <dd>
-          <ul class="comma-separated">
-            {#each upgradesFrom as mon}
-              <li>
-                <ItemLink type="monster" id={mon.id} showIcon={false} />
-                {#if mon.upgrades}
-                  {#if mon.upgrades.age_grow}
-                    <!--               //FIX: nbsp shenanigans, apply proper styling-->
-                    &nbsp;{t(
-                      "in {days} {days, plural, =1 {day} other {days}}",
-                      {
-                        _context,
-                        days: mon.upgrades.age_grow,
-                      },
-                    )}
-                  {:else if mon.upgrades.half_life}
-                    &nbsp;({t(
-                      "with a half-life of {half_life} {half_life, plural, =1 {day} other {days}}",
-                      { _context, half_life: mon.upgrades.half_life },
-                    )})
-                  {/if}
-                {/if}
-              </li>
-            {/each}
-          </ul>
+          {#each [...upgradesFromGrouped.entries()].sort(([a], [b]) => {
+            return getTimingValue(a) - getTimingValue(b);
+          }) as [timingKey, monsterIds], i}
+            {#if i > 0};
+            {/if}
+            <span>
+              {#each monsterIds as monId, j}
+                {#if j > 0},
+                {/if}<ItemLink type="monster" id={monId} showIcon={false} />
+              {/each}
+            </span>
+            {@const timingValue = timingKey.includes(":")
+              ? parseInt(timingKey.split(":")[1], 10)
+              : null}
+            {#if timingKey.startsWith("age_grow:")}
+              &nbsp;{t("in {days} {days, plural, =1 {day} other {days}}", {
+                _context,
+                days: timingValue,
+              })}
+            {:else if timingKey.startsWith("half_life:")}
+              &nbsp;({t(
+                "with a half-life of {half_life} {half_life, plural, =1 {day} other {days}}",
+                { _context, half_life: timingValue },
+              )})
+            {/if}
+          {/each}
         </dd>
       {/if}
     </dl>
