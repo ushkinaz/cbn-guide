@@ -13,6 +13,7 @@ import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";
 import * as perf from "./utils/perf";
 import { isTesting } from "./utils/env";
+import { fastDeepClone } from "./utils/clone";
 
 import type {
   Bionic,
@@ -533,7 +534,7 @@ export class CBNData {
         if (typeof ret.relative[k] === "number") {
           if (k === "melee_damage") {
             const di = normalizeDamageInstance(
-              JSON.parse(JSON.stringify(ret.melee_damage)),
+              fastDeepClone(ret.melee_damage),
             );
             for (const du of di) du.amount = (du.amount ?? 0) + ret.relative[k];
             ret.melee_damage = di;
@@ -545,7 +546,7 @@ export class CBNData {
             ret[k] = (ret[k] ?? 0) + ret.relative[k];
           }
         } else if ((k === "damage" || k === "ranged_damage") && ret[k]) {
-          ret[k] = JSON.parse(JSON.stringify(ret[k]));
+          ret[k] = fastDeepClone(ret[k]);
           const relativeDamage = normalizeDamageInstance(ret.relative[k]);
           for (const rdu of relativeDamage) {
             const modified: DamageUnit = Array.isArray(ret[k])
@@ -577,12 +578,12 @@ export class CBNData {
           (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
           ret[k]
         ) {
-          ret[k] = JSON.parse(JSON.stringify(ret[k]));
+          ret[k] = fastDeepClone(ret[k]);
           for (const k2 of Object.keys(ret.relative[k])) {
             ret[k][k2] = (ret[k][k2] ?? 0) + ret.relative[k][k2];
           }
         } else if (k === "qualities") {
-          ret[k] = JSON.parse(JSON.stringify(ret[k]));
+          ret[k] = fastDeepClone(ret[k]);
           for (const [q, l] of ret.relative[k]) {
             const existing = ret[k].find((x: any) => x[0] === q);
             existing[1] += l;
@@ -605,7 +606,7 @@ export class CBNData {
             ret[k] = ret[k] | 0; // most things are ints.. TODO: what keys are float?
           }
         } else if (k === "damage" && ret[k]) {
-          ret.damage = JSON.parse(JSON.stringify(ret.damage));
+          ret.damage = fastDeepClone(ret.damage);
           const proportionalDamage = normalizeDamageInstance(
             ret.proportional.damage,
           );
@@ -639,7 +640,7 @@ export class CBNData {
           (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
           ret[k]
         ) {
-          ret[k] = JSON.parse(JSON.stringify(ret[k]));
+          ret[k] = fastDeepClone(ret[k]);
           for (const k2 of Object.keys(ret.proportional[k])) {
             ret[k][k2] *= ret.proportional[k][k2];
             ret[k][k2] = ret[k][k2] | 0; // most things are ints.. TODO: what keys are float?
