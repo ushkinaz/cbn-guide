@@ -62,13 +62,16 @@ function isSymbolItem(value: any): value is ItemSymbolItem {
 
 const data = getContext<CBNData>("data");
 
-const item = data.byIdMaybe(type, id);
-let linkItem = item;
-if (linkItem?.type === "vehicle_part" && !linkItem.name && linkItem.item)
-  linkItem = data.byId("item", linkItem.item);
+$: item = data.byIdMaybe(type, id);
+let linkItem: typeof item;
+$: {
+  linkItem = item;
+  if (linkItem?.type === "vehicle_part" && !linkItem.name && linkItem.item)
+    linkItem = data.byId("item", linkItem.item);
+}
 
-const iconItem = isSymbolItem(item) ? item : null;
-const href = `${getVersionedBasePath()}${type}/${id}${location.search}`;
+$: iconItem = isSymbolItem(item) ? item : null;
+$: href = `${getVersionedBasePath()}${type}/${id}${location.search}`;
 </script>
 
 <span class="item-link__wrap" class:item-link__wrap--count={count != null}>

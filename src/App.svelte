@@ -363,9 +363,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
     {/if}
   {:else if search}
     {#if $data}
-      {#key search}
-        <SearchResults data={$data} {search} />
-      {/key}
+      <SearchResults data={$data} {search} />
     {:else}
       <Loading
         fullScreen={true}
