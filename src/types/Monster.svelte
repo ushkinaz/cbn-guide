@@ -6,6 +6,7 @@ import {
   asKilograms,
   asLiters,
   CBNData,
+  byName,
   formatPercent,
   normalizeDamageInstance,
   singular,
@@ -290,13 +291,32 @@ let upgrades =
   item.upgrades && (item.upgrades.into || item.upgrades.into_group)
     ? {
         ...item.upgrades,
-        monsters: item.upgrades.into
+        monsters: (item.upgrades.into
           ? [item.upgrades.into]
           : item.upgrades.into_group
             ? flattenGroup(data.byId("monstergroup", item.upgrades.into_group))
-            : [],
+            : []
+        )
+          .map((id) => data.byIdMaybe("monster", id))
+          .filter((m): m is NonNullable<typeof m> => !!m)
+          .sort(byName)
+          .map((m) => m.id),
       }
     : null;
+//TODO: This iterates over 900 items, see if we can optimize it somehow, if it's even needed
+const upgradesFrom = data
+  .byType("monster")
+  .filter((m) => {
+    if (!m.upgrades) return false;
+    if (m.upgrades.into === item.id) return true;
+    if (m.upgrades.into_group) {
+      return flattenGroup(
+        data.byId("monstergroup", m.upgrades.into_group),
+      ).includes(item.id);
+    }
+    return false;
+  })
+  .sort(byName);
 </script>
 
 <h1><ItemLink type="monster" id={item.id} link={false} /></h1>
@@ -482,7 +502,7 @@ let upgrades =
           <ul class="comma-separated or">
             <!-- prettier-ignore -->
             {#each upgrades.monsters as mon}
-			<li><ItemLink type="monster" id={mon}  showIcon={false} /></li>{/each}
+			<li><ItemLink type="monster" id={mon} showIcon={true} /></li>{/each}
           </ul>
           {#if upgrades.age_grow}
             {t("in {days} {days, plural, =1 {day} other {days}}", {
@@ -495,6 +515,16 @@ let upgrades =
               { _context, half_life: upgrades.half_life },
             )}
           {/if}
+        </dd>
+      {/if}
+      {#if upgradesFrom.length}
+        <dt>{t("Upgrades From", { _context })}</dt>
+        <dd>
+          <ul class="comma-separated or">
+            {#each upgradesFrom as mon}
+              <li><ItemLink type="monster" id={mon.id} showIcon={true} /></li>
+            {/each}
+          </ul>
         </dd>
       {/if}
     </dl>
