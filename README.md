@@ -8,6 +8,8 @@ Whether you're calculating the exact nutritional value of a tainted kidney or op
 
 [📕 **Open the Guide**](https://cataclysmbn-guide.com/)
 
+🛠 Prefer the terminal? Check out [cbn-tui](https://github.com/ushkinaz/cbn-tui), a sister project with extended search features optimized for modders.
+
 ---
 
 ## 🛡️ Survival at Your Fingertips
@@ -17,7 +19,7 @@ The Guide is designed to be the ultimate reference for every survivor, from fres
 - **🔍 Power Search**: Find items, recipes, monsters, and bionics at terminal velocity. Search through thousands of entries instantly.
 - **🎨 Visual Identification**: Full support for popular tilesets including **UltiCa**, **UndeadPeople**, **RetroDays**, and more. See exactly what's lurking in the dark.
 - **🛠️ Forge Your Future**: Detailed recipe breakdowns including tool requirements, skill levels, and component alternatives.
-- **🛰️ Bunker-Ready (Offline First)**: As a Progressive Web App (PWA), the Guide works even when you're deep underground in a lab. Visit once, and it's cached for your next session—no internet required.
+- **🛰️ Offline First**: As a Progressive Web App (PWA), the Guide works even when you're deep underground in a lab. Visit once, and it's cached for your next session—no internet required.
 - **🌍 Daily Intel**: Content is automatically synchronized with the latest **Stable** and **Nightly** game builds.
 - **🌐 Localized Knowledge**: Available in multiple languages, powered by the game's dedicated community of translators.
 
