@@ -297,6 +297,7 @@ let upgrades =
             ? flattenGroup(data.byId("monstergroup", item.upgrades.into_group))
             : []
         )
+          .filter((id) => id !== item.id)
           .map((id) => data.byIdMaybe("monster", id))
           .filter((m): m is NonNullable<typeof m> => !!m)
           .sort(byName)
@@ -307,7 +308,7 @@ let upgrades =
 const upgradesFrom = data
   .byType("monster")
   .filter((m) => {
-    if (!m.upgrades) return false;
+    if (!m.upgrades || m.id === item.id) return false;
     if (m.upgrades.into === item.id) return true;
     if (m.upgrades.into_group) {
       return flattenGroup(
