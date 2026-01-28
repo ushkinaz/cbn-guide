@@ -9,11 +9,10 @@
  * - URL generation and manipulation
  */
 
+import { writable, type Readable } from "svelte/store";
 import { BUILDS_URL } from "./constants";
-import type { Debounced } from "./utils/debounce";
 import { debounce } from "./utils/debounce";
 import { metrics } from "./metrics";
-import { mark } from "./utils/perf";
 
 // ============================================================================
 // Constants
@@ -191,6 +190,36 @@ function versionExists(builds: BuildInfo[], buildNumber: string): boolean {
   return builds.some((build) => build.build_number === buildNumber);
 }
 
+// ============================================================================
+// State Management
+// ============================================================================
+
+type PageState = {
+  url: URL;
+  route: ParsedRoute;
+};
+
+const _page = writable<PageState>({
+  url: new URL(location.href),
+  route: parseRoute(),
+});
+
+/**
+ * Global store representing the current page state (URL and parsed route).
+ * Updates whenever navigation occurs via the routing functions in this module.
+ */
+export const page: Readable<PageState> = { subscribe: _page.subscribe };
+
+/**
+ * Internal helper to update the page store
+ */
+function updatePageState() {
+  _page.set({
+    url: new URL(location.href),
+    route: parseRoute(),
+  });
+}
+
 /**
  * Redirect to a different version (replaces current history entry)
  */
@@ -210,6 +239,7 @@ function redirectToVersion(
   const newPath =
     import.meta.env.BASE_URL + segments.join("/") + location.search;
   history.replaceState(null, "", newPath);
+  updatePageState();
 }
 
 // ============================================================================
@@ -313,10 +343,10 @@ export function isSupportedVersion(buildNumber: string): boolean {
  * Debounced version of history.replaceState for search input updates
  * Prevents excessive history updates during rapid typing
  */
-const debouncedReplaceState = debounce(
-  (url: string) => history.replaceState(null, "", url),
-  400,
-);
+const debouncedReplaceState = debounce((url: string) => {
+  history.replaceState(null, "", url);
+  updatePageState();
+}, 400);
 
 /**
  * Update the URL to reflect a version change (causes full page reload)
@@ -360,6 +390,7 @@ export function updateSearchRoute(
 
   if (currentItem) {
     history.pushState(null, "", fullUrl);
+    updatePageState();
   } else {
     debouncedReplaceState(fullUrl);
   }
@@ -392,6 +423,7 @@ export function updateQueryParamNoReload(
     url.searchParams.delete(param);
   }
   history.replaceState(null, "", url.toString());
+  updatePageState();
 }
 
 /**
@@ -427,12 +459,18 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
       // Use anchor's query params if present, otherwise preserve current
       const targetUrl = anchor.pathname + (anchor.search || location.search);
       history.pushState(null, "", targetUrl);
+      updatePageState();
       return true;
     }
   }
 
   return false;
 }
+
+// Listen for popstate events (browser back/forward)
+window.addEventListener("popstate", () => {
+  updatePageState();
+});
 
 // ============================================================================
 // Initialization
@@ -451,6 +489,9 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
  */
 export async function initializeRouting(): Promise<InitialAppState> {
   const start = performance.now();
+
+  // Ensure page state is synced at startup
+  updatePageState();
   const response = await fetch(BUILDS_URL);
   if (!response.ok) {
     throw new Error(
