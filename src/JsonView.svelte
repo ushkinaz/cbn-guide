@@ -2,6 +2,7 @@
 import { t } from "./i18n";
 import { GAME_REPO_URL } from "./constants";
 import { metrics } from "./metrics";
+import { fade } from "svelte/transition";
 
 export let obj: any;
 export let buildNumber: string | undefined;
@@ -9,11 +10,30 @@ export let buildNumber: string | undefined;
 const _context = "View/Edit on GitHub";
 
 let expanded = false;
+let copied = false;
 
 function toggle() {
   expanded = !expanded;
   if (expanded) {
     metrics.count("json.view_opened", 1, { type: obj.type, id: obj.id });
+  }
+}
+
+async function copyToClipboard() {
+  const json = JSON.stringify(
+    obj,
+    (key, value) => (key === "__filename" ? undefined : value),
+    2,
+  );
+  try {
+    await navigator.clipboard.writeText(json);
+    copied = true;
+    metrics.count("json.copy", 1, { type: obj.type, id: obj.id });
+    setTimeout(() => {
+      copied = false;
+    }, 2000);
+  } catch (err) {
+    console.error("Failed to copy!", err);
   }
 }
 
@@ -28,6 +48,16 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
     </button>
 
     <div class="actions">
+      <button
+        class="action-link copy-button"
+        on:click={copyToClipboard}
+        aria-label={t("Copy JSON to clipboard")}>
+        {#if copied}
+          <span transition:fade={{ duration: 200 }}>{t("Copied!")}</span>
+        {:else}
+          {t("Copy")}
+        {/if}
+      </button>
       {#if obj.__filename}
         <a href={githubUrl} target="_blank" class="action-link"
           >{t("GitHub", { _context })}</a>
@@ -94,6 +124,16 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
 .action-link:hover {
   color: var(--cata-color-white);
   text-decoration: underline;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .json-content {
