@@ -58,12 +58,12 @@ type SearchTarget = {
 };
 let targets: SearchTarget[];
 function searchableName(data: CBNData, item: SupportedTypeMapped) {
-  item = data._flatten(item);
-  if (item?.type === "overmap_special" || item?.type === "city_building") {
-    if (item.subtype === "mutable") return item.id;
+  if (item.type === "overmap_special" || item.type === "city_building") {
+    const flat = data._flatten(item);
+    if (flat.subtype === "mutable") return flat.id;
     else
       return (
-        item.overmaps
+        flat.overmaps
           ?.filter((omEntry) => omEntry.overmap)
           .map((omEntry) => {
             const normalizedId = omEntry.overmap!.replace(
@@ -73,14 +73,26 @@ function searchableName(data: CBNData, item: SupportedTypeMapped) {
             const om = data.byIdMaybe("overmap_terrain", normalizedId);
             return om ? singularName(om) : normalizedId;
           })
-          .join("\0") ?? item.id
+          .join("\0") ?? flat.id
       );
   }
-  if (item?.type === "vehicle_part" && !item.name && item.item)
-    item = data.byId("item", item.item);
-  if (i18n.getLocale().startsWith("zh_"))
-    return singularName(item) + " " + singularName(item, "pinyin");
-  return singularName(item);
+
+  let name = data.resolveOne(item, "name");
+  let type = item.type;
+  let id = (item as any).id;
+
+  if (item.type === "vehicle_part" && !name && (item as any).item) {
+    const underlying = data.byId("item", (item as any).item);
+    name = underlying.name;
+    type = underlying.type;
+    id = underlying.id;
+  }
+
+  if (i18n.getLocale().startsWith("zh_")) {
+    const pseudoObj = { id, type, name };
+    return singularName(pseudoObj) + " " + singularName(pseudoObj, "pinyin");
+  }
+  return singularName({ id, type, name });
 }
 
 $: {
