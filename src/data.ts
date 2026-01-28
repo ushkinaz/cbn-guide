@@ -150,20 +150,22 @@ export const pluralName = (
 export const byName = (a: any, b: any) =>
   singularName(a).localeCompare(singularName(b));
 
+const VOLUME_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Z]+)/g;
+const VOLUME_UNIT_MAP: Record<string, number> = {
+  ml: 1,
+  L: 1000,
+};
+
 // Returns ml
 export function parseVolume(string: string | number): number {
   if (typeof string === "undefined") return 0;
   if (typeof string === "number") return string * 250;
   let val = 0;
-  const re = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Z]+)/g;
+  VOLUME_REGEX.lastIndex = 0;
   let m: RegExpExecArray | null;
-  const unitMap: Record<string, number> = {
-    ml: 1,
-    L: 1000,
-  };
-  while ((m = re.exec(string))) {
+  while ((m = VOLUME_REGEX.exec(string))) {
     const [_, numStr, unit] = m;
-    const unitVal = unitMap[unit];
+    const unitVal = VOLUME_UNIT_MAP[unit];
     if (unitVal !== undefined) {
       val += parseFloat(numStr) * unitVal;
     }
