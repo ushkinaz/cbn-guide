@@ -7,7 +7,7 @@ import {
   singular,
   singularName,
 } from "../data";
-import { getVersionedBasePath } from "../routing";
+import { getVersionedBasePath, page } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -71,7 +71,10 @@ $: {
 }
 
 $: iconItem = isSymbolItem(item) ? item : null;
-$: href = `${getVersionedBasePath()}${type}/${id}${location.search}`;
+// Use $page.url to trigger updates when the URL changes
+$: href = `${getVersionedBasePath()}${type}/${id}${
+  $page.url.search || location.search
+}`;
 </script>
 
 <span class="item-link__wrap" class:item-link__wrap--count={count != null}>
