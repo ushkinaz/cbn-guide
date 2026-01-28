@@ -29,7 +29,6 @@ export const metrics = {
    * Track discrete events (e.g., button clicks, search occurrences).
    */
   count(name: string, value: number = 1, attributes: MetricAttributes = {}) {
-    console.log(`[count] ${name}: ${value}`, attributes);
     Sentry.metrics.count(name, value, {
       attributes: { ...getCommonAttributes(), ...attributes },
     });
@@ -39,7 +38,6 @@ export const metrics = {
    * Track current values or state (e.g., resource usage, resolved version).
    */
   gauge(name: string, value: number, attributes: MetricAttributes = {}) {
-    console.log(`[gauge] ${name}: ${value}`, attributes);
     Sentry.metrics.gauge(name, value, {
       attributes: { ...getCommonAttributes(), ...attributes },
     });
@@ -49,7 +47,6 @@ export const metrics = {
    * Track distributions for statistical analysis (e.g., durations, latency).
    */
   distribution(name: string, value: number, attributes: MetricAttributes = {}) {
-    console.log(`[distribution] ${name}: ${value}`, attributes);
     Sentry.metrics.distribution(name, value, {
       attributes: { ...getCommonAttributes(), ...attributes },
     });
