@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { performance } from "perf_hooks";
-import { CBNData, parseVolume } from "../src/data.js";
+import { CBNData } from "../src/data.js";
 import {
   getGitSha,
   createHistogramStats,
@@ -66,30 +66,6 @@ registerScenario("bash-from-terrain", (cbnData) => {
   // Perform various lookups using actual items from test data
   cbnData.bashFromTerrain("t_dock_deep_pile").length;
   cbnData.bashFromTerrain("t_pavement_y_bg_dp").length;
-});
-
-registerScenario("parse-volume", () => {
-  const inputs = [
-    "250 ml",
-    "1 L",
-    "500ml",
-    "2.5 L",
-    "100",
-    100,
-    undefined,
-    "1 L 500 ml",
-    "0.5 L",
-  ];
-
-  performance.mark("parseVolume:start");
-  // Run enough times to be measurable
-  for (let i = 0; i < 50000; i++) {
-    for (const input of inputs) {
-      parseVolume(input as any);
-    }
-  }
-  performance.mark("parseVolume:end");
-  performance.measure("parseVolume", "parseVolume:start", "parseVolume:end");
 });
 
 // ============================================================================
