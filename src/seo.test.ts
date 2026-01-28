@@ -23,9 +23,7 @@ test("monster description includes primary stats and secondary info", () => {
 
   const desc = buildMetaDescription(monster);
 
-  expect(desc).toBe(
-    "Zombie (mon_zombie) stats. MONSTER with HP 120, Speed 90 & Diff 4. Size MEDIUM, Wt 50 kg, Mat flesh, Flags SEES/HEARS",
-  );
+  expect(desc).toBe("Monster: HP 120 & Speed 90.");
 });
 
 test("ammo description skips missing stats and keeps key stats early", () => {
@@ -43,10 +41,10 @@ test("ammo description skips missing stats and keeps key stats early", () => {
 
   const desc = buildMetaDescription(ammo);
 
-  expect(desc).toContain("AMMO with Dmg 40 & Type 9mm.");
+  expect(desc).toContain("Ammo: rng 60 & dmg 40.");
   expect(desc).not.toContain("AP");
-  expect(desc.indexOf("Dmg 40")).toBeGreaterThanOrEqual(0);
-  expect(desc.indexOf("Dmg 40")).toBeLessThan(120);
+  expect(desc.indexOf("dmg 40")).toBeGreaterThanOrEqual(0);
+  expect(desc.indexOf("dmg 40")).toBeLessThan(120);
 });
 
 test("weapon description uses damage, dispersion, and clip size", () => {
@@ -69,7 +67,7 @@ test("weapon description uses damage, dispersion, and clip size", () => {
   const desc = buildMetaDescription(gun);
 
   expect(desc).toBe(
-    "Test Rifle (rifle_test) stats. WEAPON with Dmg 55, Disp 120 & Clip 30. Range 20, Recoil 300 Reliable rifle for testing.",
+    "Gun: rifle, dmg 55, disp 120 & clip 30. Reliable rifle for testing.",
   );
 });
 
@@ -90,9 +88,7 @@ test("armor description includes protection values before mobility", () => {
 
   const desc = buildMetaDescription(armor);
 
-  expect(desc).toBe(
-    "Test Vest (armor_test) stats. ARMOR with Bash 10, Cut 24, Enc 12 & Cov 90. Flags WATERPROOF, EP 5",
-  );
+  expect(desc).toBe("Armor: enc 12 & cov 90.");
 });
 
 test("furniture description uses durability and flags", () => {
@@ -114,9 +110,7 @@ test("furniture description uses durability and flags", () => {
 
   const desc = buildMetaDescription(furniture);
 
-  expect(desc).toBe(
-    "Test Counter (furn_test) stats. FURNITURE with Dur 200 & Flags TRANSPARENT/FLAMMABLE. ReqStr 6, Move -10 test",
-  );
+  expect(desc).toBe("Furniture: cov 50 & flags TRANSPARENT:FLAMMABLE. test");
 });
 
 test("vehicle part description uses durability and flags", () => {
@@ -132,9 +126,7 @@ test("vehicle part description uses durability and flags", () => {
 
   const desc = buildMetaDescription(part);
 
-  expect(desc).toBe(
-    "Test Engine (vpart_test) stats. VEHICLE_PART with Dur 1000 & Flags BOARDABLE. Item part_steel, Power 2000",
-  );
+  expect(desc).toBe("Vehicle Part: dur 1000 & flags BOARDABLE.");
 });
 
 test("tool-like description shows qualities and flags", () => {
@@ -150,9 +142,7 @@ test("tool-like description shows qualities and flags", () => {
 
   const desc = buildMetaDescription(tool);
 
-  expect(desc).toBe(
-    "Test Tool (tool_test) stats. TOOL with Qual COOK 1, CUT 2 & Flags WATERPROOF.",
-  );
+  expect(desc).toBe("Tool: qual COOK 1, CUT 2 & flags WATERPROOF.");
 });
 
 test("cleans color tags and newlines from names", () => {
@@ -164,8 +154,9 @@ test("cleans color tags and newlines from names", () => {
 
   const desc = buildMetaDescription(item);
 
-  expect(desc).toContain("Hot Rod (hot_rod)");
-  expect(desc).not.toContain("<color");
+  expect(desc).toContain("Generic.");
+  expect(desc).not.toContain("Hot Rod");
+  expect(desc).not.toContain("(hot_rod)");
 });
 
 test("truncates long secondary info but keeps base intact", () => {
@@ -193,8 +184,7 @@ test("truncates long secondary info but keeps base intact", () => {
   };
 
   const desc = buildMetaDescription(monster);
-  const base = "Beast (beast) stats. MONSTER with HP 999, Speed 120 & Diff 10.";
-
+  const base = "Monster: HP 999 & Speed 120.";
   expect(desc.startsWith(base)).toBe(true);
   expect(desc.length).toBeLessThanOrEqual(160);
 });

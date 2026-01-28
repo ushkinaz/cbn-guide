@@ -131,6 +131,18 @@ function setMetaDescription(value: string) {
   document.head.appendChild(created);
 }
 
+function setOgTitle(value: string) {
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) {
+    ogTitle.setAttribute("content", value);
+    return;
+  }
+  const created = document.createElement("meta");
+  created.setAttribute("property", "og:title");
+  created.content = value;
+  document.head.appendChild(created);
+}
+
 let tileset: string =
   (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
 
@@ -139,11 +151,16 @@ $: tileData.setTileset($data, tileset);
 
 $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   const it = $data.byId(item.type as any, item.id);
-  document.title = `${singularName(it)} - ` + UI_GUIDE_NAME;
+  const title = `${singularName(it)} - ` + UI_GUIDE_NAME;
+  document.title = title;
+  setOgTitle(title);
 } else if (item && !item.id && item.type) {
-  document.title = `${item.type} - ` + UI_GUIDE_NAME;
+  const title = `${item.type} - ` + UI_GUIDE_NAME;
+  document.title = title;
+  setOgTitle(title);
 } else {
   document.title = UI_GUIDE_NAME;
+  setOgTitle(UI_GUIDE_NAME);
 }
 
 const defaultMetaDescription = t(
