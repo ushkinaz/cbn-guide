@@ -500,25 +500,6 @@ export class CBNData {
     return undefined;
   }
 
-  resolveName(obj: any): string {
-    let current = obj;
-    const type = mapType(obj.type);
-    while (current) {
-      if ("name" in current) {
-        return singularName(current);
-      }
-      if ("copy-from" in current) {
-        const parentId = current["copy-from"];
-        current =
-          this._byTypeById.get(type)?.get(parentId) ??
-          this._abstractsByType.get(type)?.get(parentId);
-      } else {
-        break;
-      }
-    }
-    return singularName(obj);
-  }
-
   /**
    * Internal method to flatten an object by resolving its 'copy-from' inheritance.
    * Applies relative, proportional, extend, and delete modifiers.
