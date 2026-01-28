@@ -207,7 +207,11 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
       </LimitedList>
     {/if}
   {:else}
-    <em>{t("No results.", { _context: "Search Results" })}</em>
+    <em
+      >{t("No results for {query}.", {
+        query: search,
+        _context: "Search Results",
+      })}</em>
   {/each}
 {:else if data || !$loadProgress}
   <pre>...</pre>
