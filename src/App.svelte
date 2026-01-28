@@ -314,6 +314,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
       <form role="search">
         <input
           style="margin: 0; width: 100%"
+          aria-label={t("Search")}
           placeholder={t("Search...", {
             _comment: "Placeholder text in the search box",
           })}
