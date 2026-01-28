@@ -218,14 +218,17 @@ const durationUnits: Record<string, number> = {
   day: 86400,
   d: 86400,
 };
+
+const DURATION_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-z]+)/g;
+
 // Returns seconds
 export function parseDuration(duration: string | number): number {
   if (typeof duration === "undefined") return 0;
   if (typeof duration === "number") return duration / 100;
   let val = 0;
-  const re = /([+-]?\d+(?:\.\d+)?)\s*([a-z]+)/g;
+  DURATION_REGEX.lastIndex = 0;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(duration))) {
+  while ((m = DURATION_REGEX.exec(duration))) {
     const [_, numStr, unit] = m;
     const unitVal = durationUnits[unit];
     if (unitVal !== undefined) {
