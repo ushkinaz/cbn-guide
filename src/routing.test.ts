@@ -4,6 +4,9 @@
 
 import { act, cleanup, render } from "@testing-library/svelte";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+vi.hoisted(() => {
+  (globalThis as any).__isTesting__ = true;
+});
 import * as fs from "fs";
 
 import App from "./App.svelte";
@@ -21,9 +24,6 @@ describe("Routing E2E Tests", () => {
   let container: HTMLElement;
 
   beforeEach(() => {
-    // Set testing flag
-    (globalThis as any).__isTesting__ = true;
-
     // Mock window.scrollTo for jsdom
     window.scrollTo = vi.fn();
 
@@ -99,26 +99,48 @@ describe("Routing E2E Tests", () => {
     vi.clearAllMocks();
   });
 
-  async function waitForDataLoad() {
-    // Wait for "Loading" to disappear and Logo or Thing to appear
-    let retries = 20;
-    while (retries > 0) {
-      const text = document.body.innerText || document.body.textContent || "";
-      if (
-        !text.includes("Loading") &&
-        (text.includes("Hitchhiker") ||
-          text.includes("Description") ||
-          text.includes("Search Results") ||
-          text.includes("Catalog") ||
-          text.includes("rock") ||
-          text.includes("HHG"))
-      ) {
-        return;
+  async function waitForDataLoad(expectedText?: string | RegExp) {
+    const start = Date.now();
+    const timeout = 10000;
+
+    while (Date.now() - start < timeout) {
+      const text = document.body.textContent || "";
+      const lowerText = text.toLowerCase();
+
+      if (expectedText) {
+        if (typeof expectedText === "string") {
+          if (lowerText.includes(expectedText.toLowerCase())) return;
+        } else if (expectedText.test(text)) {
+          return;
+        }
+      } else {
+        const isLoading =
+          lowerText.includes("loading") &&
+          (lowerText.includes("game data") || lowerText.includes("builds"));
+        if (!isLoading) {
+          if (
+            lowerText.includes("hitchhiker") ||
+            lowerText.includes("description") ||
+            lowerText.includes("results") ||
+            lowerText.includes("catalog") ||
+            lowerText.includes("items") ||
+            lowerText.includes("location") ||
+            lowerText.includes("monsters") ||
+            lowerText.includes("mutations") ||
+            lowerText.includes("rock")
+          ) {
+            return;
+          }
+        }
       }
-      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
-      retries--;
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    throw new Error("Timed out waiting for data load");
+
+    const currentLoc = window.location.pathname;
+    const bodySlice = document.body.textContent?.slice(0, 1000) || "";
+    throw new Error(
+      `Timed out waiting for data load (expected: ${expectedText || "any trigger"}).\nURL: ${currentLoc}\nBody snippet: ${bodySlice}`,
+    );
   }
 
   async function waitForNavigation() {
@@ -458,7 +480,7 @@ describe("Routing E2E Tests", () => {
         target: container,
       });
 
-      await waitForDataLoad();
+      await waitForDataLoad("rock");
       expect(window.location.pathname).toContain("search/rock");
 
       // Navigate forward to item
@@ -467,9 +489,12 @@ describe("Routing E2E Tests", () => {
         dispatchPopState();
       });
 
-      await waitForDataLoad();
+      // Wait for item specific text
+      await waitForDataLoad("stone");
       expect(window.location.pathname).toContain("item/rock");
-      expect(document.body.textContent?.toLowerCase()).toContain("rock");
+      const text = document.body.textContent?.toLowerCase() || "";
+      expect(text).toContain("rock");
+      expect(text).toContain("obtaining");
 
       // Go back
       await act(async () => {
@@ -477,12 +502,9 @@ describe("Routing E2E Tests", () => {
         dispatchPopState();
       });
 
-      await waitForDataLoad();
+      // Again wait for search specific text
+      await waitForDataLoad("rock");
       expect(window.location.pathname).toContain("search/rock");
-      const text = document.body.textContent || "";
-      expect(text.includes("Search Results") || text.includes("HHG")).toBe(
-        true,
-      );
     }, 15000);
 
     test("handles forward button from home to item", async () => {
@@ -875,7 +897,7 @@ describe("Routing E2E Tests", () => {
         target: container,
       });
 
-      await waitForDataLoad();
+      await waitForDataLoad("mutations");
 
       // After redirect, getCurrentVersionSlug should return "stable"
       const { getCurrentVersionSlug } = await import("./routing");

@@ -234,9 +234,7 @@ function handleNavigation(event: MouseEvent) {
   }
 }
 
-window.addEventListener("popstate", () => {
-  loadRoute();
-});
+// popstate listener is now handled by <svelte:window on:popstate={loadRoute} />
 
 function maybeFocusSearch(e: KeyboardEvent) {
   if (e.key === "/" && document.activeElement?.id !== "search") {
@@ -295,6 +293,7 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
 <svelte:window
   on:click={handleNavigation}
   on:keydown={maybeFocusSearch}
+  on:popstate={loadRoute}
   bind:scrollY />
 
 <svelte:head>

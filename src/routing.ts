@@ -468,9 +468,16 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
 }
 
 // Listen for popstate events (browser back/forward)
-window.addEventListener("popstate", () => {
-  updatePageState();
-});
+if (typeof window !== "undefined") {
+  const win = window as any;
+  if (win.__routing_popstate_handler__) {
+    window.removeEventListener("popstate", win.__routing_popstate_handler__);
+  }
+  win.__routing_popstate_handler__ = () => {
+    updatePageState();
+  };
+  window.addEventListener("popstate", win.__routing_popstate_handler__);
+}
 
 // ============================================================================
 // Initialization
