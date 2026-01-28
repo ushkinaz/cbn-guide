@@ -491,8 +491,8 @@ export class CBNData {
       if ("copy-from" in current) {
         const parentId = current["copy-from"];
         current =
-          this._byTypeById.get(type)?.get(parentId) ??
-          this._abstractsByType.get(type)?.get(parentId);
+          this._abstractsByType.get(type)?.get(parentId) ??
+          this._byTypeById.get(type)?.get(parentId);
       } else {
         break;
       }
