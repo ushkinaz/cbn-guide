@@ -18,6 +18,10 @@ $: initialLimit = isTesting
     : limit;
 
 let expanded = false;
+$: {
+  items;
+  expanded = false;
+}
 $: realLimit = expanded ? Infinity : initialLimit;
 </script>
 
