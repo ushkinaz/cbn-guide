@@ -1,6 +1,8 @@
 /**
  * Routing module - encapsulates all routing logic for the application
  *
+ * Documentation: docs/routing.md
+ *
  * Responsibilities:
  * - URL parsing and path segment extraction
  * - Version handling (aliases, resolution, validation)
@@ -223,6 +225,7 @@ function updatePageState() {
 /**
  * Redirect to a different version (replaces current history entry)
  */
+// noinspection JSUnusedLocalSymbols
 function redirectToVersion(
   newVersion: string,
   preservePath: boolean = true,
@@ -423,6 +426,34 @@ export function updateQueryParamNoReload(
     url.searchParams.delete(param);
   }
   history.replaceState(null, "", url.toString());
+  updatePageState();
+}
+
+/**
+ * Navigate to a new route without affecting query params
+ */
+export function navigateTo(
+  version: string,
+  item: { type: string; id: string } | null,
+  search: string,
+  pushToHistory: boolean = true,
+): void {
+  // Cancel any pending debounced URL updates - user is explicitly navigating
+  debouncedReplaceState.cancel();
+
+  const url = buildUrl(
+    version,
+    item,
+    search,
+    getSearchParam("lang"),
+    getSearchParam("t"),
+  );
+
+  if (pushToHistory) {
+    history.pushState(null, "", url);
+  } else {
+    history.replaceState(null, "", url);
+  }
   updatePageState();
 }
 

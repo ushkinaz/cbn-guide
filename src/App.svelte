@@ -1,6 +1,6 @@
 <script lang="ts">
 import Thing from "./Thing.svelte";
-import { data, singularName } from "./data";
+import { data, mapType, singularName } from "./data";
 import {
   DEFAULT_TILESET,
   isValidTileset,
@@ -30,6 +30,7 @@ import {
   handleInternalNavigation,
   initializeRouting,
   isSupportedVersion,
+  navigateTo,
   page,
   updateQueryParam,
   updateQueryParamNoReload,
@@ -38,6 +39,7 @@ import {
 
 import { metrics } from "./metrics";
 import { mark } from "./utils/perf";
+import { syncSearch, searchResults, flushSearch } from "./search";
 
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
@@ -238,11 +240,39 @@ $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
 
 $: if (metaDescription) setMetaDescription(metaDescription);
 
+$: if ($data) {
+  syncSearch(search, $data);
+}
+
 const handleSearchInput = () => {
   if (search === "") {
     metrics.count("search.cleared");
   }
   updateSearchRoute(search, $page.route.item);
+};
+
+const handleSearchKeydown = (e: KeyboardEvent) => {
+  if (e.key === "Enter" && search && $data) {
+    e.preventDefault(); // Prevent form submission
+
+    // Flush any pending debounced search to ensure results are fresh
+    flushSearch();
+
+    const results = $searchResults;
+    if (results && results.size > 0) {
+      // Get the first item from the first group in the results
+      const firstGroup = results.values().next().value;
+      if (firstGroup && firstGroup.length > 0) {
+        const firstResult = firstGroup[0].item;
+        metrics.count("search.enter_navigation");
+        navigateTo(
+          getCurrentVersionSlug(),
+          { type: mapType(firstResult.type), id: firstResult.id },
+          "",
+        );
+      }
+    }
+  }
 };
 
 function handleNavigation(event: MouseEvent) {
@@ -361,6 +391,7 @@ $: canonicalUrl = buildUrl(
           type="search"
           bind:value={search}
           on:input={handleSearchInput}
+          on:keydown={handleSearchKeydown}
           id="search" />
       </form>
     </div>

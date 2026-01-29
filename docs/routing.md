@@ -311,6 +311,51 @@ buildUrl("nightly", null, "C++", "ru_RU", "UltimateCataclysm");
 
 #### Navigation Operations
 
+##### `navigateTo(version, item, search, pushToHistory?): void`
+
+Programmatically navigates to a new route while preserving query parameters.
+
+**Parameters:**
+
+- `version: string` - Version slug to navigate to
+- `item: { type: string; id: string } | null` - Item to navigate to (null for home/search)
+- `search: string` - Search query (empty string if not searching)
+- `pushToHistory?: boolean` - Whether to push to history (default: true) or replace current entry
+
+**Behavior:**
+
+- Uses `history.pushState` (or `replaceState`) for SPA navigation
+- Preserves current `lang` and `t` query parameters
+- Cancels any pending debounced URL updates
+- Updates browser history without triggering page reload
+- Updates the `page` store to reflect new route
+
+**Example:**
+
+```typescript
+import { navigateTo, getCurrentVersionSlug } from "./routing";
+
+// Navigate to an item
+navigateTo(getCurrentVersionSlug(), { type: "item", id: "fire_ax" }, "");
+
+// Navigate to search results
+navigateTo(getCurrentVersionSlug(), null, "zombie");
+
+// Replace current history entry instead of pushing
+navigateTo(
+  getCurrentVersionSlug(),
+  { type: "monster", id: "mon_zombie" },
+  "",
+  false,
+);
+```
+
+**Use Cases:**
+
+- Programmatic navigation from search (e.g., Enter key handler)
+- Custom navigation logic in components
+- Navigating from external triggers (e.g., keyboard shortcuts)
+
 ##### `updateSearchRoute(searchQuery, currentItem): void`
 
 Updates the URL to reflect a search query.

@@ -1,23 +1,8 @@
 <script lang="ts">
-import {
-  type CBNData,
-  i18n,
-  loadProgress,
-  mapType,
-  omsName,
-  singularName,
-} from "./data";
+import { type CBNData, loadProgress, mapType, omsName } from "./data";
 import { getVersionedBasePath } from "./routing";
-import { debounce } from "./utils/debounce";
-import { isTesting } from "./utils/env";
-import { metrics } from "./metrics";
-import * as fuzzysort from "fuzzysort";
 import ItemLink from "./types/ItemLink.svelte";
-import type {
-  OvermapSpecial,
-  SupportedTypeMapped,
-  SupportedTypesWithMapped,
-} from "./types";
+import type { OvermapSpecial } from "./types";
 import { setContext } from "svelte";
 import { t } from "./i18n";
 import LimitedList from "./LimitedList.svelte";
@@ -27,147 +12,14 @@ import {
   getOMSByAppearance,
   overmapAppearance,
 } from "./types/item/spawnLocations";
-
-const SEARCHABLE_TYPES = new Set<keyof SupportedTypesWithMapped>([
-  "item",
-  "monster",
-  "furniture",
-  "vehicle_part",
-  "tool_quality",
-  "martial_art",
-  "mutation",
-  "mutation_category",
-  "vehicle",
-  "terrain",
-  "skill",
-  "overmap_special",
-]);
-
-type SearchableType = SupportedTypeMapped & {
-  id: string;
-  type: keyof SupportedTypesWithMapped;
-} & { __filename?: string };
+import { type SearchResult, searchResults } from "./search";
 
 export let data: CBNData;
 $: setContext("data", data);
 
-type SearchTarget = {
-  id: string;
-  name: string;
-  type: keyof SupportedTypesWithMapped;
-};
-let targets: SearchTarget[];
-function searchableName(data: CBNData, item: SupportedTypeMapped) {
-  if (item.type === "overmap_special" || item.type === "city_building") {
-    const flat = data._flatten(item);
-    if (flat.subtype === "mutable") return flat.id;
-    else
-      return (
-        flat.overmaps
-          ?.filter((omEntry) => omEntry.overmap)
-          .map((omEntry) => {
-            const normalizedId = omEntry.overmap!.replace(
-              /_(north|south|east|west)$/,
-              "",
-            );
-            const om = data.byIdMaybe("overmap_terrain", normalizedId);
-            return om ? singularName(om) : normalizedId;
-          })
-          .join("\0") ?? flat.id
-      );
-  }
-
-  let name = data.resolveOne(item, "name");
-  let type = item.type;
-  let id = (item as any).id;
-
-  if (item.type === "vehicle_part" && !name && (item as any).item) {
-    const underlying = data.byId("item", (item as any).item);
-    name = underlying.name;
-    type = underlying.type;
-    id = underlying.id;
-  }
-
-  if (i18n.getLocale().startsWith("zh_")) {
-    const pseudoObj = { id, type, name };
-    return singularName(pseudoObj) + " " + singularName(pseudoObj, "pinyin");
-  }
-  return singularName({ id, type, name });
-}
-
-$: {
-  const start = performance.now();
-  targets = [...(data?.all() ?? [])]
-    .filter(
-      (x) =>
-        "id" in x &&
-        typeof x.id === "string" &&
-        SEARCHABLE_TYPES.has(mapType(x.type)),
-    )
-    .filter((x) => (x.type === "mutation" ? !/Fake\d$/.test(x.id) : true))
-    .flatMap((x) => [
-      {
-        id: (x as any).id,
-        name: searchableName(data, x),
-        type: mapType(x.type),
-      },
-    ]);
-  metrics.distribution("search.index_calc_time", performance.now() - start, {
-    unit: "millisecond",
-  });
-}
-
 export let search: string;
 
-type SearchResult = {
-  item: SearchableType;
-};
-function filter(text: string): Map<string, SearchResult[]> {
-  metrics.distribution("search.query_length", text.length);
-  const start = performance.now();
-  const results = fuzzysort.go(text, targets, {
-    keys: ["id", "name"],
-    threshold: -10000,
-  });
-  metrics.distribution("search.execution_time", performance.now() - start, {
-    unit: "millisecond",
-  });
-  if (results.length === 0) {
-    metrics.count("search.no_results", 1, { query: text });
-  }
-  const byType = new Map<string, SearchResult[]>();
-  for (const { obj: item } of results) {
-    const mappedType = item.type;
-    if (!SEARCHABLE_TYPES.has(mappedType)) continue;
-    if (!byType.has(mappedType)) byType.set(mappedType, []);
-    if (byType.get(mappedType)!.some((x) => x.item.id === item.id)) continue;
-    const obj = data.byId(mappedType, item.id) as SearchableType;
-    byType.get(mappedType)!.push({ item: obj });
-  }
-  return byType;
-}
-
-const cjkRegex =
-  /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f\u3131-\ud79d]/;
-
-let matchingObjects: Map<string, SearchResult[]> | null = null;
-let matchingObjectsList: [string, SearchResult[]][] | null = null;
-
-const searchDebounceMs = isTesting ? 0 : 200;
-
-const updateSearchResults = debounce((query: string) => {
-  if (query && (query.length >= 2 || cjkRegex.test(query)) && data) {
-    matchingObjects = filter(query);
-    matchingObjectsList = matchingObjects
-      ? [...matchingObjects.entries()]
-      : null;
-  } else {
-    matchingObjects = null;
-    matchingObjectsList = null;
-  }
-}, searchDebounceMs);
-
-$: updateSearchResults(search);
+$: matchingObjectsList = $searchResults ? [...$searchResults.entries()] : null;
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();
