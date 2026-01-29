@@ -30,7 +30,7 @@ import {
   handleInternalNavigation,
   initializeRouting,
   isSupportedVersion,
-  parseRoute,
+  page,
   updateQueryParam,
   updateQueryParamNoReload,
   updateSearchRoute,
@@ -52,10 +52,46 @@ function scrollToTop() {
 }
 
 let item: { type: string; id: string } | null = null;
+let search: string = "";
+$: item = $page.route.item;
+
+// Track URL changes for navigation detection
+let previousUrl: string | undefined = undefined;
+let previousPathname: string | undefined = undefined;
+let previousRouteSearch: string | undefined = undefined;
+
+// Sync search and scroll on URL changes (navigation).
+// IMPORTANT: Only update 'search' if it differs from page store to preserve user input
+// while typing. This prevents the reactive statement from overwriting partial queries.
+$: if ($page.url.href !== previousUrl) {
+  const currentPathname = $page.url.pathname;
+  const currentRouteSearch = $page.route.search;
+
+  // On initial load OR URL changed - sync search (only if different)
+  if (
+    currentRouteSearch !== previousRouteSearch &&
+    search !== currentRouteSearch
+  ) {
+    search = currentRouteSearch;
+  }
+
+  if (
+    previousUrl !== undefined &&
+    (currentPathname !== previousPathname ||
+      currentRouteSearch !== previousRouteSearch)
+  ) {
+    // This is a navigation event (not initial load), scroll to top
+    window.scrollTo(0, 0);
+  }
+
+  previousUrl = $page.url.href;
+  previousPathname = currentPathname;
+  previousRouteSearch = currentRouteSearch;
+}
 
 let builds: BuildInfo[] | null = null;
 
-const requestedVersion = parseRoute().version;
+const requestedVersion = $page.route.version;
 let resolvedVersion: string;
 const isBranchAlias =
   requestedVersion === STABLE_VERSION || requestedVersion === NIGHTLY_VERSION;
@@ -202,24 +238,11 @@ $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
 
 $: if (metaDescription) setMetaDescription(metaDescription);
 
-let search: string = "";
-
-// Load initial route from URL
-function loadRoute() {
-  const route = parseRoute();
-  item = route.item;
-  search = route.search;
-  window.scrollTo(0, 0);
-}
-
-loadRoute();
-
 const handleSearchInput = () => {
   if (search === "") {
     metrics.count("search.cleared");
   }
-  updateSearchRoute(search, item);
-  item = null;
+  updateSearchRoute(search, $page.route.item);
 };
 
 function handleNavigation(event: MouseEvent) {
@@ -229,12 +252,9 @@ function handleNavigation(event: MouseEvent) {
     metrics.count("external_link.click", 1, { domain: link.hostname });
   }
 
-  if (handleInternalNavigation(event)) {
-    loadRoute();
-  }
+  // Just call handleInternalNavigation; page store updates automatically
+  handleInternalNavigation(event);
 }
-
-// popstate listener is now handled by <svelte:window on:popstate={loadRoute} />
 
 function maybeFocusSearch(e: KeyboardEvent) {
   if (e.key === "/" && document.activeElement?.id !== "search") {
@@ -282,18 +302,17 @@ function getLanguageName(code: string) {
   );
 }
 
-// This is one character behind the actual search value, because
-// of the throttle, but eh, it's good enough.
-let currentHref = location.href;
-$: (item, search, (currentHref = location.href));
-
-$: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
+$: canonicalUrl = buildUrl(
+  STABLE_VERSION,
+  $page.route.item,
+  $page.route.search,
+  localeParam,
+);
 </script>
 
 <svelte:window
   on:click={handleNavigation}
   on:keydown={maybeFocusSearch}
-  on:popstate={loadRoute}
   bind:scrollY />
 
 <svelte:head>
@@ -307,7 +326,12 @@ $: canonicalUrl = buildUrl(STABLE_VERSION, item, search, localeParam);
         <link
           rel="alternate"
           hreflang={lang.replace("_", "-")}
-          href={buildUrl(getCurrentVersionSlug(), item, search, lang)} />
+          href={buildUrl(
+            getCurrentVersionSlug(),
+            $page.route.item,
+            $page.route.search,
+            lang,
+          )} />
       {/each}
     {/if}
   {/if}

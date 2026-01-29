@@ -946,4 +946,130 @@ describe("Routing E2E Tests", () => {
       errorSpy.mockRestore();
     });
   });
+
+  describe("Reactive Page Store Integration", () => {
+    test("page store updates correctly on navigation", async () => {
+      const { page } = await import("./routing");
+
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+
+      // Get initial page state
+      let pageState: any;
+      const unsubscribe = page.subscribe((state) => {
+        pageState = state;
+      });
+
+      // Verify initial state (home page)
+      expect(pageState.route.version).toBe("stable");
+      expect(pageState.route.item).toBeNull();
+      expect(pageState.route.search).toBe("");
+
+      // Navigate to item
+      await act(async () => {
+        updateLocation("stable/item/rock");
+        dispatchPopState();
+      });
+
+      await waitForNavigation();
+
+      // Verify page store updated
+      expect(pageState.route.item).toEqual({ type: "item", id: "rock" });
+      expect(pageState.route.search).toBe("");
+      expect(pageState.url.pathname).toContain("item/rock");
+
+      // Navigate to search
+      await act(async () => {
+        updateLocation("stable/search/test");
+        dispatchPopState();
+      });
+
+      await waitForNavigation();
+
+      // Verify page store updated for search
+      expect(pageState.route.item).toBeNull();
+      expect(pageState.route.search).toBe("test");
+      expect(pageState.url.pathname).toContain("search/test");
+
+      unsubscribe();
+    });
+
+    test("page store updates on popstate events", async () => {
+      const { page } = await import("./routing");
+
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+
+      let pageState: any;
+      const unsubscribe = page.subscribe((state) => {
+        pageState = state;
+      });
+
+      // Navigate to item
+      await act(async () => {
+        updateLocation("stable/item/rock");
+        dispatchPopState();
+      });
+
+      await waitForNavigation();
+      expect(pageState.route.item?.id).toBe("rock");
+
+      // Navigate to another item (simulating forward)
+      await act(async () => {
+        updateLocation("stable/item/test_item");
+        dispatchPopState();
+      });
+
+      await waitForNavigation();
+      expect(pageState.route.item?.id).toBe("test_item");
+
+      // Go back (simulating browser back button)
+      await act(async () => {
+        updateLocation("stable/item/rock");
+        dispatchPopState();
+      });
+
+      await waitForNavigation();
+      expect(pageState.route.item?.id).toBe("rock");
+
+      unsubscribe();
+    });
+
+    test("no duplicate popstate event handling", async () => {
+      const { page } = await import("./routing");
+
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+
+      let updateCount = 0;
+      const unsubscribe = page.subscribe(() => {
+        updateCount++;
+      });
+
+      const initialCount = updateCount;
+
+      // Trigger popstate
+      await act(async () => {
+        updateLocation("stable/item/rock");
+        dispatchPopState();
+      });
+
+      await waitForNavigation();
+
+      // Store should update exactly once per popstate
+      // (initial subscription + one update)
+      expect(updateCount).toBe(initialCount + 1);
+
+      unsubscribe();
+    });
+  });
 });
