@@ -2,6 +2,7 @@
 import { t } from "./i18n";
 import { GAME_REPO_URL } from "./constants";
 import { metrics } from "./metrics";
+import { slide } from "svelte/transition";
 
 export let obj: any;
 export let buildNumber: string | undefined;
@@ -22,9 +23,13 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
 
 <section class="json-view">
   <div class="json-header">
-    <button class="toggle-button" on:click={toggle}>
+    <button
+      class="toggle-button"
+      on:click={toggle}
+      aria-expanded={expanded}
+      aria-controls="json-content">
       <span>{t("Raw JSON")}</span>
-      <span class="icon">{expanded ? "▼" : "▶"}</span>
+      <span class="icon" aria-hidden="true">{expanded ? "▼" : "▶"}</span>
     </button>
 
     <div class="actions">
@@ -36,7 +41,10 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
   </div>
 
   {#if expanded}
-    <div class="json-content">
+    <div
+      class="json-content"
+      id="json-content"
+      transition:slide={{ duration: 200 }}>
       <pre>{JSON.stringify(
           obj,
           (key, value) => (key === "__filename" ? undefined : value),
