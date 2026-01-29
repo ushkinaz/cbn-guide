@@ -13,6 +13,7 @@ For detailed documentation, parameters, and usage instructions for each script, 
 - **`fetch-icons.ts`** (`pnpm fetch:icons`): Extracts and renders icons for game entities from tilesets.
 - **`gen-css.ts`** (`pnpm gen:css`): Generates CSS variables and palette classes from game color definitions.
 - **`gen-sitemap.ts`** (`pnpm gen:sitemap`): Generates a static `sitemap.xml` for SEO.
+- **`gen-ogimage.py`** (`pnpm gen:ogimage`): Generates a custom OpenGraph (OG) image with game data, icons, and system fonts.
 - **`gen-unifont.sh`** (`pnpm gen:unifont`): Optimizes Unifont by subsetting it to only required characters (defined in `unifont-chars.txt`).
 
 ### Performance & Benchmarking
