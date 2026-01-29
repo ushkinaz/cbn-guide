@@ -69,22 +69,55 @@ export type InitialAppState = {
 // Internal Helper Functions
 // ============================================================================
 
+function stripBaseFromPathname(pathname: string): string {
+  const baseUrl = import.meta.env.BASE_URL;
+  const baseNoSlash = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+
+  if (pathname === baseNoSlash) return "/";
+  if (pathname.startsWith(baseUrl)) return pathname.slice(baseUrl.length - 1);
+  if (pathname.startsWith(baseNoSlash + "/"))
+    return pathname.slice(baseNoSlash.length);
+  return pathname;
+}
+
+function isPathUnderBase(pathname: string): boolean {
+  const baseUrl = import.meta.env.BASE_URL;
+  const baseNoSlash = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+
+  return (
+    baseUrl === "/" ||
+    pathname === baseNoSlash ||
+    pathname.startsWith(baseUrl) ||
+    pathname.startsWith(baseNoSlash + "/")
+  );
+}
+
 /**
- * Extract and decode path segments from the current URL
+ * Extract and decode path segments from a given pathname
  *
  * Handles:
  * - Base URL stripping
  * - Empty segment filtering (e.g., //vehicle → ["vehicle"])
  * - URI decoding (%2F → /)
  *
+ * @param pathname - The pathname to parse
  * @returns Array of decoded path segments
  */
-function getPathSegments(): string[] {
-  const path = location.pathname.slice(import.meta.env.BASE_URL.length - 1);
+function getPathSegmentsFromPath(pathname: string): string[] {
+  const path = stripBaseFromPathname(pathname);
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
   if (!cleanPath) return [];
   // filter(Boolean) removes empty segments from double slashes
   return cleanPath.split("/").filter(Boolean).map(decodeURIComponent);
+}
+
+/**
+ * Extract and decode path segments from the current URL
+ *
+ * @returns Array of decoded path segments
+ */
+function getPathSegments(): string[] {
+  return getPathSegmentsFromPath(location.pathname);
 }
 
 /**
@@ -220,29 +253,6 @@ function updatePageState() {
     url: new URL(location.href),
     route: parseRoute(),
   });
-}
-
-/**
- * Redirect to a different version (replaces current history entry)
- */
-// noinspection JSUnusedLocalSymbols
-function redirectToVersion(
-  newVersion: string,
-  preservePath: boolean = true,
-): void {
-  const segments = getPathSegments();
-  if (preservePath && segments.length > 0) {
-    segments[0] = newVersion;
-  } else {
-    // Either !preservePath or empty segments - start fresh with just version
-    segments.length = 0;
-    segments.push(newVersion);
-  }
-
-  const newPath =
-    import.meta.env.BASE_URL + segments.join("/") + location.search;
-  history.replaceState(null, "", newPath);
-  updatePageState();
 }
 
 // ============================================================================
@@ -480,10 +490,18 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
 
   // Check if this is an internal navigation
   if (anchor) {
-    if (
-      anchor.origin === location.origin &&
-      anchor.pathname.startsWith(import.meta.env.BASE_URL)
-    ) {
+    if (anchor.origin === location.origin && isPathUnderBase(anchor.pathname)) {
+      // Version-aware navigation check:
+      // If the target version differs from the current version, do NOT intercept.
+      // Changing version requires a full page reload to load new game data.
+      const currentVersion = getCurrentVersionSlug();
+      const targetSegments = getPathSegmentsFromPath(anchor.pathname);
+      const targetVersion = targetSegments[0] || STABLE_VERSION;
+
+      if (targetVersion !== currentVersion) {
+        return false;
+      }
+
       event.preventDefault();
       // Cancel pending debounced updates
       debouncedReplaceState.cancel();
@@ -587,11 +605,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
 
     // Preserve raw pathname to maintain URL encoding (e.g., %2F)
     // Using decoded segments would corrupt paths like /search/fire%2Faxe
-    const rawRelativePath = location.pathname.startsWith(
-      import.meta.env.BASE_URL,
-    )
-      ? location.pathname.slice(import.meta.env.BASE_URL.length)
-      : location.pathname;
+    const rawRelativePath = stripBaseFromPathname(location.pathname);
     const cleanRawPath = rawRelativePath.startsWith("/")
       ? rawRelativePath.slice(1)
       : rawRelativePath;
