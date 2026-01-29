@@ -157,7 +157,7 @@ t("A") + b  // Wrong
 
 ### Running commands
 
-Always start new terminal sessions with `[ -f "$HOME/.env_ai" ] && . "$HOME/.env_ai" || true` 
+Always start new terminal sessions with `[ -f "$HOME/.env_ai" ] && . "$HOME/.env_ai" || true`
 
 ### UI Verification (.agent/rules/ui-verification.md)
 

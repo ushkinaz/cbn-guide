@@ -26,7 +26,12 @@ import { colorForName } from "../src/colors";
 import { BUILDS_URL, getDataJsonUrl } from "../src/constants";
 import { CBNData, mapType } from "../src/data";
 import { getTilesetUrl, TILESETS } from "../src/tile-data";
-import type { TileChunk, TileInfo, TilePosition, TilesetData } from "../src/tile-data";
+import type {
+  TileChunk,
+  TileInfo,
+  TilePosition,
+  TilesetData,
+} from "../src/tile-data";
 
 type TilesetChunk = TileChunk & { ascii?: any[] };
 
@@ -100,7 +105,9 @@ async function downloadFile(url: string, dest: string) {
 }
 
 async function loadTileset(): Promise<LoadedTileset> {
-  const tileset = TILESETS.find((t) => t.name.toLowerCase() === tilesetName.toLowerCase());
+  const tileset = TILESETS.find(
+    (t) => t.name.toLowerCase() === tilesetName.toLowerCase(),
+  );
   if (!tileset)
     throw new Error(
       `Tileset ${tilesetName} not found. Available: ${TILESETS.map((t) => t.name).join(", ")}`,
