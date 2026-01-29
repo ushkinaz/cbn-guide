@@ -2,6 +2,20 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { VitePWA } from "vite-plugin-pwa";
 import EnvironmentPlugin from "vite-plugin-environment";
+import { execSync } from "node:child_process";
+
+const getCommitDate = () => {
+  let dateStr: string;
+  try {
+    dateStr = execSync("git show -s --format=%cs HEAD").toString().trim();
+  } catch {
+    const now = new Date();
+    dateStr = now.toISOString().split("T")[0];
+  }
+  return dateStr;
+};
+
+const commitDate = getCommitDate();
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -19,6 +33,7 @@ export default defineConfig({
       CF_PAGES_COMMIT_SHA: null,
       SENTRY_DSN: null,
       PERF_ENABLED: "false",
+      COMMIT_DATE: commitDate,
     }),
     svelte(),
     VitePWA({
