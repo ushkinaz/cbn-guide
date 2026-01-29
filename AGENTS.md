@@ -1,7 +1,5 @@
 # Agent Development Guide
 
-This guide is for AI coding agents working on the Cataclysm: Bright Nights Guide project.
-
 ## Project Overview
 
 - A Svelte 4 + Vite 5 application that provides an offline-capable wiki for Cataclysm: Bright Nights game data.
@@ -14,8 +12,8 @@ This guide is for AI coding agents working on the Cataclysm: Bright Nights Guide
 - pnpm: 10.x (see `packageManager` in package.json)
 - Core: `TypeScript` 5, `Svelte` 4 + `Vite` 5.
 - Testing: `vitest`, `puppeteer`.
-- Styling: Scoped CSS, custom design tokens in `colors.ts`.
-- Python: 3.x (for Unifont generation)
+- Styling: Scoped CSS, custom design tokens in `global.css`.
+- Python: 3.x for auxiliary scripts.
 
 ## Project Structure
 
@@ -42,10 +40,10 @@ This guide is for AI coding agents working on the Cataclysm: Bright Nights Guide
 
 ### Code Quality
 
-- `pnpm verify` - Run all checks (formatting + types)
-- `pnpm verify:format` - Check Prettier formatting
+- `pnpm verify` - Run all checks
+- `pnpm verify:format` - Check formatting
 - `pnpm verify:types` - Run `svelte-check` and `tsc`
-- `pnpm fix:format` - Auto-fix Prettier issues
+- `pnpm fix:format` - Auto-fix formatting issues
 
 ### Testing
 
@@ -62,7 +60,7 @@ This guide is for AI coding agents working on the Cataclysm: Bright Nights Guide
 
 ### Data & Scripts
 
-- `pnpm fetch:fixtures:nightly` - Download nightly test data
+- `pnpm fetch:fixtures:nightly` - Download nightly test data required for tests
 - `pnpm fetch:builds` - Download builds.json index
 
 ## Core Architecture
@@ -91,35 +89,6 @@ Main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#
 - Use discriminated unions for complex state (see `src/types.ts`)
 - No implicit any: All values must be typed
 
-### Imports
-
-```typescript
-// External packages first, alphabetically
-import { fade } from "svelte/transition";
-import type { BuildInfo } from "./routing";
-
-// Internal modules, alphabetically
-import CategoryGrid from "./CategoryGrid.svelte";
-import { data, singularName } from "./data";
-import { t } from "./i18n";
-
-// Type-only imports use `type` keyword
-import type { SupportedTypesWithMapped } from "./types";
-```
-
-### Naming Conventions
-
-- Files: PascalCase for components (`Thing.svelte`, `SearchResults.svelte`)
-- Files: camelCase for utilities (`data.ts`, `routing.ts`)
-- Variables/Functions: camelCase (`loadRoute`, `buildUrl`)
-- Types/Interfaces: PascalCase (`BuildInfo`, `SupportedTypesWithMapped`)
-- Constants: SCREAMING_SNAKE_CASE (`DEFAULT_TILESET`, `GAME_REPO_URL`)
-- Private fields: underscore prefix (`_raw`, `_byType`)
-
-### Formatting
-
-- Auto-format before commit via `pnpm fix:format`
-
 ### Svelte Components
 
 - Use `<script lang="ts">` for TypeScript
@@ -136,6 +105,13 @@ import type { SupportedTypesWithMapped } from "./types";
 - JSDoc: For public functions and complex logic
 - Inline comments: For non-obvious decisions
 - TODO comments: Format as `//TODO: description`
+- Never remove comments not related to the current task
+
+### Formatting and Commit
+
+- Imports ordering: external packages, internal modules, type-only imports, alphabetically
+- Always auto-format before commit via `pnpm fix:format`
+- Always use Conventional Commits forma: `<type>(<optional scope>): <description>`. Scopes: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`.
 
 ## Project-Specific Rules
 
@@ -154,13 +130,13 @@ Use `t` from `i18n.ts` for ALL user-facing text:
 t("Text")
 
 // Interpolation
-t("Cost: {n}", { n: value })
+t("Cost: {n}", { n: 22 })
 
 // In Svelte
-<p>{t("Hello {name}", { name })}</p>
+<p>{t("Hello {name}", { userName })}</p>
 
 // AVOID: String concatenation
-t("A") + b  // ❌ Wrong
+t("A") + b  // Wrong
 ```
 
 ### Data Source (.agent/rules/data-source.md)
@@ -181,11 +157,7 @@ t("A") + b  // ❌ Wrong
 
 ### Running commands
 
-Always start new terminal sessions with:
-
-```zsh
-source $HOME/.env_ai
-```
+Always start new terminal sessions with `[ -f "$HOME/.env_ai" ] && . "$HOME/.env_ai" || true` 
 
 ### UI Verification (.agent/rules/ui-verification.md)
 
@@ -228,15 +200,12 @@ When making UI changes, verify with `browser_subagent` on local dev server.
 ### Fixing Type Errors
 
 1. Run `pnpm verify:types` to see all errors
-2. Check `tsconfig.json` - strict mode enabled
-3. Never use `any` - use `unknown` and type guards instead
-4. For Svelte components, ensure `lang="ts"` in script tag
+2. Never use `any` - use `unknown` and type guards instead
 
 ## Critical Anti-Patterns
 
 Never install tools – Ask user and provide command  
 Never add prop-watching `$:` inside `{#key}` blocks  
-Never call `$: setContext(...)` - doesn't work  
 Never mix game colors (`--cata-color-*`) with app UI colors  
 Never concatenate translated strings – use interpolation  
 Never commit without running `pnpm verify`
