@@ -7,7 +7,7 @@ import {
   singular,
   singularName,
 } from "../data";
-import { getVersionedBasePath } from "../routing";
+import { getVersionedBasePath, page } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -62,13 +62,19 @@ function isSymbolItem(value: any): value is ItemSymbolItem {
 
 const data = getContext<CBNData>("data");
 
-const item = data.byIdMaybe(type, id);
-let linkItem = item;
-if (linkItem?.type === "vehicle_part" && !linkItem.name && linkItem.item)
-  linkItem = data.byId("item", linkItem.item);
+$: item = data.byIdMaybe(type, id);
+let linkItem: typeof item;
+$: {
+  linkItem = item;
+  if (linkItem?.type === "vehicle_part" && !linkItem.name && linkItem.item)
+    linkItem = data.byId("item", linkItem.item);
+}
 
-const iconItem = isSymbolItem(item) ? item : null;
-const href = `${getVersionedBasePath()}${type}/${id}${location.search}`;
+$: iconItem = isSymbolItem(item) ? item : null;
+// Use $page.url to trigger updates when the URL changes
+$: href = `${getVersionedBasePath()}${type}/${id}${
+  $page.url.search || location.search
+}`;
 </script>
 
 <span class="item-link__wrap" class:item-link__wrap--count={count != null}>

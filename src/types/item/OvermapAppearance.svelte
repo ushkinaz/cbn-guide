@@ -8,7 +8,7 @@ const data = getContext<CBNData>("data");
 export let overmapSpecial: OvermapSpecial;
 export let showZ: number = 0;
 
-const overmaps = [
+$: overmaps = [
   ...(overmapSpecial.subtype !== "mutable"
     ? (overmapSpecial.overmaps ?? [])
     : []),
@@ -17,16 +17,24 @@ let minX = Infinity,
   minY = Infinity;
 let maxX = -Infinity,
   maxY = -Infinity;
-const overmapsByPoint = new Map<string, (typeof overmaps)[0]>();
+let overmapsByPoint: Map<string, (typeof overmaps)[0]>;
 
-for (const om of overmaps) {
-  const [x, y, z] = om.point;
-  if (om.overmap) {
-    if (x < minX) minX = x;
-    if (y < minY) minY = y;
-    if (x > maxX) maxX = x;
-    if (y > maxY) maxY = y;
-    overmapsByPoint.set(`${x}|${y}|${z}`, om);
+$: {
+  minX = Infinity;
+  minY = Infinity;
+  maxX = -Infinity;
+  maxY = -Infinity;
+  overmapsByPoint = new Map();
+
+  for (const om of overmaps) {
+    const [x, y, z] = om.point;
+    if (om.overmap) {
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+      overmapsByPoint.set(`${x}|${y}|${z}`, om);
+    }
   }
 }
 
