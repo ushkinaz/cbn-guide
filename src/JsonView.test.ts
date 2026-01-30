@@ -21,7 +21,10 @@ test("JsonView renders and toggles correctly", async () => {
 
   // Check initial state
   expect(button.getAttribute("aria-expanded")).toBe("false");
-  expect(button.getAttribute("aria-controls")).toBe("json-content");
+
+  // Check aria-controls has a dynamic ID
+  const ariaControls = button.getAttribute("aria-controls");
+  expect(ariaControls).toMatch(/^json-content-test_type-test_id-[a-z0-9]+$/);
 
   // Icon should be hidden
   const icon = container.querySelector(".icon");
@@ -41,7 +44,7 @@ test("JsonView renders and toggles correctly", async () => {
   const content = await screen.findByText(/"some_prop": "value"/);
   expect(content).toBeTruthy();
 
-  // Content container should have ID
-  const contentDiv = container.querySelector("#json-content");
+  // Content container should have the matching ID
+  const contentDiv = container.querySelector(`[id="${ariaControls}"]`);
   expect(contentDiv).toBeTruthy();
 });

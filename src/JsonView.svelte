@@ -11,6 +11,12 @@ const _context = "View/Edit on GitHub";
 
 let expanded = false;
 
+// Generate a somewhat unique ID for aria-controls.
+// In a real app we might use a UUID library or a global counter,
+// but for this simple case, combining type and id is usually sufficient
+// for uniqueness on a page, plus a random suffix to be safe.
+const contentId = `json-content-${obj.type}-${obj.id}-${Math.random().toString(36).slice(2, 7)}`;
+
 function toggle() {
   expanded = !expanded;
   if (expanded) {
@@ -27,7 +33,7 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
       class="toggle-button"
       on:click={toggle}
       aria-expanded={expanded}
-      aria-controls="json-content">
+      aria-controls={contentId}>
       <span>{t("Raw JSON")}</span>
       <span class="icon" aria-hidden="true">{expanded ? "▼" : "▶"}</span>
     </button>
@@ -43,7 +49,7 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
   {#if expanded}
     <div
       class="json-content"
-      id="json-content"
+      id={contentId}
       transition:slide={{ duration: 200 }}>
       <pre>{JSON.stringify(
           obj,
