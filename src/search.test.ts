@@ -7,6 +7,7 @@ import { cleanup, render } from "@testing-library/svelte";
 import { CBNData } from "./data";
 
 import SearchResults from "./SearchResults.svelte";
+import { syncSearch } from "./search";
 
 let data: CBNData = new CBNData([
   { type: "MONSTER", id: "zombie", name: "zombie", symbol: "Z" },
@@ -18,6 +19,7 @@ let data: CBNData = new CBNData([
 afterEach(cleanup);
 
 test("search results shows results", () => {
+  syncSearch("zombie", data);
   const { container } = render(SearchResults, { data, search: "zombie" });
   expect(container.textContent).not.toMatch(/undefined|NaN|object Object/);
   expect(container.textContent).toMatch(/zombie/);
@@ -27,12 +29,14 @@ test("search results shows results", () => {
 });
 
 test("search with <2 letters shows ...", () => {
+  syncSearch("z", data);
   const { container } = render(SearchResults, { data, search: "z" });
   expect(container.textContent).not.toMatch(/undefined|NaN|object Object/);
   expect(container.textContent).toMatch(/\.\.\./);
 });
 
 test("search with no results shows 'no results'", () => {
+  syncSearch("zaoeusthhhahchsigdiypcgiybx", data);
   const { container } = render(SearchResults, {
     data,
     search: "zaoeusthhhahchsigdiypcgiybx",
