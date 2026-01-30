@@ -10,6 +10,7 @@ import {
   overmapAppearance,
 } from "./types/item/spawnLocations";
 import { type SearchResult, searchResults } from "./search";
+import Loading from "./Loading.svelte";
 
 export let data: CBNData;
 $: setContext("data", data);
@@ -40,41 +41,67 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
 
 {#if matchingObjectsList}
   {#each matchingObjectsList as [type, results]}
-    {#if type === "overmap_special"}
-      {@const grouped = groupByAppearance(results)}
-      <h1 class="capitalize">{t("Locations")}</h1>
-      <LimitedList items={grouped} let:item={result} limit={25}>
-        <ItemLink type="overmap_special" id={result[0].id} />
-      </LimitedList>
-    {:else}
-      <h1 class="capitalize">{t(plural(type.replace(/_/g, " ")))}</h1>
-      <LimitedList items={results} let:item={result} limit={25}>
-        <ItemLink type={mapType(result.item.type)} id={result.item.id} />
-        {#if /obsolet/.test(result.item.__filename ?? "")}
-          <em class="obsolete"
-            >({t("obsolete", { _context: "Search Results" })})</em>
-        {/if}
-      </LimitedList>
-    {/if}
+    <section>
+      {#if type === "overmap_special"}
+        {@const grouped = groupByAppearance(results)}
+        <h1 class="capitalize">{t("Locations")}</h1>
+        <LimitedList items={grouped} let:item={result} limit={25}>
+          <ItemLink type="overmap_special" id={result[0].id} />
+        </LimitedList>
+      {:else}
+        <h1 class="capitalize">{t(plural(type.replace(/_/g, " ")))}</h1>
+        <LimitedList items={results} let:item={result} limit={25}>
+          <ItemLink type={mapType(result.item.type)} id={result.item.id} />
+          {#if /obsolet/.test(result.item.__filename ?? "")}
+            <abbr class="obsolete"
+              >{t("†", { _context: "Search Results" })}</abbr>
+          {/if}
+        </LimitedList>
+      {/if}
+    </section>
   {:else}
-    <em
-      >{t("No results for {query}.", {
+    <div role="status" aria-live="polite">
+      {t('No results for "{query}".', {
         query: search,
         _context: "Search Results",
-      })}</em>
+      })}
+    </div>
   {/each}
 {:else if data || !$loadProgress}
-  <pre>...</pre>
+  <div class="searching-state" style="font-size: 20px">
+    <ItemLink
+      type="monster"
+      id="mon_dog_thing"
+      overrideText={t("looking...", {
+        _context: "Search Results",
+      })}
+      link={false} />
+  </div>
 {:else}
-  <pre>{($loadProgress[0] / 1024 / 1024).toFixed(1)}/{(
-      $loadProgress[1] /
-      1024 /
-      1024
-    ).toFixed(1)} MB</pre>
+  <Loading text="..." />
 {/if}
 
 <style>
 .obsolete {
   color: var(--cata-color-gray);
+  font-variant: normal;
+}
+.searching-state {
+  animation: pulse 1.5s infinite;
+  color: var(--cata-color-gray);
+  font-style: italic;
+  padding-left: 100px;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 </style>
