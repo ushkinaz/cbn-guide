@@ -71,7 +71,7 @@ const groupFilter = ({
 }[type] ?? (() => true)) as (t: SupportedTypeMapped) => boolean;
 </script>
 
-<h1 style="text-transform: capitalize;">{t(plural(type))}</h1>
+<h1 class="capitalize">{t(plural(type))}</h1>
 {#each groupsList as [groupName, group]}
   {#if type === "mutation" && groupName && data.byIdMaybe("mutation_category", groupName)}
     <MutationCategory

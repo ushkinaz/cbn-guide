@@ -174,7 +174,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 }
 </script>
 
-<h1 style="text-transform: capitalize;">
+<h1 class="capitalize">
   <ItemLink type="item" id={item.id} link={false} />
 </h1>
 <section>

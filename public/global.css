@@ -193,6 +193,11 @@ h1:first-child {
 	margin-top: 0;
 }
 
+.capitalize {
+	text-transform: capitalize;
+}
+
+
 pre {
 	white-space: pre-wrap;
 }
