@@ -65,7 +65,7 @@ metrics.count("ui.profile.save_button.click");
 
 ### ✅ Fact vs. Wish
 
-Distinguish between the user *requesting* an action (UI interaction) and the system *completing* it (Application state change).
+Distinguish between the user _requesting_ an action (UI interaction) and the system _completing_ it (Application state change).
 
 - `ui.version.change`: User clicked the dropdown to switch versions (The "Wish").
 - `app.version.change`: The version actually switched successfully (The "Fact").
