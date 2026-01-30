@@ -51,7 +51,6 @@ let scrollY = 0;
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
-  metrics.count("ui.scroll_to_top.click");
 }
 
 let item: { type: string; id: string } | null = null;
@@ -222,17 +221,6 @@ const defaultMetaDescription = t(
     guide: UI_GUIDE_NAME,
   },
 );
-
-// Monitor storage usage once per session
-try {
-  navigator.storage.estimate().then((estimate) => {
-    metrics.gauge("storage.usage_bytes", estimate?.usage ?? -1, {
-      unit: "byte",
-    });
-  });
-} catch (e) {
-  /* ignore */
-}
 
 let metaDescription = defaultMetaDescription;
 

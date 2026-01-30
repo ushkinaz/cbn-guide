@@ -40,7 +40,7 @@ metrics.count("app.version.change", 1, { from: "stable", to: "nightly" });
 metrics.gauge("data.version", buildNumber);
 
 // Distributions: statistical analysis (mean, p95, etc.)
-metrics.distribution("search.query.duration_ms", durationMs);
+metrics.distribution("ui.item.render_duration_ms", durationMs);
 ```
 
 **Auto-included attributes (for Sentry grouping):**
@@ -70,7 +70,7 @@ metrics.gauge("data.version", buildNumber);
 
 ```typescript
 // ❌ Performance micro-optimization (use local benchmarks instead)
-metrics.distribution("array.sort.time", duration);
+metrics.distribution("ui.item.render_duration_ms", duration);
 
 // ❌ High-cardinality attributes (explosion of metric permutations)
 metrics.count("search", 1, { query: text }); // Creates generic metric, but query tag explodes!
@@ -89,9 +89,7 @@ metrics.count("debug.log"); // Use console.log or Sentry.captureMessage
 
 ```typescript
 // ✅ GOOD: Low-cardinality aggregation
-metrics.distribution("search.query.length", query.length);
-// or specific buckets:
-metrics.count("search.query.submit", 1, { type: "exact_match" });
+metrics.count("search.query.empty", 1);
 ```
 
 **2. Confusing text counts with numeric metrics**
@@ -153,7 +151,7 @@ See `src/metrics.test.ts` for full test suite.
 ## Current Usage
 
 - `src/routing.ts`: Version switches, routing init time, build number
-- `src/search.ts`: Search performance, no-results rate, query length
+- `src/search.ts`: Search no-results rate
 
 ## When to Add a Metric
 

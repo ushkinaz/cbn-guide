@@ -97,12 +97,12 @@ Name metrics based on **user intent** or **business logic**, not the UI implemen
 
 ### ✅ Good Examples
 
-| Metric Name                | Type         | Meaning                         |
-| -------------------------- | ------------ | ------------------------------- |
-| `search.query.duration_ms` | Distribution | How long a search took          |
-| `nav.route.change`         | Counter      | User navigated to a new page    |
-| `data.items.count`         | Gauge        | Total number of items in memory |
-| `app.init.duration_ms`     | Distribution | Time to interactive             |
+| Metric Name                  | Type         | Meaning                         |
+| ---------------------------- | ------------ | ------------------------------- |
+| `ui.item.render_duration_ms` | Distribution | Time to render item details     |
+| `nav.route.change`           | Counter      | User navigated to a new page    |
+| `data.items.count`           | Gauge        | Total number of items in memory |
+| `app.init.duration_ms`       | Distribution | Time to interactive             |
 
 ### ❌ Bad Examples
 
@@ -110,6 +110,6 @@ Name metrics based on **user intent** or **business logic**, not the UI implemen
 | ---------------------- | --------------------------------------------- | ------------------------------------------- |
 | `search.queryTime`     | **CamelCase** used instead of snake_case      | `search.query.duration_ms`                  |
 | `clicked_button`       | **Verb first** breaks hierarchy               | `ui.button.click`                           |
-| `search.duration`      | **Missing unit** is ambiguous                 | `search.query.duration_ms`                  |
+| `search.duration`      | **Missing unit** is ambiguous                 | `ui.item.render_duration_ms`                |
 | `search.click_monster` | **Cardinality in name** (monster, item, etc.) | `search.result.click` (tag: `type=monster`) |
 | `item.view`            | **Ambiguous action** (viewed? loaded?)        | `nav.route.change` (tag: `view=item`)       |

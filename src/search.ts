@@ -105,17 +105,13 @@ export function performSearch(
   targets: SearchTarget[],
   data: CBNData,
 ): Map<string, SearchResult[]> {
-  metrics.distribution("search.query_length", text.length);
-  const start = nowTimeStamp();
   const results = fuzzysort.go(text, targets, {
     keys: ["id", "name"],
     threshold: -10000,
   });
-  metrics.distribution("search.query.duration_ms", nowTimeStamp() - start, {
-    unit: "millisecond",
-  });
+
   if (results.length === 0) {
-    metrics.count("search.query.empty", 1, { query: text });
+    metrics.count("search.query.empty", 1);
   }
   const byType = new Map<string, SearchResult[]>();
   for (const { obj: item } of results) {
