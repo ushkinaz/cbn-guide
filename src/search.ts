@@ -116,13 +116,24 @@ export function performSearch(
     metrics.count("search.query.empty", 1);
   }
   const byType = new Map<string, SearchResult[]>();
+  const seen = new Set<string>();
+
   for (const { obj: item } of results) {
     const mappedType = item.type;
     if (!SEARCHABLE_TYPES.has(mappedType)) continue;
-    if (!byType.has(mappedType)) byType.set(mappedType, []);
-    if (byType.get(mappedType)!.some((x) => x.item.id === item.id)) continue;
+
+    let list = byType.get(mappedType);
+    if (!list) {
+      list = [];
+      byType.set(mappedType, list);
+    }
+
+    const key = mappedType + ":" + item.id;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
     const obj = data.byId(mappedType, item.id) as SearchResult["item"];
-    byType.get(mappedType)!.push({ item: obj });
+    list.push({ item: obj });
   }
   return byType;
 }

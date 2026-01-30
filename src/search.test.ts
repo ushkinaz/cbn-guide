@@ -5,9 +5,8 @@ import { afterEach, expect, test } from "vitest";
 import { cleanup, render } from "@testing-library/svelte";
 
 import { CBNData } from "./data";
-import { syncSearch, flushSearch } from "./search";
-
 import SearchResults from "./SearchResults.svelte";
+import { performSearch, buildSearchIndex, syncSearch, flushSearch } from "./search";
 
 let data: CBNData = new CBNData([
   { type: "MONSTER", id: "zombie", name: "zombie", symbol: "Z" },
@@ -48,4 +47,36 @@ test("search with no results shows 'no results'", () => {
   });
   expect(container.textContent).not.toMatch(/undefined|NaN|object Object/);
   expect(container.textContent).toMatch(/No results/);
+});
+
+test("performSearch returns all results and dedups", () => {
+  const manyItems = [];
+  for (let i = 0; i < 300; i++) {
+    manyItems.push({
+      type: "MONSTER",
+      id: `zombie_${i}`,
+      name: `zombie ${i}`,
+      symbol: "z",
+    });
+  }
+  // Add duplicate
+  manyItems.push({
+    type: "MONSTER",
+    id: "zombie_0",
+    name: "zombie 0 duplicate",
+    symbol: "z",
+  });
+
+  const testData = new CBNData(manyItems);
+  const targets = buildSearchIndex(testData);
+
+  const results = performSearch("zombie", targets, testData);
+  const monsters = results.get("monster");
+
+  expect(monsters).toBeDefined();
+  expect(monsters?.length).toBe(300); // Should return all 300 unique monsters
+
+  // Check dedup: zombie_0 should appear once
+  const z0 = monsters?.filter((m) => m.item.id === "zombie_0");
+  expect(z0?.length).toBe(1);
 });
