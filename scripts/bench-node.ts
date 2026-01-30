@@ -1,3 +1,4 @@
+import "./bench-env.js";
 import fs from "fs";
 import path from "path";
 import { performance } from "perf_hooks";
@@ -66,6 +67,28 @@ registerScenario("bash-from-terrain", (cbnData) => {
   // Perform various lookups using actual items from test data
   cbnData.bashFromTerrain("t_dock_deep_pile").length;
   cbnData.bashFromTerrain("t_pavement_y_bg_dp").length;
+});
+
+import { buildSearchIndex, performSearch } from "../src/search.js";
+
+registerScenario("search", (cbnData) => {
+  performance.mark("index-build-start");
+  const target = buildSearchIndex(cbnData);
+  performance.measure("search:index-build", "index-build-start");
+
+  const queries = [
+    "zombie", // Medium hits
+    "do", // Heavy hits (previously O(N^2) killer)
+    "9mm", // Specific
+    "ddddddd", // Locations hits
+    "nonexistent_thing_xyz", // No hits
+  ];
+
+  for (const q of queries) {
+    performance.mark(`search:${q}-start`);
+    performSearch(q, target, cbnData);
+    performance.measure(`search:query-${q}`, `search:${q}-start`);
+  }
 });
 
 // ============================================================================

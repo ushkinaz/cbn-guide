@@ -69,8 +69,17 @@ export type InitialAppState = {
 // Internal Helper Functions
 // ============================================================================
 
+/**
+ * Get BASE_URL with fallback for Node.js environments
+ * In browser/Vite: uses import.meta.env.BASE_URL
+ * In Node.js: defaults to "/"
+ */
+function getBaseUrl(): string {
+  return import.meta.env?.BASE_URL ?? "/";
+}
+
 function stripBaseFromPathname(pathname: string): string {
-  const baseUrl = import.meta.env.BASE_URL;
+  const baseUrl = getBaseUrl();
   const baseNoSlash = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 
   if (pathname === baseNoSlash) return "/";
@@ -81,7 +90,7 @@ function stripBaseFromPathname(pathname: string): string {
 }
 
 function isPathUnderBase(pathname: string): boolean {
-  const baseUrl = import.meta.env.BASE_URL;
+  const baseUrl = getBaseUrl();
   const baseNoSlash = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 
   return (
@@ -134,7 +143,7 @@ export function getCurrentVersionSlug(): string {
  * Use this when building href strings in templates
  */
 export function getVersionedBasePath(): string {
-  return import.meta.env.BASE_URL + getCurrentVersionSlug() + "/";
+  return getBaseUrl() + getCurrentVersionSlug() + "/";
 }
 
 /**
@@ -315,7 +324,7 @@ export function buildUrl(
   locale: string | null = null,
   tileset: string | null = null,
 ): string {
-  let path = import.meta.env.BASE_URL + version + "/";
+  let path = getBaseUrl() + version + "/";
 
   if (item) {
     if (item.type && item.id) {
@@ -372,7 +381,7 @@ export function changeVersion(newVersion: string): void {
     segments[0] = newVersion;
   }
 
-  const newPath = import.meta.env.BASE_URL + segments.join("/");
+  const newPath = getBaseUrl() + segments.join("/");
   metrics.count("version.switch", 1, {
     from: getCurrentVersionSlug(),
     to: newVersion,
@@ -394,7 +403,7 @@ export function updateSearchRoute(
   const currentVer = getCurrentVersionSlug();
 
   // Construct a new path
-  let newPath = import.meta.env.BASE_URL + currentVer + "/";
+  let newPath = getBaseUrl() + currentVer + "/";
   if (searchQuery) {
     newPath += "search/" + encodeURIComponent(searchQuery);
   }
@@ -613,11 +622,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
     // Use location.replace() to force full page reload
     // history.replaceState() would only update URL without re-parsing route
     const newPath =
-      import.meta.env.BASE_URL +
-      STABLE_VERSION +
-      "/" +
-      cleanRawPath +
-      location.search;
+      getBaseUrl() + STABLE_VERSION + "/" + cleanRawPath + location.search;
     location.replace(newPath);
 
     // Return early - page will reload with corrected URL
