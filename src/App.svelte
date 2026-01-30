@@ -774,6 +774,13 @@ kbd {
   border-radius: 4px;
 }
 
+/* Hide hotkey hints on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .hotkey-hint {
+    display: none !important;
+  }
+}
+
 .hotkey-hint .structure {
   color: var(--cata-color-dark_gray);
 }
