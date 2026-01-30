@@ -8,7 +8,7 @@ If you check calories on tainted organs, compare UPS energy cost across CBMs, or
 
 📕 [**Open the Guide**](https://cataclysmbn-guide.com/)
 
-For a text-based terminal version, check out ⌨️>\_ [**cbn-tui**](https://github.com/ushkinaz/cbn-tui); it is more suitable for modders.
+For a text-based terminal version, check out ⌨️ [**cbn-tui**](https://github.com/ushkinaz/cbn-tui); it is more suitable for modders.
 
 ---
 
