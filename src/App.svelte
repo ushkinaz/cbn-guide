@@ -732,7 +732,10 @@ kbd {
   position: relative;
   display: flex;
   align-items: center;
-  width: 100%;
+  width: auto;
+  flex: 1;
+  min-width: 200px;
+  max-width: 600px;
 }
 
 .search-input {

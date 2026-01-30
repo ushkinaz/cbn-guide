@@ -88,7 +88,7 @@ $: href = `${getVersionedBasePath()}${type}/${id}${
 }`;
 </script>
 
-<span class="item-link__wrap" class:item-link__wrap--count={count != null}>
+<span class="item-link" class:item-link--count={count != null}>
   <svelte:element
     this={link ? "a" : "span"}
     class="item-link"
@@ -122,16 +122,7 @@ $: href = `${getVersionedBasePath()}${type}/${id}${
   {/if}
 </span>
 
-<!--suppress CssUnusedSymbol -->
 <style>
-.item-link__wrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
-  white-space: nowrap;
-  vertical-align: middle;
-}
-
 .item-link {
   display: inline-flex;
   align-items: center;
