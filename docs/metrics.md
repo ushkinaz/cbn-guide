@@ -133,6 +133,10 @@ await loadInitialData();
 metrics.distribution("app.init.duration_ms", performance.now() - t1);
 ```
 
+## Developer Opt-Out
+
+To avoid skewing metrics during development: `localStorage.setItem('cbn-guide:metrics-disabled', 'true'); location.reload();`
+
 ## Testing
 
 ```typescript

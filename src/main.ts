@@ -20,11 +20,32 @@ if (import.meta.env.PROD) {
     "none"
   ).slice(0, 8);
   let releaseTag = `cbn-guide@${process.env.COMMIT_DATE ? process.env.COMMIT_DATE + "_" : "unknown"}${commitSHA}`;
+
+  // Check metrics opt-out flag (defensive for puppeteer/restricted browsers)
+  let metricsDisabled = false;
+  try {
+    metricsDisabled =
+      localStorage.getItem("cbn-guide:metrics-disabled") === "true";
+  } catch {
+    // localStorage unavailable (puppeteer, incognito, etc.) - default to enabled
+  }
+
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    enableMetrics: true,
+    enableMetrics: !metricsDisabled,
     integrations: [browserTracingIntegration],
     tracesSampleRate: 1,
+    // Runtime filter for dynamic toggling without reload
+    beforeSendMetric: (metric) => {
+      try {
+        if (localStorage.getItem("cbn-guide:metrics-disabled") === "true") {
+          return null;
+        }
+      } catch {
+        // localStorage unavailable - allow metric through
+      }
+      return metric;
+    },
     ...(commitSHA && {
       release: releaseTag,
     }),
