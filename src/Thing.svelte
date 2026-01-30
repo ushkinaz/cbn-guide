@@ -34,6 +34,7 @@ import OvermapSpecial from "./types/OvermapSpecial.svelte";
 import ItemAction from "./types/ItemAction.svelte";
 import Technique from "./types/Technique.svelte";
 import { metrics } from "./metrics";
+import { nowTimeStamp } from "./utils/perf";
 
 export let item: { id: string; type: string };
 
@@ -62,10 +63,10 @@ function defaultItem(id: string, type: string) {
   }
 }
 
-const renderStart = performance.now();
+const renderStart = nowTimeStamp();
 
 onMount(() => {
-  metrics.distribution("render.item_latency", performance.now() - renderStart, {
+  metrics.distribution("render.item_latency", nowTimeStamp() - renderStart, {
     unit: "millisecond",
     type: item.type,
   });

@@ -53,56 +53,9 @@ export function mark(name: string, addTimestamp: boolean = false): PerfMarker {
 }
 
 /**
- * Get current high-resolution timestamp.
+ * Get the current high-resolution timestamp.
  * Always returns performance.now() to support metrics in production.
  */
-export function now(): number {
+export function nowTimeStamp(): number {
   return performance.now();
-}
-
-/**
- * Helper to measure a synchronous function execution.
- * NO-OP in production.
- *
- * @example
- * const result = measureSync('myFunction', () => {
- *   // expensive operation
- *   return computedValue;
- * });
- */
-export function measureSync<T>(name: string, fn: () => T): T {
-  if (isDev) {
-    const p = mark(name);
-    try {
-      return fn();
-    } finally {
-      p.finish();
-    }
-  }
-  return fn();
-}
-
-/**
- * Helper to measure an async function execution.
- * NO-OP in production.
- *
- * @example
- * const result = await measureAsync('myAsyncFunction', async () => {
- *   // expensive async operation
- *   return await fetchData();
- * });
- */
-export async function measureAsync<T>(
-  name: string,
-  fn: () => Promise<T>,
-): Promise<T> {
-  if (isDev) {
-    const p = mark(name);
-    try {
-      return await fn();
-    } finally {
-      p.finish();
-    }
-  }
-  return fn();
 }

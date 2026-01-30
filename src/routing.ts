@@ -15,6 +15,7 @@ import { writable, type Readable } from "svelte/store";
 import { BUILDS_URL } from "./constants";
 import { debounce } from "./utils/debounce";
 import { metrics } from "./metrics";
+import { nowTimeStamp } from "./utils/perf";
 
 // ============================================================================
 // Constants
@@ -553,7 +554,7 @@ if (typeof window !== "undefined") {
  * @throws Error if builds.json fails to load
  */
 export async function initializeRouting(): Promise<InitialAppState> {
-  const start = performance.now();
+  const start = nowTimeStamp();
 
   // Ensure page state is synced at startup
   updatePageState();
@@ -634,7 +635,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
     };
   }
 
-  metrics.distribution("routing.init_time", performance.now() - start, {
+  metrics.distribution("routing.init_time", nowTimeStamp() - start, {
     unit: "millisecond",
   });
 

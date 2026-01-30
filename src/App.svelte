@@ -1,4 +1,5 @@
 <script lang="ts">
+import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
 import { data, mapType, singularName } from "./data";
 import {
@@ -38,7 +39,7 @@ import {
 } from "./routing";
 
 import { metrics } from "./metrics";
-import { mark } from "./utils/perf";
+import { mark, nowTimeStamp } from "./utils/perf";
 import { syncSearch, searchResults, flushSearch } from "./search";
 
 import Logo from "./Logo.svelte";
@@ -102,8 +103,8 @@ let latestStableBuild: BuildInfo | undefined;
 let latestNightlyBuild: BuildInfo | undefined;
 
 // Initialize routing and fetch builds
-const appStart = performance.now();
-mark("app-routing-start");
+const appStart = nowTimeStamp();
+const p = mark("app-routing-start");
 initializeRouting()
   .then((result: InitialAppState) => {
     builds = result.builds;
@@ -118,12 +119,16 @@ initializeRouting()
         isBranchAlias ? requestedVersion : undefined,
       )
       .then(() => {
-        metrics.distribution("data.load_time", performance.now() - appStart, {
+        metrics.distribution("data.load_time", nowTimeStamp() - appStart, {
           unit: "millisecond",
         });
+      })
+      .finally(() => {
+        p.finish();
       });
   })
   .catch((e) => {
+    Sentry.captureException(e);
     console.error(e);
     //TODO: Notify user, we failed to load our app.
   });

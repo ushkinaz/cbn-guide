@@ -5,6 +5,7 @@ import { metrics } from "./metrics";
 import { writable, type Readable } from "svelte/store";
 import { debounce } from "./utils/debounce";
 import { isTesting } from "./utils/env";
+import { nowTimeStamp } from "./utils/perf";
 
 export const SEARCHABLE_TYPES = new Set<keyof SupportedTypesWithMapped>([
   "item",
@@ -73,7 +74,7 @@ export function searchableName(data: CBNData, item: SupportedTypeMapped) {
 }
 
 export function buildSearchIndex(data: CBNData): SearchTarget[] {
-  const start = performance.now();
+  const start = nowTimeStamp();
   const targets = [...(data?.all() ?? [])]
     .filter(
       (x) =>
@@ -89,7 +90,7 @@ export function buildSearchIndex(data: CBNData): SearchTarget[] {
         type: mapType(x.type),
       },
     ]);
-  metrics.distribution("search.index_calc_time", performance.now() - start, {
+  metrics.distribution("search.index_calc_time", nowTimeStamp() - start, {
     unit: "millisecond",
   });
   return targets;
@@ -101,12 +102,12 @@ export function performSearch(
   data: CBNData,
 ): Map<string, SearchResult[]> {
   metrics.distribution("search.query_length", text.length);
-  const start = performance.now();
+  const start = nowTimeStamp();
   const results = fuzzysort.go(text, targets, {
     keys: ["id", "name"],
     threshold: -10000,
   });
-  metrics.distribution("search.execution_time", performance.now() - start, {
+  metrics.distribution("search.execution_time", nowTimeStamp() - start, {
     unit: "millisecond",
   });
   if (results.length === 0) {

@@ -418,11 +418,9 @@ export class CBNData {
     type: TypeName,
     id: string,
   ): SupportedTypesWithMapped[TypeName] & { __filename: string } {
-    const p = perf.mark("byId");
     const ret = this.byIdMaybe(type, id);
     if (!ret)
       throw new Error('unknown object "' + id + '" of type "' + type + '"');
-    p.finish();
     return ret;
   }
 
@@ -468,17 +466,11 @@ export class CBNData {
   }
 
   craftingPseudoItem(id: string): string | undefined {
-    const p = perf.mark("CBNData.craftingPseudoItems", true);
-    let newVar = this._craftingPseudoItems.get(id);
-    p.finish();
-    return newVar;
+    return this._craftingPseudoItems.get(id);
   }
 
   nestedMapgensById(id: string): Mapgen[] | undefined {
-    const p = perf.mark("CBNData.nestedMapgensById", true);
-    let newVar = this._nestedMapgensById.get(id);
-    p.finish();
-    return newVar;
+    return this._nestedMapgensById.get(id);
   }
 
   all(): SupportedTypeMapped[] {
@@ -513,199 +505,190 @@ export class CBNData {
    * @returns The flattened object.
    */
   _flatten<T = any>(_obj: T): T {
-    const p = perf.mark("CBNData._flatten", true);
-    try {
-      const obj: any = _obj;
-      if (this._flattenCache.has(obj)) {
-        return this._flattenCache.get(obj);
-      }
-      const parent =
-        "copy-from" in obj
-          ? (this._byTypeById.get(mapType(obj.type))?.get(obj["copy-from"]) ??
-            this._abstractsByType.get(mapType(obj.type))?.get(obj["copy-from"]))
-          : null;
-      if ("copy-from" in obj && !parent)
-        console.error(
-          `Missing parent in ${
-            obj.id ?? obj.abstract ?? obj.result ?? JSON.stringify(obj)
-          }`,
-        );
-      if (parent === obj) {
-        // Working around bad data upstream, see: https://github.com/CleverRaven/Cataclysm-DDA/pull/53930
-        console.warn("Object copied from itself:", obj);
-        this._flattenCache.set(obj, obj);
-        return obj;
-      }
-      if (!parent) {
-        this._flattenCache.set(obj, obj);
-        return obj;
-      }
-      const { abstract, ...parentProps } = this._flatten(parent);
-      const ret = { ...parentProps, ...obj };
-      if (parentProps.vitamins && obj.vitamins) {
-        ret.vitamins = [
-          ...parentProps.vitamins.filter(
-            (x: any) => !obj.vitamins.some((y: any) => y[0] === x[0]),
-          ),
-          ...obj.vitamins,
-        ];
-      }
-      if (obj.type === "vehicle" && parentProps.parts && obj.parts) {
-        ret.parts = [...parentProps.parts, ...obj.parts];
-      }
-      for (const k of Object.keys(ret.relative ?? {})) {
-        if (typeof ret.relative[k] === "number") {
-          if (k === "melee_damage") {
-            const di = normalizeDamageInstance(
-              cloneDamageInstance(ret.melee_damage),
-            );
-            for (const du of di) du.amount = (du.amount ?? 0) + ret.relative[k];
-            ret.melee_damage = di;
-          } else if (k === "weight") {
-            ret[k] = (parseMass(ret[k]) ?? 0) + ret.relative[k];
-          } else if (k === "volume") {
-            ret[k] = (parseVolume(ret[k]) ?? 0) + ret.relative[k];
-          } else {
-            ret[k] = (ret[k] ?? 0) + ret.relative[k];
-          }
-        } else if ((k === "damage" || k === "ranged_damage") && ret[k]) {
-          ret[k] = cloneDamageInstance(ret[k]);
-          const relativeDamage = normalizeDamageInstance(ret.relative[k]);
-          for (const rdu of relativeDamage) {
-            const modified: DamageUnit = Array.isArray(ret[k])
-              ? ret[k].find(
-                  (du: DamageUnit) => du.damage_type === rdu.damage_type,
-                )
-              : ret[k].damage_type === rdu.damage_type
-                ? ret[k]
-                : null;
-            if (modified) {
-              modified.amount = (modified.amount ?? 0) + (rdu.amount ?? 0);
-              modified.armor_penetration =
-                (modified.armor_penetration ?? 0) +
-                (rdu.armor_penetration ?? 0);
-              modified.armor_multiplier =
-                (modified.armor_multiplier ?? 0) + (rdu.armor_multiplier ?? 0);
-              modified.damage_multiplier =
-                (modified.damage_multiplier ?? 0) +
-                (rdu.damage_multiplier ?? 0);
-              modified.constant_armor_multiplier =
-                (modified.constant_armor_multiplier ?? 0) +
-                (rdu.constant_armor_multiplier ?? 0);
-              modified.constant_damage_multiplier =
-                (modified.constant_damage_multiplier ?? 0) +
-                (rdu.constant_damage_multiplier ?? 0);
-            }
-          }
-        } else if (
-          (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
-          ret[k]
-        ) {
-          if (k === "melee_damage") ret[k] = cloneDamageInstance(ret[k]);
-          else ret[k] = { ...ret[k] };
-          for (const k2 of Object.keys(ret.relative[k])) {
-            ret[k][k2] = (ret[k][k2] ?? 0) + ret.relative[k][k2];
-          }
-        } else if (k === "qualities") {
-          ret[k] = cloneQualities(ret[k]);
-          for (const [q, l] of ret.relative[k]) {
-            const existing = ret[k].find((x: any) => x[0] === q);
-            existing[1] += l;
-          }
-        }
-        // TODO: vitamins, mass, volume, time
-      }
-      delete ret.relative;
-      for (const k of Object.keys(ret.proportional ?? {})) {
-        if (typeof ret.proportional[k] === "number") {
-          if (k === "attack_cost" && !(k in ret)) ret[k] = 100;
-          if (typeof ret[k] === "string") {
-            const m = /^\s*(\d+)\s*(.+)$/.exec(ret[k]);
-            if (m) {
-              const [, num, unit] = m;
-              ret[k] = `${Number(num) * ret.proportional[k]} ${unit}`;
-            }
-          } else {
-            ret[k] *= ret.proportional[k];
-            ret[k] = ret[k] | 0; // most things are ints.. TODO: what keys are float?
-          }
-        } else if (k === "damage" && ret[k]) {
-          ret.damage = cloneDamageInstance(ret.damage);
-          const proportionalDamage = normalizeDamageInstance(
-            ret.proportional.damage,
-          );
-          for (const pdu of proportionalDamage) {
-            const modified: DamageUnit = Array.isArray(ret.damage)
-              ? ret.damage.find(
-                  (du: DamageUnit) => du.damage_type === pdu.damage_type,
-                )
-              : ret.damage.damage_type === pdu.damage_type
-                ? ret.damage
-                : null;
-            if (modified) {
-              modified.amount = (modified.amount ?? 0) * (pdu.amount ?? 1);
-              modified.armor_penetration =
-                (modified.armor_penetration ?? 0) *
-                (pdu.armor_penetration ?? 1);
-              modified.armor_multiplier =
-                (modified.armor_multiplier ?? 0) * (pdu.armor_multiplier ?? 1);
-              modified.damage_multiplier =
-                (modified.damage_multiplier ?? 0) *
-                (pdu.damage_multiplier ?? 1);
-              modified.constant_armor_multiplier =
-                (modified.constant_armor_multiplier ?? 0) *
-                (pdu.constant_armor_multiplier ?? 1);
-              modified.constant_damage_multiplier =
-                (modified.constant_damage_multiplier ?? 0) *
-                (pdu.constant_damage_multiplier ?? 1);
-            }
-          }
-        } else if (
-          (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
-          ret[k]
-        ) {
-          if (k === "melee_damage") ret[k] = cloneDamageInstance(ret[k]);
-          else ret[k] = { ...ret[k] };
-          for (const k2 of Object.keys(ret.proportional[k])) {
-            ret[k][k2] *= ret.proportional[k][k2];
-            ret[k][k2] = ret[k][k2] | 0; // most things are ints.. TODO: what keys are float?
-          }
-        }
-        // TODO: mass, volume, time (need to check the base value's type)
-      }
-      delete ret.proportional;
-      for (const k of Object.keys(ret.extend ?? {})) {
-        if (Array.isArray(ret.extend[k])) {
-          if (k === "flags")
-            // Unique
-            ret[k] = (ret[k] ?? []).concat(
-              ret.extend[k].filter((x: any) => !ret[k]?.includes(x)),
-            );
-          else ret[k] = (ret[k] ?? []).concat(ret.extend[k]);
-        }
-      }
-      delete ret.extend;
-      for (const k of Object.keys(ret.delete ?? {})) {
-        if (Array.isArray(ret.delete[k])) {
-          // Some 'delete' entries delete qualities, which are arrays. As a rough
-          // heuristic, compare recursively.
-          const isEqual = (x: any, y: any): boolean =>
-            x === y ||
-            (Array.isArray(x) &&
-              Array.isArray(y) &&
-              x.length === y.length &&
-              x.every((j, i) => isEqual(j, y[i])));
-          ret[k] = (ret[k] ?? []).filter(
-            (x: any) => !ret.delete[k].some((y: any) => isEqual(y, x)),
-          );
-        }
-      }
-      delete ret.delete;
-      this._flattenCache.set(obj, ret);
-      return ret;
-    } finally {
-      p.finish();
+    const obj: any = _obj;
+    if (this._flattenCache.has(obj)) {
+      return this._flattenCache.get(obj);
     }
+    const parent =
+      "copy-from" in obj
+        ? (this._byTypeById.get(mapType(obj.type))?.get(obj["copy-from"]) ??
+          this._abstractsByType.get(mapType(obj.type))?.get(obj["copy-from"]))
+        : null;
+    if ("copy-from" in obj && !parent)
+      console.error(
+        `Missing parent in ${
+          obj.id ?? obj.abstract ?? obj.result ?? JSON.stringify(obj)
+        }`,
+      );
+    if (parent === obj) {
+      // Working around bad data upstream, see: https://github.com/CleverRaven/Cataclysm-DDA/pull/53930
+      console.warn("Object copied from itself:", obj);
+      this._flattenCache.set(obj, obj);
+      return obj;
+    }
+    if (!parent) {
+      this._flattenCache.set(obj, obj);
+      return obj;
+    }
+    const { abstract, ...parentProps } = this._flatten(parent);
+    const ret = { ...parentProps, ...obj };
+    if (parentProps.vitamins && obj.vitamins) {
+      ret.vitamins = [
+        ...parentProps.vitamins.filter(
+          (x: any) => !obj.vitamins.some((y: any) => y[0] === x[0]),
+        ),
+        ...obj.vitamins,
+      ];
+    }
+    if (obj.type === "vehicle" && parentProps.parts && obj.parts) {
+      ret.parts = [...parentProps.parts, ...obj.parts];
+    }
+    for (const k of Object.keys(ret.relative ?? {})) {
+      if (typeof ret.relative[k] === "number") {
+        if (k === "melee_damage") {
+          const di = normalizeDamageInstance(
+            cloneDamageInstance(ret.melee_damage),
+          );
+          for (const du of di) du.amount = (du.amount ?? 0) + ret.relative[k];
+          ret.melee_damage = di;
+        } else if (k === "weight") {
+          ret[k] = (parseMass(ret[k]) ?? 0) + ret.relative[k];
+        } else if (k === "volume") {
+          ret[k] = (parseVolume(ret[k]) ?? 0) + ret.relative[k];
+        } else {
+          ret[k] = (ret[k] ?? 0) + ret.relative[k];
+        }
+      } else if ((k === "damage" || k === "ranged_damage") && ret[k]) {
+        ret[k] = cloneDamageInstance(ret[k]);
+        const relativeDamage = normalizeDamageInstance(ret.relative[k]);
+        for (const rdu of relativeDamage) {
+          const modified: DamageUnit = Array.isArray(ret[k])
+            ? ret[k].find(
+                (du: DamageUnit) => du.damage_type === rdu.damage_type,
+              )
+            : ret[k].damage_type === rdu.damage_type
+              ? ret[k]
+              : null;
+          if (modified) {
+            modified.amount = (modified.amount ?? 0) + (rdu.amount ?? 0);
+            modified.armor_penetration =
+              (modified.armor_penetration ?? 0) + (rdu.armor_penetration ?? 0);
+            modified.armor_multiplier =
+              (modified.armor_multiplier ?? 0) + (rdu.armor_multiplier ?? 0);
+            modified.damage_multiplier =
+              (modified.damage_multiplier ?? 0) + (rdu.damage_multiplier ?? 0);
+            modified.constant_armor_multiplier =
+              (modified.constant_armor_multiplier ?? 0) +
+              (rdu.constant_armor_multiplier ?? 0);
+            modified.constant_damage_multiplier =
+              (modified.constant_damage_multiplier ?? 0) +
+              (rdu.constant_damage_multiplier ?? 0);
+          }
+        }
+      } else if (
+        (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
+        ret[k]
+      ) {
+        if (k === "melee_damage") ret[k] = cloneDamageInstance(ret[k]);
+        else ret[k] = { ...ret[k] };
+        for (const k2 of Object.keys(ret.relative[k])) {
+          ret[k][k2] = (ret[k][k2] ?? 0) + ret.relative[k][k2];
+        }
+      } else if (k === "qualities") {
+        ret[k] = cloneQualities(ret[k]);
+        for (const [q, l] of ret.relative[k]) {
+          const existing = ret[k].find((x: any) => x[0] === q);
+          existing[1] += l;
+        }
+      }
+      // TODO: vitamins, mass, volume, time
+    }
+    delete ret.relative;
+    for (const k of Object.keys(ret.proportional ?? {})) {
+      if (typeof ret.proportional[k] === "number") {
+        if (k === "attack_cost" && !(k in ret)) ret[k] = 100;
+        if (typeof ret[k] === "string") {
+          const m = /^\s*(\d+)\s*(.+)$/.exec(ret[k]);
+          if (m) {
+            const [, num, unit] = m;
+            ret[k] = `${Number(num) * ret.proportional[k]} ${unit}`;
+          }
+        } else {
+          ret[k] *= ret.proportional[k];
+          ret[k] = ret[k] | 0; // most things are ints.. TODO: what keys are float?
+        }
+      } else if (k === "damage" && ret[k]) {
+        ret.damage = cloneDamageInstance(ret.damage);
+        const proportionalDamage = normalizeDamageInstance(
+          ret.proportional.damage,
+        );
+        for (const pdu of proportionalDamage) {
+          const modified: DamageUnit = Array.isArray(ret.damage)
+            ? ret.damage.find(
+                (du: DamageUnit) => du.damage_type === pdu.damage_type,
+              )
+            : ret.damage.damage_type === pdu.damage_type
+              ? ret.damage
+              : null;
+          if (modified) {
+            modified.amount = (modified.amount ?? 0) * (pdu.amount ?? 1);
+            modified.armor_penetration =
+              (modified.armor_penetration ?? 0) * (pdu.armor_penetration ?? 1);
+            modified.armor_multiplier =
+              (modified.armor_multiplier ?? 0) * (pdu.armor_multiplier ?? 1);
+            modified.damage_multiplier =
+              (modified.damage_multiplier ?? 0) * (pdu.damage_multiplier ?? 1);
+            modified.constant_armor_multiplier =
+              (modified.constant_armor_multiplier ?? 0) *
+              (pdu.constant_armor_multiplier ?? 1);
+            modified.constant_damage_multiplier =
+              (modified.constant_damage_multiplier ?? 0) *
+              (pdu.constant_damage_multiplier ?? 1);
+          }
+        }
+      } else if (
+        (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
+        ret[k]
+      ) {
+        if (k === "melee_damage") ret[k] = cloneDamageInstance(ret[k]);
+        else ret[k] = { ...ret[k] };
+        for (const k2 of Object.keys(ret.proportional[k])) {
+          ret[k][k2] *= ret.proportional[k][k2];
+          ret[k][k2] = ret[k][k2] | 0; // most things are ints.. TODO: what keys are float?
+        }
+      }
+      // TODO: mass, volume, time (need to check the base value's type)
+    }
+    delete ret.proportional;
+    for (const k of Object.keys(ret.extend ?? {})) {
+      if (Array.isArray(ret.extend[k])) {
+        if (k === "flags")
+          // Unique
+          ret[k] = (ret[k] ?? []).concat(
+            ret.extend[k].filter((x: any) => !ret[k]?.includes(x)),
+          );
+        else ret[k] = (ret[k] ?? []).concat(ret.extend[k]);
+      }
+    }
+    delete ret.extend;
+    for (const k of Object.keys(ret.delete ?? {})) {
+      if (Array.isArray(ret.delete[k])) {
+        // Some 'delete' entries delete qualities, which are arrays. As a rough
+        // heuristic, compare recursively.
+        const isEqual = (x: any, y: any): boolean =>
+          x === y ||
+          (Array.isArray(x) &&
+            Array.isArray(y) &&
+            x.length === y.length &&
+            x.every((j, i) => isEqual(j, y[i])));
+        ret[k] = (ret[k] ?? []).filter(
+          (x: any) => !ret.delete[k].some((y: any) => isEqual(y, x)),
+        );
+      }
+    }
+    delete ret.delete;
+    this._flattenCache.set(obj, ret);
+    return ret;
   }
 
   _cachedDeathDrops: Map<string, Loot> = new Map();
@@ -1170,7 +1153,6 @@ export class CBNData {
   ): { id: string; count: number }[][] {
     const cache = this._flatRequirementCacheForOpts(opts);
     if (cache.has(required)) return cache.get(required)!;
-    const p = perf.mark(`CBNData.flattenRequirement`, true);
     const {
       expandSubstitutes: doExpandSubstitutes = false,
       onlyRecoverable = false,
@@ -1203,7 +1185,6 @@ export class CBNData {
       )
       .filter((x) => x.length);
     cache.set(required, ret);
-    p.finish();
     return ret;
   }
 
@@ -1637,7 +1618,6 @@ function flattenChoices<T>(
   get: (x: Requirement) => T[][],
   onlyRecoverable: boolean = false,
 ): { id: string; count: number }[] {
-  const p = perf.mark(`flattenChoices`, true);
   const flatChoices: { id: string; count: number }[] = [];
   for (const choice of choices) {
     if (Array.isArray(choice)) {
@@ -1673,7 +1653,6 @@ function flattenChoices<T>(
       throw new Error("unexpected choice type");
     }
   }
-  p.finish();
   return flatChoices;
 }
 
