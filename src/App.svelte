@@ -245,33 +245,33 @@ $: if ($data) {
 }
 
 const handleSearchInput = () => {
-  if (search === "") {
-    metrics.count("search.cleared");
-  }
   updateSearchRoute(search, $page.route.item);
+};
+
+const executeSearchAction = () => {
+  // Flush any pending debounced search to ensure results are fresh
+  flushSearch();
+
+  const results = $searchResults;
+  if (results && results.size > 0) {
+    // Get the first item from the first group in the results
+    const firstGroup = results.values().next().value;
+    if (firstGroup && firstGroup.length > 0) {
+      const firstResult = firstGroup[0].item;
+      metrics.count("search.enter_navigation");
+      navigateTo(
+        getCurrentVersionSlug(),
+        { type: mapType(firstResult.type), id: firstResult.id },
+        "",
+      );
+    }
+  }
 };
 
 const handleSearchKeydown = (e: KeyboardEvent) => {
   if (e.key === "Enter" && search && $data) {
     e.preventDefault(); // Prevent form submission
-
-    // Flush any pending debounced search to ensure results are fresh
-    flushSearch();
-
-    const results = $searchResults;
-    if (results && results.size > 0) {
-      // Get the first item from the first group in the results
-      const firstGroup = results.values().next().value;
-      if (firstGroup && firstGroup.length > 0) {
-        const firstResult = firstGroup[0].item;
-        metrics.count("search.enter_navigation");
-        navigateTo(
-          getCurrentVersionSlug(),
-          { type: mapType(firstResult.type), id: firstResult.id },
-          "",
-        );
-      }
-    }
+    executeSearchAction();
   }
 };
 
@@ -382,17 +382,57 @@ $: canonicalUrl = buildUrl(
     </div>
     <div class="search">
       <form role="search">
-        <input
-          style="margin: 0; width: 100%"
-          aria-label={t("Search")}
-          placeholder={t("Search...", {
-            _comment: "Placeholder text in the search box",
-          })}
-          type="search"
-          bind:value={search}
-          on:input={handleSearchInput}
-          on:keydown={handleSearchKeydown}
-          id="search" />
+        <div class="search-input-wrapper">
+          <input
+            class="search-input"
+            aria-label={t("Search")}
+            placeholder={t("Search...", {
+              _comment: "Placeholder text in the search box",
+            })}
+            type="search"
+            enterkeyhint="go"
+            bind:value={search}
+            on:input={handleSearchInput}
+            on:keydown={handleSearchKeydown}
+            id="search" />
+
+          <div class="search-controls">
+            {#if !search}
+              <span class="hotkey-hint">
+                <span class="structure" aria-hidden="true">[</span>
+                <kbd class="key">/</kbd>
+                <span class="structure" aria-hidden="true">]</span>
+              </span>
+            {:else}
+              <button
+                type="button"
+                class="search-control-btn search-clear-button"
+                tabindex="-1"
+                aria-label={t("Clear search")}
+                on:click={() => {
+                  search = "";
+                  handleSearchInput();
+                  document.getElementById("search")?.focus();
+                }}>
+                <span class="icon-text">✕</span>
+              </button>
+
+              {#if $searchResults && $searchResults.size > 0}
+                <span class="separator"></span>
+                <button
+                  class="search-control-btn search-action-button"
+                  tabindex="-1"
+                  aria-label={t("Go to first result")}
+                  on:mousedown|preventDefault
+                  on:click={executeSearchAction}>
+                  <span class="structure" aria-hidden="true">[</span>
+                  <kbd class="key" aria-hidden="true">⏎</kbd>
+                  <span class="structure" aria-hidden="true">]</span>
+                </button>
+              {/if}
+            {/if}
+          </div>
+        </div>
       </form>
     </div>
   </nav>
@@ -671,9 +711,164 @@ nav {
   height: 100%;
 }
 
-nav > .search {
-  flex: 1;
-  max-width: calc(0.5 * 980px);
+kbd {
+  /* Reset browser defaults */
+  font-family: inherit;
+  font-size: inherit;
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-input {
+  margin: 0;
+  width: 100%;
+  height: 40px;
+  padding-right: 110px;
+}
+
+/* Hide native clear button */
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* State Swap Logic Styles */
+.search-controls {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hotkey-hint {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.9rem;
+  font-family: monospace;
+  cursor: text;
+  justify-content: center;
+  height: 26px;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+.hotkey-hint .structure {
+  color: var(--cata-color-dark_gray);
+}
+
+.hotkey-hint .key {
+  color: var(--cata-color-gray);
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.search-control-btn {
+  /* Reset */
+  appearance: none;
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0 4px;
+
+  /* Size & Layout */
+  height: 26px;
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Typography */
+  font-family: monospace;
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: background-color 0.15s ease;
+}
+
+.search-control-btn:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--cata-color-dark_gray),
+    transparent 80%
+  );
+}
+
+.search-clear-button {
+  color: var(--cata-color-gray);
+}
+
+.search-clear-button:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--cata-color-dark_gray),
+    transparent 80%
+  );
+  color: var(--cata-color-white);
+}
+
+.search-clear-button .icon-text {
+  transform: translateY(-1px);
+  font-size: 1.1em;
+}
+
+.separator {
+  display: block;
+  width: 1px;
+  height: 19px;
+  background-color: var(--cata-color-dark_gray);
+  opacity: 0.4;
+  margin: 0 2px;
+}
+
+.search-action-button {
+  gap: 2px;
+}
+
+.search-action-button:hover {
+  color: var(--cata-color-cyan);
+}
+
+.search-action-button .structure {
+  color: var(--cata-color-dark_gray);
+  transition: color 0.15s;
+}
+.search-action-button .key {
+  color: var(--cata-color-white);
+  font-weight: bold;
+  font-family: monospace;
+  transition: color 0.15s;
+}
+
+.search-action-button:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--cata-color-dark_gray),
+    transparent 80%
+  );
+}
+.search-action-button:hover .structure {
+  color: color-mix(in srgb, var(--cata-color-dark_gray), white 20%);
+}
+.search-action-button:hover .key {
+  color: var(--cata-color-cyan);
 }
 
 nav > .title .narrow {
