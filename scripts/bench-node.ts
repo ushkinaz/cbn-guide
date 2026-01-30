@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { performance } from "perf_hooks";
 import { CBNData, omsName } from "../src/data.js";
+import { buildSearchIndex, performSearch } from "../src/search.js";
 import {
   getGitSha,
   createHistogramStats,
@@ -69,6 +70,25 @@ registerScenario("bash-from-terrain", (cbnData) => {
   cbnData.bashFromTerrain("t_pavement_y_bg_dp").length;
 });
 
+registerScenario("search", (cbnData) => {
+  performance.mark("index-build-start");
+  const target = buildSearchIndex(cbnData);
+  performance.measure("search:index-build", "index-build-start");
+
+  const queries = [
+    "zombie", // Medium hits
+    "a", // Heavy hits (previously O(N^2) killer)
+    "9mm", // Specific
+    "nonexistent_thing_xyz", // No hits
+  ];
+
+  for (const q of queries) {
+    performance.mark(`search:${q}-start`);
+    performSearch(q, target, cbnData);
+    performance.measure(`search:query-${q}`, `search:${q}-start`);
+  }
+});
+
 registerScenario("oms-name", (cbnData) => {
   const oms = cbnData.byId("overmap_special", "Isherwood Farms");
   // Run it multiple times to get a measurable duration
@@ -78,8 +98,6 @@ registerScenario("oms-name", (cbnData) => {
   }
   performance.measure("oms-name", "oms-name-start");
 });
-
-import { buildSearchIndex, performSearch } from "../src/search.js";
 
 registerScenario("search", (cbnData) => {
   performance.mark("index-build-start");
