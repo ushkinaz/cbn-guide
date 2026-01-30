@@ -212,7 +212,11 @@ $: {
 }
 
 function formatTitle(it: string | null = null) {
-  return `${it} | ${UI_GUIDE_NAME}`;
+  if (it) {
+    return `${it} | ${UI_GUIDE_NAME}`;
+  } else {
+    return UI_GUIDE_NAME;
+  }
 }
 
 const defaultMetaDescription = t(
@@ -392,7 +396,7 @@ $: canonicalUrl = buildUrl(
           <input
             class="search-input"
             aria-label={t("Search")}
-            placeholder={t("Search...", {
+            placeholder={t("Search database...", {
               _comment: "Placeholder text in the search box",
             })}
             type="search"
@@ -506,7 +510,35 @@ $: canonicalUrl = buildUrl(
         )}>
       </InterpolatedTranslation>
     </p>
-
+    <p style="text-wrap: pretty">
+      <InterpolatedTranslation
+        str={t(
+          "Adopted to C:BN by {ushkinaz} on {github}. If you notice any problems, please file an {issue}!",
+          {
+            ushkinaz: "{ushkinaz}",
+            github: "{github}",
+            issue: "{issue}",
+          },
+        )}
+        slot0="ushkinaz"
+        slot1="github"
+        slot2="issue">
+        <a
+          slot="0"
+          href="https://github.com/ushkinaz"
+          target="_blank"
+          rel="noopener noreferrer">ushkinaz</a>
+        <a
+          slot="1"
+          href="https://github.com/ushkinaz/cbn-guide/"
+          target="_blank"
+          rel="noopener noreferrer">GitHub</a>
+        <a
+          slot="2"
+          href="https://github.com/ushkinaz/cbn-guide/issues/new?type=bug"
+          >{t("issue")}</a>
+      </InterpolatedTranslation>
+    </p>
     <CategoryGrid />
   {/if}
   {#if scrollY > 300}
@@ -656,35 +688,7 @@ $: canonicalUrl = buildUrl(
         class="icon" />
       Catapult Launcher</a>
   </div>
-  <div id="credits">
-    <InterpolatedTranslation
-      str={t(
-        "Adopted to C:BN by {ushkinaz} on {github}. If you notice any problems, please file an {issue}!",
-        {
-          ushkinaz: "{ushkinaz}",
-          github: "{github}",
-          issue: "{issue}",
-        },
-      )}
-      slot0="ushkinaz"
-      slot1="github"
-      slot2="issue">
-      <a
-        slot="0"
-        href="https://github.com/ushkinaz"
-        target="_blank"
-        rel="noopener noreferrer">ushkinaz</a>
-      <a
-        slot="1"
-        href="https://github.com/ushkinaz/cbn-guide/"
-        target="_blank"
-        rel="noopener noreferrer">GitHub</a>
-      <a
-        slot="2"
-        href="https://github.com/ushkinaz/cbn-guide/issues/new?type=bug"
-        >{t("issue")}</a>
-    </InterpolatedTranslation>
-  </div>
+  <div id="credits"></div>
 </footer>
 
 <style>
