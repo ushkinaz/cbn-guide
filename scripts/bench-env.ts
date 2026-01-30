@@ -15,3 +15,13 @@ if (typeof global.history === "undefined") {
     pushState: () => {},
   } as any;
 }
+
+// Polyfill import.meta.env for Node.js
+if (typeof import.meta.env === "undefined") {
+  (import.meta as any).env = {
+    BASE_URL: "/stable/",
+    MODE: "production",
+    DEV: false,
+    PROD: true,
+  };
+}

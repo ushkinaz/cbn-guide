@@ -1,4 +1,4 @@
-import * as fuzzysort from "fuzzysort";
+import fuzzysort from "fuzzysort";
 import { type CBNData, i18n, mapType, singularName } from "./data";
 import type { SupportedTypeMapped, SupportedTypesWithMapped } from "./types";
 import { metrics } from "./metrics";
