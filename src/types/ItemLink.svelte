@@ -129,6 +129,7 @@ $: href = `${getVersionedBasePath()}${type}/${id}${
   gap: 0.25em;
   text-decoration: none;
   vertical-align: middle;
+  min-width: 0;
 }
 
 a.item-link:hover,
@@ -138,6 +139,8 @@ a.item-link:focus-visible {
 
 .item-link__text {
   text-decoration: none;
+  min-width: 0;
+  word-break: break-word;
 }
 
 a.item-link:hover .item-link__text,
