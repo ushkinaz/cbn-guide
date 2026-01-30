@@ -31,23 +31,19 @@ $: realLimit = expanded ? Infinity : initialLimit;
   {/each}
 </ul>
 {#if items.length > initialLimit}
-  {#if !expanded}
-    <button
-      class="disclosure"
-      on:click={(e) => {
-        e.preventDefault();
-        expanded = true;
+  <button
+    class="disclosure"
+    aria-expanded={expanded}
+    on:click={(e) => {
+      e.preventDefault();
+      expanded = !expanded;
+      if (expanded) {
         metrics.count("ui.list.expand", 1, { count: items.length });
-      }}
-      >{t("See all {n}...", {
-        n: Number(items.length).toLocaleString(),
-      })}</button>
-  {:else}
-    <button
-      class="disclosure"
-      on:click={(e) => {
-        e.preventDefault();
-        expanded = false;
-      }}>{t("Show less")}</button>
-  {/if}
-{/if}
+      }
+    }}>
+    {expanded
+      ? t("Show less")
+      : t("See all {n}...", {
+          n: Number(items.length).toLocaleString(),
+        })}
+  </button>{/if}
