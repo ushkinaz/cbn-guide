@@ -37,7 +37,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
       on:click={(e) => {
         e.preventDefault();
         expanded = true;
-        metrics.count("limited-list.expand", 1, { count: items.length });
+        metrics.count("ui.list.expand", 1, { count: items.length });
       }}
       >{t("See all {n}...", {
         n: Number(items.length).toLocaleString(),

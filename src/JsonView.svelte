@@ -13,7 +13,7 @@ let expanded = false;
 function toggle() {
   expanded = !expanded;
   if (expanded) {
-    metrics.count("json.view_opened", 1, { type: obj.type, id: obj.id });
+    metrics.count("ui.json_view.open", 1, { type: obj.type, id: obj.id });
   }
 }
 

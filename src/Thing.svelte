@@ -44,7 +44,7 @@ let error: Error | null = null;
 
 function onError(e: Error) {
   error = e;
-  metrics.count("error_boundary.catch", 1, { type: item.type, id: item.id });
+  metrics.count("app.error.catch", 1, { type: item.type, id: item.id });
   Sentry.captureException(e, {
     contexts: {
       item: {
@@ -66,10 +66,14 @@ function defaultItem(id: string, type: string) {
 const renderStart = nowTimeStamp();
 
 onMount(() => {
-  metrics.distribution("render.item_latency", nowTimeStamp() - renderStart, {
-    unit: "millisecond",
-    type: item.type,
-  });
+  metrics.distribution(
+    "ui.item.render_duration_ms",
+    nowTimeStamp() - renderStart,
+    {
+      unit: "millisecond",
+      type: item.type,
+    },
+  );
 });
 
 let obj =

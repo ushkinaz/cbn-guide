@@ -55,13 +55,20 @@ Do not create new metric names for every screen or button. Use attributes to dis
 
 ```typescript
 // Good
-metrics.incr("ui.button.click", 1, { widget_id: "settings_save" });
-metrics.incr("ui.button.click", 1, { widget_id: "profile_save" });
+metrics.count("ui.button.click", 1, { widget_id: "settings_save" });
+metrics.count("ui.button.click", 1, { widget_id: "profile_save" });
 
 // Bad
-metrics.incr("ui.settings.save_button.click");
-metrics.incr("ui.profile.save_button.click");
+metrics.count("ui.settings.save_button.click");
+metrics.count("ui.profile.save_button.click");
 ```
+
+### ✅ Fact vs. Wish
+
+Distinguish between the user *requesting* an action (UI interaction) and the system *completing* it (Application state change).
+
+- `ui.version.change`: User clicked the dropdown to switch versions (The "Wish").
+- `app.version.change`: The version actually switched successfully (The "Fact").
 
 ### ✅ Logical > UI Centric
 

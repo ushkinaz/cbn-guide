@@ -51,7 +51,7 @@ let scrollY = 0;
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
-  metrics.count("scroll_to_top.use");
+  metrics.count("ui.scroll_to_top.click");
 }
 
 let item: { type: string; id: string } | null = null;
@@ -119,9 +119,13 @@ initializeRouting()
         isBranchAlias ? requestedVersion : undefined,
       )
       .then(() => {
-        metrics.distribution("data.load_time", nowTimeStamp() - appStart, {
-          unit: "millisecond",
-        });
+        metrics.distribution(
+          "data.load.duration_ms",
+          nowTimeStamp() - appStart,
+          {
+            unit: "millisecond",
+          },
+        );
       })
       .finally(() => {
         p.finish();
@@ -290,7 +294,10 @@ function handleNavigation(event: MouseEvent) {
   const target = event.target as HTMLElement;
   const link = target.closest("a");
   if (link && link.hostname !== window.location.hostname) {
-    metrics.count("external_link.click", 1, { domain: link.hostname });
+    metrics.count("ui.link.click", 1, {
+      domain: link.hostname,
+      type: "external",
+    });
   }
 
   // Just call handleInternalNavigation; page store updates automatically
@@ -543,7 +550,7 @@ $: canonicalUrl = buildUrl(
             value={requestedVersion}
             on:change={(e) => {
               const v = e.currentTarget.value;
-              metrics.count("version.change", 1, { v });
+              metrics.count("ui.version.change", 1, { v });
               changeVersion(v);
             }}>
             <optgroup label={t("Branch")}>
@@ -582,7 +589,7 @@ $: canonicalUrl = buildUrl(
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
           updateQueryParamNoReload("t", tileset);
-          metrics.count("tileset.change", 1, { tileset });
+          metrics.count("ui.tileset.change", 1, { tileset });
         }}>
         {#each TILESETS as { name, displayName }}
           <option value={name}>{displayName}</option>

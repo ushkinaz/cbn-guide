@@ -72,7 +72,7 @@ let showData = isTesting;
     <button
       on:click={() => {
         showData = true;
-        metrics.count("loot_table.load", 1, { type, heading });
+        metrics.count("data.loot_table.load", 1, { type, heading });
       }}
       class="disclosure">
       {t("Load {heading}...", { heading })}

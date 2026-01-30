@@ -16,23 +16,31 @@ Metrics should answer **product questions**, not measure every function call:
 - **User experience**: Network overhead, especially on slow connections
 - **Maintenance**: More metrics = more noise in dashboards
 
+## Naming Convention
+
+We use a strict **Controlled Vocabulary** for metric names to ensure discoverability and consistency.
+
+👉 **See [docs/metrics_naming.md](./metrics_naming.md) for the full naming specification.**
+
+Key format: `<domain>.<subject>.<action>[.unit]`
+
+- `ui.button.click` (not `clicked_button`)
+- `search.query.duration_ms` (not `searchTime`)
+- `app.version.change` (not `version_switch`)
+
 ## API
 
 ```typescript
 import { metrics } from "./metrics";
 
-// Counters: accumulate locally, report total to Sentry
-metrics.incr("feature.usage"); // +1
-metrics.incr("errors", 1, { type: "network" }); // +1 with tag
+// Events: discrete occurrences (Sentry aggregates sum)
+metrics.count("app.version.change", 1, { from: "stable", to: "nightly" });
 
-// Events: one-time occurrences (Sentry aggregates)
-metrics.count("version.switch", 1, { from: "stable", to: "nightly" });
-
-// Gauges: current state snapshot
-metrics.gauge("data.resolved_version", buildNumber);
+// Gauges: current state snapshot (Sentry averages/max/last)
+metrics.gauge("data.version", buildNumber);
 
 // Distributions: statistical analysis (mean, p95, etc.)
-metrics.distribution("search.time", durationMs, { unit: "millisecond" });
+metrics.distribution("search.query.duration_ms", durationMs);
 ```
 
 **Auto-included attributes (for Sentry grouping):**
@@ -41,23 +49,17 @@ metrics.distribution("search.time", durationMs, { unit: "millisecond" });
 - `item_type`, `item_id` - Included when viewing an item
 - `search` - Included when on search page
 
-**Important:**
-
-- These tags appear in Sentry for grouping/filtering, but do NOT split counters
-- Counter keys use only user-provided attributes
-- Each unique **user attribute** combination creates a separate counter
-
 ## Good vs Bad Metrics
 
 ### ✅ Good: Product improvement signals
 
 ```typescript
 // Answer: "Do users switch versions?"
-metrics.incr("version.switch", 1, { from, to });
+metrics.count("app.version.change", 1, { from, to });
 
 // Answer: "What % of searches find nothing?"
 if (results.length === 0) {
-  metrics.count("search.no_results");
+  metrics.count("search.query.empty");
 }
 
 // Answer: "Which data version are users on?"
@@ -69,71 +71,53 @@ metrics.gauge("data.version", buildNumber);
 ```typescript
 // ❌ Performance micro-optimization (use local benchmarks instead)
 metrics.distribution("array.sort.time", duration);
-metrics.distribution("lodash.debounce.time", duration);
 
 // ❌ High-cardinality attributes (explosion of metric permutations)
-metrics.incr("search", 1, { query: text }); // Creates metric per unique query!
+metrics.count("search", 1, { query: text }); // Creates generic metric, but query tag explodes!
 
 // ❌ Obvious/useless data
-metrics.incr("page.load"); // We already have analytics for this
+metrics.count("page.load"); // We already have analytics for this
 metrics.gauge("locale", locale); // Auto-included in all metrics
 
 // ❌ Logging, not metrics
-metrics.incr("debug.log"); // Use console.log or Sentry.captureMessage
+metrics.count("debug.log"); // Use console.log or Sentry.captureMessage
 ```
 
 ## Common Pitfalls
 
 **1. High-cardinality user attributes**
 
-Counter keys use **only user-provided attributes**. Common attributes (version, locale, tileset) are added to Sentry as tags for grouping, but don't split counters.
-
 ```typescript
-// ✅ GOOD: Counter accumulates correctly
-metrics.incr("search.clicked"); // version=stable → counter = 1
-// User switches version
-metrics.incr("search.clicked"); // version=nightly → counter = 2
-
-// Sentry receives:
-// - Total value: 2
-// - Tags: {version: "nightly", locale: "en", tileset: "default"}
-// - You can group by version in Sentry if needed
-
-// ❌ BAD: High-cardinality USER attributes
-metrics.incr("search", 1, { query: "fire axe" });
-metrics.incr("search", 1, { query: "knife" });
-// Creates separate counters: "search|query=fire axe" and "search|query=knife"
-// Result: Thousands of separate counters, explosion of metric permutations
-
 // ✅ GOOD: Low-cardinality aggregation
-metrics.distribution("search.query_length", query.length);
-// Single metric, distribution of values
+metrics.distribution("search.query.length", query.length);
+// or specific buckets:
+metrics.count("search.query.submit", 1, { type: "exact_match" });
 ```
 
-**2. Confusing counters with events**
+**2. Confusing text counts with numeric metrics**
+
+Metrics must be numbers.
 
 ```typescript
-// ❌ BAD: Using incr() for one-time events
-onClick(() => metrics.incr("button.click"));
-// Problem: Counter accumulates forever, unclear what total means
+// ❌ BAD
+metrics.gauge("current_page", "home"); // Error: value must be number
 
-// ✅ GOOD: Use count() for discrete events
-onClick(() => metrics.count("button.click"));
+// ✅ GOOD
+metrics.count("nav.route.change", 1, { view: "home" });
 ```
 
 **3. Measuring what you can derive**
 
 ```typescript
 // ❌ BAD: Redundant metrics
-metrics.incr("search.total");
-metrics.incr("search.success");
-metrics.incr("search.failure");
-// Problem: search.total = success + failure (waste of bandwidth)
+metrics.count("search.total");
+metrics.count("search.success");
+metrics.count("search.failure");
+// Problem: three calls per search
 
-// ✅ GOOD: Measure the interesting signal
-if (results.length === 0) {
-  metrics.count("search.no_results", 1, { query_length: query.length });
-}
+// ✅ GOOD: Measure the result
+const result = performSearch();
+metrics.count("search.result", 1, { success: result.ok });
 ```
 
 **4. Over-instrumenting performance**
@@ -148,7 +132,7 @@ metrics.distribution("something.time", performance.now() - t1);
 // ✅ GOOD: Measure user-visible performance only
 const t1 = performance.now();
 await loadInitialData();
-metrics.distribution("app.load_time", performance.now() - t1);
+metrics.distribution("app.init.duration_ms", performance.now() - t1);
 ```
 
 ## Testing
@@ -160,7 +144,7 @@ beforeEach(() => metrics.resetCounters());
 
 test("tracks feature usage", () => {
   useFeature();
-  expect(metrics.getCounter("feature.usage")).toBe(1);
+  expect(metrics.getCounter("feature.calculator.use")).toBe(1);
 });
 ```
 

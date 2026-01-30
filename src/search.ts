@@ -90,9 +90,13 @@ export function buildSearchIndex(data: CBNData): SearchTarget[] {
         type: mapType(x.type),
       },
     ]);
-  metrics.distribution("search.index_calc_time", nowTimeStamp() - start, {
-    unit: "millisecond",
-  });
+  metrics.distribution(
+    "search.index.calc_duration_ms",
+    nowTimeStamp() - start,
+    {
+      unit: "millisecond",
+    },
+  );
   return targets;
 }
 
@@ -107,11 +111,11 @@ export function performSearch(
     keys: ["id", "name"],
     threshold: -10000,
   });
-  metrics.distribution("search.execution_time", nowTimeStamp() - start, {
+  metrics.distribution("search.query.duration_ms", nowTimeStamp() - start, {
     unit: "millisecond",
   });
   if (results.length === 0) {
-    metrics.count("search.no_results", 1, { query: text });
+    metrics.count("search.query.empty", 1, { query: text });
   }
   const byType = new Map<string, SearchResult[]>();
   for (const { obj: item } of results) {

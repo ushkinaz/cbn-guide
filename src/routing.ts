@@ -383,7 +383,7 @@ export function changeVersion(newVersion: string): void {
   }
 
   const newPath = getBaseUrl() + segments.join("/");
-  metrics.count("version.switch", 1, {
+  metrics.count("app.version.change", 1, {
     from: getCurrentVersionSlug(),
     to: newVersion,
   });
@@ -635,7 +635,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
     };
   }
 
-  metrics.distribution("routing.init_time", nowTimeStamp() - start, {
+  metrics.distribution("nav.init.duration_ms", nowTimeStamp() - start, {
     unit: "millisecond",
   });
 

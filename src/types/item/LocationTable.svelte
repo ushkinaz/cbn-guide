@@ -83,7 +83,7 @@ function filterLocations(
     <button
       on:click={() => {
         showData = true;
-        metrics.count("obtaining_table.load", 1, { id, heading });
+        metrics.count("data.obtaining_table.load", 1, { id, heading });
       }}
       class="disclosure">
       {t("Load {heading}...", { heading })}
