@@ -13,4 +13,4 @@ const data = getContext<CBNData>("data");
 <LocationTable
   id={item_id}
   loots={() => lootByOMSAppearance(data)}
-  heading={t("Loot", { _context: "Obtaining" })} />
+  heading={t("Found In", { _context: "Obtaining" })} />

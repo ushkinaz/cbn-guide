@@ -1,15 +1,14 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CBNData, omsName } from "../../data";
-import { getVersionedBasePath } from "../../routing";
+import { CBNData } from "../../data";
 import type { ItemChance, Loot } from "./spawnLocations";
 import { formatFixed2, formatPercent } from "../../utils/format";
 import type { OvermapSpecial } from "../../types";
-import OvermapAppearance from "./OvermapAppearance.svelte";
 import { t } from "../../i18n";
 import LimitedTableList from "../../LimitedTableList.svelte";
 import { isTesting } from "../../utils/env";
 import { metrics } from "../../metrics";
+import ItemLink from "../ItemLink.svelte";
 
 export let id: string;
 export let loots:
@@ -60,25 +59,15 @@ function filterLocations(
       <section>
         <LimitedTableList items={spawnLocations}>
           <tr slot="header">
-            <th colspan="2"><h1>{heading}</h1></th>
+            <th><h1>{heading}</h1></th>
             <th style="text-align: right; padding-left: 1em;"
               ><h1>{t("Avg. Count", { _context: "Obtaining" })}</h1></th>
             <th style="text-align: right; padding-left: 1em;"
               ><h1>{t("Chance", { _context: "Obtaining" })}</h1></th>
           </tr>
           <tr class="middle" slot="item" let:item={loc}>
-            <td
-              style="text-align: center; width: 0; padding-left: 0.5em; padding-right: 0.5em;">
-              <OvermapAppearance overmapSpecial={loc.overmap_special} />
-            </td>
             <td>
-              <a
-                href="{getVersionedBasePath()}overmap_special/{loc
-                  .ids[0]}{location.search}"
-                >{omsName(data, loc.overmap_special)}</a>
-              {#if loc.ids.length > 1}
-                {t("({n} variants)", { n: loc.ids.length })}
-              {/if}
+              <ItemLink type="overmap_special" id={loc.ids[0]} />
             </td>
             <td style="text-align: right; padding-left: 1em;"
               >{formatFixed2(loc.chance.expected)}</td>

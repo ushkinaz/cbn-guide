@@ -3,6 +3,7 @@ import { getContext } from "svelte";
 import {
   CBNData,
   countsByCharges,
+  omsName,
   pluralName,
   singular,
   singularName,
@@ -42,10 +43,15 @@ function countIsPlural(count: number | [number, number]): boolean {
   return true;
 }
 
+/**
+ * Generates display text for an item link.
+ * Special handling for addiction_type (uses type_name) and overmap_special (uses omsName).
+ */
 function linkText(item: any, plural: boolean): string {
   if (overrideText) return overrideText;
   if (item) {
     if (item.type === "addiction_type") return singular(item.type_name);
+    if (item.type === "overmap_special") return omsName(data, item);
     return (plural ? pluralName : singularName)(item);
   }
   return id;
@@ -70,7 +76,12 @@ $: {
     linkItem = data.byId("item", linkItem.item);
 }
 
-$: iconItem = isSymbolItem(item) ? item : null;
+// For overmap_special, use the roadmap item's icon instead of the overmap_special's own symbol
+$: iconItem = isSymbolItem(item)
+  ? type === "overmap_special"
+    ? data.byIdMaybe("item", "roadmap")
+    : item
+  : null;
 // Use $page.url to trigger updates when the URL changes
 $: href = `${getVersionedBasePath()}${type}/${id}${
   $page.url.search || location.search

@@ -1,13 +1,10 @@
 <script lang="ts">
-import { type CBNData, loadProgress, mapType, omsName } from "./data";
-import { getVersionedBasePath } from "./routing";
+import { type CBNData, loadProgress, mapType, plural } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial } from "./types";
 import { setContext } from "svelte";
 import { t } from "./i18n";
 import LimitedList from "./LimitedList.svelte";
-import LimitedTableList from "./LimitedTableList.svelte";
-import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
 import {
   getOMSByAppearance,
   overmapAppearance,
@@ -45,27 +42,16 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   {#each matchingObjectsList as [type, results]}
     {#if type === "overmap_special"}
       {@const grouped = groupByAppearance(results)}
-      <h1>location</h1>
-      <LimitedTableList items={grouped} limit={50}>
-        <tr slot="item" let:item={result}>
-          <td style="text-align: center; padding-left: 2.5em;">
-            <OvermapAppearance overmapSpecial={result[0]} />
-          </td>
-          <td style="vertical-align: middle; padding-left: 5px;">
-            <a
-              href="{getVersionedBasePath()}overmap_special/{result[0]
-                .id}{location.search}">{omsName(data, result[0])}</a
-            >{#if result.length > 1}{" "}({result.length} variants){/if}
-          </td>
-        </tr>
-      </LimitedTableList>
+      <h1 class="capitalize">{t("Locations")}</h1>
+      <LimitedList items={grouped} let:item={result} limit={25}>
+        <ItemLink type="overmap_special" id={result[0].id} />
+      </LimitedList>
     {:else}
-      <h1>{type.replace(/_/g, " ")}</h1>
-      <LimitedList items={results} let:item={result} limit={50}>
-        {@const item = data._flatten(result.item)}
+      <h1 class="capitalize">{t(plural(type.replace(/_/g, " ")))}</h1>
+      <LimitedList items={results} let:item={result} limit={25}>
         <ItemLink type={mapType(result.item.type)} id={result.item.id} />
         {#if /obsolet/.test(result.item.__filename ?? "")}
-          <em style="color: var(--cata-color-gray)"
+          <em class="obsolete"
             >({t("obsolete", { _context: "Search Results" })})</em>
         {/if}
       </LimitedList>
@@ -86,3 +72,9 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
       1024
     ).toFixed(1)} MB</pre>
 {/if}
+
+<style>
+.obsolete {
+  color: var(--cata-color-gray);
+}
+</style>
