@@ -35,6 +35,7 @@ import ItemAction from "./types/ItemAction.svelte";
 import Technique from "./types/Technique.svelte";
 import { metrics } from "./metrics";
 import { nowTimeStamp } from "./utils/perf";
+import { isTesting } from "./utils/env";
 
 export let item: { id: string; type: string };
 
@@ -146,8 +147,7 @@ const display = (obj && displays[obj.type]) ?? Unknown;
         <pre>{error.stack}</pre>
       </details>
     </section>
-  {:else if typeof globalThis !== "undefined" && globalThis.process}
-    <!-- running in tests -->
+  {:else if isTesting}
     <svelte:component this={display} item={obj} />
   {:else}
     <ErrorBoundary {onError}>

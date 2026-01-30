@@ -84,8 +84,9 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
 <style>
 .obsolete {
   color: var(--cata-color-gray);
-  font-variant: normal;
+  font-family: UnifontSubset, monospace;
 }
+
 .searching-state {
   animation: pulse 1.5s infinite;
   color: var(--cata-color-gray);
