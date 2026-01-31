@@ -18,7 +18,6 @@ export function stripColorTags(value: string): string {
 export function cleanText(value: string): string {
   return value
     .replace(COLOR_TAG_REGEX, "")
-    .replace(/\r?\n/g, " ")
     .replace(WHITESPACE_REGEX, " ")
     .trim();
 }
