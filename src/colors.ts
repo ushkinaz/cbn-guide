@@ -1,5 +1,8 @@
 // jerry rigged from various cdda sources
 
+// Terminal color palette indices (0-7) from the curses/ncurses color system.
+// These are abstract references used to build color pairs, not RGB values.
+// The actual RGB values for CSS generation are defined in scripts/gen-css.ts.
 const black = 0x00; // RGB{0; 0; 0}
 const red = 0x01; // RGB{196; 0; 0}
 const green = 0x02; // RGB{0; 196; 0}
@@ -120,6 +123,13 @@ function color_pair(i: number) {
   };
 }
 
+/**
+ * Resolves a color name to its foreground/background indices and inverse color name.
+ * Automatically adds "c_" prefix if missing and defaults to "c_white" for empty names.
+ *
+ * @param name - Color name (e.g., "c_red", "red", or "")
+ * @returns Color definition with fg/bg indices and inverse color name
+ */
 export function colorForName(name: string): {
   fg: number;
   bg: number;
@@ -129,8 +139,14 @@ export function colorForName(name: string): {
   if (name[1] != "_") return colorForName("c_" + name);
   return all_colors[name];
 }
-const all_colors: Record<string, { fg: number; bg: number; inverse: string }> =
-  {};
+/**
+ * Complete mapping of color names to their terminal color pair definitions.
+ * Used by both runtime code (ItemSymbol.svelte) and build scripts (gen-css.ts).
+ */
+export const all_colors: Record<
+  string,
+  { fg: number; bg: number; inverse: string }
+> = {};
 
 function add_color(
   _def: string,
