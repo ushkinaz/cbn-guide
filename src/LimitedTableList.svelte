@@ -26,7 +26,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
 </script>
 
 <div class="table-container">
-  <table>
+  <table class="data-table">
     <slot name="header" />
     <tbody>
       {#each items.slice(0, realLimit) as item}

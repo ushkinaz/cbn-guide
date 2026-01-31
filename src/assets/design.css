@@ -214,14 +214,69 @@ section > *:first-child {
   margin-top: 0;
 }
 section h1 {
-  color: var(--cata-color-dark_gray);
+  /* 1. VISUALS: High contrast, Tech feel */
+  color: var(--cata-color-white);
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 1rem;
-  margin: 0;
+
+  /* 2. LAYOUT: Flexbox guarantees vertical centering */
+  display: flex;
+  align-items: center; /* This locks the text to the vertical center */
+  height: 24px; /* Explicit height for the "bar" */
+
+  /* 3. THE FLAG: Only the left accent remains */
+  border-left: 2px solid var(--cata-color-cyan);
+  border-bottom: none; /* Removed */
+
+  /* 4. SPACING */
+  margin: 0 0 12px 0; /* Spacing below the header */
+  padding-left: 10px; /* Air gap between bar and text */
+  padding-top: 1px; /* Optical correction: Caps often look low without a 1px nudge */
+  line-height: 1; /* Crucial: prevents font leading from ruining alignment */
 }
 
 h1:first-child {
   margin-top: 0;
+}
+
+/* The Container */
+.data-table {
+  width: 100%;
+  border-collapse: collapse; /* Crucial for alignment */
+}
+
+/* The Headers (Fixes your margin issue) */
+.data-table th {
+  text-align: left;
+  padding: 0 0 8px 1em; /* Space below header */
+
+  /* Typography Reset */
+  color: var(--cata-color-gray);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* The Cells */
+.data-table td {
+  padding: 4px 0 4px 1em; /* Vertical breathing room */
+  vertical-align: middle;
+  color: var(--cata-color-white); /* Default text color */
+}
+
+/* First column alignment (Remove left padding) */
+.data-table th:first-child,
+.data-table td:first-child {
+  padding-left: 0;
+}
+
+/* Numeric Columns */
+.data-table .numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums; /* Monospace numbers */
 }
 
 .capitalize {

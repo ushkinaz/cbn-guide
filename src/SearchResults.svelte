@@ -44,12 +44,12 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
     <section>
       {#if type === "overmap_special"}
         {@const grouped = groupByAppearance(results)}
-        <h1 class="capitalize">{t("Locations")}</h1>
+        <h1>{t("Locations")}</h1>
         <LimitedList items={grouped} let:item={result} limit={25}>
           <ItemLink type="overmap_special" id={result[0].id} />
         </LimitedList>
       {:else}
-        <h1 class="capitalize">{t(plural(type.replace(/_/g, " ")))}</h1>
+        <h1>{t(plural(type.replace(/_/g, " ")))}</h1>
         <LimitedList items={results} let:item={result} limit={25}>
           <ItemLink type={mapType(result.item.type)} id={result.item.id} />
         </LimitedList>

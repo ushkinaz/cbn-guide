@@ -48,7 +48,7 @@ function filterLocations(
 {#if showData}
   {#await Promise.resolve(typeof loots === "function" ? loots() : loots)}
     <section>
-      <h1>{heading}</h1>
+      {heading}
       <p style="color: var(--cata-color-gray)" data-testid="loading-indicator">
         <em>{t("Loading...")}</em>
       </p>
@@ -59,11 +59,11 @@ function filterLocations(
       <section>
         <LimitedTableList items={spawnLocations}>
           <tr slot="header">
-            <th><h1>{heading}</h1></th>
+            <th>{heading}</th>
             <th style="text-align: right; padding-left: 1em;"
-              ><h1>{t("Avg. Count", { _context: "Obtaining" })}</h1></th>
+              >{t("Avg. Count", { _context: "Obtaining" })}</th>
             <th style="text-align: right; padding-left: 1em;"
-              ><h1>{t("Chance", { _context: "Obtaining" })}</h1></th>
+              >{t("Chance", { _context: "Obtaining" })}</th>
           </tr>
           <tr class="middle" slot="item" let:item={loc}>
             <td>

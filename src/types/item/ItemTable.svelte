@@ -38,23 +38,21 @@ let showData = isTesting;
       <section>
         <LimitedTableList items={sortedLoot}>
           <tr slot="header">
-            <th><h1>{heading}</h1></th>
-            <th class="numeric"
-              ><h1>
-                {t("Avg. Count", {
-                  _context: "Loot Table",
-                  _comment:
-                    "Column heading in a table: average number of an item found in a location/vehicle, dropped by a monster, etc.",
-                })}
-              </h1></th>
-            <th class="numeric"
-              ><h1>
-                {t("Chance", {
-                  _context: "Loot Table",
-                  _comment:
-                    "Column heading in a table: chance that at least one of an item is found in a location/vehicle, dropped by a monster, etc.",
-                })}
-              </h1></th>
+            <th>{heading}</th>
+            <th class="numeric">
+              {t("Avg. Count", {
+                _context: "Loot Table",
+                _comment:
+                  "Column heading in a table: average number of an item found in a location/vehicle, dropped by a monster, etc.",
+              })}
+            </th>
+            <th class="numeric">
+              {t("Chance", {
+                _context: "Loot Table",
+                _comment:
+                  "Column heading in a table: chance that at least one of an item is found in a location/vehicle, dropped by a monster, etc.",
+              })}
+            </th>
           </tr>
           <tr slot="item" let:item={[item_id, chance]}>
             <td style="padding-left: 5px;">
@@ -83,8 +81,7 @@ let showData = isTesting;
 <style>
 th,
 td {
-  padding: 0;
-  padding-left: 1em;
+  padding: 0 0 0 1em;
   white-space: nowrap;
 }
 th:first-child,
