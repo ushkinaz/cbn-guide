@@ -16,10 +16,15 @@ const unlocks = data
   .filter(
     (x) => x.id !== item.id && [x.hidden_by ?? []].flat().includes(item.id),
   );
+
+//Some achievements are hidden by themselves
+const hiddenBy = item.hidden_by
+  ? [item.hidden_by].flat().filter((x) => x !== item.id)
+  : [];
 </script>
 
 <h1>
-  "Achievement": {singularName(item)}
+  Achievement: {singularName(item)}
 </h1>
 
 <section>
@@ -27,11 +32,12 @@ const unlocks = data
     <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
   {/if}
   <dl>
-    {#if item.hidden_by}
+    {#if hiddenBy && hiddenBy.length > 0}
       <dt>{t("Hidden By", { _context })}</dt>
       <dd>
         <ul class="comma-separated and">
-          {#each [item.hidden_by].flat() as id}
+          {#each hiddenBy as id}
+            {id}
             <li><ItemLink type={item.type} {id} showIcon={false} /></li>
           {/each}
         </ul>
