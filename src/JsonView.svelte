@@ -73,6 +73,10 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
   margin: 0;
 }
 
+.toggle-button:hover {
+  color: var(--cata-color-white);
+}
+
 .toggle-button .icon {
   width: 1.25rem;
   text-align: right;
@@ -87,13 +91,12 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
 }
 
 .action-link {
-  color: var(--cata-color-gray);
+  /*color: var(--cata-color-gray);*/
   text-decoration: none;
 }
 
 .action-link:hover {
-  color: var(--cata-color-white);
-  text-decoration: underline;
+  /*color: var(--cata-color-white);*/
 }
 
 .json-content {

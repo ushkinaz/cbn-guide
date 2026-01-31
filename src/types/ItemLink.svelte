@@ -132,19 +132,8 @@ $: href = `${getVersionedBasePath()}${type}/${id}${
   min-width: 0;
 }
 
-a.item-link:hover,
-a.item-link:focus-visible {
-  text-decoration: none;
-}
-
 .item-link__text {
-  text-decoration: none;
   min-width: 0;
   word-break: break-word;
-}
-
-a.item-link:hover .item-link__text,
-a.item-link:focus-visible .item-link__text {
-  text-decoration: underline;
 }
 </style>

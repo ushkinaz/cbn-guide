@@ -950,22 +950,6 @@ footer .link .icon {
   display: block;
 }
 
-footer #credits {
-  font-size: 0.6em;
-  color: var(--cata-color-dark_gray);
-  margin: 1rem auto 0;
-  text-align: center;
-}
-
-footer #credits a {
-  text-decoration: none;
-  color: var(--cata-color-gray);
-}
-
-footer #credits a:hover {
-  text-decoration: underline;
-}
-
 .data-options {
   display: flex;
   flex-wrap: wrap;
