@@ -489,6 +489,7 @@ $: canonicalUrl = buildUrl(
         <a
           slot="1"
           href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+          target="_blank"
           style="text-wrap: nowrap">Cataclysm: Bright Nights</a>
       </InterpolatedTranslation>
     </p>
