@@ -155,15 +155,26 @@ dd ul:not(.comma-separated, .no-bullets) {
 button.disclosure {
 	background: none;
 	border: none;
-	padding: 0;
 	margin: 0;
-	font-family: inherit;
-	color: hsl(185deg, 45%, 45%);
+	display: block;
+	width: 100%;
+	text-align: left;
+	background: transparent;
 	cursor: pointer;
+	padding: 8px 0;
+
+	color: hsl(185deg, 45%, 45%);
+	font-family: inherit;
+	font-size: 0.8rem;
+	text-transform: uppercase;
+	letter-spacing: 1px;
 }
+
 button.disclosure:hover {
-	text-decoration: underline;
+	color: hsl(185deg, 45%, 55%);
+	text-decoration: none;
 }
+
 button.disclosure:active {
 	background: none;
 }

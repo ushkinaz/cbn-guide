@@ -30,6 +30,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
     <li><slot {item} /></li>
   {/each}
 </ul>
+
 {#if items.length > initialLimit}
   <button
     class="disclosure"
@@ -42,8 +43,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
       }
     }}>
     {expanded
-      ? t("Show less")
-      : t("See all {n}...", {
-          n: Number(items.length).toLocaleString(),
-        })}
-  </button>{/if}
+      ? `[-] ${t("Show less")}`
+      : `[...] ${t("SEE ALL {n} ENTRIES", { n: items.length.toLocaleString() })}`}
+  </button>
+{/if}
