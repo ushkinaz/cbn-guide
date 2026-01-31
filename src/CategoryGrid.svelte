@@ -45,7 +45,7 @@ const categories = [
     icon: furnitureIcon,
   },
   {
-    label: "Terrains",
+    label: "Terrain",
     href: "terrain",
     icon: terrainIcon,
   },
@@ -92,11 +92,11 @@ const randomizableItemTypes = new Set([
   "furniture",
   // "terrain",
   "vehicle_part",
-  // "tool_quality",
-  // "mutation",
+  "tool_quality",
+  "mutation",
   // "martial_art",
   // "json_flag",
-  // "achievement",
+  "achievement",
 ]);
 
 async function getRandomPage() {
@@ -239,10 +239,12 @@ newRandomPage();
   line-height: 1.2;
 
   /* Section Header Styling */
-  color: #ccc;
+  color: var(--cata-color-white);
   text-transform: uppercase;
   font-size: 1rem;
   font-weight: bold;
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
   margin: 0;
   overflow: hidden;
 }
