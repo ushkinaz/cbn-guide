@@ -2,8 +2,7 @@
 /.agent/
 /dist/
 /dev-dist/
-/scripts/gen-css.ts
-/public/global.css
+/public/game-palette.css
 /schema.json
 /tmp/
 /bench-results

@@ -6,7 +6,7 @@
  *
  * @usage
  * ```bash
- * npx tsx scripts/gen-css.ts > src/cata-colors.css
+ * npx tsx scripts/gen-css.ts > public/game-palette.css
  * ```
  */
 
@@ -20,7 +20,6 @@ const blue = 0x04; // RGB{0; 0; 196}
 const magenta = 0x05; // RGB{196; 0; 180}
 const cyan = 0x06; // RGB{0; 170; 200}
 const white = 0x07; // RGB{196; 196; 196}
-
 const color_pairs: Record<number, [number, number]> = {};
 
 const init_pair = (num: number, fg: number, bg: number) => {
@@ -145,6 +144,7 @@ function color_pair(i: number): ColorPair {
 
 const all_colors: Record<string, { fg: number; bg: number; inverse: string }> =
   {};
+
 function add_color(
   def: string,
   name: string,

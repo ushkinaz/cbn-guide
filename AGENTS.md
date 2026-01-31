@@ -12,7 +12,7 @@
 - pnpm: 10.x (see `packageManager` in package.json)
 - Core: `TypeScript` 5, `Svelte` 4 + `Vite` 5.
 - Testing: `vitest`, `puppeteer`.
-- Styling: Scoped CSS, custom design tokens in `global.css`.
+- Styling: Scoped CSS, custom design tokens in `public/game-palette.css` and `src/assets/design.css`.
 - Python: 3.x for auxiliary scripts.
 
 ## Project Structure
@@ -118,7 +118,7 @@ Main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#
 ### Colors (.agent/rules/colors.md)
 
 - Game Colors: `--cata-color-*` (from game data) - ONLY for game entities
-- App UI Colors: Hex/HSL from `global.css` - ONLY for buttons, nav, text
+- App UI Colors: Hex/HSL from `src/assets/design.css` - ONLY for buttons, nav, text
 - NEVER mix them
 
 ### Localization (.agent/rules/localization.md)

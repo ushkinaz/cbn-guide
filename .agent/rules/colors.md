@@ -4,5 +4,5 @@ description: Apply when modifying styles or UI components to ensure Game (--cata
 ---
 
 - **Game Colors**: Use `--cata-color-*` (from game data). ONLY for game entities.
-- **App UI Colors**: Use Hex/HSL from `global.css`. ONLY for buttons, nav, text.
+- **App UI Colors**: Use Hex/HSL from `design.css`. ONLY for buttons, nav, text.
 - **NEVER** mix them.

@@ -288,7 +288,7 @@ flowchart LR
     subgraph Output["Build Output"]
         AllJSON[all.json per version]
         BuildsJSON[builds.json]
-        ColorsCSS[colors.css]
+        ColorsCSS[game-palette.css]
         Sitemap[sitemap.xml]
         Sprites[Tile sprites]
     end
@@ -369,7 +369,7 @@ cbn-guide/
 │   │   └── ...             # 30+ type views
 │   └── assets/             # Static assets
 ├── public/
-│   ├── global.css          # Global styles
+│   ├── game-palette.css    # Game color palette
 │   ├── _headers            # Cloudflare headers config
 │   ├── _redirects          # Cloudflare redirects
 │   └── ...

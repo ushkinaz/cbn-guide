@@ -110,7 +110,7 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 - `pnpm fetch:fixtures:nightly`: Download nightly test data fixtures.
 - `pnpm fetch:builds`: Download build metadata for versions.
 - `pnpm fetch:icons`: Download item icons.
-- `pnpm gen:css`: Generate `colors.css` from game data.
+- `pnpm gen:css`: Generate `game-palette.css` from game data.
 - `pnpm gen:sitemap`: Generate `sitemap.xml`.
 - `pnpm gen:unifont`: Generate a subset of Unifont for the specific game data.
 - `pnpm gen:unifont:verify`: CI check to ensure font subset covers current data.
