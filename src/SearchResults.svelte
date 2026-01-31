@@ -52,10 +52,6 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
         <h1 class="capitalize">{t(plural(type.replace(/_/g, " ")))}</h1>
         <LimitedList items={results} let:item={result} limit={25}>
           <ItemLink type={mapType(result.item.type)} id={result.item.id} />
-          {#if /obsolet/.test(result.item.__filename ?? "")}
-            <abbr class="obsolete"
-              >{t("†", { _context: "Search Results" })}</abbr>
-          {/if}
         </LimitedList>
       {/if}
     </section>
@@ -82,11 +78,6 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
 {/if}
 
 <style>
-.obsolete {
-  color: var(--cata-color-gray);
-  font-family: UnifontSubset, monospace;
-}
-
 .searching-state {
   animation: pulse 1.5s infinite;
   color: var(--cata-color-gray);

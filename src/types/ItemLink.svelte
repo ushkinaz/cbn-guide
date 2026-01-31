@@ -12,6 +12,7 @@ import { getVersionedBasePath, page } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
+import { t } from "../i18n";
 
 type ItemSymbolItem = {
   id: string;
@@ -108,6 +109,9 @@ $: href = `${getVersionedBasePath()}${type}/${id}${
       </span>
     {/if}
   </svelte:element>
+  {#if /obsolet/.test(item?.__filename ?? "")}
+    <abbr class="obsolete">{t("†")}</abbr>
+  {/if}
   {#if count != null}
     <span class="item-link__count">
       {#if !countsByCharges(linkItem)}
@@ -123,6 +127,11 @@ $: href = `${getVersionedBasePath()}${type}/${id}${
 </span>
 
 <style>
+.obsolete {
+  color: var(--cata-color-gray);
+  font-family: UnifontSubset, monospace;
+}
+
 .item-link {
   display: inline-flex;
   align-items: center;
