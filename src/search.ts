@@ -35,6 +35,8 @@ export type SearchResult = {
   } & { __filename?: string };
 };
 
+const OVERMAP_DIRECTION_SUFFIX = /_(north|south|east|west)$/;
+
 export function searchableName(data: CBNData, item: SupportedTypeMapped) {
   if (item.type === "overmap_special" || item.type === "city_building") {
     const flat = data._flatten(item);
@@ -45,7 +47,7 @@ export function searchableName(data: CBNData, item: SupportedTypeMapped) {
           ?.filter((omEntry) => omEntry.overmap)
           .map((omEntry) => {
             const normalizedId = omEntry.overmap!.replace(
-              /_(north|south|east|west)$/,
+              OVERMAP_DIRECTION_SUFFIX,
               "",
             );
             const om = data.byIdMaybe("overmap_terrain", normalizedId);
