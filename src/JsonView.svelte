@@ -29,7 +29,7 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
 
     <div class="actions">
       {#if obj.__filename}
-        <a href={githubUrl} target="_blank" class="action-link"
+        <a href={githubUrl} target="_blank" class="github-link"
           >{t("GitHub", { _context })}</a>
       {/if}
     </div>
@@ -50,69 +50,58 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
 .json-view {
   margin-top: 1rem;
   margin-bottom: 1rem;
-  overflow: hidden;
-  padding: 0;
-  box-shadow: none;
 }
 
 .json-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.5rem 1rem; /* Tighter padding for technical feel */
 }
 
 .toggle-button {
   background: none;
   border: none;
-  color: var(--cata-color-gray);
+  /* Use cyan for the action label to match your search/toggles */
+  color: hsl(185deg, 45%, 45%);
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-style: normal;
+  letter-spacing: 1px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  margin: 0;
-}
-
-.toggle-button:hover {
-  color: var(--cata-color-white);
 }
 
 .toggle-button .icon {
-  width: 1.25rem;
-  text-align: right;
-  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--cata-color-dark_gray);
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.9rem;
+.github-link {
+  color: hsl(185deg, 45%, 45%);
+  font-size: 0.8rem;
+  text-transform: uppercase;
 }
 
-.action-link {
-  /*color: var(--cata-color-gray);*/
-  text-decoration: none;
-}
-
-.action-link:hover {
-  /*color: var(--cata-color-white);*/
+.github-link:hover {
+  /*opacity: 1;*/
 }
 
 .json-content {
   padding: 0.25rem 1rem 1rem;
   background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid hsl(190, 100%, 10%);
   max-height: 500px;
   overflow: auto;
+  scrollbar-color: hsl(190, 100%, 10%) var(--cata-color-black);
 }
 
 pre {
-  margin: 0;
-  font-family: "UnifontSubset", monospace;
+  margin: 1em;
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 0.85rem;
   color: var(--cata-color-gray);
-  line-height: 1.4;
-  white-space: pre-wrap;
-  word-break: break-all;
+  line-height: 1.2;
 }
 </style>
