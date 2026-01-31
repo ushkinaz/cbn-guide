@@ -22,9 +22,17 @@ export let data: CBNData;
 let typeWithCorrectType = type as keyof SupportedTypesWithMapped;
 setContext("data", data);
 
+const groupFilter = ({
+  mutation: (m: Mutation) =>
+    !/Fake\d$/.test(m.id) &&
+    !m.types?.includes("BACKGROUND_OTHER_SURVIVORS_STORY") &&
+    !m.types?.includes("BACKGROUND_SURVIVAL_STORY"),
+}[type] ?? (() => true)) as (t: SupportedTypeMapped) => boolean;
+
 const things = data
   .byType(type as keyof SupportedTypesWithMapped)
   .filter((o) => "id" in o && o.id)
+  .filter(groupFilter)
   .sort(byName);
 
 // Ref https://github.com/CleverRaven/Cataclysm-DDA/blob/658bbe419fb652086fd4d46bf5bbf9e137228464/src/item_factory.cpp#L4774
@@ -62,13 +70,6 @@ const groups = groupBy(
   groupingFn as (t: SupportedTypeMapped) => string[],
 );
 const groupsList = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
-
-const groupFilter = ({
-  mutation: (m: Mutation) =>
-    !/Fake\d$/.test(m.id) &&
-    !m.types?.includes("BACKGROUND_OTHER_SURVIVORS_STORY") &&
-    !m.types?.includes("BACKGROUND_SURVIVAL_STORY"),
-}[type] ?? (() => true)) as (t: SupportedTypeMapped) => boolean;
 </script>
 
 <h1 class="capitalize">{t(plural(type))}</h1>
@@ -83,7 +84,7 @@ const groupFilter = ({
         <h1>{groupName}</h1>
       {/if}
       <LimitedList
-        items={group.filter(groupFilter)}
+        items={group}
         let:item
         limit={groupsList.length === 1 ? Infinity : 10}>
         {#if (type === "overmap_special" || type === "city_building") && item.subtype !== "mutable"}
