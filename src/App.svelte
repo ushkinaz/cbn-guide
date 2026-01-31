@@ -380,15 +380,12 @@ $: canonicalUrl = buildUrl(
 <header>
   <nav>
     <div class="title">
-      <!-- svelte-ignore a11y-invalid-attribute -->
-      <strong>
-        <a
-          href={getVersionedBasePath() + location.search}
-          on:click={() => (search = "")}
-          ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow"
-            >HHG</span
-          ></a>
-      </strong>
+      <a
+        href={getVersionedBasePath() + location.search}
+        class="brand-link"
+        on:click={() => (search = "")}
+        ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow">HHG</span
+        ></a>
     </div>
     <div class="search">
       <form role="search">
@@ -704,12 +701,29 @@ header {
   top: 0;
   left: 0;
   z-index: 100;
-  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.5);
   width: 100%;
   height: 4rem;
-  background: rgba(33, 33, 33, 0.98);
+  background: var(--cata-color-black);
+  border-top: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0 calc(1em + 8px);
   box-sizing: border-box;
+}
+
+.brand-link {
+  color: var(--cata-color-gray);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  display: flex;
+  align-items: center;
+}
+
+.brand-link:hover {
+  color: var(--cata-color-cyan);
 }
 
 nav {
@@ -962,13 +976,15 @@ footer .link .icon {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  z-index: 1000;
   width: 3rem;
   height: 3rem;
-  border-radius: 50%;
-  border: none;
-  background-color: var(--cata-color-cyan);
-  color: var(--cata-color-black);
+
+  border: 1px solid var(--cata-color-cyan); /* Tech border */
+  border-radius: 4px;
+  background-color: var(--cata-color-black); /* Dark inside */
+  color: var(--cata-color-cyan); /* Cyan icon */
+
+  z-index: 1000;
   cursor: pointer;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
   display: flex;
@@ -982,7 +998,8 @@ footer .link .icon {
 
 .scroll-to-top:hover {
   transform: translateY(-2px);
-  background-color: var(--cata-color-light_cyan);
+  background-color: var(--cata-color-cyan);
+  color: var(--cata-color-black);
 }
 
 .select-group {
