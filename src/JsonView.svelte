@@ -17,17 +17,45 @@ function toggle() {
   }
 }
 
+let copied = false;
+let timeout: ReturnType<typeof setTimeout>;
+
+async function copyJson() {
+  try {
+    await navigator.clipboard.writeText(
+      JSON.stringify(
+        obj,
+        (key, value) => (key === "__filename" ? undefined : value),
+        2,
+      ),
+    );
+    copied = true;
+    if (timeout) clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      copied = false;
+    }, 2000);
+    metrics.count("ui.json_view.copy", 1, { type: obj.type, id: obj.id });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
 const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`;
 </script>
 
 <section class="json-view">
   <div class="json-header">
-    <button class="toggle-button" on:click={toggle}>
+    <button class="toggle-button" aria-expanded={expanded} on:click={toggle}>
       <span>{t("Raw JSON")}</span>
-      <span class="icon">{expanded ? "▼" : "▶"}</span>
+      <span class="icon" aria-hidden="true">{expanded ? "▼" : "▶"}</span>
     </button>
 
     <div class="actions">
+      {#if expanded}
+        <button class="action-button" on:click={copyJson}>
+          {copied ? t("Copied!") : t("Copy")}
+        </button>
+      {/if}
       {#if obj.__filename}
         <a href={githubUrl} target="_blank" class="github-link"
           >{t("GitHub", { _context })}</a>
@@ -83,8 +111,19 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
   text-transform: uppercase;
 }
 
-.github-link:hover {
-  /*opacity: 1;*/
+.action-button {
+  background: none;
+  border: none;
+  color: hsl(185deg, 45%, 45%);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.github-link:hover,
+.action-button:hover {
+  text-decoration: underline;
 }
 
 .json-content {
