@@ -372,7 +372,9 @@ function getTimingValue(key: string): number {
 }
 </script>
 
-<h1><ItemLink type="monster" id={item.id} link={false} /></h1>
+<h1 style="text-transform: capitalize">
+  <ItemLink type="monster" id={item.id} link={false} />
+</h1>
 <section>
   <dl>
     {#if item.bodytype}
