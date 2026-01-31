@@ -8,7 +8,7 @@ import {
   singularName,
   omsName,
 } from "./data";
-import { OvermapSpecial } from "./types";
+import type { OvermapSpecial } from "./types";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([
