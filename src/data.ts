@@ -222,6 +222,8 @@ const durationUnits: Record<string, number> = {
 
 const DURATION_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-z]+)/g;
 
+const DIRECTION_SUFFIX_REGEX = /_(north|south|east|west)$/;
+
 // Returns seconds
 export function parseDuration(duration: string | number): number {
   if (typeof duration === "undefined") return 0;
@@ -2022,7 +2024,7 @@ export function omsName(data: CBNData, oms: OvermapSpecial): string {
     if (
       !data.byIdMaybe(
         "overmap_terrain",
-        omt.overmap.replace(/_(north|south|east|west)$/, ""),
+        omt.overmap.replace(DIRECTION_SUFFIX_REGEX, ""),
       )
     )
       continue;
@@ -2038,7 +2040,7 @@ export function omsName(data: CBNData, oms: OvermapSpecial): string {
   if (centerOmt?.overmap) {
     const omt = data.byId(
       "overmap_terrain",
-      centerOmt.overmap.replace(/_(north|south|east|west)$/, ""),
+      centerOmt.overmap.replace(DIRECTION_SUFFIX_REGEX, ""),
     );
     if (omt) {
       return singularName(omt);
