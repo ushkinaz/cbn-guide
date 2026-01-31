@@ -2,7 +2,7 @@ import "./bench-env.js";
 import fs from "fs";
 import path from "path";
 import { performance } from "perf_hooks";
-import { CBNData } from "../src/data.js";
+import { CBNData, omsName } from "../src/data.js";
 import {
   getGitSha,
   createHistogramStats,
@@ -67,6 +67,16 @@ registerScenario("bash-from-terrain", (cbnData) => {
   // Perform various lookups using actual items from test data
   cbnData.bashFromTerrain("t_dock_deep_pile").length;
   cbnData.bashFromTerrain("t_pavement_y_bg_dp").length;
+});
+
+registerScenario("oms-name", (cbnData) => {
+  const oms = cbnData.byId("overmap_special", "Isherwood Farms");
+  // Run it multiple times to get a measurable duration
+  performance.mark("oms-name-start");
+  for (let i = 0; i < 1000; i++) {
+    omsName(cbnData, oms);
+  }
+  performance.measure("oms-name", "oms-name-start");
 });
 
 import { buildSearchIndex, performSearch } from "../src/search.js";

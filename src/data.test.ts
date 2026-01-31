@@ -6,7 +6,9 @@ import {
   parseMass,
   parseVolume,
   singularName,
+  omsName,
 } from "./data";
+import type { OvermapSpecial } from "./types";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([
@@ -431,5 +433,73 @@ describe("Language Loading Fallback", () => {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
     }
+  });
+});
+
+describe("omsName", () => {
+  test("returns oms.id if subtype is mutable", () => {
+    const data = new CBNData([]);
+    const oms: OvermapSpecial = {
+      type: "overmap_special",
+      id: "Lab",
+      subtype: "mutable",
+    };
+    expect(omsName(data, oms)).toBe("Lab");
+  });
+
+  test("returns singular name of center omt", () => {
+    const data = new CBNData([
+      {
+        type: "overmap_terrain",
+        id: "house_01",
+        name: "House",
+      },
+    ]);
+    const oms: OvermapSpecial = {
+      type: "overmap_special",
+      id: "HouseSpecial",
+      overmaps: [{ point: [0, 0, 0], overmap: "house_01_north" }],
+    };
+    expect(omsName(data, oms)).toBe("House");
+  });
+
+  test("strips direction suffix correctly", () => {
+    const data = new CBNData([
+      {
+        type: "overmap_terrain",
+        id: "house_01",
+        name: "House",
+      },
+    ]);
+    const oms: OvermapSpecial = {
+      type: "overmap_special",
+      id: "HouseSpecial",
+      overmaps: [{ point: [0, 0, 0], overmap: "house_01_south" }],
+    };
+    expect(omsName(data, oms)).toBe("House");
+  });
+
+  test("ignores non-ground level overmaps", () => {
+    const data = new CBNData([
+      {
+        type: "overmap_terrain",
+        id: "house_01",
+        name: "House",
+      },
+      {
+        type: "overmap_terrain",
+        id: "bunker",
+        name: "Bunker",
+      },
+    ]);
+    const oms: OvermapSpecial = {
+      type: "overmap_special",
+      id: "HouseSpecial",
+      overmaps: [
+        { point: [0, 0, 1], overmap: "bunker_north" }, // z=1, ignored
+        { point: [0, 0, 0], overmap: "house_01_north" },
+      ],
+    };
+    expect(omsName(data, oms)).toBe("House");
   });
 });
