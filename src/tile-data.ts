@@ -102,7 +102,9 @@ export const tileData = {
 
     if (data?.build_number && tileset.path !== null) {
       // Data available, load tileset from URL
-      const url = getTilesetUrl(data.build_number, tileset.path);
+      // Use fetching_version (slug like 'stable') if available, otherwise fallback to build_number
+      const version = data.fetching_version ?? data.build_number;
+      const url = getTilesetUrl(version, tileset.path);
       this._setURL(url);
     } else if (!data && tileset.tile_info && tileset.path !== null) {
       // Version loading (data is null) but tileset selected - set placeholder dimensions

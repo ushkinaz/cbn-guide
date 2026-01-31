@@ -503,3 +503,9 @@ describe("omsName", () => {
     expect(omsName(data, oms)).toBe("House");
   });
 });
+
+test("CBNData stores fetching_version", () => {
+  const data = new CBNData([], "123", {}, "stable");
+  expect(data.fetching_version).toBe("stable");
+  expect(data.build_number).toBe("123");
+});

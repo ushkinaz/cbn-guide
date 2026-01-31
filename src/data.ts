@@ -294,13 +294,28 @@ export class CBNData {
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
 
   release: any;
+  /** Concrete build number from the game data (e.g., "v0.9.1") */
   build_number: string | undefined;
+  /** Original version slug used for fetching (e.g., "stable", "nightly") */
+  fetching_version: string | undefined;
 
-  constructor(raw: any[], build_number?: string, release?: any) {
+  /**
+   * @param raw Raw game data objects
+   * @param build_number Concrete build number
+   * @param release Release metadata
+   * @param fetching_version Original version slug used for fetching
+   */
+  constructor(
+    raw: any[],
+    build_number?: string,
+    release?: any,
+    fetching_version?: string,
+  ) {
     const p = perf.mark("CBNData.constructor");
 
     this.release = release;
     this.build_number = build_number;
+    this.fetching_version = fetching_version;
     // For some reason O—G has the string "mapgen" as one of its objects.
     this._raw = raw.filter((x) => typeof x === "object");
     for (const obj of raw) {
@@ -2003,6 +2018,7 @@ export const data = {
       dataJson.data,
       dataJson.build_number,
       dataJson.release,
+      urlVersion,
     );
     set(cbnData);
   },
