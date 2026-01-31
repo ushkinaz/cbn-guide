@@ -41,7 +41,7 @@ input, button, select, textarea {
 }
 
 input:focus {
-	border: 1px solid #1c62b9;
+	border: 1px solid var(--cata-color-cyan);
 	outline: none;
 }
 
