@@ -2,7 +2,6 @@
 import { t } from "./i18n";
 import { isTesting } from "./utils/env";
 import { metrics } from "./metrics";
-
 export let items: any[];
 
 export let limit = 10;
@@ -44,6 +43,6 @@ $: realLimit = expanded ? Infinity : initialLimit;
     }}>
     {expanded
       ? `[-] ${t("Show less")}`
-      : `[...] ${t("SEE ALL {n} ENTRIES", { n: items.length.toLocaleString() })}`}
+      : `[...] ${t("See all {n} entries", { n: items.length.toLocaleString() })}`}
   </button>
 {/if}
