@@ -15,7 +15,7 @@ import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
-import { GAME_REPO_URL, GUIDE_NAME, UI_GUIDE_NAME } from "./constants";
+import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
 import { t } from "./i18n";
 import { buildMetaDescription } from "./seo";
 import {
@@ -296,6 +296,12 @@ function handleNavigation(event: MouseEvent) {
   handleInternalNavigation(event);
 }
 
+let deferredPrompt: any;
+window.addEventListener("beforeinstallprompt", (e) => {
+  deferredPrompt = e;
+  e.preventDefault();
+});
+
 function maybeFocusSearch(e: KeyboardEvent) {
   if (e.key === "/" && document.activeElement?.id !== "search") {
     document.getElementById("search")?.focus();
@@ -474,72 +480,92 @@ $: canonicalUrl = buildUrl(
         })} />
     {/if}
   {:else}
-    <span class="intro">
-      <Logo />
-      <span style="text-wrap: pretty">
-        <InterpolatedTranslation
-          str={t(
-            `{hhg} is a comprehensive, offline-capable wiki for {link_cbn}.`,
-            {
-              hhg: "{hhg}",
-              link_cbn: "{link_cbn}",
-            },
-          )}
-          slot0="hhg"
-          slot1="link_cbn">
-          <span slot="0">{GUIDE_NAME}</span>
-          <a
-            slot="1"
-            href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
-            target="_blank"
-            style="text-wrap: nowrap">Cataclysm: Bright Nights</a>
-        </InterpolatedTranslation>
-      </span>
-      <span style="text-wrap: pretty">
-        <InterpolatedTranslation
-          str={t(
-            `Updated daily with full tileset support and data for both Stable and Nightly versions.
-          Instantly search and cross-reference items, crafting recipes, drop rates, mutations, and bionics.`,
-          )}>
-        </InterpolatedTranslation>
-      </span>
-      <span style="text-wrap: pretty">
-        <InterpolatedTranslation
-          str={t(
-            `All data is stored locally—just visit once and it works offline.`,
-          )}>
-        </InterpolatedTranslation>
-      </span>
-      <span style="text-wrap: pretty">
-        <InterpolatedTranslation
-          str={t(
-            "Adopted to C:BN by {ushkinaz} on {github}. If you notice any problems, please file an {issue}!",
-            {
-              ushkinaz: "{ushkinaz}",
-              github: "{github}",
-              issue: "{issue}",
-            },
-          )}
-          slot0="ushkinaz"
-          slot1="github"
-          slot2="issue">
-          <a
-            slot="0"
-            href="https://github.com/ushkinaz"
-            target="_blank"
-            rel="noopener noreferrer">ushkinaz</a>
-          <a
-            slot="1"
-            href="https://github.com/ushkinaz/cbn-guide/"
-            target="_blank"
-            rel="noopener noreferrer">GitHub</a>
-          <a
-            slot="2"
-            href="https://github.com/ushkinaz/cbn-guide/issues/new?type=bug"
-            >{t("issue")}</a>
-        </InterpolatedTranslation>
-      </span>
-    </span>
+    <div class="intro-dashboard">
+      <div class="intro-specs">
+        <div class="spec-item">
+          <span class="spec-label">NAME</span>
+          <h1 class="guide-title">
+            <span class="spec-value"
+              ><InterpolatedTranslation
+                str={t(`The Hitchhiker's Guide for {link_cbn}.`, {
+                  link_cbn: "{link_cbn}",
+                })}
+                slot1="link_cbn">
+                <a
+                  slot="1"
+                  href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+                  target="_blank">Cataclysm: Bright Nights</a>
+              </InterpolatedTranslation></span>
+          </h1>
+        </div>
+
+        <div class="spec-item">
+          <span class="spec-label">STATUS</span>
+          <span class="spec-value">
+            <InterpolatedTranslation
+              str={t(`Updated daily. {stable} & {nightly} support.`, {
+                stable: "Stable",
+                nightly: "Nightly",
+              })} />
+          </span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">INDEX</span>
+          <span class="spec-value">
+            {t("Items, Crafting, Drop Rates, Mutations, Bionics")}
+          </span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-label">MODE</span>
+          <span class="spec-value relative-wrapper">
+            {t("100% Offline Capable")}
+
+            {#if deferredPrompt}
+              <button
+                class="install-button"
+                aria-label={t("install")}
+                on:click={(e) => {
+                  e.preventDefault();
+                  deferredPrompt.prompt();
+                }}>
+                <svg
+                  class="icon-svg"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  width="13"
+                  height="13"
+                  fill="currentColor">
+                  <path
+                    d="M2 4v14h20v-8h-2v6H4V6h10V4H2zm6 16h8v2H8v-2zm10-9l-4-4h3V2h2v5h3l-4 4z"
+                    fill="currentColor"
+                    fill-opacity="1" />
+                </svg>
+                <!--{t("install")}-->
+              </button>
+            {/if}
+          </span>
+        </div>
+        <div class="specs-footer">
+          <div class="footer-item">
+            <span class="spec-label">{t("Maintainer")}:</span>
+            <a href="https://github.com/ushkinaz" target="_blank">ushkinaz</a>
+          </div>
+          <div class="footer-item">
+            <span class="spec-label">{t("Code")}:</span>
+            <a href="https://github.com/ushkinaz/cbn-guide/" target="_blank"
+              >GitHub</a>
+          </div>
+          <div class="footer-item">
+            <span class="spec-label">{t("Feedback")}:</span>
+            <a href="https://discord.gg/XW7XhXuZ89" target="_blank">Discord</a>
+          </div>
+        </div>
+      </div>
+      <div class="intro-manifest">
+        <Logo />
+      </div>
+    </div>
+
     <CategoryGrid />
   {/if}
   {#if scrollY > 300}
@@ -643,7 +669,7 @@ $: canonicalUrl = buildUrl(
     <a
       href="{GAME_REPO_URL}#readme"
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener"
       class="link">
       <img
         src={bnIcon}
@@ -655,7 +681,7 @@ $: canonicalUrl = buildUrl(
     <a
       href="https://discord.gg/XW7XhXuZ89"
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener"
       class="link">
       <img
         src={discordIcon}
@@ -667,7 +693,7 @@ $: canonicalUrl = buildUrl(
     <a
       href="https://www.reddit.com/r/cataclysmbn/"
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener"
       class="link">
       <img
         src={redditIcon}
@@ -679,7 +705,7 @@ $: canonicalUrl = buildUrl(
     <a
       href="https://github.com/qrrk/Catapult"
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener"
       class="link">
       <img
         src={catapultIcon}
@@ -804,6 +830,7 @@ kbd {
     border-color 0.3s cubic-bezier(0.25, 1, 0.5, 1),
     box-shadow 0.3s cubic-bezier(0.25, 1, 0.5, 1),
     background-color 0.3s ease;
+  animation: fadeIn 0.2s ease-out forwards;
 }
 
 .search-input:hover {
@@ -869,14 +896,12 @@ kbd {
 }
 
 .search-control-btn {
-  /* Reset */
   appearance: none;
   background: transparent;
   border: none;
   margin: 0;
   padding: 0 4px;
 
-  /* Size & Layout */
   height: 26px;
   border-radius: 4px;
   cursor: pointer;
@@ -886,7 +911,6 @@ kbd {
   align-items: center;
   justify-content: center;
 
-  /* Typography */
   font-family: monospace;
   font-size: 0.9rem;
   line-height: 1;
@@ -967,6 +991,162 @@ nav > .title .narrow {
 
 nav > .title {
   margin-right: 1em;
+}
+
+.intro-dashboard {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(33, 33, 33, 0.4);
+  border: 1px solid var(--cata-color-dark_gray);
+  border-left: 3px solid var(--cata-color-cyan);
+  border-radius: 0 4px 4px 0;
+}
+
+.intro-manifest {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+}
+
+.relative-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.guide-title {
+  /* h1 reset */
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  font-family: inherit;
+  color: inherit;
+
+  display: inline;
+  vertical-align: baseline;
+}
+
+.intro-specs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.spec-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.spec-label {
+  color: var(--cata-color-dark_gray);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.spec-value {
+  color: var(--cata-color-gray);
+}
+
+@media (max-width: 600px) {
+  .intro-dashboard {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    border-left: 1px solid var(--cata-color-dark_gray);
+    border-top: 3px solid var(--cata-color-cyan);
+  }
+  .intro-manifest {
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  .intro-manifest {
+    display: none;
+  }
+  .specs-footer {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .footer-item:not(:last-child)::after {
+    display: none;
+  }
+}
+
+.specs-footer {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--cata-color-dark_gray);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.footer-item {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.footer-item:not(:last-child)::after {
+  content: "/";
+  color: var(--cata-color-dark_gray);
+  position: relative;
+  left: 0.5rem;
+  opacity: 0.5;
+}
+
+button.install-button {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 12px;
+
+  white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+
+  color: hsl(185deg, 45%, 45%);
+  font-family: inherit;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  /* Smooth Fade In */
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+button.install-button:hover {
+  color: var(--cata-color-light_cyan);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .data-options {
