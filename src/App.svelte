@@ -353,6 +353,7 @@ $: canonicalUrl = buildUrl(
 <svelte:window
   on:click={handleNavigation}
   on:keydown={maybeFocusSearch}
+  on:appinstalled={() => metrics.count("app.pwa.install")}
   bind:scrollY />
 
 <svelte:head>

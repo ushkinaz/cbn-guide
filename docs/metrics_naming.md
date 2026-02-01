@@ -28,13 +28,14 @@
 
 ### 2. Actions
 
-| Action   | Usage                                                |
-| -------- | ---------------------------------------------------- |
-| `change` | State transition (often with `from`/`to` attributes) |
-| `click`  | User interaction with an element                     |
-| `load`   | Data fetching or preparation process                 |
-| `submit` | Explicit user submission (forms)                     |
-| `open`   | Modal or view becoming visible                       |
+| Action    | Usage                                                |
+| --------- | ---------------------------------------------------- |
+| `change`  | State transition (often with `from`/`to` attributes) |
+| `click`   | User interaction with an element                     |
+| `load`    | Data fetching or preparation process                 |
+| `submit`  | Explicit user submission (forms)                     |
+| `open`    | Modal or view becoming visible                       |
+| `install` | Application installation (PWA)                       |
 
 ### ✅ Standardize Verbs
 

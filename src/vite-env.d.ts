@@ -16,3 +16,9 @@ declare module "virtual:pwa-register" {
     options?: RegisterSWOptions,
   ): (reloadPage?: boolean) => Promise<void>;
 }
+
+declare namespace svelteHTML {
+  interface HTMLAttributes<T> {
+    "on:appinstalled"?: (event: Event) => void;
+  }
+}

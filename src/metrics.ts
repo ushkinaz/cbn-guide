@@ -18,6 +18,10 @@ function getCommonAttributes(): MetricAttributes {
     locale: locale || "en",
     tileset: tileset || "default",
     url_path: location.pathname,
+    // Detect if running as PWA (installed app) vs browser
+    display_mode: window.matchMedia("(display-mode: standalone)").matches
+      ? "standalone"
+      : "browser",
   };
 
   // Add route context if available
