@@ -710,7 +710,6 @@ header {
   background: #212121fa;
   border-top: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid var(--cata-color-cyan);
   padding: 0 calc(1em + 8px);
   box-sizing: border-box;
 }
