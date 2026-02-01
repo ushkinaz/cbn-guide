@@ -26,6 +26,9 @@ importers:
       workbox-window:
         specifier: ^7.4.0
         version: 7.4.0
+      zaraz-ts:
+        specifier: ^1.2.0
+        version: 1.2.0
     devDependencies:
       '@babel/traverse':
         specifier: ^7.28.6
@@ -3638,6 +3641,9 @@ packages:
 
   yauzl@2.10.0:
     resolution: {integrity: sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g==}
+
+  zaraz-ts@1.2.0:
+    resolution: {integrity: sha512-gdVnNIADRIWpdKZbzaDSo6FIxLiGudhOu9j4gl4TQF9FMGAOBMpfIq7NtSZ8j5wXB8C3Sn3hRY4NNylAGYM3nw==}
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
@@ -7612,5 +7618,7 @@ snapshots:
     dependencies:
       buffer-crc32: 0.2.13
       fd-slicer: 1.1.0
+
+  zaraz-ts@1.2.0: {}
 
   zod@3.25.76: {}

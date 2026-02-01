@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/browser";
 import { getCurrentVersionSlug, getUrlConfig, parseRoute } from "./routing";
+import { RUNNING_MODE } from "./utils/env";
 
 /**
  * Metric attributes type for Sentry metrics.
@@ -18,10 +19,7 @@ function getCommonAttributes(): MetricAttributes {
     locale: locale || "en",
     tileset: tileset || "default",
     url_path: location.pathname,
-    // Detect if running as PWA (installed app) vs browser
-    display_mode: window.matchMedia("(display-mode: standalone)").matches
-      ? "standalone"
-      : "browser",
+    display_mode: RUNNING_MODE,
   };
 
   // Add route context if available

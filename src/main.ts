@@ -1,11 +1,14 @@
 import { evacuateLegacyDomain } from "./utils/legacy-evacuation";
+
 evacuateLegacyDomain();
 
-import App from "./App.svelte";
+import { zaraz } from "zaraz-ts";
 import * as Sentry from "@sentry/browser";
 import { browserTracingIntegration } from "@sentry/browser";
-import "./assets/fonts.css";
 import { registerSW } from "virtual:pwa-register";
+import "./assets/fonts.css";
+import App from "./App.svelte";
+import { RUNNING_MODE } from "./utils/env";
 import { tx } from "./i18n";
 
 tx.init({
@@ -19,7 +22,11 @@ if (import.meta.env.PROD) {
     process.env.GITHUB_SHA ??
     "none"
   ).slice(0, 8);
-  let releaseTag = `cbn-guide@${process.env.COMMIT_DATE ? process.env.COMMIT_DATE + "_" : "unknown"}${commitSHA}`;
+  let releaseID = `${process.env.COMMIT_DATE ? process.env.COMMIT_DATE + "_" : "unknown"}${commitSHA}`;
+  let buildID = commitSHA;
+  let releaseTag = `cbn-guide@${releaseID}`;
+
+  let running_mode = RUNNING_MODE;
 
   // Check metrics opt-out flag (defensive for puppeteer/restricted browsers)
   let metricsDisabled = false;
@@ -29,6 +36,10 @@ if (import.meta.env.PROD) {
   } catch {
     // localStorage unavailable (puppeteer, incognito, etc.) - default to enabled
   }
+
+  zaraz.set("release_id", releaseID, { scope: "session" });
+  zaraz.set("build_id", buildID, { scope: "session" });
+  zaraz.set("running_mode", running_mode, { scope: "session" });
 
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
