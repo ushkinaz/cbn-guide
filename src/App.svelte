@@ -473,70 +473,72 @@ $: canonicalUrl = buildUrl(
         })} />
     {/if}
   {:else}
-    <Logo />
-    <p style="text-wrap: pretty">
-      <InterpolatedTranslation
-        str={t(
-          `{hhg} is a comprehensive, offline-capable wiki for {link_cbn}.`,
-          {
-            hhg: "{hhg}",
-            link_cbn: "{link_cbn}",
-          },
-        )}
-        slot0="hhg"
-        slot1="link_cbn">
-        <span slot="0">{GUIDE_NAME}</span>
-        <a
-          slot="1"
-          href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
-          target="_blank"
-          style="text-wrap: nowrap">Cataclysm: Bright Nights</a>
-      </InterpolatedTranslation>
-    </p>
-    <p style="text-wrap: pretty">
-      <InterpolatedTranslation
-        str={t(
-          `Updated daily with full tileset support and data for both Stable and Nightly versions.
+    <span class="intro">
+      <Logo />
+      <span style="text-wrap: pretty">
+        <InterpolatedTranslation
+          str={t(
+            `{hhg} is a comprehensive, offline-capable wiki for {link_cbn}.`,
+            {
+              hhg: "{hhg}",
+              link_cbn: "{link_cbn}",
+            },
+          )}
+          slot0="hhg"
+          slot1="link_cbn">
+          <span slot="0">{GUIDE_NAME}</span>
+          <a
+            slot="1"
+            href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
+            target="_blank"
+            style="text-wrap: nowrap">Cataclysm: Bright Nights</a>
+        </InterpolatedTranslation>
+      </span>
+      <span style="text-wrap: pretty">
+        <InterpolatedTranslation
+          str={t(
+            `Updated daily with full tileset support and data for both Stable and Nightly versions.
           Instantly search and cross-reference items, crafting recipes, drop rates, mutations, and bionics.`,
-        )}>
-      </InterpolatedTranslation>
-    </p>
-    <p style="text-wrap: pretty">
-      <InterpolatedTranslation
-        str={t(
-          `All data is stored locally—just visit once and it works offline.`,
-        )}>
-      </InterpolatedTranslation>
-    </p>
-    <p style="text-wrap: pretty">
-      <InterpolatedTranslation
-        str={t(
-          "Adopted to C:BN by {ushkinaz} on {github}. If you notice any problems, please file an {issue}!",
-          {
-            ushkinaz: "{ushkinaz}",
-            github: "{github}",
-            issue: "{issue}",
-          },
-        )}
-        slot0="ushkinaz"
-        slot1="github"
-        slot2="issue">
-        <a
-          slot="0"
-          href="https://github.com/ushkinaz"
-          target="_blank"
-          rel="noopener noreferrer">ushkinaz</a>
-        <a
-          slot="1"
-          href="https://github.com/ushkinaz/cbn-guide/"
-          target="_blank"
-          rel="noopener noreferrer">GitHub</a>
-        <a
-          slot="2"
-          href="https://github.com/ushkinaz/cbn-guide/issues/new?type=bug"
-          >{t("issue")}</a>
-      </InterpolatedTranslation>
-    </p>
+          )}>
+        </InterpolatedTranslation>
+      </span>
+      <span style="text-wrap: pretty">
+        <InterpolatedTranslation
+          str={t(
+            `All data is stored locally—just visit once and it works offline.`,
+          )}>
+        </InterpolatedTranslation>
+      </span>
+      <span style="text-wrap: pretty">
+        <InterpolatedTranslation
+          str={t(
+            "Adopted to C:BN by {ushkinaz} on {github}. If you notice any problems, please file an {issue}!",
+            {
+              ushkinaz: "{ushkinaz}",
+              github: "{github}",
+              issue: "{issue}",
+            },
+          )}
+          slot0="ushkinaz"
+          slot1="github"
+          slot2="issue">
+          <a
+            slot="0"
+            href="https://github.com/ushkinaz"
+            target="_blank"
+            rel="noopener noreferrer">ushkinaz</a>
+          <a
+            slot="1"
+            href="https://github.com/ushkinaz/cbn-guide/"
+            target="_blank"
+            rel="noopener noreferrer">GitHub</a>
+          <a
+            slot="2"
+            href="https://github.com/ushkinaz/cbn-guide/issues/new?type=bug"
+            >{t("issue")}</a>
+        </InterpolatedTranslation>
+      </span>
+    </span>
     <CategoryGrid />
   {/if}
   {#if scrollY > 300}
@@ -804,6 +806,15 @@ kbd {
     background-color 0.3s ease;
 }
 
+.search-input:hover {
+  border-color: color-mix(in srgb, var(--cata-color-cyan) 80%, transparent);
+}
+
+.search-input::placeholder {
+  color: var(--cata-color-gray);
+  opacity: 1; /* Firefox fix */
+}
+
 .search-input:focus {
   border-color: var(--cata-color-cyan);
   background-color: #000000;
@@ -982,6 +993,20 @@ nav > .title {
   min-width: 8rem;
   font-family:
     "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  border: 1px solid var(--cata-color-dark_gray);
+  transition:
+    border-color 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.3s cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 0.3s ease;
+}
+
+.select-group select:hover {
+  border-color: color-mix(in srgb, var(--cata-color-cyan) 80%, transparent);
+}
+
+.select-group select:focus {
+  outline: none;
+  border-color: var(--cata-color-cyan);
 }
 
 footer #links {
