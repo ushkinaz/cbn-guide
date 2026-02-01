@@ -16,6 +16,7 @@ import mutationsIcon from "./assets/category-icons/mutations.svg";
 //https://game-icons.net/1x1/delapouite/stake-hammer.html
 import qualitiesIcon from "./assets/category-icons/qualities.svg";
 //https://game-icons.net/1x1/delapouite/rolling-dices.html
+// https://game-icons.net/1x1/delapouite/dice-six-faces-six.html
 import randomIcon from "./assets/category-icons/random.svg";
 //https://game-icons.net/1x1/delapouite/high-grass.html
 import terrainIcon from "./assets/category-icons/terrain.svg";
