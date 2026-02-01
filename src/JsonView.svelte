@@ -83,10 +83,6 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
   text-transform: uppercase;
 }
 
-.github-link:hover {
-  /*opacity: 1;*/
-}
-
 .json-content {
   padding: 0.25rem 1rem 1rem;
   background: rgba(0, 0, 0, 0.3);
