@@ -100,26 +100,36 @@ const randomizableItemTypes = new Set([
   "achievement",
 ]);
 
+/**
+ * Selects a random game entity for the "Random Page" card.
+ * Filters for types that are meaningful to browse randomly (items, monsters, etc).
+ */
 async function getRandomPage() {
   const d = await new Promise<CBNData>((resolve) => {
     const unsubscribe = data.subscribe((v) => {
       if (v) {
         resolve(v);
+        // Unsubscribe after getting the first value to prevent memory leaks
         setTimeout(() => unsubscribe());
       }
     });
   });
+
   const items = d
     .all()
     .filter(
       (x) => "id" in x && randomizableItemTypes.has(mapType(x.type)),
     ) as (SupportedTypeMapped & { id: string })[];
+
   return items[(Math.random() * items.length) | 0];
 }
 
 let randomPage: string | null = null;
 
-function newRandomPage() {
+/**
+ * Updates the randomPage reactive variable with a new random destination.
+ */
+function refreshRandomPage() {
   getRandomPage().then((r) => {
     randomPage = `${getVersionedBasePath()}${mapType(r.type)}/${r.id}${
       location.search
@@ -127,7 +137,8 @@ function newRandomPage() {
   });
 }
 
-newRandomPage();
+// Initial selection
+refreshRandomPage();
 </script>
 
 <div class="category-grid">
@@ -149,7 +160,7 @@ newRandomPage();
   <a
     href={randomPage}
     class="category-card random"
-    on:click={() => setTimeout(newRandomPage)}>
+    on:click={() => setTimeout(refreshRandomPage)}>
     <div class="icon-wrapper">
       <img
         src={randomIcon}
@@ -166,13 +177,10 @@ newRandomPage();
 .category-grid {
   display: grid;
   clear: both;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(150px, 1fr)
-  ); /* Slightly wider min to help fit text */
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
   margin-top: 2rem;
-  padding: 0 1rem;
+  padding: 0 0.5rem;
 }
 
 .category-card {
@@ -180,14 +188,9 @@ newRandomPage();
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(
-    255,
-    255,
-    255,
-    0.05
-  ); /* Matches global section background */
+  background-color: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
-  padding: 1rem;
+  padding: 0.75rem;
   text-decoration: none;
   color: inherit;
   transition:
@@ -203,50 +206,71 @@ newRandomPage();
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Fixed container for the scaled icon to prevent layout issues */
 .icon-wrapper {
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   pointer-events: none;
-  flex-shrink: 0; /* Prevent shrinking */
+  flex-shrink: 0;
   z-index: 1;
 }
 
 .category-icon {
-  width: 88px;
-  height: 88px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
 .category-card:hover .category-icon,
 .category-card:focus-visible .category-icon {
-  transform: scale(1.03);
+  transform: scale(1.05);
 }
 
 .label {
   z-index: 5;
-  /* Fixed height container for 2 lines of text ensures alignment */
-  height: 1rem;
+  min-height: 2.4em;
   width: 100%;
-  display: flex;
-  align-items: flex-start; /* Align text to top of box */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  align-items: flex-start;
   justify-content: center;
-
   text-align: center;
   line-height: 1.2;
-
-  /* Section Header Styling */
   color: var(--cata-color-white);
   text-transform: uppercase;
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: bold;
   font-family:
     "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
   margin: 0;
   overflow: hidden;
+  hyphens: auto;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .category-grid {
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .category-card {
+    padding: 0.5rem;
+  }
+
+  .icon-wrapper {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0.5rem;
+  }
+
+  .label {
+    font-size: 0.75rem;
+  }
 }
 </style>
