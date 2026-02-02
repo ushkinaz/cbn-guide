@@ -4,7 +4,10 @@ evacuateLegacyDomain();
 
 import { zaraz } from "zaraz-ts";
 import * as Sentry from "@sentry/browser";
-import { browserTracingIntegration } from "@sentry/browser";
+import {
+  browserTracingIntegration,
+  eventFiltersIntegration,
+} from "@sentry/browser";
 import { registerSW } from "virtual:pwa-register";
 import "./assets/fonts.css";
 import App from "./App.svelte";
@@ -44,8 +47,9 @@ if (import.meta.env.PROD) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     enableMetrics: !metricsDisabled,
-    integrations: [browserTracingIntegration],
+    integrations: [browserTracingIntegration, eventFiltersIntegration],
     tracesSampleRate: 1,
+    ignoreErrors: [/srv/i, "zaraz"],
     // Runtime filter for dynamic toggling without reload
     beforeSendMetric: (metric) => {
       try {
