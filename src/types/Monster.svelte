@@ -17,6 +17,7 @@ import type { Harvest, Monster } from "../types";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ItemTable from "./item/ItemTable.svelte";
+import ItemSymbol from "./item/ItemSymbol.svelte";
 
 const _context = "Monster";
 
@@ -386,44 +387,53 @@ for (const group of sortedGroups) {
 }
 </script>
 
-<h1 style="text-transform: capitalize">
-  <ItemLink type="monster" id={item.id} link={false} />
+<h1 class="capitalize">
+  <ItemLink type="monster" id={item.id} link={false} showIcon={false} />
 </h1>
-<section>
-  <dl>
-    {#if item.bodytype}
-      <dt>{t("Body Type", { _context })}</dt>
-      <dd>{item.bodytype}</dd>
-    {/if}
-    {#if item.species && item.species.length}
-      <dt>{t("Species", { _context })}</dt>
-      <dd>{[item.species ?? []].flat().join(", ")}</dd>
-    {/if}
-    <dt>{t("Volume")}</dt>
-    <dd>{asLiters(item.volume ?? 0)}</dd>
-    <dt>{t("Weight")}</dt>
-    <dd>{asKilograms(item.weight ?? 0)}</dd>
-    {#if materials.length}
-      <dt>{t("Material")}</dt>
-      <dd>
-        <ul class="comma-separated">
-          {#each materials as id}
-            <li><ItemLink type="material" {id} showIcon={false} /></li>
+<section class="monster-header">
+  <div class="stats-grid">
+    <div class="stats-column">
+      <dl>
+        {#if item.bodytype}
+          <dt>{t("Body Type", { _context })}</dt>
+          <dd>{item.bodytype}</dd>
+        {/if}
+        {#if item.species && item.species.length}
+          <dt>{t("Species", { _context })}</dt>
+          <dd>{[item.species ?? []].flat().join(", ")}</dd>
+        {/if}
+        <dt>{t("Volume")}</dt>
+        <dd>{asLiters(item.volume ?? 0)}</dd>
+        <dt>{t("Weight")}</dt>
+        <dd>{asKilograms(item.weight ?? 0)}</dd>
+        {#if materials.length}
+          <dt>{t("Material")}</dt>
+          <dd>
+            <ul class="comma-separated">
+              {#each materials as id}
+                <li><ItemLink type="material" {id} showIcon={false} /></li>
+              {/each}
+            </ul>
+          </dd>
+        {/if}
+        <dt>{t("Difficulty", { _context })}</dt>
+        <dd>
+          {#each [difficultyInfo(item)] as info}
+            {info.value}
+            (<span class={`difficulty-label ${info.className}`}
+              >{info.text}</span
+            >)
           {/each}
-        </ul>
-      </dd>
+        </dd>
+      </dl>
+    </div>
+    <div class="monster-image">
+      <ItemSymbol {item} width={64} height={64} />
+    </div>
+    {#if item.description}
+      <p class="monster-description">{singular(item.description)}</p>
     {/if}
-    <dt>{t("Difficulty", { _context })}</dt>
-    <dd>
-      {#each [difficultyInfo(item)] as info}
-        {info.value}
-        (<span class={`difficulty-label ${info.className}`}>{info.text}</span>)
-      {/each}
-    </dd>
-  </dl>
-  {#if item.description}
-    <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
-  {/if}
+  </div>
 </section>
 <Spoiler spoily={item.id === "mon_dragon_dummy"}>
   <div class="side-by-side">
@@ -664,5 +674,51 @@ for (const group of sortedGroups) {
 }
 .difficulty-fatal {
   color: hsl(350deg 70% 60%);
+}
+
+.monster-header {
+  padding: 1em;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1em;
+  align-items: start;
+}
+
+.stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.monster-description {
+  color: var(--cata-color-gray);
+  margin: 0;
+  grid-column: 1 / -1;
+}
+
+.monster-image {
+  align-self: center;
+  justify-self: center;
+  padding: 32px 32px 8px 8px;
+  filter: contrast(1.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .monster-image {
+    justify-self: center;
+    align-self: center;
+  }
 }
 </style>
