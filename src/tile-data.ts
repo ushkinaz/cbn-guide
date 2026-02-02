@@ -1,15 +1,17 @@
 import { writable } from "svelte/store";
+import * as Sentry from "@sentry/browser";
 import { t } from "./i18n";
 import type { CBNData } from "./data";
 
 const fetchJson = async (url: string) => {
-  const res = await fetch(`${url}/tile_config.json`, {
-    mode: "cors",
+  const res = await retry(async () => {
+    const r = await fetch(`${url}/tile_config.json`, {
+      mode: "cors",
+    });
+    if (!r.ok)
+      throw new Error(`Error ${r.status} (${r.statusText}) fetching tile data`);
+    return r;
   });
-  if (!res.ok)
-    throw new Error(
-      `Error ${res.status} (${res.statusText}) fetching tile data`,
-    );
   const json = await res.json();
   await Promise.all(
     json["tiles-new"].map(async (chunk: TileChunk) => {
@@ -20,7 +22,14 @@ const fetchJson = async (url: string) => {
       // 2. Other components reference tile metadata for rendering
       const filename = chunk.file.replace(/\.png$/, ".webp");
       chunk.file = filename;
-      const blob = await fetch(`${url}/${filename}`).then((b) => b.blob());
+      const blob = await retry(() =>
+        fetch(`${url}/${filename}`).then((b) => b.blob()),
+      ).catch((err) => {
+        Sentry.captureException(err, {
+          extra: { url, filename },
+        });
+        throw err;
+      });
       const blobUrl = URL.createObjectURL(blob);
       const img = new Image();
       img.src = blobUrl;
@@ -44,6 +53,35 @@ const fetchJson = async (url: string) => {
   json["tile_info"][0].pixelscale = json["tile_info"][0].pixelscale ?? 1;
   return json;
 };
+
+/**
+ * Retry a promise-generating function with exponential backoff.
+ * Max 3 attempts with increasing delays: 2s, 4s, 8s.
+ */
+async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
+  const MAX_RETRIES = 3;
+  const BASE_DELAY_MS = 2000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await promiseGenerator();
+    } catch (e) {
+      console.error(`Attempt ${attempt}/${MAX_RETRIES} failed:`, e);
+
+      if (attempt === MAX_RETRIES) {
+        throw e;
+      }
+
+      // Exponential backoff: 2s, 4s, 8s
+      const delayMs = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+      console.warn(`Retrying in ${delayMs / 1000}s...`);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+
+  // TypeScript flow analysis - should never reach here
+  throw new Error("Unexpected: retry loop exhausted");
+}
 
 export type TilePosition = {
   file: string;
@@ -90,7 +128,10 @@ export const tileData = {
     if (url) {
       fetchJson(url).then(
         (data) => set({ ...data, baseUrl: url }),
-        (err) => console.error("Error fetching tiles", err),
+        (err) => {
+          console.error("Error fetching tiles", err);
+          Sentry.captureException(err, { extra: { url } });
+        },
       );
     } else {
       set(null);
