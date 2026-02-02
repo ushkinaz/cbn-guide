@@ -63,19 +63,6 @@ export default defineConfig({
         background_color: "#1c1c1c",
         display: "standalone",
         categories: ["reference", "games"],
-        shortcuts: [
-          {
-            name: "Search",
-            short_name: "Monsters",
-            url: "/nightly/search/",
-            icons: [{ src: "icon-192.png", sizes: "192x192" }],
-          },
-          {
-            name: "Nightly Version",
-            url: "/nightly/",
-            icons: [{ src: "icon-192.png", sizes: "192x192" }],
-          },
-        ],
       },
       workbox: {
         // Change fallback to / to avoid 308 redirects if it ever hits
