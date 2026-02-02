@@ -42,10 +42,10 @@ export default defineConfig({
         enabled: true,
       },
       manifest: {
-        short_name: "Cataclysm: Bright Nights Guide",
-        name: "The Hitchhiker's Guide to the Cataclysm: Bright Nights",
+        short_name: "Cataclysm:BN Guide",
+        name: "Hitchhiker's Guide to the Cataclysm: Bright Nights",
         description:
-          "The Hitchhiker's Guide to the Cataclysm: Bright Nights. Search items, monsters, and more.",
+          "Database for Cataclysm: Bright Nights. Search for items, monsters, bionics & more",
         icons: [
           {
             src: "icon-192.png",
@@ -62,6 +62,20 @@ export default defineConfig({
         theme_color: "#202020",
         background_color: "#1c1c1c",
         display: "standalone",
+        categories: ["reference", "games"],
+        shortcuts: [
+          {
+            name: "Search",
+            short_name: "Monsters",
+            url: "/nightly/search/",
+            icons: [{ src: "icon-192.png", sizes: "192x192" }],
+          },
+          {
+            name: "Nightly Version",
+            url: "/nightly/",
+            icons: [{ src: "icon-192.png", sizes: "192x192" }],
+          },
+        ],
       },
       workbox: {
         // Change fallback to / to avoid 308 redirects if it ever hits
