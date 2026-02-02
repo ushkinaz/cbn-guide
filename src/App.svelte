@@ -299,7 +299,6 @@ function handleNavigation(event: MouseEvent) {
 let deferredPrompt: any;
 window.addEventListener("beforeinstallprompt", (e) => {
   deferredPrompt = e;
-  e.preventDefault();
 });
 
 function maybeFocusSearch(e: KeyboardEvent) {
