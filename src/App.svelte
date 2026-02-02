@@ -483,34 +483,20 @@ $: canonicalUrl = buildUrl(
         <div class="spec-item">
           <span class="spec-label">NAME</span>
           <h1 class="guide-title">
-            <span class="spec-value"
-              ><InterpolatedTranslation
-                str={t(`The Hitchhiker's Guide for {link_cbn}.`, {
-                  link_cbn: "{link_cbn}",
-                })}
-                slot1="link_cbn">
-                <a
-                  slot="1"
-                  href="https://github.com/cataclysmbnteam/Cataclysm-BN#readme"
-                  target="_blank">Cataclysm: Bright Nights</a>
-              </InterpolatedTranslation></span>
+            <span class="spec-value">{t(`The Hitchhiker's Guide`)} </span>
           </h1>
         </div>
 
         <div class="spec-item">
-          <span class="spec-label">STATUS</span>
+          <span class="spec-label">INDEX</span>
           <span class="spec-value">
-            <InterpolatedTranslation
-              str={t(`Updated daily. {stable} & {nightly} support.`, {
-                stable: "Stable",
-                nightly: "Nightly",
-              })} />
+            {t("Loot, Drop Tables, Locations")}
           </span>
         </div>
         <div class="spec-item">
-          <span class="spec-label">INDEX</span>
+          <span class="spec-label">TOOLS</span>
           <span class="spec-value">
-            {t("Items, Crafting, Drop Rates, Mutations, Bionics")}
+            {t("Crafting, Recipes, Construction, Bionics")}
           </span>
         </div>
         <div class="spec-item">
@@ -1049,7 +1035,7 @@ nav > .title {
 }
 
 .spec-label {
-  color: var(--cata-color-dark_gray);
+  color: var(--cata-color-gray);
   font-weight: bold;
   white-space: nowrap;
 }
