@@ -12,6 +12,8 @@ export let item: {
   symbol?: string | string[];
   type: string;
 };
+export let width: number | undefined = undefined;
+export let height: number | undefined = undefined;
 
 let data: CBNData = getContext("data");
 
@@ -21,6 +23,14 @@ $: tile = typeHasTile(item)
     fallbackTile($tileData, item.symbol, item.color ?? "white"))
   : null;
 $: baseUrl = $tileData?.baseUrl;
+
+$: finalWidth =
+  width ?? (tile_info?.width ?? 32) * (tile_info?.pixelscale ?? 1);
+$: finalHeight =
+  height ?? (tile_info?.height ?? 32) * (tile_info?.pixelscale ?? 1);
+
+$: scaleX = finalWidth / (tile_info?.width ?? 32);
+$: scaleY = finalHeight / (tile_info?.height ?? 32);
 
 const sym = [item.symbol].flat()[0] ?? " ";
 const symbol = /^LINE_/.test(sym) ? "|" : sym;
@@ -195,8 +205,8 @@ function fallbackTile(
 {#if tile && tile_info}
   <div
     style="
-      width: {tile_info.width * tile_info.pixelscale}px;
-      height: {tile_info.height * tile_info.pixelscale}px;
+      width: {finalWidth}px;
+      height: {finalHeight}px;
     "
     class="tile-icon">
     {#if tile.bg != null}
@@ -208,7 +218,7 @@ function fallbackTile(
           background-image: url({`${baseUrl}/${encodeURIComponent(tile.bg.file)}`});
           background-position: {-tile.bg.tx * tile.bg.width}px
             {-tile.bg.ty * tile.bg.height}px;
-          transform: scale({tile_info.pixelscale})
+          transform: scale({scaleX}, {scaleY})
           translate({tile.bg.offx}px, {tile.bg.offy}px);
         " />
     {/if}
@@ -221,8 +231,8 @@ function fallbackTile(
           background-image: url({`${baseUrl}/${encodeURIComponent(tile.fg.file)}`});
           background-position: {-tile.fg.tx * tile.fg.width}px {-tile.fg.ty *
           tile.fg.height}px;
-          transform: scale({tile_info.pixelscale}) translate({tile.fg
-          .offx}px, {tile.fg.offy}px);
+          transform: scale({scaleX}, {scaleY}) translate({tile.fg.offx}px, {tile
+          .fg.offy}px);
         " />
     {/if}
   </div>
@@ -232,13 +242,21 @@ function fallbackTile(
   <span
     class="tile-icon c_{color}"
     style="
-      width: {tile_info.width * tile_info.pixelscale}px;
-      height: {tile_info.height * tile_info.pixelscale}px;
-      line-height: {tile_info.height * tile_info.pixelscale}px;
+      width: {finalWidth}px;
+      height: {finalHeight}px;
+      line-height: {finalHeight}px;
+      font-size: {finalHeight}px;
     ">{symbol}</span>
   <!--    class="-&#45;&#45;c_{color}">&nbsp;</span>-->
 {:else}
-  <span class="tile-icon c_{color}">{symbol}</span>
+  <span
+    class="tile-icon c_{color}"
+    style="
+      width: {finalWidth}px;
+      height: {finalHeight}px;
+      line-height: {finalHeight}px;
+      font-size: {finalHeight}px;
+    ">{symbol}</span>
 {/if}
 
 <style>
