@@ -81,7 +81,7 @@ export default defineConfig({
               cacheName: "builds-cache",
               expiration: {
                 maxEntries: 1,
-                maxAgeSeconds: 60 * 60 * 12,
+                maxAgeSeconds: 60 * 60 * 3,
               },
             },
           },
@@ -94,7 +94,7 @@ export default defineConfig({
               cacheName: "nightly-cache",
               expiration: {
                 maxEntries: 15,
-                maxAgeSeconds: 60 * 60 * 6,
+                maxAgeSeconds: 60 * 60 * 3,
               },
             },
           },
