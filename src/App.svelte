@@ -46,6 +46,7 @@ import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
 import { fade } from "svelte/transition";
+import { RUNNING_MODE } from "./utils/env";
 
 let scrollY = 0;
 
@@ -211,12 +212,11 @@ $: {
   setOgTitle(document.title);
 }
 
-function formatTitle(it: string | null = null) {
-  if (it) {
-    return `${it} | ${UI_GUIDE_NAME}`;
-  } else {
-    return UI_GUIDE_NAME;
+function formatTitle(pageTitle: string | null = null): string {
+  if (RUNNING_MODE !== "browser") {
+    return pageTitle ?? "";
   }
+  return pageTitle ? `${pageTitle} | ${UI_GUIDE_NAME}` : UI_GUIDE_NAME;
 }
 
 const defaultMetaDescription = t(
