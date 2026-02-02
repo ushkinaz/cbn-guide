@@ -335,7 +335,6 @@ function getLanguageName(code: string) {
       sr: "Српски",
       tr: "Türkçe",
       uk: "Українська",
-      uk_UA: "Українська",
       zh_CN: "中文 (天朝)",
       zh_TW: "中文 (台灣)",
     }[code] ??
