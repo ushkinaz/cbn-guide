@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /stable
+Allow: /*
 Disallow: /nightly/
 Disallow: /latest/
 
