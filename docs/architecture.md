@@ -109,7 +109,7 @@ For local development and testing, scripts are used to fetch data snapshots:
 
 - `fetch-fixtures.ts`: Downloads `all.json` to `_test/` for unit tests and local dev.
 - `gen-sitemap.ts`: Fetches list of all items and generates `public/sitemap.xml`.
-- `gen-css.ts`: Generates `public/game-palette.css` from `src/colors.ts` (Application defined colors).
+- `gen-css.ts`: Generates `/src/assets/game-palette.css` from `src/colors.ts` (Application defined colors).
 
 ## Application Layers
 
@@ -254,7 +254,7 @@ flowchart TD
     end
 
     Fetch -->|Used in| Dev
-    GenCSS -->|Output to| Public["public/game-palette.css"]
+    GenCSS -->|Output to| Public["/src/assets/game-palette.css"]
     Public --> Vite
     Vite --> SWGen
     SWGen --> Output
@@ -284,7 +284,6 @@ cbn-guide/
 │   ├── assets/             # Static assets
 │   └── ...
 ├── public/
-│   ├── game-palette.css    # Generated game colors
 │   ├── _headers            # Cloudflare headers config
 │   ├── _redirects          # Cloudflare redirects
 │   └── sitemap.xml         # Generated sitemap

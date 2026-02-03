@@ -1,3 +1,10 @@
+# IMPORTANT
+# > An incoming request which matches multiple rules' URL patterns will inherit all rules' headers.
+# > If a header is applied twice in the _headers file, the values are joined with a comma separator.
+# https://developers.cloudflare.com/pages/configuration/headers/#attach-a-header
+# That means we have to make sure that only one Cache-Control is applied ever - usually in the most specific rule.
+#
+
 /stable
   Link: <https://data.cataclysmbn-guide.com/data/stable/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
@@ -9,6 +16,9 @@
 
 /nightly/*
   Link: <https://data.cataclysmbn-guide.com/data/nightly/all.json>; rel=preload; as=fetch; crossorigin=anonymous
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
 
 /opensearch.xml
   Cache-Control: public, max-age=86400, must-revalidate
@@ -22,14 +32,13 @@
   Cache-Control: public, max-age=86400, must-revalidate
   Content-Type: text/plain; charset=utf-8
 
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400, must-revalidate
 
-/*.png
-  Cache-Control: public, max-age=36000, must-revalidate
 
-/*.css
-  Cache-Control: public, max-age=36000, must-revalidate
+# Service Worker is cached for 5 minutes, to be able to update it quickly.
+/sw.js
+  Cache-Control: public, max-age=300, must-revalidate
 
 /*
   X-Frame-Options: SAMEORIGIN

@@ -12,7 +12,7 @@
 - pnpm: 10.x (see `packageManager` in package.json)
 - Core: `TypeScript` 5, `Svelte` 4 + `Vite` 5.
 - Testing: `vitest`, `puppeteer`.
-- Styling: Scoped CSS, custom design tokens in `public/game-palette.css` and `src/assets/design.css`.
+- Styling: Scoped CSS, custom design tokens in `/src/assets/game-palette.css` and `src/assets/design.css`.
 - Python: 3.x for auxiliary scripts.
 
 ## Project Structure
