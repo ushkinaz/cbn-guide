@@ -31,7 +31,7 @@ const asciiArt = `
 
 <style>
 .ascii-art {
-  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: Hack, Menlo, Monaco, "Lucida Console", "Courier New", monospace;
   font-size: 8px;
   line-height: 0.9;
   color: var(--cata-color-gray);
