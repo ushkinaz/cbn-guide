@@ -153,6 +153,7 @@ export default defineConfig({
       },
     }),
   ],
+  // @ts-ignore
   test: {
     environment: "jsdom",
     setupFiles: ["src/test-setup.ts"],
