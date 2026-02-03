@@ -65,13 +65,10 @@ export default defineConfig({
         categories: ["reference", "games"],
       },
       workbox: {
-        // Change fallback to / to avoid 308 redirects if it ever hits
+        globPatterns: ["**/*.{css,html,png,svg,woff2,webp}"],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: "index.html",
-        navigateFallbackDenylist: [
-          // Force ALL navigation to network to avoid SW "redirected response" errors
-          // and ensure the Trojan Horse index.html is loaded fresh from the server.
-          /./,
-        ],
+
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
@@ -152,7 +149,6 @@ export default defineConfig({
         // Without this, a stale service worker can be alive for a long time
         // and get out of date with the server.
         skipWaiting: true,
-        clientsClaim: true,
       },
     }),
   ],

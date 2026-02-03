@@ -1,7 +1,3 @@
-import { evacuateLegacyDomain } from "./utils/legacy-evacuation";
-
-evacuateLegacyDomain();
-
 import { zaraz } from "zaraz-ts";
 import * as Sentry from "@sentry/browser";
 import {
