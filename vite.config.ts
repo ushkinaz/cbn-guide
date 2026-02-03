@@ -65,7 +65,7 @@ export default defineConfig({
         categories: ["reference", "games"],
       },
       workbox: {
-        globPatterns: ["**/*.{css,html,png,svg,woff2,webp}"],
+        globPatterns: ["**/*.{js,css,html,png,svg,woff2,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: "index.html",
 
