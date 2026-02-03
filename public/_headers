@@ -5,16 +5,23 @@
 # That means we have to make sure that only one Cache-Control is applied ever - usually in the most specific rule.
 #
 
+/
+  Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=60, must-revalidate
+
 /stable
+  Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=60, must-revalidate
   Link: <https://data.cataclysmbn-guide.com/data/stable/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /stable/*
+  Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=60, must-revalidate
   Link: <https://data.cataclysmbn-guide.com/data/stable/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /nightly
+  Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=60, must-revalidate
   Link: <https://data.cataclysmbn-guide.com/data/nightly/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /nightly/*
+  Cache-Control: public, max-age=0, s-maxage=300, stale-while-revalidate=60, must-revalidate
   Link: <https://data.cataclysmbn-guide.com/data/nightly/all.json>; rel=preload; as=fetch; crossorigin=anonymous
 
 /assets/*
@@ -36,9 +43,9 @@
   Cache-Control: public, max-age=86400, must-revalidate
 
 
-# Service Worker is cached for 5 minutes, to be able to update it quickly.
+# Service Worker should always revalidate to pick up updates.
 /sw.js
-  Cache-Control: public, max-age=300, must-revalidate
+  Cache-Control: no-cache
 
 /*
   X-Frame-Options: SAMEORIGIN
