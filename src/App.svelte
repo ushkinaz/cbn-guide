@@ -47,6 +47,7 @@ import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
 import { fade } from "svelte/transition";
 import { RUNNING_MODE } from "./utils/env";
+import MigoWarning from "./MigoWarning.svelte";
 
 let scrollY = 0;
 
@@ -381,6 +382,10 @@ $: canonicalUrl = buildUrl(
     {/if}
   {/if}
 </svelte:head>
+
+{#if process.env.DEPLOY_NEXT === "1"}
+  <MigoWarning />
+{/if}
 
 <header>
   <nav>

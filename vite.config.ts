@@ -35,6 +35,7 @@ export default defineConfig({
       SENTRY_DSN: null,
       PERF_ENABLED: "false",
       COMMIT_DATE: commitDate,
+      DEPLOY_NEXT: null,
     }),
     svelte(),
     VitePWA({
