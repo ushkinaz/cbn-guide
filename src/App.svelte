@@ -488,9 +488,9 @@ $: canonicalUrl = buildUrl(
         </div>
 
         <div class="spec-item">
-          <span class="spec-label">INDEX</span>
+          <span class="spec-label">WIKI</span>
           <span class="spec-value">
-            {t("Loot, Drop Tables, Locations")}
+            {t("Loot, Enemies, Drop Tables, Locations")}
           </span>
         </div>
         <div class="spec-item">
@@ -502,7 +502,7 @@ $: canonicalUrl = buildUrl(
         <div class="spec-item">
           <span class="spec-label">MODE</span>
           <span class="spec-value relative-wrapper">
-            {t("100% Offline Capable")}
+            {t("The definitive offline-capable database")}
 
             {#if deferredPrompt}
               <button
