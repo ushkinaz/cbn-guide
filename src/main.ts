@@ -63,7 +63,21 @@ if (import.meta.env.PROD) {
   });
 }
 
-registerSW({});
+registerSW({
+  onNeedRefresh() {
+    console.log("PWA: onNeedRefresh - New content available, please refresh.");
+  },
+  onOfflineReady() {
+    console.log("PWA: onOfflineReady - App is ready for offline use.");
+  },
+  onRegistered(registration) {
+    console.log("PWA: onRegistered - Service Worker registered:", registration);
+  },
+  onRegisterError(error) {
+    Sentry.captureException(error);
+    console.error("PWA: onRegisterError - Registration failed:", error);
+  },
+});
 
 const url = new URL(location.href);
 const locale = url.searchParams.get("lang");
