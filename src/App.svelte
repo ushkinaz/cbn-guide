@@ -127,13 +127,18 @@ initializeRouting()
           $data.requested_locale !== $data.effective_locale &&
           $data.requested_locale !== "en"
         ) {
+          const build_number = $data.build_number;
           const from = getLanguageName($data.requested_locale);
           const to = getLanguageName($data.effective_locale);
           notify(
-            t("Language {0} not found, falling back to {1}.", {
-              "0": from,
-              "1": to,
-            }),
+            t(
+              "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
+              {
+                build_number: build_number,
+                requested_lang: from,
+                resolved_lang: to,
+              },
+            ),
             "warn",
           );
         }
