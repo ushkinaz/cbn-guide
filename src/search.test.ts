@@ -6,7 +6,12 @@ import { cleanup, render } from "@testing-library/svelte";
 
 import { CBNData } from "./data";
 import SearchResults from "./SearchResults.svelte";
-import { performSearch, buildSearchIndex, syncSearch, flushSearch } from "./search";
+import {
+  performSearch,
+  buildSearchIndex,
+  syncSearch,
+  flushSearch,
+} from "./search";
 
 let data: CBNData = new CBNData([
   { type: "MONSTER", id: "zombie", name: "zombie", symbol: "Z" },

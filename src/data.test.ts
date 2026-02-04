@@ -509,3 +509,90 @@ test("CBNData stores fetching_version", () => {
   expect(data.fetching_version).toBe("stable");
   expect(data.build_number).toBe("123");
 });
+
+describe("Detailed Locale Fallback Mechanism", () => {
+  test("should fall back to geographical part if full locale missing (uk_UA -> uk)", async () => {
+    const mockData = { data: [], build_number: "123", release: "test" };
+    const mockLocaleUk = {
+      "": { language: "uk", "plural-forms": "nplurals=3; plural=0;" },
+      Stick: "Палиця",
+    };
+
+    const originalFetch = globalThis.fetch;
+    const fetchCalls: string[] = [];
+
+    globalThis.fetch = ((url: string) => {
+      fetchCalls.push(url);
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("lang/uk_UA.json")) {
+        // Return 404 or just fail
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: () => Promise.reject(new Error("404")),
+        } as Response);
+      }
+      if (url.includes("lang/uk.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockLocaleUk),
+        } as Response);
+      }
+      return Promise.reject(new Error("Unexpected fetch"));
+    }) as any;
+
+    try {
+      (globalThis as any).__isTesting__ = true;
+      // We pass metadata that only 'uk' is available
+      await data.setVersion("latest", "uk_UA", undefined, ["uk"]);
+
+      // Should NOT try uk_UA because it's not in the metadata
+      expect(fetchCalls.some((url) => url.includes("lang/uk_UA.json"))).toBe(
+        false,
+      );
+      // Should try uk because it is in the metadata as a fallback
+      expect(fetchCalls.some((url) => url.includes("lang/uk.json"))).toBe(true);
+    } finally {
+      globalThis.fetch = originalFetch;
+      (globalThis as any).__isTesting__ = false;
+    }
+  });
+
+  test("should fall back to English if both full and partial locales missing", async () => {
+    const mockData = { data: [], build_number: "123", release: "test" };
+
+    const originalFetch = globalThis.fetch;
+    const fetchCalls: string[] = [];
+    globalThis.fetch = ((url: string) => {
+      fetchCalls.push(url);
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        json: () => Promise.reject(new Error("404")),
+      } as Response);
+    }) as any;
+
+    try {
+      (globalThis as any).__isTesting__ = true;
+      // Pass metadata that NO locales are available
+      await data.setVersion("latest", "zz_ZZ", undefined, []);
+
+      // Should not try ANY locale because none are in metadata
+      expect(fetchCalls.some((url) => url.includes("lang/"))).toBe(false);
+    } finally {
+      globalThis.fetch = originalFetch;
+      (globalThis as any).__isTesting__ = false;
+    }
+  });
+});

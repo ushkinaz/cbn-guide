@@ -48,6 +48,7 @@ import Loading from "./Loading.svelte";
 import { fade } from "svelte/transition";
 import { RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
+import Notification, { notify } from "./Notification.svelte";
 
 let scrollY = 0;
 
@@ -118,8 +119,24 @@ initializeRouting()
         resolvedVersion,
         localeParam,
         isBranchAlias ? requestedVersion : undefined,
+        builds.find((b) => b.build_number === resolvedVersion)?.langs,
       )
       .then(() => {
+        if (
+          $data &&
+          $data.requested_locale !== $data.effective_locale &&
+          $data.requested_locale !== "en"
+        ) {
+          const from = getLanguageName($data.requested_locale);
+          const to = getLanguageName($data.effective_locale);
+          notify(
+            t("Language {0} not found, falling back to {1}.", {
+              "0": from,
+              "1": to,
+            }),
+            "warn",
+          );
+        }
         metrics.distribution(
           "data.load.duration_ms",
           nowTimeStamp() - appStart,
@@ -309,42 +326,29 @@ function maybeFocusSearch(e: KeyboardEvent) {
   }
 }
 
+/**
+ * Returns the native name (endonym) of a language (e.g., "Deutsch" for "de").
+ * Uses Intl.DisplayNames to auto-generate names without hardcoded lists.
+ * Falls back to English or the raw code if strict native naming fails.
+ */
 function getLanguageName(code: string) {
-  // from src/options.cpp
-  return (
-    {
-      en: "English",
-      ar: "العربية",
-      cs: "Český Jazyk",
-      da: "Dansk",
-      de: "Deutsch",
-      el: "Ελληνικά",
-      es_AR: "Español (Argentina)",
-      es_ES: "Español (España)",
-      fr: "Français",
-      hu: "Magyar",
-      id: "Bahasa Indonesia",
-      is: "Íslenska",
-      it_IT: "Italiano",
-      ja: "日本語",
-      ko: "한국어",
-      nb: "Norsk",
-      nl: "Nederlands",
-      pl_PL: "Polski",
-      pt_BR: "Português (Brasil)",
-      ru_RU: "Русский",
-      sr: "Српски",
-      tr: "Türkçe",
-      uk: "Українська",
-      zh_CN: "中文 (天朝)",
-      zh_TW: "中文 (台灣)",
-    }[code] ??
-    (Intl?.DisplayNames
-      ? new Intl.DisplayNames([code.replace(/_/, "-")], {
+  if (code === "en") return "English";
+  const bcp47 = code.replace(/_/, "-");
+  try {
+    if (Intl?.DisplayNames) {
+      // Use the language itself as the target locale to get the "Endonym"
+      // e.g. 'ru' -> 'Русский', 'de' -> 'Deutsch'
+      return (
+        new Intl.DisplayNames([bcp47], {
           type: "language",
-        }).of(code.replace(/_/, "-"))
-      : code)
-  );
+          fallback: "none",
+        }).of(bcp47) || code
+      );
+    }
+  } catch (e) {
+    console.warn(`Failed to get language name for ${code}`, e);
+  }
+  return code;
 }
 
 $: canonicalUrl = buildUrl(
@@ -383,6 +387,7 @@ $: canonicalUrl = buildUrl(
   {/if}
 </svelte:head>
 
+<Notification />
 {#if process.env.DEPLOY_NEXT === "1"}
   <MigoWarning />
 {/if}
@@ -636,7 +641,7 @@ $: canonicalUrl = buildUrl(
         <select
           id="language_select"
           aria-label={t("Language")}
-          value={localeParam || "en"}
+          value={$data?.effective_locale || localeParam || "en"}
           on:change={(e) => {
             const lang = e.currentTarget.value;
             updateQueryParam("lang", lang === "en" ? null : lang);

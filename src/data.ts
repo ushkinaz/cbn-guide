@@ -11,6 +11,7 @@
  */
 import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";
+import { t } from "./i18n";
 import * as perf from "./utils/perf";
 import { isTesting } from "./utils/env";
 
@@ -298,24 +299,34 @@ export class CBNData {
   build_number: string | undefined;
   /** Original version slug used for fetching (e.g., "stable", "nightly") */
   fetching_version: string | undefined;
+  /** Effective locale actually loaded (e.g. "uk" if "uk_UA" fell back) */
+  effective_locale: string;
+  /** Locale originally requested by the user */
+  requested_locale: string;
 
   /**
    * @param raw Raw game data objects
    * @param build_number Concrete build number
    * @param release Release metadata
    * @param fetching_version Original version slug used for fetching
+   * @param effective_locale Effective locale actually loaded
+   * @param requested_locale Locale originally requested
    */
   constructor(
     raw: any[],
     build_number?: string,
     release?: any,
     fetching_version?: string,
+    effective_locale: string = "en",
+    requested_locale: string = "en",
   ) {
     const p = perf.mark("CBNData.constructor");
 
     this.release = release;
     this.build_number = build_number;
     this.fetching_version = fetching_version;
+    this.effective_locale = effective_locale;
+    this.requested_locale = requested_locale;
     // For some reason O—G has the string "mapgen" as one of its objects.
     this._raw = raw.filter((x) => typeof x === "object");
     for (const obj of raw) {
@@ -1596,6 +1607,15 @@ export class CBNData {
       ...this.#deconstructFromTerrainIndex.lookup(item_id).sort(byName),
     ];
   }
+
+  setLocale(localeJson: any, pinyinNameJson: any) {
+    if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
+    i18n.loadJSON(localeJson);
+    i18n.setLocale(this.effective_locale);
+    if (pinyinNameJson) {
+      i18n.loadJSON(pinyinNameJson, "pinyin");
+    }
+  }
 }
 
 class ReverseIndex<T extends keyof SupportedTypesWithMapped> {
@@ -1853,23 +1873,48 @@ const fetchJsonWithProgress = (
     return fetchGzippedJsonForGoogleBot(url);
   if (isTesting) {
     progress(100, 100);
-    return fetch(url).then((r) => r.json());
+    return fetch(url).then((r) => {
+      if (!r.ok && r.status === 404) {
+        throw new Error(`404: ${url}`);
+      }
+      return r.json();
+    });
   }
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    const handleError = (type: string) => {
+      const status = xhr.status;
+      // If status is 404, we definitely have a missing file.
+      // If status is 0, it often means a CORS error on a 404 (common for external data hosting)
+      // or a request aborted by the browser/extensions.
+      if (status === 404 || status === 0) {
+        const message =
+          status === 404 ? `404: ${url}` : `404 (or CORS/Abort): ${url}`;
+        reject(new Error(message));
+      } else {
+        reject(
+          new Error(
+            `${type} ${status} (${xhr.statusText}) while fetching ${url}`,
+          ),
+        );
+      }
+    };
+
     xhr.onload = (e) => {
-      if (xhr.response) resolve(xhr.response);
-      else reject(`Unknown error fetching JSON from ${url}`);
+      if (xhr.status === 404) {
+        reject(new Error(`404: ${url}`));
+      } else if (xhr.status >= 200 && xhr.status < 300) {
+        if (xhr.response) resolve(xhr.response);
+        else reject(new Error(`Empty/invalid JSON response from ${url}`));
+      } else {
+        handleError("Status");
+      }
     };
     xhr.onprogress = (e) => {
       progress(e.loaded, e.lengthComputable ? e.total : 0);
     };
-    xhr.onerror = () => {
-      reject(`Error ${xhr.status} (${xhr.statusText}) fetching ${url}`);
-    };
-    xhr.onabort = () => {
-      reject(`Aborted while fetching ${url}`);
-    };
+    xhr.onerror = () => handleError("Error");
+    xhr.onabort = () => handleError("Aborted");
     xhr.open("GET", url);
     xhr.responseType = "json";
     xhr.send();
@@ -1926,6 +1971,11 @@ async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
     try {
       return await promiseGenerator();
     } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (message.startsWith("404")) {
+        // Fast-fail for missing files (including CORS-blocked 404s)
+        throw e;
+      }
       console.error(`Attempt ${attempt}/${MAX_RETRIES} failed:`, e);
 
       if (attempt === MAX_RETRIES) {
@@ -1957,6 +2007,7 @@ export const data = {
     version: string,
     locale: string | null,
     versionSlug?: string,
+    availableLangs?: string[],
   ) {
     if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
@@ -1970,57 +2021,85 @@ export const data = {
     };
     updateProgress();
     const urlVersion = versionSlug ?? version;
-    const [dataJson, localeJson, pinyinNameJson] = await Promise.all([
-      retry(() =>
-        fetchJson(urlVersion, (receivedBytes, totalBytes) => {
-          totals[0] = totalBytes;
-          receiveds[0] = receivedBytes;
-          updateProgress();
-        }),
-      ),
-      locale &&
-        retry(() =>
-          fetchLocaleJson(version, locale, (receivedBytes, totalBytes) => {
-            totals[1] = totalBytes;
-            receiveds[1] = receivedBytes;
+    const dataJson = await retry(() =>
+      fetchJson(urlVersion, (receivedBytes, totalBytes) => {
+        totals[0] = totalBytes;
+        receiveds[0] = receivedBytes;
+        updateProgress();
+      }),
+    );
+
+    let localeJson: any = null;
+    let pinyinNameJson: any = null;
+    let effective_locale = "en";
+
+    if (locale && locale !== "en") {
+      const loadLocale = async (loc: string, index: number) => {
+        return retry(() =>
+          fetchLocaleJson(version, loc, (receivedBytes, totalBytes) => {
+            totals[index] = totalBytes;
+            receiveds[index] = receivedBytes;
             updateProgress();
           }),
-        ),
-      locale?.startsWith("zh_") &&
-        retry(() =>
-          fetchLocaleJson(
-            version,
-            locale + "_pinyin",
-            (receivedBytes, totalBytes) => {
-              totals[2] = totalBytes;
-              receiveds[2] = receivedBytes;
-              updateProgress();
-            },
-          ),
-        ),
-    ]);
-    if (locale && localeJson) {
-      try {
-        if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
-        i18n.loadJSON(localeJson);
-        i18n.setLocale(locale);
-        if (pinyinNameJson) {
-          i18n.loadJSON(pinyinNameJson, "pinyin");
-        }
-      } catch (e) {
-        console.error(
-          "Failed to load locale JSON, falling back to English:",
-          e,
         );
+      };
+
+      // Determine the best available locale using metadata if provided.
+      // Strategy:
+      // 1. Exact match (e.g. "ru_RU" -> "ru_RU")
+      // 2. Base language match (e.g. "ru_RU" -> "ru")
+      // 3. Fallback to requested locale (letting it fail later if truly missing)
+      let targetLocale: string | null = null;
+      if (availableLangs) {
+        if (availableLangs.includes(locale)) {
+          targetLocale = locale;
+        } else {
+          const partialLocale = locale.split("_")[0];
+          if (availableLangs.includes(partialLocale)) {
+            targetLocale = partialLocale;
+          }
+        }
+      } else {
+        // Fallback for cases where metadata is missing (e.g. tests)
+        targetLocale = locale;
+      }
+
+      if (targetLocale) {
+        try {
+          localeJson = await loadLocale(targetLocale, 1);
+          effective_locale = targetLocale;
+          if (targetLocale.startsWith("zh_")) {
+            try {
+              pinyinNameJson = await loadLocale(targetLocale + "_pinyin", 2);
+            } catch (e) {
+              console.warn(`Failed to load pinyin for ${targetLocale}`, e);
+            }
+          }
+        } catch (e) {
+          console.error(
+            `Failed to load locale ${targetLocale}, falling back to English:`,
+            e,
+          );
+          effective_locale = "en";
+        }
       }
     }
-    const cbnData = new CBNData(
+
+    const instance = new CBNData(
       dataJson.data,
       dataJson.build_number,
       dataJson.release,
       urlVersion,
+      effective_locale,
+      locale || "en",
     );
-    set(cbnData);
+    try {
+      if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
+    } catch (e) {
+      console.error("Failed to apply locale JSON:", e);
+      instance.effective_locale = "en";
+    }
+    set(instance);
   },
 };
 
