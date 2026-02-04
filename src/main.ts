@@ -71,6 +71,12 @@ registerSW({
   onOfflineReady() {},
   onRegistered(registration) {},
   onRegisterError(error) {
+    if (error?.message === "Rejected") {
+      console.warn(
+        "PWA registration rejected (likely by external software). Ignored.",
+      );
+      return;
+    }
     Sentry.captureException(error);
   },
 });
