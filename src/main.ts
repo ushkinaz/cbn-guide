@@ -45,7 +45,8 @@ if (import.meta.env.PROD) {
     enableMetrics: !metricsDisabled,
     integrations: [browserTracingIntegration, eventFiltersIntegration],
     tracesSampleRate: 1,
-    ignoreErrors: [/srv/i, "zaraz"],
+    //Custom Zaraz endpoints, we ignore any error happening in Zaraz
+    denyUrls: [/srv\/z\/s\.js/i, /srv\/z\/t/i],
     // Runtime filter for dynamic toggling without reload
     beforeSendMetric: (metric) => {
       try {
