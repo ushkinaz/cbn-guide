@@ -68,15 +68,10 @@ registerSW({
   onNeedRefresh() {
     console.log("PWA: onNeedRefresh - New content available, please refresh.");
   },
-  onOfflineReady() {
-    console.log("PWA: onOfflineReady - App is ready for offline use.");
-  },
-  onRegistered(registration) {
-    console.log("PWA: onRegistered - Service Worker registered:", registration);
-  },
+  onOfflineReady() {},
+  onRegistered(registration) {},
   onRegisterError(error) {
     Sentry.captureException(error);
-    console.error("PWA: onRegisterError - Registration failed:", error);
   },
 });
 
