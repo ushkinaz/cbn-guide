@@ -1146,16 +1146,31 @@ button.install-button:hover {
 .select-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   margin: 0;
+  flex: 1;
+  min-width: 10rem;
+  max-width: 15rem;
+}
+
+@media (max-width: 600px) {
+  .data-options {
+    flex-direction: column;
+    align-items: center;
+  }
+  .select-group {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 .select-group select {
   margin: 0;
+  width: 100%;
   font-size: 0.9rem;
   line-height: 1.5;
   padding: 4px 8px;
-  min-width: 8rem;
   font-family:
     "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
   border: 1px solid var(--cata-color-dark_gray);
