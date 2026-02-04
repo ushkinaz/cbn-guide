@@ -506,10 +506,10 @@ $: canonicalUrl = buildUrl(
         </div>
         <div class="spec-item">
           <span class="spec-label">MODE</span>
-          <span class="spec-value relative-wrapper">
-            {t("The definitive offline-capable database")}
-
-            {#if deferredPrompt}
+          <span class="spec-value">
+            {t(
+              "The definitive offline-capable database",
+            )}&nbsp;{#if deferredPrompt}
               <button
                 class="install-button"
                 aria-label={t("install")}
@@ -520,18 +520,16 @@ $: canonicalUrl = buildUrl(
                 <svg
                   class="icon-svg"
                   xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  width="13"
-                  height="13"
+                  viewBox="2 2 20 18"
+                  width="12"
+                  height="12"
                   fill="currentColor">
                   <path
-                    d="M2 4v14h20v-8h-2v6H4V6h10V4H2zm6 16h8v2H8v-2zm10-9l-4-4h3V2h2v5h3l-4 4z"
+                    d="M2 4v14h20v-8h-2v6H4V6h10V4H2zm6 14h8v2H8v-2zm10-9l-4-4h3V2h2v5h3l-4 4z"
                     fill="currentColor"
                     fill-opacity="1" />
                 </svg>
-                <!--{t("install")}-->
-              </button>
-            {/if}
+              </button>{/if}
           </span>
         </div>
         <div class="specs-footer">
@@ -1004,12 +1002,6 @@ nav > .title {
 @media (max-width: 600px) {
 }
 
-.relative-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
 .guide-title {
   /* h1 reset */
   margin: 0;
@@ -1098,11 +1090,10 @@ nav > .title {
 }
 
 button.install-button {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 12px;
+  display: inline-flex;
+  vertical-align: baseline;
+  margin: 0;
+  position: relative;
 
   white-space: nowrap;
   background: none;
@@ -1113,16 +1104,21 @@ button.install-button {
   color: hsl(185deg, 45%, 45%);
   font-family: inherit;
   font-size: 0.85rem;
+  line-height: 1;
   text-transform: uppercase;
   font-weight: bold;
   letter-spacing: 0.05em;
 
-  display: flex;
   align-items: center;
-  gap: 6px;
+  /*gap: 4px;*/
 
   /* Smooth Fade In */
   animation: fadeIn 0.2s ease-out forwards;
+}
+
+button.install-button .icon-svg {
+  display: inline-block;
+  vertical-align: text-bottom;
 }
 
 button.install-button:hover {
