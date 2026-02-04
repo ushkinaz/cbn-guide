@@ -78,10 +78,17 @@ export default defineConfig({
               /^https:\/\/data\.cataclysmbn-guide\.com\/builds\.json$/,
             handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "builds-cache",
+              cacheName: "builds-cache-v2",
               expiration: {
                 maxEntries: 1,
                 maxAgeSeconds: 60 * 60 * 3,
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+              fetchOptions: {
+                mode: "cors",
+                credentials: "omit",
               },
             },
           },
@@ -91,10 +98,17 @@ export default defineConfig({
               /^https:\/\/data\.cataclysmbn-guide\.com\/data\/nightly\//,
             handler: "NetworkFirst",
             options: {
-              cacheName: "nightly-cache",
+              cacheName: "nightly-cache-v2",
               expiration: {
                 maxEntries: 15,
                 maxAgeSeconds: 60 * 60 * 3,
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+              fetchOptions: {
+                mode: "cors",
+                credentials: "omit",
               },
             },
           },
@@ -104,10 +118,17 @@ export default defineConfig({
               /^https:\/\/data\.cataclysmbn-guide\.com\/data\/stable\//,
             handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "stable-cache",
+              cacheName: "stable-cache-v2",
               expiration: {
                 maxEntries: 15,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+              fetchOptions: {
+                mode: "cors",
+                credentials: "omit",
               },
             },
           },
@@ -116,10 +137,17 @@ export default defineConfig({
             urlPattern: /^https:\/\/data\.cataclysmbn-guide\.com\/data\/v/,
             handler: "CacheFirst",
             options: {
-              cacheName: "stable-named-cache",
+              cacheName: "stable-named-cache-v2",
               expiration: {
                 maxEntries: 30,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+              fetchOptions: {
+                mode: "cors",
+                credentials: "omit",
               },
             },
           },
@@ -128,10 +156,17 @@ export default defineConfig({
             urlPattern: /^https:\/\/data\.cataclysmbn-guide\.com\/data\/20/,
             handler: "CacheFirst",
             options: {
-              cacheName: "nightly-named-cache",
+              cacheName: "nightly-named-cache-v2",
               expiration: {
                 maxEntries: 45,
                 maxAgeSeconds: 60 * 60 * 24 * 7, // 1 week
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+              fetchOptions: {
+                mode: "cors",
+                credentials: "omit",
               },
             },
           },

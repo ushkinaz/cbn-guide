@@ -23,7 +23,9 @@ const fetchJson = async (url: string) => {
       const filename = chunk.file.replace(/\.png$/, ".webp");
       chunk.file = filename;
       const blob = await retry(() =>
-        fetch(`${url}/${filename}`).then((b) => b.blob()),
+        fetch(`${url}/${filename}`, { mode: "cors", credentials: "omit" }).then(
+          (b) => b.blob(),
+        ),
       ).catch((err) => {
         Sentry.captureException(err, {
           extra: { url, filename },
