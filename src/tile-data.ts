@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 import * as Sentry from "@sentry/browser";
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import type { CBNData } from "./data";
 
 const fetchJson = async (url: string) => {

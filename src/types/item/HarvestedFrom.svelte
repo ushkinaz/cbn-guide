@@ -4,7 +4,7 @@ import { byName, CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import type { Furniture, Terrain } from "../../types";
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 
 export let item_id: string;
 

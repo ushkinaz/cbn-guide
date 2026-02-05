@@ -2,7 +2,7 @@
 import { getContext } from "svelte";
 
 import { CBNData, parseDuration } from "../../data";
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 import { formatFixed2 } from "../../utils/format";
 import type { ComestibleSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";

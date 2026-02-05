@@ -8,10 +8,10 @@ import { registerSW } from "virtual:pwa-register";
 import "./assets/fonts.css";
 import App from "./App.svelte";
 import { RUNNING_MODE } from "./utils/env";
-import { tx } from "./i18n";
+import { tx } from "@transifex/native";
 
 tx.init({
-  token: "1/1d8c1f9e14b4c21d70dd3f6fccdd0ab16b691105",
+  token: process.env.TRANSIFEX_TOKEN,
 });
 
 if (import.meta.env.PROD) {

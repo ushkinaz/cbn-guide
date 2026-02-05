@@ -4,7 +4,7 @@ import type { Furniture } from "../types";
 import { getContext } from "svelte";
 import Construction from "./Construction.svelte";
 import ItemLink from "./ItemLink.svelte";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
 import LimitedList from "../LimitedList.svelte";

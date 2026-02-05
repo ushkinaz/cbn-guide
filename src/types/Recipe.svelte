@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 import { getContext } from "svelte";
 import { CBNData, i18n } from "../data";

@@ -3,7 +3,7 @@ import { type CBNData, loadProgress, mapType, plural } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial } from "./types";
 import { setContext } from "svelte";
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import LimitedList from "./LimitedList.svelte";
 import {
   getOMSByAppearance,

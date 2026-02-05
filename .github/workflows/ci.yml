@@ -53,7 +53,7 @@ jobs:
         if: false
         env: # Or as an environment variable
           TRANSIFEX_SECRET: ${{ secrets.TRANSIFEX_SECRET }}
-          TRANSIFEX_TOKEN: "1/1d8c1f9e14b4c21d70dd3f6fccdd0ab16b691105"
+          TRANSIFEX_TOKEN: ${{ vars.TRANSIFEX_TOKEN }}
         run: pnpm i18n:push
 
       - name: Deploy 🚀

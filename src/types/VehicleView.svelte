@@ -8,7 +8,7 @@ import {
   type TileInfo,
   type TilePosition,
 } from "../tile-data";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 
 export let item: Vehicle;
 

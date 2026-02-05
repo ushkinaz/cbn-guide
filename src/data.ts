@@ -11,7 +11,7 @@
  */
 import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import * as perf from "./utils/perf";
 import { isTesting } from "./utils/env";
 

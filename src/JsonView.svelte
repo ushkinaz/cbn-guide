@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import { GAME_REPO_URL } from "./constants";
 import { metrics } from "./metrics";
 

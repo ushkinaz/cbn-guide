@@ -1,6 +1,6 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 import { byName, CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";

@@ -10,13 +10,12 @@ import {
 } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
-import InterpolatedTranslation from "./InterpolatedTranslation.svelte";
 import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
 import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import { buildMetaDescription } from "./seo";
 import {
   NIGHTLY_VERSION,

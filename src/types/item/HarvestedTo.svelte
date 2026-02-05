@@ -3,7 +3,7 @@ import { getContext } from "svelte";
 import { CBNData, i18n } from "../../data";
 import ItemLink from "../ItemLink.svelte";
 import type { MapDataCommon } from "../../types";
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 
 /**
  * The source from which resources are harvested.

@@ -3,7 +3,7 @@ import { CBNData, singular, singularName } from "../data";
 import { getContext } from "svelte";
 import type { UseFunction } from "../types";
 import ItemLink from "./ItemLink.svelte";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 
 const data = getContext<CBNData>("data");
 

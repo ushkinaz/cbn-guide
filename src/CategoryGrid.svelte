@@ -24,7 +24,7 @@ import terrainIcon from "./assets/category-icons/terrain.svg";
 import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 //https://game-icons.net/1x1/skoll/apc.html
 import vehicleIcon from "./assets/category-icons/vehicle.svg";
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import { CBNData, data, mapType } from "./data";
 import { getVersionedBasePath } from "./routing";
 import type { SupportedTypeMapped } from "./types";

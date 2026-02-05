@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 import type { ContainerSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
