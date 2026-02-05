@@ -150,6 +150,17 @@ initializeRouting()
           },
         );
       })
+      .catch((e) => {
+        Sentry.captureException(e);
+        console.error(e);
+        notify(
+          t(
+            "Failed to load data for {version}. Please select a different version from the footer.",
+            { version: resolvedVersion },
+          ),
+          "error",
+        );
+      })
       .finally(() => {
         p.finish();
       });

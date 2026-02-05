@@ -1885,19 +1885,21 @@ const fetchJsonWithProgress = (
     const handleError = (type: string) => {
       const status = xhr.status;
       // If status is 404, we definitely have a missing file.
-      // If status is 0, it often means a CORS error on a 404 (common for external data hosting)
+      // If status is 0, it often means a CORS error, network error,
       // or a request aborted by the browser/extensions.
-      if (status === 404 || status === 0) {
-        const message =
-          status === 404 ? `404: ${url}` : `404 (or CORS/Abort): ${url}`;
-        reject(new Error(message));
-      } else {
-        reject(
-          new Error(
-            `${type} ${status} (${xhr.statusText}) while fetching ${url}`,
-          ),
-        );
+      if (status === 404) {
+        reject(new Error(`404: ${url}`));
+        return;
       }
+      if (status === 0) {
+        reject(new Error(`Network/CORS/Abort: ${url}`));
+        return;
+      }
+      reject(
+        new Error(
+          `${type} ${status} (${xhr.statusText}) while fetching ${url}`,
+        ),
+      );
     };
 
     xhr.onload = (e) => {
