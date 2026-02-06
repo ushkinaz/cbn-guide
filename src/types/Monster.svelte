@@ -62,32 +62,32 @@ function difficultyDescription(diff: number): {
 } {
   if (diff < 3) {
     return {
-      text: t("Minimal threat."),
+      text: t("Minimal threat"),
       className: "difficulty-minimal",
     };
   } else if (diff < 10) {
     return {
-      text: t("Mildly dangerous."),
+      text: t("Mildly dangerous"),
       className: "difficulty-low",
     };
   } else if (diff < 20) {
     return {
-      text: t("Dangerous."),
+      text: t("Dangerous"),
       className: "difficulty-medium",
     };
   } else if (diff < 30) {
     return {
-      text: t("Very dangerous."),
+      text: t("Very dangerous"),
       className: "difficulty-high",
     };
   } else if (diff < 50) {
     return {
-      text: t("Extremely dangerous."),
+      text: t("Extremely dangerous"),
       className: "difficulty-very-high",
     };
   }
   return {
-    text: t("Fatally dangerous!"),
+    text: t("Fatally dangerous"),
     className: "difficulty-fatal",
   };
 }
