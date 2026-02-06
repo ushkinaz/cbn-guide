@@ -43,7 +43,7 @@ The Guide follows Cataclysm's language coverage, and translation work is communi
 
 - **Game Data**: Automatically synchronized with official game translations.
 - **Interface**: UI localization is crowdsourced and community-driven.
-- **Join Us**: Help us reach 100% coverage on [Transifex](https://explore.transifex.com/cataclysmbn-guide/web-guide/). Thanks to everyone who contributes!
+- **Join Us**: Help us [translate](https://explore.transifex.com/cataclysmbn-guide/web-guide/) the Guide. Thanks to everyone who contributes!
 
 ---
 
