@@ -452,6 +452,7 @@ export type UseFunction =
   | TrainSkillUseFunction
   | MusicPlayerUseFunction
   | ProspectPickUseFunction
+  | HandCrankUseFunction
   | MulticookerUseFunction
   | SexToyUseFunction
   | RevealContentsUseFunction
@@ -637,6 +638,21 @@ export type GpsDeviceUseFunction = {
   type: "gps_device";
   radius?: number;
   additional_charges_per_tile?: number;
+};
+
+export type HandCrankUseFunction = {
+  type: "HAND_CRANK";
+  charge_interval?: duration;
+  charge_amount?: integer;
+  fatigue_per_interval?: integer;
+  ammo_type?: string;
+  activity_name?: string;
+  start_message?: Translation;
+  already_charged_message?: Translation;
+  need_battery_message?: Translation;
+  underwater_message?: Translation;
+  exhausted_message?: Translation;
+  fully_charged_message?: Translation;
 };
 
 export type ItemBasicInfo = {
