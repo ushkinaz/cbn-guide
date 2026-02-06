@@ -27,6 +27,8 @@ import type {
   ItemGroupEntry,
   Mapgen,
   MapgenValue,
+  ModData,
+  ModInfo,
   OvermapSpecial,
   PaletteData,
   QualityRequirement,
@@ -95,11 +97,13 @@ const needsPlural = [
   "json_flag",
 ];
 
-function getMsgId(t: Translation) {
+function getMsgId(t: Translation | null | undefined) {
+  if (t == null) return "";
   return typeof t === "string" ? t : "str_sp" in t ? t.str_sp : t.str;
 }
 
-function getMsgIdPlural(t: Translation): string {
+function getMsgIdPlural(t: Translation | null | undefined): string {
+  if (t == null) return "";
   return typeof t === "string"
     ? t + "s"
     : "str_sp" in t
@@ -110,7 +114,7 @@ function getMsgIdPlural(t: Translation): string {
 }
 
 export function translate(
-  t: Translation,
+  t: Translation | null | undefined,
   needsPlural: boolean,
   n: number,
   domain?: string,
@@ -123,11 +127,13 @@ export function translate(
   return stripColorTags(raw);
 }
 
-export const singular = (name: Translation): string =>
+export const singular = (name: Translation | null | undefined): string =>
   translate(name, false, 1);
 
-export const plural = (name: Translation, n: number = 2): string =>
-  translate(name, true, n);
+export const plural = (
+  name: Translation | null | undefined,
+  n: number = 2,
+): string => translate(name, true, n);
 
 export const singularName = (obj: any, domain?: string): string =>
   pluralName(obj, 1, domain);
@@ -287,6 +293,7 @@ export class CBNData {
   _byType: Map<string, any[]> = new Map();
   _byTypeById: Map<string, Map<string, any>> = new Map();
   _abstractsByType: Map<string, Map<string, any>> = new Map();
+  _overrides: Map<any, any> = new Map();
   _toolReplacements: Map<string, string[]> = new Map();
   _craftingPseudoItems: Map<string, string> = new Map();
   _migrations: Map<string, string> = new Map();
@@ -302,6 +309,12 @@ export class CBNData {
   effective_locale: string;
   /** Locale originally requested by the user */
   requested_locale: string;
+  /** Ordered non-core mod metadata. null means metadata wasn't fetched yet. */
+  mods: ModInfo[] | null;
+  /** Ordered active non-core mod ids. null means metadata wasn't fetched yet. */
+  active_mods: string[] | null;
+  /** Full all_mods.json payload keyed by mod id. null means metadata wasn't fetched yet. */
+  raw_mods_json: Record<string, ModData> | null;
 
   /**
    * @param raw Raw game data objects
@@ -318,6 +331,9 @@ export class CBNData {
     fetching_version?: string,
     effective_locale: string = "en",
     requested_locale: string = "en",
+    mods: ModInfo[] | null = null,
+    active_mods: string[] | null = null,
+    raw_mods_json: Record<string, ModData> | null = null,
   ) {
     const p = perf.mark("CBNData.constructor");
 
@@ -326,6 +342,9 @@ export class CBNData {
     this.fetching_version = fetching_version;
     this.effective_locale = effective_locale;
     this.requested_locale = requested_locale;
+    this.mods = mods;
+    this.active_mods = active_mods;
+    this.raw_mods_json = raw_mods_json;
     // For some reason O—G has the string "mapgen" as one of its objects.
     this._raw = raw.filter((x) => typeof x === "object");
     for (const obj of raw) {
@@ -343,9 +362,14 @@ export class CBNData {
       if (Object.hasOwnProperty.call(obj, "id")) {
         if (!this._byTypeById.has(mappedType))
           this._byTypeById.set(mappedType, new Map());
-        if (typeof obj.id === "string")
-          this._byTypeById.get(mappedType)!.set(obj.id, obj);
-        else if (Array.isArray(obj.id))
+        if (typeof obj.id === "string") {
+          const byTypeById = this._byTypeById.get(mappedType)!;
+          const previous = byTypeById.get(obj.id);
+          if (previous) {
+            this._overrides.set(obj, previous);
+          }
+          byTypeById.set(obj.id, obj);
+        } else if (Array.isArray(obj.id))
           for (const id of obj.id)
             this._byTypeById.get(mappedType)!.set(id, obj);
 
@@ -504,21 +528,44 @@ export class CBNData {
     return this._raw;
   }
 
+  _resolveCopyFromParent(obj: any): any | null {
+    if (!("copy-from" in obj)) return null;
+
+    const parentId = obj["copy-from"];
+    let parent =
+      this._byTypeById.get(mapType(obj.type))?.get(parentId) ??
+      this._abstractsByType.get(mapType(obj.type))?.get(parentId) ??
+      null;
+
+    // For "self-looking" copy-from patterns in layered mod overrides, use the
+    // previous object for this id instead of resolving to self.
+    if (
+      typeof obj.id === "string" &&
+      typeof parentId === "string" &&
+      obj.id === parentId &&
+      this._overrides.has(obj)
+    ) {
+      parent = this._overrides.get(obj);
+    } else if (parent === obj && this._overrides.has(obj)) {
+      parent = this._overrides.get(obj);
+    }
+
+    return parent;
+  }
+
   resolveOne(obj: any, key: string): any {
     let current = obj;
-    const type = mapType(obj.type);
+    const visited = new Set<any>();
     while (current) {
+      if (visited.has(current)) {
+        console.warn("Cycle detected while resolving inherited field:", key);
+        break;
+      }
+      visited.add(current);
       if (Object.prototype.hasOwnProperty.call(current, key)) {
         return current[key];
       }
-      if ("copy-from" in current) {
-        const parentId = current["copy-from"];
-        current =
-          this._abstractsByType.get(type)?.get(parentId) ??
-          this._byTypeById.get(type)?.get(parentId);
-      } else {
-        break;
-      }
+      current = this._resolveCopyFromParent(current);
     }
     return undefined;
   }
@@ -529,18 +576,22 @@ export class CBNData {
    * Caches the result.
    *
    * @param _obj The raw object to flatten.
+   * @param stack Recursion stack for inheritance cycle detection.
    * @returns The flattened object.
    */
-  _flatten<T = any>(_obj: T): T {
+  _flatten<T = any>(_obj: T, stack: Set<any> = new Set()): T {
     const obj: any = _obj;
     if (this._flattenCache.has(obj)) {
       return this._flattenCache.get(obj);
     }
-    const parent =
-      "copy-from" in obj
-        ? (this._byTypeById.get(mapType(obj.type))?.get(obj["copy-from"]) ??
-          this._abstractsByType.get(mapType(obj.type))?.get(obj["copy-from"]))
-        : null;
+
+    if (stack.has(obj)) {
+      console.warn("Cycle detected in copy-from inheritance:", obj);
+      return obj;
+    }
+    stack.add(obj);
+
+    const parent = this._resolveCopyFromParent(obj);
     if ("copy-from" in obj && !parent)
       console.error(
         `Missing parent in ${
@@ -551,13 +602,16 @@ export class CBNData {
       // Working around bad data upstream, see: https://github.com/CleverRaven/Cataclysm-DDA/pull/53930
       console.warn("Object copied from itself:", obj);
       this._flattenCache.set(obj, obj);
+      stack.delete(obj);
       return obj;
     }
     if (!parent) {
       this._flattenCache.set(obj, obj);
+      stack.delete(obj);
       return obj;
     }
-    const { abstract, ...parentProps } = this._flatten(parent);
+    const { abstract, ...parentProps } = this._flatten(parent, stack);
+    stack.delete(obj);
     const ret = { ...parentProps, ...obj };
     if (parentProps.vitamins && obj.vitamins) {
       ret.vitamins = [
@@ -585,33 +639,13 @@ export class CBNData {
         } else {
           ret[k] = (ret[k] ?? 0) + ret.relative[k];
         }
-      } else if ((k === "damage" || k === "ranged_damage") && ret[k]) {
-        ret[k] = cloneDamageInstance(ret[k]);
-        const relativeDamage = normalizeDamageInstance(ret.relative[k]);
-        for (const rdu of relativeDamage) {
-          const modified: DamageUnit = Array.isArray(ret[k])
-            ? ret[k].find(
-                (du: DamageUnit) => du.damage_type === rdu.damage_type,
-              )
-            : ret[k].damage_type === rdu.damage_type
-              ? ret[k]
-              : null;
-          if (modified) {
-            modified.amount = (modified.amount ?? 0) + (rdu.amount ?? 0);
-            modified.armor_penetration =
-              (modified.armor_penetration ?? 0) + (rdu.armor_penetration ?? 0);
-            modified.armor_multiplier =
-              (modified.armor_multiplier ?? 0) + (rdu.armor_multiplier ?? 0);
-            modified.damage_multiplier =
-              (modified.damage_multiplier ?? 0) + (rdu.damage_multiplier ?? 0);
-            modified.constant_armor_multiplier =
-              (modified.constant_armor_multiplier ?? 0) +
-              (rdu.constant_armor_multiplier ?? 0);
-            modified.constant_damage_multiplier =
-              (modified.constant_damage_multiplier ?? 0) +
-              (rdu.constant_damage_multiplier ?? 0);
-          }
-        }
+      } else if (
+        (k === "damage" || k === "ranged_damage" || k === "melee_damage") &&
+        ret[k] &&
+        isDamageInstanceLike(ret[k]) &&
+        isDamageInstanceLike(ret.relative[k])
+      ) {
+        ret[k] = applyRelativeDamageInstance(ret[k], ret.relative[k]);
       } else if (
         (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
         ret[k]
@@ -644,35 +678,13 @@ export class CBNData {
           ret[k] *= ret.proportional[k];
           ret[k] = ret[k] | 0; // most things are ints.. TODO: what keys are float?
         }
-      } else if (k === "damage" && ret[k]) {
-        ret.damage = cloneDamageInstance(ret.damage);
-        const proportionalDamage = normalizeDamageInstance(
-          ret.proportional.damage,
-        );
-        for (const pdu of proportionalDamage) {
-          const modified: DamageUnit = Array.isArray(ret.damage)
-            ? ret.damage.find(
-                (du: DamageUnit) => du.damage_type === pdu.damage_type,
-              )
-            : ret.damage.damage_type === pdu.damage_type
-              ? ret.damage
-              : null;
-          if (modified) {
-            modified.amount = (modified.amount ?? 0) * (pdu.amount ?? 1);
-            modified.armor_penetration =
-              (modified.armor_penetration ?? 0) * (pdu.armor_penetration ?? 1);
-            modified.armor_multiplier =
-              (modified.armor_multiplier ?? 0) * (pdu.armor_multiplier ?? 1);
-            modified.damage_multiplier =
-              (modified.damage_multiplier ?? 0) * (pdu.damage_multiplier ?? 1);
-            modified.constant_armor_multiplier =
-              (modified.constant_armor_multiplier ?? 0) *
-              (pdu.constant_armor_multiplier ?? 1);
-            modified.constant_damage_multiplier =
-              (modified.constant_damage_multiplier ?? 0) *
-              (pdu.constant_damage_multiplier ?? 1);
-          }
-        }
+      } else if (
+        (k === "damage" || k === "ranged_damage" || k === "melee_damage") &&
+        ret[k] &&
+        isDamageInstanceLike(ret[k]) &&
+        isDamageInstanceLike(ret.proportional[k])
+      ) {
+        ret[k] = applyProportionalDamageInstance(ret[k], ret.proportional[k]);
       } else if (
         (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
         ret[k]
@@ -1713,11 +1725,142 @@ export const countsByCharges = (item: any): boolean => {
 };
 
 export function normalizeDamageInstance(
-  damageInstance: DamageInstance,
+  damageInstance: DamageInstance | number | null | undefined,
 ): DamageUnit[] {
+  if (typeof damageInstance === "number") {
+    return [{ damage_type: "bash", amount: damageInstance }];
+  }
+  if (!damageInstance || typeof damageInstance !== "object") {
+    return [];
+  }
   if (Array.isArray(damageInstance)) return damageInstance;
-  else if ("values" in damageInstance) return damageInstance.values;
-  else return [damageInstance];
+  else if ("values" in damageInstance && Array.isArray(damageInstance.values))
+    return damageInstance.values;
+  else if ("damage_type" in damageInstance) return [damageInstance];
+  else return [];
+}
+
+function isDamageInstanceLike(value: unknown): value is DamageInstance {
+  if (Array.isArray(value)) return true;
+  if (!value || typeof value !== "object") return false;
+  const typed = value as Record<string, unknown>;
+  return "values" in typed || "damage_type" in typed;
+}
+
+function applyRelativeDamageInstance(
+  baseDamage: DamageInstance,
+  relativeDamage: DamageInstance,
+): DamageUnit[] {
+  const baseUnits = normalizeDamageInstance(cloneDamageInstance(baseDamage));
+  const relativeUnits = normalizeDamageInstance(relativeDamage);
+
+  for (const relUnit of relativeUnits) {
+    if (typeof relUnit.damage_type !== "string") continue;
+    let modified = baseUnits.find(
+      (du) => du.damage_type === relUnit.damage_type,
+    );
+    if (!modified) {
+      baseUnits.push({ ...relUnit });
+      continue;
+    }
+    if (modified.amount != null || relUnit.amount != null) {
+      modified.amount = (modified.amount ?? 0) + (relUnit.amount ?? 0);
+    }
+    if (
+      modified.armor_penetration != null ||
+      relUnit.armor_penetration != null
+    ) {
+      modified.armor_penetration =
+        (modified.armor_penetration ?? 0) + (relUnit.armor_penetration ?? 0);
+    }
+    if (modified.armor_multiplier != null || relUnit.armor_multiplier != null) {
+      modified.armor_multiplier =
+        (modified.armor_multiplier ?? 0) + (relUnit.armor_multiplier ?? 0);
+    }
+    if (
+      modified.damage_multiplier != null ||
+      relUnit.damage_multiplier != null
+    ) {
+      modified.damage_multiplier =
+        (modified.damage_multiplier ?? 0) + (relUnit.damage_multiplier ?? 0);
+    }
+    if (
+      modified.constant_armor_multiplier != null ||
+      relUnit.constant_armor_multiplier != null
+    ) {
+      modified.constant_armor_multiplier =
+        (modified.constant_armor_multiplier ?? 0) +
+        (relUnit.constant_armor_multiplier ?? 0);
+    }
+    if (
+      modified.constant_damage_multiplier != null ||
+      relUnit.constant_damage_multiplier != null
+    ) {
+      modified.constant_damage_multiplier =
+        (modified.constant_damage_multiplier ?? 0) +
+        (relUnit.constant_damage_multiplier ?? 0);
+    }
+  }
+
+  return baseUnits;
+}
+
+function applyProportionalDamageInstance(
+  baseDamage: DamageInstance,
+  proportionalDamage: DamageInstance,
+): DamageUnit[] {
+  const baseUnits = normalizeDamageInstance(cloneDamageInstance(baseDamage));
+  const proportionalUnits = normalizeDamageInstance(proportionalDamage);
+
+  for (const propUnit of proportionalUnits) {
+    if (typeof propUnit.damage_type !== "string") continue;
+    const modified = baseUnits.find(
+      (du) => du.damage_type === propUnit.damage_type,
+    );
+    if (!modified) continue;
+    if (modified.amount != null || propUnit.amount != null) {
+      modified.amount = (modified.amount ?? 0) * (propUnit.amount ?? 1);
+    }
+    if (
+      modified.armor_penetration != null ||
+      propUnit.armor_penetration != null
+    ) {
+      modified.armor_penetration =
+        (modified.armor_penetration ?? 0) * (propUnit.armor_penetration ?? 1);
+    }
+    if (
+      modified.armor_multiplier != null ||
+      propUnit.armor_multiplier != null
+    ) {
+      modified.armor_multiplier =
+        (modified.armor_multiplier ?? 0) * (propUnit.armor_multiplier ?? 1);
+    }
+    if (
+      modified.damage_multiplier != null ||
+      propUnit.damage_multiplier != null
+    ) {
+      modified.damage_multiplier =
+        (modified.damage_multiplier ?? 0) * (propUnit.damage_multiplier ?? 1);
+    }
+    if (
+      modified.constant_armor_multiplier != null ||
+      propUnit.constant_armor_multiplier != null
+    ) {
+      modified.constant_armor_multiplier =
+        (modified.constant_armor_multiplier ?? 0) *
+        (propUnit.constant_armor_multiplier ?? 1);
+    }
+    if (
+      modified.constant_damage_multiplier != null ||
+      propUnit.constant_damage_multiplier != null
+    ) {
+      modified.constant_damage_multiplier =
+        (modified.constant_damage_multiplier ?? 0) *
+        (propUnit.constant_damage_multiplier ?? 1);
+    }
+  }
+
+  return baseUnits;
 }
 
 export function cloneDamageInstance(di: DamageInstance): DamageInstance {
@@ -1963,6 +2106,101 @@ const fetchLocaleJson = async (
   );
 };
 
+type ParsedModsJson = {
+  mods: ModInfo[];
+  raw: Record<string, ModData>;
+  byId: Map<string, ModData>;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseModsJson(rawMods: unknown): ParsedModsJson {
+  if (!isRecord(rawMods)) {
+    throw new Error("Invalid all_mods.json: expected top-level object map");
+  }
+
+  const mods: ModInfo[] = [];
+  const raw: Record<string, ModData> = {};
+  const byId = new Map<string, ModData>();
+
+  for (const [modId, rawEntry] of Object.entries(rawMods)) {
+    if (!isRecord(rawEntry)) {
+      throw new Error(`Invalid all_mods.json entry for "${modId}"`);
+    }
+    const rawInfo = rawEntry.info;
+    const rawData = rawEntry.data;
+    if (!isRecord(rawInfo)) {
+      throw new Error(`Invalid all_mods.json info for "${modId}"`);
+    }
+    if (!Array.isArray(rawData)) {
+      throw new Error(`Invalid all_mods.json data array for "${modId}"`);
+    }
+    if (rawInfo.type !== "MOD_INFO") {
+      throw new Error(`Invalid MOD_INFO type for "${modId}"`);
+    }
+    if (typeof rawInfo.id !== "string" || rawInfo.id !== modId) {
+      throw new Error(`Invalid MOD_INFO id for "${modId}"`);
+    }
+
+    const modData: ModData = {
+      info: rawInfo as ModInfo,
+      data: rawData,
+    };
+    raw[modId] = modData;
+    byId.set(modId, modData);
+    if (!modData.info.core) {
+      mods.push(modData.info);
+    }
+  }
+
+  return { mods, raw, byId };
+}
+
+function filterActiveMods(
+  requestedActiveMods: string[],
+  modsById: Map<string, ModData>,
+): string[] {
+  const filtered: string[] = [];
+  const seen = new Set<string>();
+  for (const modId of requestedActiveMods) {
+    if (modId === "bn" || seen.has(modId)) continue;
+    const modData = modsById.get(modId);
+    if (!modData || modData.info.core) continue;
+    seen.add(modId);
+    filtered.push(modId);
+  }
+  return filtered;
+}
+
+function mergeDataWithActiveMods(
+  coreData: any[],
+  modsById: Map<string, ModData>,
+  activeMods: string[],
+): any[] {
+  const mergedData = [...coreData];
+  for (const modId of activeMods) {
+    mergedData.push(...modsById.get(modId)!.data);
+  }
+  return mergedData;
+}
+
+function is404Error(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.startsWith("404");
+}
+
+const fetchModsJson = async (
+  version: string,
+  progress: (receivedBytes: number, totalBytes: number) => void,
+) => {
+  return fetchJsonWithProgress(
+    getDataJsonUrl(version, "all_mods.json"),
+    progress,
+  );
+};
+
 /**
  * Retry a promise-generating function with exponential backoff.
  * Max 3 attempts with increasing delays: 2s, 4s, 8s.
@@ -2005,6 +2243,7 @@ async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
 const loadProgressStore = writable<[number, number] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 let _hasSetVersion = false;
+let _currentData: CBNData | null = null;
 const { subscribe, set } = writable<CBNData | null>(null);
 export const data = {
   subscribe,
@@ -2013,12 +2252,13 @@ export const data = {
     locale: string | null,
     versionSlug?: string,
     availableLangs?: string[],
+    activeMods: string[] = [],
   ) {
     if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
     _hasSetVersion = true;
-    let totals = [0, 0, 0];
-    let receiveds = [0, 0, 0];
+    let totals = [0, 0, 0, 0];
+    let receiveds = [0, 0, 0, 0];
     const updateProgress = () => {
       const total = totals.reduce((a, b) => a + b, 0);
       const received = receiveds.reduce((a, b) => a + b, 0);
@@ -2090,13 +2330,54 @@ export const data = {
       }
     }
 
+    let mods: ModInfo[] | null = null;
+    let filteredActiveMods: string[] | null = null;
+    let rawModsJson: Record<string, ModData> | null = null;
+    let mergedData = dataJson.data;
+    const requestedActiveMods = activeMods.filter((modId) => modId !== "bn");
+
+    if (requestedActiveMods.length > 0) {
+      try {
+        const modsJson = await retry(() =>
+          fetchModsJson(urlVersion, (receivedBytes, totalBytes) => {
+            totals[3] = totalBytes;
+            receiveds[3] = receivedBytes;
+            updateProgress();
+          }),
+        );
+        const parsedMods = parseModsJson(modsJson);
+        mods = parsedMods.mods;
+        rawModsJson = parsedMods.raw;
+        filteredActiveMods = filterActiveMods(
+          requestedActiveMods,
+          parsedMods.byId,
+        );
+        mergedData = mergeDataWithActiveMods(
+          dataJson.data,
+          parsedMods.byId,
+          filteredActiveMods,
+        );
+      } catch (e) {
+        if (is404Error(e)) {
+          mods = [];
+          filteredActiveMods = [];
+          rawModsJson = {};
+        } else {
+          throw e;
+        }
+      }
+    }
+
     const instance = new CBNData(
-      dataJson.data,
+      mergedData,
       dataJson.build_number,
       dataJson.release,
       urlVersion,
       effective_locale,
       locale || "en",
+      mods,
+      filteredActiveMods,
+      rawModsJson,
     );
     try {
       if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
@@ -2104,7 +2385,41 @@ export const data = {
       console.error("Failed to apply locale JSON:", e);
       instance.effective_locale = "en";
     }
+    _currentData = instance;
     set(instance);
+  },
+  async ensureModsLoaded() {
+    const currentData = _currentData;
+    if (!currentData || currentData.mods !== null) return;
+
+    const modsVersion =
+      currentData.fetching_version ?? currentData.build_number;
+    if (!modsVersion) {
+      currentData.mods = [];
+      currentData.active_mods = currentData.active_mods ?? [];
+      currentData.raw_mods_json = {};
+      _currentData = currentData;
+      set(currentData);
+      return;
+    }
+
+    try {
+      const modsJson = await retry(() => fetchModsJson(modsVersion, () => {}));
+      const parsedMods = parseModsJson(modsJson);
+      currentData.mods = parsedMods.mods;
+      currentData.active_mods = currentData.active_mods ?? [];
+      currentData.raw_mods_json = parsedMods.raw;
+    } catch (e) {
+      if (is404Error(e)) {
+        currentData.mods = [];
+        currentData.active_mods = [];
+        currentData.raw_mods_json = {};
+      } else {
+        throw e;
+      }
+    }
+    _currentData = currentData;
+    set(currentData);
   },
 };
 
