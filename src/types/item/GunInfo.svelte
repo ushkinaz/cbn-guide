@@ -23,6 +23,12 @@ const ranged_damage = Array.isArray(item.ranged_damage)
           damage_type: "bullet",
           armor_penetration: 0,
         });
+const rangedDamageType =
+  typeof ranged_damage === "object" &&
+  ranged_damage &&
+  typeof ranged_damage.damage_type === "string"
+    ? ranged_damage.damage_type
+    : "bullet";
 </script>
 
 <section>
@@ -37,8 +43,8 @@ const ranged_damage = Array.isArray(item.ranged_damage)
     <dt>{t("Base Damage")}</dt>
     <dd>
       {ranged_damage.amount ?? 0} ({singularName(
-        data.byIdMaybe("damage_type", ranged_damage.damage_type) ?? {
-          id: ranged_damage.damage_type,
+        data.byIdMaybe("damage_type", rangedDamageType) ?? {
+          id: rangedDamageType,
         },
       )})
     </dd>

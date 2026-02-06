@@ -122,6 +122,10 @@ function damage(mon: Monster) {
       data.byIdMaybe("damage_type", "bash") ?? { id: "bash" },
     )}` +
     du
+      .filter(
+        (u): u is typeof u & { damage_type: string } =>
+          typeof u?.damage_type === "string",
+      )
       .map(
         (u) =>
           ` + ${u.amount} ${singularName(

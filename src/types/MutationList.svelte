@@ -8,10 +8,16 @@ import ItemLink from "./ItemLink.svelte";
 let data = getContext<CBNData>("data");
 
 export let mutations: Mutation[];
+const asArray = (value: string | string[] | undefined): string[] =>
+  typeof value === "string" ? [value] : Array.isArray(value) ? value : [];
 const allPrereqs = (m: Mutation) =>
-  (m.prereqs ?? []).concat(m.prereqs2 ?? []).concat(m.threshreq ?? []);
-let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>
-  allPrereqs(m).map((x) => data.byId("mutation", x)),
+  asArray(m.prereqs).concat(asArray(m.prereqs2)).concat(asArray(m.threshreq));
+let sortedMutations = topologicalSortComponentsByRank(
+  mutations,
+  (m) =>
+    allPrereqs(m)
+      .map((x) => data.byIdMaybe("mutation", x))
+      .filter(Boolean) as Mutation[],
 ).sort((a, b) => singularName(a[0][0]).localeCompare(singularName(b[0][0])));
 </script>
 

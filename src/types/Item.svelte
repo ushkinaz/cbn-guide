@@ -111,7 +111,7 @@ const usage: UseFunction[] = normalizeUseAction(item.use_action).map((s) => {
 });
 
 const ascii_picture =
-  item.ascii_picture && data.byId("ascii_art", item.ascii_picture);
+  item.ascii_picture && data.byIdMaybe("ascii_art", item.ascii_picture);
 
 const byName = (a: any, b: any) =>
   singularName(a).localeCompare(singularName(b));

@@ -9,21 +9,30 @@ const data = getContext<CBNData>("data");
 
 export let usage: UseFunction;
 
+const actionId = usage.type === "__item_action__" ? usage.id : usage.type;
 let action =
-  usage.type === "__item_action__"
-    ? data.byId("item_action", usage.id)
-    : data.byId("item_action", usage.type);
+  typeof actionId === "string"
+    ? data.byIdMaybe("item_action", actionId)
+    : undefined;
 let description =
   ("menu_text" in usage ? usage.menu_text : null) ??
   ("name" in usage && usage.name ? singular(usage.name) : null) ??
-  singularName(action);
+  (action
+    ? singularName(action)
+    : typeof actionId === "string"
+      ? actionId
+      : undefined);
 </script>
 
-<ItemLink
-  type="item_action"
-  id={action.id}
-  overrideText={description}
-  showIcon={false} />
+{#if action}
+  <ItemLink
+    type="item_action"
+    id={action.id}
+    overrideText={description}
+    showIcon={false} />
+{:else}
+  <span>{description ?? t("Unknown action")}</span>
+{/if}
 {#if usage.type === "transform" || usage.type === "delayed_transform"}
   {" "}(⟹
   <ItemLink type="item" id={usage.target} showIcon={false} />

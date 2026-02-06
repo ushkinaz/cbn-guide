@@ -64,8 +64,9 @@ function findTileOrLooksLike(
   }
   const idTile = findTile(tileData, resolveId(item.id ?? item.abstract));
   if (idTile) return idTile;
-  const looksLikeId = item.looks_like ?? item["copy-from"];
-  if (!looksLikeId) return;
+  const rawLooksLikeId = item.looks_like ?? item["copy-from"];
+  if (typeof rawLooksLikeId !== "string" || rawLooksLikeId.length === 0) return;
+  const looksLikeId = rawLooksLikeId;
   const looksLikeTile = findTile(tileData, resolveId(looksLikeId));
   if (looksLikeTile) return looksLikeTile;
   if (jumps > 0) {

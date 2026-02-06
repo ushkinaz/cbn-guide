@@ -5,4 +5,8 @@ import ItemLink from "../../ItemLink.svelte";
 export let attack: GunAttack & { cooldown?: number };
 </script>
 
-<ItemLink type="item" id={attack.gun_type} showIcon={false} /> (cooldown: {attack.cooldown})
+<ItemLink
+  type="item"
+  id={attack.gun_type}
+  showIcon={false} />{#if attack.cooldown != null}
+  (cooldown: {attack.cooldown}){/if}

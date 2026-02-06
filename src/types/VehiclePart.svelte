@@ -61,7 +61,7 @@ const breaksIntoGroupFlattened =
 const vehiclesContainingPart = data.byType("vehicle").filter(
   (v) =>
     v.id &&
-    v.parts.some((part) => {
+    (v.parts ?? []).some((part) => {
       const parts = part.part
         ? [{ part: part.part, fuel: part.fuel }]
         : (part.parts?.map((part) =>

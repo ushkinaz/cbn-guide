@@ -14,24 +14,37 @@ export let item: Mutation;
 
 let data = getContext<CBNData>("data");
 const _context = "Mutation";
+const asStringArray = (value: string | string[] | undefined): string[] =>
+  typeof value === "string" ? [value] : Array.isArray(value) ? value : [];
+const categories = asStringArray(item.category);
+const thresholdRequirements = asStringArray(item.threshreq);
+const leadsTo = asStringArray(item.leads_to);
+const changesTo = asStringArray(item.changes_to);
+const cancels = asStringArray(item.cancels);
+const changesToMutations = changesTo
+  .map((id) => data.byIdMaybe("mutation", id))
+  .filter(Boolean) as Mutation[];
+const cancelsMutations = cancels
+  .map((id) => data.byIdMaybe("mutation", id))
+  .filter(Boolean) as Mutation[];
 
 const postThresholdMutations = data
   .byType("mutation")
-  .filter((m) => (m.threshreq ?? []).includes(item.id))
+  .filter((m) => asStringArray(m.threshreq).includes(item.id))
   .sort(byName);
 
 const requiredBy = data
   .byType("mutation")
   .filter(
     (m) =>
-      (m.prereqs ?? []).includes(item.id) ||
-      (m.prereqs2 ?? []).includes(item.id),
+      asStringArray(m.prereqs).includes(item.id) ||
+      asStringArray(m.prereqs2).includes(item.id),
   )
   .sort(byName);
 
 const canceledByMutations = data
   .byType("mutation")
-  .filter((m) => (m.cancels ?? []).includes(item.id))
+  .filter((m) => asStringArray(m.cancels).includes(item.id))
   .sort(byName);
 
 const canceledByBionics = data
@@ -54,11 +67,11 @@ const conflictsWithBionics = data
   <dl>
     <dt>{t("Points", { _context })}</dt>
     <dd><MutationColor mutation={item}>{item.points}</MutationColor></dd>
-    {#if item.category}
+    {#if categories.length}
       <dt>{t("Category", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
-          {#each item.category as category_id}
+          {#each categories as category_id}
             <li>
               <ItemLink
                 type="mutation_category"
@@ -192,11 +205,11 @@ const conflictsWithBionics = data
         <em>{t("none")}</em>
       {/if}
     </dd>
-    {#if item.threshreq}
+    {#if thresholdRequirements.length}
       <dt>{t("Threshold Requirement", { _context })}</dt>
       <dd>
         <ul class="comma-separated or">
-          {#each item.threshreq as prereq_id}
+          {#each thresholdRequirements as prereq_id}
             <li>
               <ItemLink type="mutation" id={prereq_id} showIcon={false} />
             </li>
@@ -204,28 +217,26 @@ const conflictsWithBionics = data
         </ul>
       </dd>
     {/if}
-    {#if item.leads_to}
+    {#if leadsTo.length}
       <dt>{t("Leads To", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
-          {#each item.leads_to as id}
+          {#each leadsTo as id}
             <li><ItemLink {id} type="mutation" showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
     {/if}
-    {#if item.changes_to?.length}
+    {#if changesTo.length}
       <dt>{t("Changes To", { _context })}</dt>
       <dd>
-        <MutationList
-          mutations={item.changes_to.map((id) => data.byId("mutation", id))} />
+        <MutationList mutations={changesToMutations} />
       </dd>
     {/if}
-    {#if item.cancels?.length}
+    {#if cancels.length}
       <dt>{t("Cancels", { _context })}</dt>
       <dd>
-        <MutationList
-          mutations={item.cancels.map((id) => data.byId("mutation", id))} />
+        <MutationList mutations={cancelsMutations} />
       </dd>
     {/if}
     {#if canceledByMutations.length}

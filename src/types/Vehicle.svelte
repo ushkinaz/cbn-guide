@@ -22,7 +22,7 @@ export let item: Vehicle;
 const data = getContext<CBNData>("data");
 const _context = "Vehicle";
 
-const normalizedParts = item.parts.map((part) => {
+const normalizedParts = (item.parts ?? []).map((part) => {
   const parts =
     (part.part
       ? [{ part: part.part, fuel: part.fuel }]
