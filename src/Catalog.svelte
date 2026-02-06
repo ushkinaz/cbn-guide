@@ -17,6 +17,8 @@ import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./utils/collections";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
 
+// TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(type)) heading with literal branches.
+
 export let type: string;
 export let data: CBNData;
 let typeWithCorrectType = type as keyof SupportedTypesWithMapped;

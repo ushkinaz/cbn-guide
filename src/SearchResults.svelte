@@ -18,6 +18,7 @@ $: setContext("data", data);
 export let search: string;
 
 $: matchingObjectsList = $searchResults ? [...$searchResults.entries()] : null;
+//TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(...)) section heading below with literal branches.
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();

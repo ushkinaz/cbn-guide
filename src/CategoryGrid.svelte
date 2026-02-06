@@ -31,57 +31,57 @@ import type { SupportedTypeMapped } from "./types";
 
 const categories = [
   {
-    label: "Items",
+    label: t("Items"),
     href: "item",
     icon: itemsIcon,
   },
   {
-    label: "Monsters",
+    label: t("Monsters"),
     href: "monster",
     icon: monstersIcon,
   },
   {
-    label: "Furniture",
+    label: t("Furniture"),
     href: "furniture",
     icon: furnitureIcon,
   },
   {
-    label: "Terrain",
+    label: t("Terrain"),
     href: "terrain",
     icon: terrainIcon,
   },
   {
-    label: "Vehicles",
+    label: t("Vehicles"),
     href: "vehicle",
     icon: vehicleIcon,
   },
   {
-    label: "Vehicle Parts",
+    label: t("Vehicle Parts"),
     href: "vehicle_part",
     icon: vehiclePartsIcon,
   },
   {
-    label: "Qualities",
+    label: t("Qualities"),
     href: "tool_quality",
     icon: qualitiesIcon,
   },
   {
-    label: "Mutations",
+    label: t("Mutations"),
     href: "mutation",
     icon: mutationsIcon,
   },
   {
-    label: "Martial Arts",
+    label: t("Martial Arts"),
     href: "martial_art",
     icon: martialArtsIcon,
   },
   {
-    label: "Flags",
+    label: t("Flags"),
     href: "json_flag",
     icon: flagsIcon,
   },
   {
-    label: "Achievements",
+    label: t("Achievements"),
     href: "achievement",
     icon: achievementsIcon,
   },
@@ -149,12 +149,12 @@ refreshRandomPage();
       <div class="icon-wrapper">
         <img
           src={cat.icon}
-          alt={t(cat.label)}
+          alt={cat.label}
           class="category-icon"
           loading="eager"
           decoding="async" />
       </div>
-      <span class="label">{t(cat.label)}</span>
+      <span class="label">{cat.label}</span>
     </a>
   {/each}
   <a

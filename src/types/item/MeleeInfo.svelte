@@ -76,7 +76,11 @@ const piercing =
       <dt>{t("Bash", { _context: "Damage Type" })}</dt>
       <dd>{item.bashing ?? 0}</dd>
       <dt>
-        {t(piercing ? "Pierce" : "Cut", { _context: "Damage Type" })}
+        {#if piercing}
+          {t("Pierce", { _context: "Damage Type" })}
+        {:else}
+          {t("Cut", { _context: "Damage Type" })}
+        {/if}
       </dt>
       <dd>{item.cutting ?? 0}</dd>
       <dt>{t("To Hit", { _context })}</dt>

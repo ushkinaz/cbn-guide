@@ -44,6 +44,7 @@ const activityLevels = {
   EXTRA_EXERCISE: 10.0,
 };
 
+//TODO: Transifex extraction only recognizes direct t("...") keys; replace t(activityLevelName(...)) with literal keys.
 function activityLevelName(level: number) {
   const activity_descriptions = [
     "None",
