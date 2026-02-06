@@ -2109,13 +2109,42 @@ type ParsedModsJson = {
   byId: Map<string, ModData>;
 };
 
+type ModLoadErrorCode =
+  | "mods_not_found"
+  | "mods_invalid_payload"
+  | "mods_unavailable";
+
+/**
+ * Internal typed error for mod metadata load paths.
+ * Keeps `setVersion`/`ensureModsLoaded` transitions deterministic by classifying
+ * missing files, invalid payloads, and transient availability failures.
+ */
+class ModLoadError extends Error {
+  code: ModLoadErrorCode;
+  cause?: unknown;
+
+  constructor(code: ModLoadErrorCode, message: string, cause?: unknown) {
+    super(message);
+    this.name = "ModLoadError";
+    this.code = code;
+    this.cause = cause;
+  }
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function parseModsJson(rawMods: unknown): ParsedModsJson {
   if (!isRecord(rawMods)) {
-    throw new Error("Invalid all_mods.json: expected top-level object map");
+    throw new ModLoadError(
+      "mods_invalid_payload",
+      "Invalid all_mods.json: expected top-level object map",
+    );
   }
 
   const mods: ModInfo[] = [];
@@ -2124,21 +2153,36 @@ function parseModsJson(rawMods: unknown): ParsedModsJson {
 
   for (const [modId, rawEntry] of Object.entries(rawMods)) {
     if (!isRecord(rawEntry)) {
-      throw new Error(`Invalid all_mods.json entry for "${modId}"`);
+      throw new ModLoadError(
+        "mods_invalid_payload",
+        `Invalid all_mods.json entry for "${modId}"`,
+      );
     }
     const rawInfo = rawEntry.info;
     const rawData = rawEntry.data;
     if (!isRecord(rawInfo)) {
-      throw new Error(`Invalid all_mods.json info for "${modId}"`);
+      throw new ModLoadError(
+        "mods_invalid_payload",
+        `Invalid all_mods.json info for "${modId}"`,
+      );
     }
     if (!Array.isArray(rawData)) {
-      throw new Error(`Invalid all_mods.json data array for "${modId}"`);
+      throw new ModLoadError(
+        "mods_invalid_payload",
+        `Invalid all_mods.json data array for "${modId}"`,
+      );
     }
     if (rawInfo.type !== "MOD_INFO") {
-      throw new Error(`Invalid MOD_INFO type for "${modId}"`);
+      throw new ModLoadError(
+        "mods_invalid_payload",
+        `Invalid MOD_INFO type for "${modId}"`,
+      );
     }
     if (typeof rawInfo.id !== "string" || rawInfo.id !== modId) {
-      throw new Error(`Invalid MOD_INFO id for "${modId}"`);
+      throw new ModLoadError(
+        "mods_invalid_payload",
+        `Invalid MOD_INFO id for "${modId}"`,
+      );
     }
 
     const modData: ModData = {
@@ -2184,8 +2228,40 @@ function mergeDataWithActiveMods(
 }
 
 function is404Error(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.startsWith("404");
+  return getErrorMessage(error).startsWith("404");
+}
+
+/**
+ * Maps thrown values from mod metadata loading/parsing into a stable taxonomy
+ * consumed by fallback logic in `setVersion` and `ensureModsLoaded`.
+ */
+function classifyModLoadError(error: unknown): ModLoadError {
+  if (error instanceof ModLoadError) return error;
+  if (is404Error(error)) {
+    return new ModLoadError("mods_not_found", getErrorMessage(error), error);
+  }
+  const message = getErrorMessage(error);
+  if (message.startsWith("Invalid all_mods.json")) {
+    return new ModLoadError("mods_invalid_payload", message, error);
+  }
+  return new ModLoadError("mods_unavailable", message, error);
+}
+
+type EmptyModsState = {
+  mods: ModInfo[];
+  activeMods: string[];
+  rawModsJson: Record<string, ModData>;
+};
+
+/**
+ * Canonical empty mod metadata state used for deterministic 404 outcomes.
+ */
+function emptyModsState(): EmptyModsState {
+  return {
+    mods: [],
+    activeMods: [],
+    rawModsJson: {},
+  };
 }
 
 const fetchModsJson = async (
@@ -2355,12 +2431,14 @@ export const data = {
           filteredActiveMods,
         );
       } catch (e) {
-        if (is404Error(e)) {
-          mods = [];
-          filteredActiveMods = [];
-          rawModsJson = {};
+        const modError = classifyModLoadError(e);
+        if (modError.code === "mods_not_found") {
+          const emptyState = emptyModsState();
+          mods = emptyState.mods;
+          filteredActiveMods = emptyState.activeMods;
+          rawModsJson = emptyState.rawModsJson;
         } else {
-          throw e;
+          throw modError;
         }
       }
     }
@@ -2407,12 +2485,14 @@ export const data = {
       currentData.active_mods = currentData.active_mods ?? [];
       currentData.raw_mods_json = parsedMods.raw;
     } catch (e) {
-      if (is404Error(e)) {
-        currentData.mods = [];
-        currentData.active_mods = [];
-        currentData.raw_mods_json = {};
+      const modError = classifyModLoadError(e);
+      if (modError.code === "mods_not_found") {
+        const emptyState = emptyModsState();
+        currentData.mods = emptyState.mods;
+        currentData.active_mods = emptyState.activeMods;
+        currentData.raw_mods_json = emptyState.rawModsJson;
       } else {
-        throw e;
+        throw modError;
       }
     }
     _currentData = currentData;

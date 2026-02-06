@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   CBNData,
   data,
@@ -822,6 +822,91 @@ describe("Mod Data Loading", () => {
     }
   });
 
+  test("setVersion does not retry all_mods.json when it returns 404", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const originalFetch = globalThis.fetch;
+    let allModsFetchCalls = 0;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        allModsFetchCalls += 1;
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: () => Promise.reject(new Error("404")),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, [
+        "aftershock",
+      ]);
+      const loaded = await getLoadedData();
+      expect(allModsFetchCalls).toBe(1);
+      expect(loaded.mods).toEqual([]);
+      expect(loaded.active_mods).toEqual([]);
+      expect(loaded.raw_mods_json).toEqual({});
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("setVersion retries all_mods.json at most 3 times on non-404 failures", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const originalFetch = globalThis.fetch;
+    let allModsFetchCalls = 0;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        allModsFetchCalls += 1;
+        return Promise.reject(new Error("network unavailable"));
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    vi.useFakeTimers();
+    try {
+      const setVersionPromise = data.setVersion(
+        "latest",
+        null,
+        undefined,
+        undefined,
+        ["aftershock"],
+      );
+      const rejection = expect(setVersionPromise).rejects.toThrow(
+        "Failed to load data after 3 attempts.",
+      );
+      await vi.runAllTimersAsync();
+      await rejection;
+      expect(allModsFetchCalls).toBe(3);
+    } finally {
+      vi.useRealTimers();
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   test("setVersion throws on invalid all_mods.json shape", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
@@ -911,6 +996,89 @@ describe("Mod Data Loading", () => {
         url.includes("all_mods.json"),
       );
       expect(allModsCalls).toHaveLength(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("ensureModsLoaded handles 404 all_mods.json with explicit empty state", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: () => Promise.reject(new Error("404")),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, []);
+      const loaded = await getLoadedData();
+      expect(loaded.mods).toBeNull();
+      expect(loaded.active_mods).toBeNull();
+      expect(loaded.raw_mods_json).toBeNull();
+
+      await data.ensureModsLoaded();
+      expect(loaded.mods).toEqual([]);
+      expect(loaded.active_mods).toEqual([]);
+      expect(loaded.raw_mods_json).toEqual({});
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("ensureModsLoaded throws on invalid all_mods.json and leaves null mod metadata state", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([]),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, []);
+      const loaded = await getLoadedData();
+      expect(loaded.mods).toBeNull();
+      expect(loaded.active_mods).toBeNull();
+      expect(loaded.raw_mods_json).toBeNull();
+
+      await expect(data.ensureModsLoaded()).rejects.toThrow(
+        "Invalid all_mods.json",
+      );
+      expect(loaded.mods).toBeNull();
+      expect(loaded.active_mods).toBeNull();
+      expect(loaded.raw_mods_json).toBeNull();
     } finally {
       globalThis.fetch = originalFetch;
     }
