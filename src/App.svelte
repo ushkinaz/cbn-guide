@@ -696,7 +696,7 @@ $: canonicalUrl = buildUrl(
           }}>
           <option value="en"
             >{t("English", { _context: LANGUAGE_SELECTOR_CONTEXT })}</option>
-          {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
+          {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => getLanguageName(a).localeCompare(getLanguageName(b)), ) as lang}
             <option value={lang}>{getLanguageName(lang)}</option>
           {/each}
         </select>
