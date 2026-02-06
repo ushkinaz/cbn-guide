@@ -219,49 +219,99 @@ function sourceTextFromKey(sourceKey: string): string {
 function mergeStrings(
   current: Record<string, string>,
   incoming: InputValue,
+  requiredKeys: string[] = [],
 ): Record<string, string> {
-  const sanitizedCurrent = sanitizeStrings(current);
-  const currentKeys = Object.keys(sanitizedCurrent);
+  const incomingKeys =
+    typeof incoming === "string"
+      ? []
+      : Object.keys(incoming).filter((key) => ALLOWED_STRING_KEYS.has(key));
+  const templateKeys =
+    requiredKeys.length > 0
+      ? requiredKeys
+      : incomingKeys.length > 0
+        ? incomingKeys
+        : Object.keys(current).filter((key) => ALLOWED_STRING_KEYS.has(key));
+  const sanitizedCurrent = sanitizeStrings(current, true);
+  const currentKeys =
+    templateKeys.length > 0 ? templateKeys : Object.keys(sanitizedCurrent);
 
   if (typeof incoming === "string") {
     if (currentKeys.length === 0) return { other: incoming };
     if (currentKeys.length === 1)
-      return ensureRequiredOther({
+      return enforceTemplateKeys(
+        {
+          ...sanitizedCurrent,
+          [currentKeys[0]]: incoming,
+        },
+        currentKeys,
+      );
+    if ("other" in sanitizedCurrent)
+      return enforceTemplateKeys(
+        { ...sanitizedCurrent, other: incoming },
+        currentKeys,
+      );
+    return enforceTemplateKeys(
+      {
         ...sanitizedCurrent,
         [currentKeys[0]]: incoming,
-      });
-    if ("other" in sanitizedCurrent)
-      return { ...sanitizedCurrent, other: incoming };
-    return ensureRequiredOther({
-      ...sanitizedCurrent,
-      [currentKeys[0]]: incoming,
-    });
+      },
+      currentKeys,
+    );
   }
 
-  return ensureRequiredOther({
-    ...sanitizedCurrent,
-    ...sanitizeStrings(incoming),
-  });
+  return enforceTemplateKeys(
+    {
+      ...sanitizedCurrent,
+      ...sanitizeStrings(incoming, true),
+    },
+    currentKeys,
+  );
 }
 
 function sanitizeStrings(
   strings: Record<string, string>,
+  keepEmpty = false,
 ): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(strings).filter(([key, value]) => {
-      if (!ALLOWED_STRING_KEYS.has(key)) return false;
-      return typeof value === "string" && value.trim().length > 0;
-    }),
-  );
+  const out: Record<string, string> = {};
+  for (const [key, value] of Object.entries(strings)) {
+    if (!ALLOWED_STRING_KEYS.has(key)) continue;
+    const normalized = value.trim();
+    if (!keepEmpty && normalized.length === 0) continue;
+    out[key] = normalized;
+  }
+  return out;
 }
 
-function ensureRequiredOther(
+function enforceTemplateKeys(
   strings: Record<string, string>,
+  templateKeys: string[],
 ): Record<string, string> {
-  if ("other" in strings) return strings;
-  const fallback = Object.values(strings)[0];
-  if (!fallback) return { other: "" };
-  return { ...strings, other: fallback };
+  // First, build a working set with all input strings
+  const working: Record<string, string> = {};
+  for (const [key, value] of Object.entries(strings)) {
+    working[key] = value.trim();
+  }
+
+  // Ensure 'other' exists as a fallback (use first non-empty value if missing)
+  const firstNonEmpty = Object.values(working).find((x) => x.length > 0) || "";
+  if (!working.other || working.other.length === 0) {
+    working.other = firstNonEmpty;
+  }
+
+  // Determine which keys we need to return
+  const requiredKeys = templateKeys.length > 0 ? templateKeys : ["other"];
+
+  // Build output with ONLY the required keys, filling missing ones from 'other'
+  const out: Record<string, string> = {};
+  for (const key of requiredKeys) {
+    if (working[key] && working[key].length > 0) {
+      out[key] = working[key];
+    } else {
+      out[key] = working.other;
+    }
+  }
+
+  return out;
 }
 
 async function loadTargets(
@@ -319,6 +369,7 @@ async function fetchTranslationIndex(
     {
       translationId: string;
       currentStrings: Record<string, string>;
+      requiredKeys: string[];
     }
   >
 > {
@@ -327,6 +378,7 @@ async function fetchTranslationIndex(
     {
       translationId: string;
       currentStrings: Record<string, string>;
+      requiredKeys: string[];
     }
   >();
 
@@ -349,23 +401,30 @@ async function fetchTranslationIndex(
       },
     );
 
-    const keyByResourceStringId = new Map<string, string>();
+    const metaByResourceStringId = new Map<
+      string,
+      { key: string; requiredKeys: string[] }
+    >();
     for (const inc of page.included || []) {
       if (inc.type !== "resource_strings") continue;
       const key = inc.attributes?.key;
       if (!key) continue;
-      keyByResourceStringId.set(inc.id, key);
+      const requiredKeys = Object.keys(inc.attributes?.strings || {})
+        .filter((form) => ALLOWED_STRING_KEYS.has(form))
+        .sort((a, b) => a.localeCompare(b));
+      metaByResourceStringId.set(inc.id, { key, requiredKeys });
     }
 
     for (const item of page.data) {
       const rsId = item.relationships?.resource_string?.data?.id;
       if (!rsId) continue;
-      const key = keyByResourceStringId.get(rsId);
-      if (!key) continue;
+      const meta = metaByResourceStringId.get(rsId);
+      if (!meta) continue;
 
-      result.set(key, {
+      result.set(meta.key, {
         translationId: item.id,
         currentStrings: item.attributes?.strings || {},
+        requiredKeys: meta.requiredKeys,
       });
     }
 
@@ -453,6 +512,8 @@ async function updateOneLocale(
 
   const updates: Array<{ id: string; strings: Record<string, string> }> = [];
   let missing = 0;
+  let skippedPlurals = 0;
+  const skippedPluralKeys: string[] = [];
 
   for (const [key, incomingValue] of inputMap.entries()) {
     const current = index.get(key);
@@ -461,13 +522,32 @@ async function updateOneLocale(
       continue;
     }
 
-    const strings = mergeStrings(current.currentStrings, incomingValue);
+    // Skip keys containing "plural" for now
+    if (key.toLowerCase().includes("plural")) {
+      skippedPlurals += 1;
+      skippedPluralKeys.push(key);
+      continue;
+    }
+
+    const strings = mergeStrings(
+      current.currentStrings,
+      incomingValue,
+      current.requiredKeys,
+    );
     updates.push({ id: current.translationId, strings });
   }
 
   console.log(
-    `[info] ${locale}: parsed=${rawKeyCount}, uploadable=${inputMap.size}, matched=${updates.length}, missing=${missing}, skipped-source-echo=${skippedAsSourceEcho}`,
+    `[info] ${locale}: parsed=${rawKeyCount}, uploadable=${inputMap.size}, matched=${updates.length}, missing=${missing}, skipped-plural=${skippedPlurals}, skipped-source-echo=${skippedAsSourceEcho}`,
   );
+
+  if (skippedPlurals > 0) {
+    console.log(`[info] ${locale}: skipped ${skippedPlurals} plural keys:`);
+    for (const key of skippedPluralKeys) {
+      console.log(`  - ${key}`);
+    }
+  }
+
   if (missing > 0) {
     logVerbose(
       args,
