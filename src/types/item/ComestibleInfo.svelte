@@ -9,38 +9,36 @@ import ItemLink from "../ItemLink.svelte";
 
 export let item: ComestibleSlot;
 
-const _context = "Item Comestible Info";
-
 const data = getContext<CBNData>("data");
 </script>
 
 <section>
-  <h1>{t("Comestible", { _context })}</h1>
+  <h1>{t("Comestible")}</h1>
   <dl>
-    <dt>{t("Calories", { _context })}</dt>
+    <dt>{t("Calories")}</dt>
     <dd>{item.calories ?? 0} kcal</dd>
-    <dt>{t("Quench", { _context })}</dt>
+    <dt>{t("Quench")}</dt>
     <dd>{item.quench ?? 0}</dd>
-    <dt>{t("Enjoyability", { _context })}</dt>
+    <dt>{t("Enjoyability")}</dt>
     <dd>{item.fun ?? 0}</dd>
-    <dt>{t("Portions", { _context })}</dt>
+    <dt>{t("Portions")}</dt>
     <dd>{item.charges ?? 1}</dd>
-    <dt>{t("Spoils In", { _context })}</dt>
+    <dt>{t("Spoils In")}</dt>
     <dd>{item.spoils_in ?? "never"}</dd>
-    <dt>{t("Health", { _context })}</dt>
+    <dt>{t("Health")}</dt>
     <dd>{item.healthy ?? 0}</dd>
     {#if item.smoking_result}
-      <dt>{t("Smoking Result", { _context })}</dt>
+      <dt>{t("Smoking Result")}</dt>
       <dd>
         <ItemLink type="item" id={item.smoking_result} showIcon={false} />
       </dd>
     {/if}
     {#if item.parasites ?? 0 !== 0}
-      <dt>{t("Parasites", { _context })}</dt>
+      <dt>{t("Parasites")}</dt>
       <dd>{(100 / (item.parasites ?? 0)).toPrecision(2)}%</dd>
     {/if}
     {#if item.vitamins?.length}
-      <dt>{t("Vitamins (%RDA)", { _context })}</dt>
+      <dt>{t("Vitamins (%RDA)")}</dt>
       <dd>
         <dl style="font-variant: tabular-nums">
           {#each item.vitamins as [vitamin, rdapct]}

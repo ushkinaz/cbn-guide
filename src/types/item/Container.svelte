@@ -4,23 +4,21 @@ import type { ContainerSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
 export let item: ContainerSlot;
-
-const _context = "Container Info";
 </script>
 
 <section>
-  <h1>{t("Container", { _context })}</h1>
+  <h1>{t("Container")}</h1>
   <dl>
-    <dt>{t("Contains", { _context })}</dt>
+    <dt>{t("Contains")}</dt>
     <dd>{item.contains ?? 0}</dd>
-    <dt>{t("Seals", { _context })}</dt>
+    <dt>{t("Seals")}</dt>
     <dd>{item.seals ?? "false"}</dd>
-    <dt>{t("Watertight", { _context })}</dt>
+    <dt>{t("Watertight")}</dt>
     <dd>{item.watertight ?? "false"}</dd>
-    <dt>{t("Preserves", { _context })}</dt>
+    <dt>{t("Preserves")}</dt>
     <dd>{item.preserves ?? "false"}</dd>
     {#if item.unseals_into}
-      <dt>{t("Unseals Into", { _context })}</dt>
+      <dt>{t("Unseals Into")}</dt>
       <dd><ItemLink id={item.unseals_into} type="item" showIcon={false} /></dd>
     {/if}
   </dl>

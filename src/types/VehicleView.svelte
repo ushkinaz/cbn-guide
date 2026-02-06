@@ -13,6 +13,7 @@ import { t } from "@transifex/native";
 export let item: Vehicle;
 
 const data = getContext<CBNData>("data");
+const _context = "Vehicle View";
 //TODO: HitButton_iso uses isometric perspective, support that
 
 let minX = Infinity;
@@ -254,7 +255,7 @@ function getFallback(partId: string, variant: string) {
 </script>
 
 <section>
-  <h1>{t("Render")}</h1>
+  <h1>{t("Render", { _context })}</h1>
   <div
     class="vehicle-view"
     style="grid-template-columns: repeat({maxY - minY + 1}, auto)">

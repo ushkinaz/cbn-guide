@@ -45,7 +45,7 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
     <section>
       {#if type === "overmap_special"}
         {@const grouped = groupByAppearance(results)}
-        <h1>{t("Locations")}</h1>
+        <h1>{t("Locations", { _context: "Search Results" })}</h1>
         <LimitedList items={grouped} let:item={result} limit={25}>
           <ItemLink type="overmap_special" id={result[0].id} />
         </LimitedList>

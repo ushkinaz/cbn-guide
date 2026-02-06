@@ -7,7 +7,6 @@ import { getContext } from "svelte";
 import CompatibleItems from "./CompatibleItems.svelte";
 
 export let item: AmmoSlot;
-const _context = "Item Ammo Info";
 
 const data = getContext<CBNData>("data");
 
@@ -41,13 +40,13 @@ function computeLoudness(item: AmmoSlot): number {
 
 {#if item.damage || item.show_stats}
   <section>
-    <h1>{t("Ammunition", { _context })}</h1>
+    <h1>{t("Ammunition")}</h1>
     <dl>
-      <dt>{t("Ammunition Type", { _context })}</dt>
+      <dt>{t("Ammunition Type")}</dt>
       <dd>
         <ItemLink type="ammunition_type" id={item.ammo_type} showIcon={false} />
       </dd>
-      <dt>{t("Damage", { _context })}</dt>
+      <dt>{t("Damage")}</dt>
       <dd>
         {damage.amount ?? 0} ({singularName(
           data.byIdMaybe("damage_type", damage.damage_type) ?? {
@@ -55,26 +54,26 @@ function computeLoudness(item: AmmoSlot): number {
           },
         )})
       </dd>
-      <dt>{t("Armor Penetration", { _context })}</dt>
+      <dt>{t("Armor Penetration")}</dt>
       <dd>{damage.armor_penetration ?? 0}</dd>
-      <dt>{t("Range", { _context })}</dt>
+      <dt>{t("Range")}</dt>
       <dd>{item.range ?? 0}</dd>
-      <dt>{t("Dispersion", { _context })}</dt>
+      <dt>{t("Dispersion")}</dt>
       <dd>{item.dispersion ?? 0}</dd>
-      <dt>{t("Recoil", { _context })}</dt>
+      <dt>{t("Recoil")}</dt>
       <dd>{item.recoil ?? 0}</dd>
       <dt title="Base loudness of ammo (possibly modified by gun/gunmods)">
-        {t("Loudness", { _context })}
+        {t("Loudness")}
       </dt>
       <dd>{computeLoudness(item).toFixed(0)}</dd>
-      <dt>{t("Critical Multiplier", { _context })}</dt>
+      <dt>{t("Critical Multiplier")}</dt>
       <dd>{item.critical_multiplier ?? 2}</dd>
       {#if item.casing}
-        <dt>{t("Casing", { _context })}</dt>
+        <dt>{t("Casing")}</dt>
         <dd><ItemLink id={item.casing} type="item" showIcon={false} /></dd>
       {/if}
       {#if item.effects?.length}
-        <dt>{t("Effects", { _context })}</dt>
+        <dt>{t("Effects")}</dt>
         <dd>{item.effects.join(", ")}</dd>
       {/if}
     </dl>

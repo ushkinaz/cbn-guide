@@ -50,6 +50,9 @@ import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 
 let scrollY = 0;
+const SEARCH_UI_CONTEXT = "Search UI";
+const PWA_INSTALL_CONTEXT = "PWA Install";
+const VERSION_SELECTOR_CONTEXT = "Version Selector";
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -422,8 +425,9 @@ $: canonicalUrl = buildUrl(
         <div class="search-input-wrapper">
           <input
             class="search-input"
-            aria-label={t("Search")}
+            aria-label={t("Search", { _context: SEARCH_UI_CONTEXT })}
             placeholder={t("Search database...", {
+              _context: SEARCH_UI_CONTEXT,
               _comment: "Placeholder text in the search box",
             })}
             type="search"
@@ -445,7 +449,7 @@ $: canonicalUrl = buildUrl(
                 type="button"
                 class="search-control-btn search-clear-button"
                 tabindex="-1"
-                aria-label={t("Clear search")}
+                aria-label={t("Clear search", { _context: SEARCH_UI_CONTEXT })}
                 on:click={() => {
                   search = "";
                   handleSearchInput();
@@ -459,7 +463,9 @@ $: canonicalUrl = buildUrl(
                 <button
                   class="search-control-btn search-action-button"
                   tabindex="-1"
-                  aria-label={t("Go to first result")}
+                  aria-label={t("Go to first result", {
+                    _context: SEARCH_UI_CONTEXT,
+                  })}
                   on:mousedown|preventDefault
                   on:click={executeSearchAction}>
                   <span class="structure" aria-hidden="true">[</span>
@@ -532,7 +538,7 @@ $: canonicalUrl = buildUrl(
             )}&nbsp;{#if deferredPrompt}
               <button
                 class="install-button"
-                aria-label={t("install")}
+                aria-label={t("install", { _context: PWA_INSTALL_CONTEXT })}
                 on:click={(e) => {
                   e.preventDefault();
                   deferredPrompt.prompt();
@@ -600,25 +606,28 @@ $: canonicalUrl = buildUrl(
           <!-- svelte-ignore a11y-no-onchange -->
           <select
             id="version_select"
-            aria-label={t("Version")}
+            aria-label={t("Version", { _context: VERSION_SELECTOR_CONTEXT })}
             value={requestedVersion}
             on:change={(e) => {
               const v = e.currentTarget.value;
               metrics.count("ui.version.change", 1, { v });
               changeVersion(v);
             }}>
-            <optgroup label={t("Branch")}>
+            <optgroup
+              label={t("Branch", { _context: VERSION_SELECTOR_CONTEXT })}>
               <option value={STABLE_VERSION}
                 >Stable ({latestStableBuild?.build_number ?? "N/A"})</option>
               <option value={NIGHTLY_VERSION}
                 >Nightly ({latestNightlyBuild?.build_number ?? "N/A"})</option>
             </optgroup>
-            <optgroup label={t("Stable")}>
+            <optgroup
+              label={t("Stable", { _context: VERSION_SELECTOR_CONTEXT })}>
               {#each builds.filter((b) => !b.prerelease && isSupportedVersion(b.build_number)) as build}
                 <option value={build.build_number}>{build.build_number}</option>
               {/each}
             </optgroup>
-            <optgroup label={t("Nightly")}>
+            <optgroup
+              label={t("Nightly", { _context: VERSION_SELECTOR_CONTEXT })}>
               {#each builds.filter((b) => b.prerelease) as build}
                 <option value={build.build_number}>{build.build_number}</option>
               {/each}
