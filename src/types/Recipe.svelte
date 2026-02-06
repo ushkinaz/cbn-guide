@@ -99,11 +99,13 @@ function activityLevelName(level: number) {
     {#if skillsRequired.length}
       <dt>{t("Other Skills", { _context })}</dt>
       <dd>
-        {#each skillsRequired as [skill, level], i}
-          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i === skillsRequired.length - 2}{" and "}{:else if i !== skillsRequired.length - 1}{", "}{/if}
-        {:else}
-          {t("none")}
-        {/each}
+        <ul class="comma-separated and">
+          {#each skillsRequired as [skill, level]}
+            <li>
+              <ItemLink type="skill" id={skill} showIcon={false} /> ({level})
+            </li>
+          {/each}
+        </ul>
       </dd>
     {/if}
     <dt>{t("Time to Complete")}</dt>

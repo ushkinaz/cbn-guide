@@ -52,9 +52,11 @@ if (construction.pre_flags)
   <dl>
     <dt>{t("Required Skills")}</dt>
     <dd>
-      {#each construction.required_skills ?? [] as [id, level], i}
-        <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
-      {/each}
+      <ul class="comma-separated and">
+        {#each construction.required_skills ?? [] as [id, level]}
+          <li><ItemLink type="skill" {id} showIcon={false} /> ({level})</li>
+        {/each}
+      </ul>
     </dd>
     <dt>{t("Time", { _context })}</dt>
     <dd>

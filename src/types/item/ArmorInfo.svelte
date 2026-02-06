@@ -239,7 +239,11 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
         <dl>
           {#each armor as apd}
             <dt>
-              {#each coverageLabel(apd) as label, i}{#if i !== 0}{", "}{/if}{label}{/each}
+              <ul class="comma-separated">
+                {#each coverageLabel(apd) as label}
+                  <li>{label}</li>
+                {/each}
+              </ul>
             </dt>
             <dd>
               {apd.encumbrance ??
@@ -262,7 +266,11 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
         <dl>
           {#each armor as apd}
             <dt>
-              {#each coverageLabel(apd) as label, i}{#if i !== 0}{", "}{/if}{label}{/each}
+              <ul class="comma-separated">
+                {#each coverageLabel(apd) as label}
+                  <li>{label}</li>
+                {/each}
+              </ul>
             </dt>
             <dd>{apd.coverage ?? 0}%</dd>
           {/each}

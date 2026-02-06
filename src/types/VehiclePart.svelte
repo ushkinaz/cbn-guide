@@ -232,11 +232,17 @@ vehiclesContainingPart.sort((a, b) =>
     <dl>
       <dt>{t("Skills Required")}</dt>
       <dd>
-        {#each item.requirements?.install?.skills ?? [] as [skill, level], i}
-          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.install?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.install?.skills?.length}{", "}{/if}
+        {#if item.requirements?.install?.skills?.length}
+          <ul class="comma-separated and">
+            {#each item.requirements?.install?.skills ?? [] as [skill, level]}
+              <li>
+                <ItemLink type="skill" id={skill} showIcon={false} /> ({level})
+              </li>
+            {/each}
+          </ul>
         {:else}
           {t("none")}
-        {/each}
+        {/if}
       </dd>
       <dt title="Time required goes down with better skills">
         {t("Time", { _context, _comment: "Time taken to perform the action" })}
@@ -257,11 +263,17 @@ vehiclesContainingPart.sort((a, b) =>
     <dl>
       <dt>{t("Skills Required")}</dt>
       <dd>
-        {#each item.requirements?.removal?.skills ?? [] as [skill, level], i}
-          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.removal?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.removal?.skills?.length}{", "}{/if}
+        {#if item.requirements?.removal?.skills?.length}
+          <ul class="comma-separated and">
+            {#each item.requirements?.removal?.skills ?? [] as [skill, level]}
+              <li>
+                <ItemLink type="skill" id={skill} showIcon={false} /> ({level})
+              </li>
+            {/each}
+          </ul>
         {:else}
-          none
-        {/each}
+          {t("none")}
+        {/if}
       </dd>
       <dt title="Time required goes down with better skills">
         {t("Time", { _context, _comment: "Time taken to perform the action" })}
@@ -287,11 +299,17 @@ vehiclesContainingPart.sort((a, b) =>
     <dl>
       <dt>{t("Skills Required")}</dt>
       <dd>
-        {#each item.requirements.repair?.skills ?? [] as [skill, level], i}
-          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.repair?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.repair?.skills?.length}{", "}{/if}
+        {#if item.requirements?.repair?.skills?.length}
+          <ul class="comma-separated and">
+            {#each item.requirements.repair?.skills ?? [] as [skill, level]}
+              <li>
+                <ItemLink type="skill" id={skill} showIcon={false} /> ({level})
+              </li>
+            {/each}
+          </ul>
         {:else}
           {t("none")}
-        {/each}
+        {/if}
       </dd>
       <dt title="Time required goes down with better skills">
         {t("Time", { _context, _comment: "Time taken to perform the action" })}

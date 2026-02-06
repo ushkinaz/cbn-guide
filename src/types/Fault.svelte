@@ -84,11 +84,15 @@ const fault_flag_descriptions: Record<string, string> = {
     <dl>
       <dt>{t("Skills Used", { _context })}</dt>
       <dd>
-        {#each mending_method.skills as { id, level }, i}
-          <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i === mending_method.skills.length - 2}{" and "}{:else if i !== mending_method.skills.length - 1}{", "}{/if}
+        {#if mending_method.skills.length}
+          <ul class="comma-separated and">
+            {#each mending_method.skills as { id, level }}
+              <li><ItemLink type="skill" {id} showIcon={false} /> ({level})</li>
+            {/each}
+          </ul>
         {:else}
           {t("none")}
-        {/each}
+        {/if}
       </dd>
       <dt>{t("Time to Complete")}</dt>
       <dd>{mending_method.time}</dd>

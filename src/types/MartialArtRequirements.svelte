@@ -18,11 +18,15 @@ const requiredBuffs =
 
 <dt>{t("Required Skills")}</dt>
 <dd>
-  {#each item.skill_requirements ?? [] as { name, level }, i}
-    <ItemLink type="skill" id={name} showIcon={false} /> ({level}){#if i + 2 === item.skill_requirements?.length}{" and "}{:else if i + 1 !== item.skill_requirements?.length}{", "}{/if}
+  {#if item.skill_requirements?.length}
+    <ul class="comma-separated and">
+      {#each item.skill_requirements ?? [] as { name, level }}
+        <li><ItemLink type="skill" id={name} showIcon={false} /> ({level})</li>
+      {/each}
+    </ul>
   {:else}
     <em>{t("none")}</em>
-  {/each}
+  {/if}
 </dd>
 {#if requiredBuffs.length}
   <dt>{t("Required Buffs", { _context })}</dt>
