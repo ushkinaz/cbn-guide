@@ -47,7 +47,7 @@
     "bench:report": "tsx scripts/bench-report.ts",
     "i18n:push": "txjs-cli push dist",
     "i18n:download": "tsx scripts/transifex-download.ts",
-    "i18n:update": "tsx scripts/transifex-update.ts",
+    "i18n:upload": "tsx scripts/transifex-upload.ts",
     "precommit": "lint-staged",
     "prepare": "husky"
   },

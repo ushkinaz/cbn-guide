@@ -124,19 +124,9 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 ### Transifex API Workflow (Download -> AI Translate -> Update)
 
-1. Download current translations for a resource:
-
-```bash
-qTRANSIFEX_API_TOKEN='txp_...' pnpm i18n:download:api --resource='o:cataclysmbn-guide:p:web-guide:r:ui' --out='./tmp/transifex-download'
-```
-
+1. Download current translations for a resource: `TRANSIFEX_API_TOKEN='1/...' pnpm i18n:download --out='./tmp/transifex-download`
 2. Translate downloaded JSON files with your AI workflow.
-
-3. Update existing translations in Transifex:
-
-```bash
-TRANSIFEX_API_TOKEN='txp_...' pnpm i18n:update:api --resource='o:cataclysmbn-guide:p:web-guide:r:ui' --dir='./tmp/transifex-download'
-```
+3. Update existing translations in Transifex: `TRANSIFEX_API_TOKEN='1/...' pnpm i18n:upload --dir='./tmp/transifex-download`
 
 Useful options:
 
