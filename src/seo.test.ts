@@ -26,6 +26,25 @@ test("monster description includes primary stats and secondary info", () => {
   expect(desc).toBe("Monster: HP 120 & Speed 90.");
 });
 
+test("monster description handles non-array species without crashing", () => {
+  const monster: Named<SupportedTypes["MONSTER"]> = {
+    type: "MONSTER",
+    id: "mon_test_species",
+    name: "Test Monster",
+    color: "white",
+    symbol: "M",
+    default_faction: "zombie",
+    hp: 100,
+    speed: 80,
+    species: "MAMMAL" as any,
+  };
+
+  const desc = buildMetaDescription(monster);
+  expect(desc).toContain("Monster:");
+  expect(desc).toContain("HP 100");
+  expect(desc).toContain("Speed 80");
+});
+
 test("ammo description skips missing stats and keeps key stats early", () => {
   const ammo: Named<SupportedTypes["AMMO"]> = {
     type: "AMMO",

@@ -205,6 +205,29 @@ test("_flatten: relative", () => {
   expect(child.qualities).toEqual([["CUT", 2]]);
 });
 
+test("_flatten: relative melee_damage supports damage instances in object/array form", () => {
+  const data = new CBNData([
+    {
+      type: "item",
+      abstract: "parent",
+      melee_damage: [{ damage_type: "bash", amount: 10 }],
+    },
+    {
+      type: "item",
+      id: "child",
+      "copy-from": "parent",
+      relative: {
+        melee_damage: [{ damage_type: "stab", amount: 2 }],
+      },
+    },
+  ]);
+  const child = data.byId("item", "child");
+  expect(child.melee_damage).toEqual([
+    { damage_type: "bash", amount: 10 },
+    { damage_type: "stab", amount: 2 },
+  ]);
+});
+
 test("_flatten: proportional", () => {
   const data = new CBNData([
     { type: "item", abstract: "parent", weight: "1 kg", volume: "1 L" },
@@ -233,6 +256,26 @@ test("_flatten: proportional", () => {
   expect(child.volume).toBe("2 L");
 });
 
+test("_flatten: proportional melee_damage supports damage instance arrays", () => {
+  const data = new CBNData([
+    {
+      type: "item",
+      abstract: "parent",
+      melee_damage: [{ damage_type: "bash", amount: 10 }],
+    },
+    {
+      type: "item",
+      id: "child",
+      "copy-from": "parent",
+      proportional: {
+        melee_damage: [{ damage_type: "bash", amount: 1.5 }],
+      },
+    },
+  ]);
+  const child = data.byId("item", "child");
+  expect(child.melee_damage).toEqual([{ damage_type: "bash", amount: 15 }]);
+});
+
 test("_flatten: extend and delete", () => {
   const data = new CBNData([
     {
@@ -259,6 +302,18 @@ test("_flatten: extend and delete", () => {
   const child = data.byId("item", "child");
   expect(child.flags).toEqual(["A", "B", "C"]);
   expect(child.qualities).toEqual([["CUT", 1]]);
+});
+
+test("_flatten: copy-from cycle does not recurse infinitely", () => {
+  const data = new CBNData([
+    { type: "GENERIC", id: "a", "copy-from": "b", volume: "1 L" },
+    { type: "GENERIC", id: "b", "copy-from": "a", weight: "1 kg" },
+  ]);
+
+  const a = data.byId("item", "a");
+  const b = data.byId("item", "b");
+  expect(a.id).toBe("a");
+  expect(b.id).toBe("b");
 });
 
 test("flattenItemGroup: deep nested groups", () => {
@@ -593,6 +648,271 @@ describe("Detailed Locale Fallback Mechanism", () => {
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
+    }
+  });
+});
+
+describe("Mod Data Loading", () => {
+  async function getLoadedData(): Promise<CBNData> {
+    return await new Promise<CBNData>((resolve) => {
+      let unsubscribe: (() => void) | null = null;
+      unsubscribe = data.subscribe((value) => {
+        if (!value) return;
+        unsubscribe?.();
+        resolve(value);
+      });
+    });
+  }
+
+  test("setVersion without active mods does not fetch all_mods.json and keeps mods nullable", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const originalFetch = globalThis.fetch;
+    const fetchCalls: string[] = [];
+    globalThis.fetch = ((url: string) => {
+      fetchCalls.push(url);
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, []);
+      const loaded = await getLoadedData();
+      expect(fetchCalls.some((url) => url.includes("all_mods.json"))).toBe(
+        false,
+      );
+      expect(loaded.mods).toBeNull();
+      expect(loaded.active_mods).toBeNull();
+      expect(loaded.raw_mods_json).toBeNull();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("setVersion with active mods filters unknown/core ids and preserves ordered active_mods", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+    const mockMods = {
+      aftershock: {
+        info: {
+          type: "MOD_INFO",
+          id: "aftershock",
+          name: "Aftershock",
+          description: "Aftershock",
+          category: "content",
+          dependencies: ["bn"],
+        },
+        data: [{ type: "GENERIC", id: "aftershock_item" }],
+      },
+      bn: {
+        info: {
+          type: "MOD_INFO",
+          id: "bn",
+          name: "Bright Nights",
+          description: "Core",
+          category: "core",
+          core: true,
+          dependencies: [],
+        },
+        data: [],
+      },
+      magiclysm: {
+        info: {
+          type: "MOD_INFO",
+          id: "magiclysm",
+          name: "Magiclysm",
+          description: "Magic",
+          category: "content",
+          dependencies: ["bn"],
+        },
+        data: [{ type: "GENERIC", id: "magic_item" }],
+      },
+    };
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockMods),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, [
+        "bn",
+        "unknown",
+        "magiclysm",
+        "aftershock",
+        "magiclysm",
+      ]);
+      const loaded = await getLoadedData();
+      expect(loaded.active_mods).toEqual(["magiclysm", "aftershock"]);
+      expect(loaded.mods?.map((mod) => mod.id)).toEqual([
+        "aftershock",
+        "magiclysm",
+      ]);
+      expect(Object.keys(loaded.raw_mods_json ?? {})).toEqual([
+        "aftershock",
+        "bn",
+        "magiclysm",
+      ]);
+      expect(loaded.byId("item", "magic_item")).toBeDefined();
+      expect(loaded.byId("item", "aftershock_item")).toBeDefined();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("setVersion handles 404 all_mods.json with empty arrays", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: () => Promise.reject(new Error("404")),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, [
+        "aftershock",
+      ]);
+      const loaded = await getLoadedData();
+      expect(loaded.mods).toEqual([]);
+      expect(loaded.active_mods).toEqual([]);
+      expect(loaded.raw_mods_json).toEqual({});
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("setVersion throws on invalid all_mods.json shape", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve([]),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await expect(
+        data.setVersion("latest", null, undefined, undefined, ["aftershock"]),
+      ).rejects.toThrow("Invalid all_mods.json");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("ensureModsLoaded fetches metadata once and initializes active_mods to empty list", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+    const mockMods = {
+      aftershock: {
+        info: {
+          type: "MOD_INFO",
+          id: "aftershock",
+          name: "Aftershock",
+          description: "Aftershock",
+          category: "content",
+          dependencies: ["bn"],
+        },
+        data: [],
+      },
+    };
+
+    const originalFetch = globalThis.fetch;
+    const fetchCalls: string[] = [];
+    globalThis.fetch = ((url: string) => {
+      fetchCalls.push(url);
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockMods),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, []);
+      const loaded = await getLoadedData();
+      expect(loaded.mods).toBeNull();
+      expect(loaded.active_mods).toBeNull();
+      expect(loaded.raw_mods_json).toBeNull();
+
+      await data.ensureModsLoaded();
+      expect(loaded.mods?.map((mod) => mod.id)).toEqual(["aftershock"]);
+      expect(loaded.active_mods).toEqual([]);
+      expect(Object.keys(loaded.raw_mods_json ?? {})).toEqual(["aftershock"]);
+
+      await data.ensureModsLoaded();
+      const allModsCalls = fetchCalls.filter((url) =>
+        url.includes("all_mods.json"),
+      );
+      expect(allModsCalls).toHaveLength(1);
+    } finally {
+      globalThis.fetch = originalFetch;
     }
   });
 });

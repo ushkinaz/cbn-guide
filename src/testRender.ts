@@ -1,6 +1,6 @@
 import { act, cleanup, render } from "@testing-library/svelte";
 import { screen } from "@testing-library/dom";
-import { afterEach, expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import * as fs from "fs";
 
 import { CBNData, mapType } from "./data";
@@ -12,7 +12,15 @@ import {
   terrainByOMSAppearance,
 } from "./types/item/spawnLocations";
 
+const RENDER_TEST_TIMEOUT_MS = 120_000;
+const RENDER_HOOK_TIMEOUT_MS = 180_000;
+
 export function makeRenderTests(chunkIdx: number, numChunks: number) {
+  vi.setConfig({
+    hookTimeout: RENDER_HOOK_TIMEOUT_MS,
+    testTimeout: RENDER_TEST_TIMEOUT_MS,
+  });
+
   const json = JSON.parse(
     fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
   );
@@ -59,7 +67,7 @@ export function makeRenderTests(chunkIdx: number, numChunks: number) {
     "render %s %s",
     {
       // The first test sometimes times out on CI with the default 5sec timeout.
-      timeout: 20000,
+      timeout: RENDER_TEST_TIMEOUT_MS,
     },
     async (type, id) => {
       // Prefill the loot tables, so we don't have to mess with waiting for async load...
