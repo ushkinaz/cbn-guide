@@ -50,9 +50,14 @@ import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 
 let scrollY = 0;
+
 const SEARCH_UI_CONTEXT = "Search UI";
 const PWA_INSTALL_CONTEXT = "PWA Install";
 const VERSION_SELECTOR_CONTEXT = "Version Selector";
+const SEARCH_RESULTS_CONTEXT = "Search Results";
+const PAGE_DESCRIPTION_CONTEXT = "Page description";
+const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
+const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -240,7 +245,7 @@ $: {
     document.title = formatTitle(item.type);
   } else if ($page.route.search) {
     document.title = formatTitle(
-      `${t("Search:", { _context: "Search Results" })} ${$page.route.search}`,
+      `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${$page.route.search}`,
     );
   } else {
     document.title = formatTitle();
@@ -271,11 +276,13 @@ $: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
   metaDescription = t("{type} catalog in {guide}.", {
     type: item.type,
     guide: UI_GUIDE_NAME,
+    _context: PAGE_DESCRIPTION_CONTEXT,
   });
 } else if (search) {
   metaDescription = t("Search {guide} for {query}.", {
     guide: UI_GUIDE_NAME,
     query: search,
+    _context: PAGE_DESCRIPTION_CONTEXT,
   });
 } else {
   metaDescription = defaultMetaDescription;
@@ -512,30 +519,42 @@ $: canonicalUrl = buildUrl(
     <div class="intro-dashboard">
       <div class="intro-specs">
         <div class="spec-item">
-          <span class="spec-label">{t("NAME")}</span>
+          <span class="spec-label"
+            >{t("NAME", { _context: INTRO_DASHBOARD_CONTEXT })}</span>
           <h1 class="guide-title">
-            <span class="spec-value">{t("The Hitchhiker's Guide")} </span>
+            <span class="spec-value"
+              >{t("The Hitchhiker's Guide", {
+                _context: INTRO_DASHBOARD_CONTEXT,
+              })}
+            </span>
           </h1>
         </div>
 
         <div class="spec-item">
-          <span class="spec-label">{t("WIKI")}</span>
+          <span class="spec-label"
+            >{t("WIKI", { _context: INTRO_DASHBOARD_CONTEXT })}</span>
           <span class="spec-value">
-            {t("Loot, Enemies, Drop Tables, Locations")}
+            {t("Loot, Enemies, Drop Tables, Locations", {
+              _context: INTRO_DASHBOARD_CONTEXT,
+            })}
           </span>
         </div>
         <div class="spec-item">
-          <span class="spec-label">{t("TOOLS")}</span>
+          <span class="spec-label"
+            >{t("TOOLS", { _context: INTRO_DASHBOARD_CONTEXT })}</span>
           <span class="spec-value">
-            {t("Crafting, Recipes, Construction, Bionics")}
+            {t("Crafting, Recipes, Construction, Bionics", {
+              _context: INTRO_DASHBOARD_CONTEXT,
+            })}
           </span>
         </div>
         <div class="spec-item">
-          <span class="spec-label">{t("MODE")}</span>
+          <span class="spec-label"
+            >{t("MODE", { _context: INTRO_DASHBOARD_CONTEXT })}</span>
           <span class="spec-value">
-            {t(
-              "The definitive offline-capable database",
-            )}&nbsp;{#if deferredPrompt}
+            {t("The definitive offline-capable database", {
+              _context: INTRO_DASHBOARD_CONTEXT,
+            })}&nbsp;{#if deferredPrompt}
               <button
                 class="install-button"
                 aria-label={t("install", { _context: PWA_INSTALL_CONTEXT })}
@@ -560,16 +579,19 @@ $: canonicalUrl = buildUrl(
         </div>
         <div class="specs-footer">
           <div class="footer-item">
-            <span class="spec-label">{t("Maintainer")}:</span>
+            <span class="spec-label"
+              >{t("Maintainer", { _context: INTRO_DASHBOARD_CONTEXT })}:</span>
             <a href="https://github.com/ushkinaz" target="_blank">ushkinaz</a>
           </div>
           <div class="footer-item">
-            <span class="spec-label">{t("Code")}:</span>
+            <span class="spec-label"
+              >{t("Code", { _context: INTRO_DASHBOARD_CONTEXT })}:</span>
             <a href="https://github.com/ushkinaz/cbn-guide/" target="_blank"
               >GitHub</a>
           </div>
           <div class="footer-item">
-            <span class="spec-label">{t("Feedback")}:</span>
+            <span class="spec-label"
+              >{t("Feedback", { _context: INTRO_DASHBOARD_CONTEXT })}:</span>
             <a href="https://discord.gg/XW7XhXuZ89" target="_blank">Discord</a>
           </div>
         </div>
@@ -616,10 +638,10 @@ $: canonicalUrl = buildUrl(
             <optgroup
               label={t("Branch", { _context: VERSION_SELECTOR_CONTEXT })}>
               <option value={STABLE_VERSION}
-                >{t("Stable")} ({latestStableBuild?.build_number ??
+                >{t("Stable", { _context: VERSION_SELECTOR_CONTEXT })} ({latestStableBuild?.build_number ??
                   "N/A"})</option>
               <option value={NIGHTLY_VERSION}
-                >{t("Nightly")} ({latestNightlyBuild?.build_number ??
+                >{t("Nightly", { _context: VERSION_SELECTOR_CONTEXT })} ({latestNightlyBuild?.build_number ??
                   "N/A"})</option>
             </optgroup>
             <optgroup
@@ -666,13 +688,14 @@ $: canonicalUrl = buildUrl(
         {@const build_number = resolvedVersion}
         <select
           id="language_select"
-          aria-label={t("Language")}
+          aria-label={t("Language", { _context: LANGUAGE_SELECTOR_CONTEXT })}
           value={$data?.effective_locale || localeParam || "en"}
           on:change={(e) => {
             const lang = e.currentTarget.value;
             updateQueryParam("lang", lang === "en" ? null : lang);
           }}>
-          <option value="en">{t("English")}</option>
+          <option value="en"
+            >{t("English", { _context: LANGUAGE_SELECTOR_CONTEXT })}</option>
           {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
             <option value={lang}>{getLanguageName(lang)}</option>
           {/each}
@@ -717,7 +740,7 @@ $: canonicalUrl = buildUrl(
         src={redditIcon}
         width="16"
         height="16"
-        alt={t("Cataclysm BN icon")}
+        alt={t("Reddit icon")}
         class="icon" />
       Reddit</a>
     <a
@@ -729,7 +752,7 @@ $: canonicalUrl = buildUrl(
         src={catapultIcon}
         width="16"
         height="16"
-        alt={t("Cataclysm BN icon")}
+        alt={t("Catapult icon")}
         class="icon" />
       Catapult Launcher</a>
   </div>
