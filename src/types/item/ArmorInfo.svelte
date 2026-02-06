@@ -1,4 +1,5 @@
 <script lang="ts">
+import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import { CBNData, singular } from "../../data";
 import { formatFixed2 } from "../../utils/format";
@@ -11,6 +12,7 @@ import type {
 
 export let item: ItemBasicInfo & ArmorSlot;
 let data = getContext<CBNData>("data");
+const _context = "Armor";
 
 function isStrings<T>(array: string[] | T[]): array is string[] {
   return typeof array[0] === "string";
@@ -198,42 +200,42 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
 </script>
 
 <section>
-  <h1>Armor</h1>
+  <h1>{t("Armor", { _context })}</h1>
   <dl>
-    <dt>Covers</dt>
+    <dt>{t("Covers", { _context })}</dt>
     <dd>
-      {#if covers("head")}The <strong>head</strong>.{/if}
-      {#if covers("eyes")}The <strong>eyes</strong>.{/if}
-      {#if covers("mouth")}The <strong>mouth</strong>.{/if}
-      {#if covers("torso")}The <strong>torso</strong>.{/if}
+      {#if covers("head")}{t("The")} <strong>{t("head")}</strong>.{/if}
+      {#if covers("eyes")}{t("The")} <strong>{t("eyes")}</strong>.{/if}
+      {#if covers("mouth")}{t("The")} <strong>{t("mouth")}</strong>.{/if}
+      {#if covers("torso")}{t("The")} <strong>{t("torso")}</strong>.{/if}
 
       {#each expandedCoverage as coverage}
         {#if coverage.either}
-          Either <strong>{safeName(coverage.parts[0], true)}</strong>.
+          {t("Either")} <strong>{safeName(coverage.parts[0], true)}</strong>.
         {:else if coverage.alias}
-          The <strong>{safeName(coverage.parts[0], true)}</strong>.
+          {t("The")} <strong>{safeName(coverage.parts[0], true)}</strong>.
         {:else}
-          The <strong>{safeName(coverage.parts[0], false)}</strong>.
+          {t("The")} <strong>{safeName(coverage.parts[0], false)}</strong>.
         {/if}
         {" "}
       {/each}
 
-      {#if !covers_anything}Nothing.{/if}
+      {#if !covers_anything}{t("Nothing.")}{/if}
     </dd>
-    <dt>Layer</dt>
+    <dt>{t("Layer", { _context })}</dt>
     <dd>
-      {#if (item.flags ?? []).includes("PERSONAL")}Personal aura
-      {:else if (item.flags ?? []).includes("SKINTIGHT")}Close to skin
-      {:else if (item.flags ?? []).includes("BELTED")}Strapped
-      {:else if (item.flags ?? []).includes("OUTER")}Outer
-      {:else if (item.flags ?? []).includes("WAIST")}Waist
-      {:else if (item.flags ?? []).includes("AURA")}Outer aura
-      {:else}Normal
+      {#if (item.flags ?? []).includes("PERSONAL")}{t("Personal aura")}
+      {:else if (item.flags ?? []).includes("SKINTIGHT")}{t("Close to skin")}
+      {:else if (item.flags ?? []).includes("BELTED")}{t("Strapped")}
+      {:else if (item.flags ?? []).includes("OUTER")}{t("Outer")}
+      {:else if (item.flags ?? []).includes("WAIST")}{t("Waist")}
+      {:else if (item.flags ?? []).includes("AURA")}{t("Outer aura")}
+      {:else}{t("Normal")}
       {/if}
     </dd>
-    <dt>Warmth</dt>
+    <dt>{t("Warmth", { _context })}</dt>
     <dd>{item.warmth ?? 0}</dd>
-    <dt>Encumbrance</dt>
+    <dt>{t("Encumbrance", { _context })}</dt>
     <dd>
       {#if armor}
         <dl>
@@ -242,20 +244,27 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
               {#each coverageLabel(apd) as label, i}{#if i !== 0}{", "}{/if}{label}{/each}
             </dt>
             <dd>
-              {apd.encumbrance ??
-                0}{#if safeMaxEncumbrance(apd)}{" "}({safeMaxEncumbrance(apd)} when
-                full){/if}
+              {apd.encumbrance ?? 0}{#if safeMaxEncumbrance(apd)}{" "}({t(
+                  "{encumbrance} when full",
+                  { encumbrance: safeMaxEncumbrance(apd) },
+                )}){/if}
             </dd>
           {/each}
         </dl>
       {:else}
-        {item.encumbrance ??
-          0}{#if item.max_encumbrance}{" "}({item.max_encumbrance} when full){/if}
+        {item.encumbrance ?? 0}{#if item.max_encumbrance}{" "}({t(
+            "{encumbrance} when full",
+            {
+              encumbrance: item.max_encumbrance,
+            },
+          )}){/if}
       {/if}
     </dd>
     <dt
-      title="This determines how likely it is that an attack hits the item instead of the player.">
-      Coverage
+      title={t(
+        "This determines how likely it is that an attack hits the item instead of the player.",
+      )}>
+      {t("Coverage", { _context })}
     </dt>
     <dd>
       {#if armor}
@@ -272,11 +281,11 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
       {/if}
     </dd>
     {#if materials.length || item.environmental_protection}
-      <dt>Protection</dt>
+      <dt>{t("Protection", { _context })}</dt>
       <dd>
         <dl>
           {#if materials.length}
-            <dt>Bash</dt>
+            <dt>{t("Bash", { _context })}</dt>
             <dd>
               {formatFixed2(
                 (materials.reduce(
@@ -288,7 +297,7 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
                   totalMaterialPortion,
               )}
             </dd>
-            <dt>Cut</dt>
+            <dt>{t("Cut", { _context })}</dt>
             <dd>
               {formatFixed2(
                 (materials.reduce(
@@ -299,7 +308,7 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
                   totalMaterialPortion,
               )}
             </dd>
-            <dt>Ballistic</dt>
+            <dt>{t("Ballistic", { _context })}</dt>
             <dd>
               {formatFixed2(
                 (materials.reduce(
@@ -311,7 +320,7 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
                   totalMaterialPortion,
               )}
             </dd>
-            <dt>Acid</dt>
+            <dt>{t("Acid", { _context })}</dt>
             <dd>
               {formatFixed2(
                 (() => {
@@ -327,7 +336,7 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
                 })(),
               )}
             </dd>
-            <dt>Fire</dt>
+            <dt>{t("Fire", { _context })}</dt>
             <dd>
               {formatFixed2(
                 (() => {
@@ -344,7 +353,7 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
               )}
             </dd>
           {/if}
-          <dt title="Environmental">Environ.</dt>
+          <dt title={t("Environmental")}>{t("Environ.", { _context })}</dt>
           <dd>{item.environmental_protection ?? 0}</dd>
         </dl>
       </dd>

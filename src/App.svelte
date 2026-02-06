@@ -350,7 +350,7 @@ function maybeFocusSearch(e: KeyboardEvent) {
  * Falls back to English or the raw code if strict native naming fails.
  */
 function getLanguageName(code: string) {
-  if (code === "en") return "English";
+  if (code === "en") return t("English");
   const bcp47 = code.replace(/_/, "-");
   try {
     if (Intl?.DisplayNames) {
@@ -512,26 +512,26 @@ $: canonicalUrl = buildUrl(
     <div class="intro-dashboard">
       <div class="intro-specs">
         <div class="spec-item">
-          <span class="spec-label">NAME</span>
+          <span class="spec-label">{t("NAME")}</span>
           <h1 class="guide-title">
-            <span class="spec-value">{t(`The Hitchhiker's Guide`)} </span>
+            <span class="spec-value">{t("The Hitchhiker's Guide")} </span>
           </h1>
         </div>
 
         <div class="spec-item">
-          <span class="spec-label">WIKI</span>
+          <span class="spec-label">{t("WIKI")}</span>
           <span class="spec-value">
             {t("Loot, Enemies, Drop Tables, Locations")}
           </span>
         </div>
         <div class="spec-item">
-          <span class="spec-label">TOOLS</span>
+          <span class="spec-label">{t("TOOLS")}</span>
           <span class="spec-value">
             {t("Crafting, Recipes, Construction, Bionics")}
           </span>
         </div>
         <div class="spec-item">
-          <span class="spec-label">MODE</span>
+          <span class="spec-label">{t("MODE")}</span>
           <span class="spec-value">
             {t(
               "The definitive offline-capable database",
@@ -616,9 +616,11 @@ $: canonicalUrl = buildUrl(
             <optgroup
               label={t("Branch", { _context: VERSION_SELECTOR_CONTEXT })}>
               <option value={STABLE_VERSION}
-                >Stable ({latestStableBuild?.build_number ?? "N/A"})</option>
+                >{t("Stable")} ({latestStableBuild?.build_number ??
+                  "N/A"})</option>
               <option value={NIGHTLY_VERSION}
-                >Nightly ({latestNightlyBuild?.build_number ?? "N/A"})</option>
+                >{t("Nightly")} ({latestNightlyBuild?.build_number ??
+                  "N/A"})</option>
             </optgroup>
             <optgroup
               label={t("Stable", { _context: VERSION_SELECTOR_CONTEXT })}>
@@ -670,7 +672,7 @@ $: canonicalUrl = buildUrl(
             const lang = e.currentTarget.value;
             updateQueryParam("lang", lang === "en" ? null : lang);
           }}>
-          <option value="en">English</option>
+          <option value="en">{t("English")}</option>
           {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
             <option value={lang}>{getLanguageName(lang)}</option>
           {/each}
@@ -691,7 +693,7 @@ $: canonicalUrl = buildUrl(
         src={bnIcon}
         width="16"
         height="16"
-        alt="Cataclysm BN icon"
+        alt={t("Cataclysm BN icon")}
         class="icon" />
       Cataclysm BN</a>
     <a
@@ -703,7 +705,7 @@ $: canonicalUrl = buildUrl(
         src={discordIcon}
         width="16"
         height="16"
-        alt="Cataclysm BN icon"
+        alt={t("Cataclysm BN icon")}
         class="icon" />
       Discord</a>
     <a
@@ -715,7 +717,7 @@ $: canonicalUrl = buildUrl(
         src={redditIcon}
         width="16"
         height="16"
-        alt="Cataclysm BN icon"
+        alt={t("Cataclysm BN icon")}
         class="icon" />
       Reddit</a>
     <a
@@ -727,7 +729,7 @@ $: canonicalUrl = buildUrl(
         src={catapultIcon}
         width="16"
         height="16"
-        alt="Cataclysm BN icon"
+        alt={t("Cataclysm BN icon")}
         class="icon" />
       Catapult Launcher</a>
   </div>

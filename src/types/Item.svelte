@@ -427,9 +427,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {/if}
 {#if item.type === "ENGINE" && item.displacement}
   <section>
-    <h1>Engine</h1>
+    <h1>{t("Engine", { _context })}</h1>
     <dl>
-      <dt>Displacement</dt>
+      <dt>{t("Displacement", { _context })}</dt>
       <dd>{item.displacement} cc</dd>
     </dl>
   </section>

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { t } from "@transifex/native";
 import { onMount } from "svelte";
 import { fly } from "svelte/transition";
 import { quintOut } from "svelte/easing";
@@ -58,31 +59,35 @@ onMount(() => {
     </div>
 
     <div class="recon-frame">
-      <img src={reconImage} alt="Visual data corrupted." class="recon-img" />
+      <img
+        src={reconImage}
+        alt={t("Visual data corrupted.")}
+        class="recon-img" />
     </div>
 
     <div class="content">
       <header class="headline">
-        [ NXT-13 ] : MI-GO ENGINEERING ENVIRONMENT
+        {t("[ NXT-13 ] : MI-GO ENGINEERING ENVIRONMENT")}
       </header>
       <p class="body-text">
-        Biological stability is not guaranteed. This habitat is undergoing
-        active reconfiguration.
+        {t(
+          "Biological stability is not guaranteed. This habitat is undergoing active reconfiguration.",
+        )}
       </p>
       <p class="body-text">
-        Human cognitive patterns may be corrupted by further exposure.
+        {t("Human cognitive patterns may be corrupted by further exposure.")}
       </p>
       <a href="https://cataclysmbn-guide.com" class="retreat-link">
-        [ RETREAT TO STABLE: CataclysmBN-Guide.com ]
+        {t("[ RETREAT TO STABLE: CataclysmBN-Guide.com ]")}
       </a>
-      <span class="subtext">event logged</span>
+      <span class="subtext">{t("event logged")}</span>
     </div>
 
     <button
       class="dismiss-btn"
       on:click={dismiss}
-      aria-label="Dismiss warning"
-      title="Dismiss warning">
+      aria-label={t("Dismiss warning")}
+      title={t("Dismiss warning")}>
       ✕
     </button>
   </div>

@@ -179,31 +179,31 @@ export const TILESETS = [
   //tileinfo prop contains pre-cached data used by initial layouting phase. Is overridden when actual data comes from the server.
   {
     name: "undead_people",
-    displayName: t("Undead People (default)"),
+    displayName: "Undead People",
     path: "MSX++UnDeadPeopleEdition",
     tile_info: { width: 32, height: 32, pixelscale: 1 },
   },
   {
     name: "ascii",
-    displayName: t("None (ASCII)"),
+    displayName: "ASCII",
     path: null,
     tile_info: { height: 16, width: 16, pixelscale: 1 },
   },
   {
     name: "brownlikebears",
-    displayName: t("BrownLikeBears"),
+    displayName: "BrownLikeBears",
     path: "BrownLikeBears",
     tile_info: { width: 20, height: 20, pixelscale: 1 },
   },
   {
     name: "chesthole16",
-    displayName: t("ChestHole16"),
+    displayName: "ChestHole16",
     path: "ChestHole16Tileset",
     tile_info: { width: 16, height: 16, pixelscale: 1 },
   },
   {
     name: "hitbutton",
-    displayName: t("HitButton iso"),
+    displayName: "HitButton iso",
     path: "HitButton_iso",
     tile_info: {
       height: 20,
@@ -214,25 +214,25 @@ export const TILESETS = [
   },
   {
     name: "hoder",
-    displayName: t("Hoder's"),
+    displayName: "Hoder's",
     path: "HoderTileset",
     tile_info: { width: 16, height: 16, pixelscale: 1 },
   },
   {
     name: "retrodays_plus",
-    displayName: t("RetroDays+"),
+    displayName: "RetroDays+",
     path: "RetroDays+Tileset",
     tile_info: { width: 10, height: 10, pixelscale: 2 },
   },
   {
     name: "retrodays",
-    displayName: t("RetroDays"),
+    displayName: "RetroDays",
     path: "RetroDaysTileset",
     tile_info: { width: 10, height: 10, pixelscale: 2 },
   },
   {
     name: "ultica",
-    displayName: t("UltiCa"),
+    displayName: "UltiCa",
     path: "UltimateCataclysm",
     tile_info: { width: 32, height: 32, pixelscale: 1 },
   },

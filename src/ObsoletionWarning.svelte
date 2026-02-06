@@ -1,4 +1,5 @@
 <script lang="ts">
+import { t } from "@transifex/native";
 import { mapType } from "./data";
 
 export let item: any;
@@ -7,8 +8,11 @@ export let item: any;
 <section class="obsolete-banner">
   <span class="icon">†</span>
   <span
-    >This {mapType(item.type)} is marked as <strong>obsolete</strong>, meaning
-    that it is likely not possible to obtain in this version.</span>
+    >{t("This {type} is marked as", { type: mapType(item.type) })}
+    <strong>{t("obsolete")}</strong>,
+    {t(
+      "meaning that it is likely not possible to obtain in this version.",
+    )}</span>
 </section>
 
 <style>
