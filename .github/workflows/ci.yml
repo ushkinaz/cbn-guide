@@ -50,8 +50,8 @@ jobs:
         run: pnpm build
 
       - name: Upload Translation Strings
-        if: false
-        env: # Or as an environment variable
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.TRANSIFEX_SECRET != ''
+        env:
           TRANSIFEX_SECRET: ${{ secrets.TRANSIFEX_SECRET }}
           TRANSIFEX_TOKEN: ${{ vars.TRANSIFEX_TOKEN }}
         run: pnpm i18n:push
