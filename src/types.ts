@@ -9,6 +9,25 @@ export type Translation =
   | { str: string; str_pl?: string }
   | { str_sp: string };
 
+export type ModInfo = {
+  type: "MOD_INFO";
+  id: string;
+  name: Translation;
+  description: Translation;
+  category: Translation;
+  dependencies: string[];
+  core?: boolean;
+  obsolete?: boolean;
+  license?: string | string[];
+  maintainers?: string[];
+  path?: string;
+};
+
+export type ModData = {
+  info: ModInfo;
+  data: unknown[];
+};
+
 export type ItemGroupEntry = (
   | { item: string }
   | { group: string }
