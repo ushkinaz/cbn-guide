@@ -1,6 +1,6 @@
 /**
  * @file gen-css.ts
- * @description Generates CSS variables and classes based on Cataclysm: Dark Days Ahead (CDDA)
+ * @description Generates CSS variables and classes based on Cataclysm: Bright Nights (C:BN)
  * color definitions. This includes standard colors, highlighted, inverted, and background-specific pairs.
  * The output is written to stdout as CSS.
  *
