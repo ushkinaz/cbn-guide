@@ -441,23 +441,23 @@ export type WheelSlot = {
 
 export type UseFunction =
   | CastSpellUseFunction
-  | GpsDeviceUseFunction
-  | ItemActionUseFunction
+  | CloningSyringeUseFunction
   | ConsumeDrugUseFunction
   | DelayedTransformUseFunction
+  | DnaEditorUseFunction
+  | GpsDeviceUseFunction
+  | HandCrankUseFunction
   | HolsterUseFunction
+  | ItemActionUseFunction
   | MessageUseFunction
-  | RepairItemUseFunction
-  | TransformUseFunction
-  | TrainSkillUseFunction
+  | MulticookerUseFunction
   | MusicPlayerUseFunction
   | ProspectPickUseFunction
-  | HandCrankUseFunction
-  | MulticookerUseFunction
-  | SexToyUseFunction
+  | RepairItemUseFunction
   | RevealContentsUseFunction
-  | CloningSyringeUseFunction
-  | DnaEditorUseFunction
+  | SexToyUseFunction
+  | TrainSkillUseFunction
+  | TransformUseFunction
   | {
       type:
         | "ammobelt"
