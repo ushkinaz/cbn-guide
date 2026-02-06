@@ -4,7 +4,7 @@ import { metrics } from "../../metrics";
 import ItemLink from "../ItemLink.svelte";
 import type { Loot } from "./spawnLocations";
 import { formatFixed2, formatPercent } from "../../utils/format";
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 import type { SupportedTypesWithMapped } from "src/types";
 import { isTesting } from "../../utils/env";
 

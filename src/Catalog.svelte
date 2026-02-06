@@ -1,6 +1,6 @@
 <script lang="ts">
 import { setContext } from "svelte";
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 
 import { byName, CBNData, singularName, pluralName, plural } from "./data";
 import LimitedList from "./LimitedList.svelte";
@@ -16,6 +16,8 @@ import MutationCategory from "./types/MutationCategory.svelte";
 import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./utils/collections";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
+
+// TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(type)) heading with literal branches.
 
 export let type: string;
 export let data: CBNData;

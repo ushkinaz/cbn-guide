@@ -118,6 +118,22 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 #### Deployment
 
 - `pnpm i18n:push`: Upload source strings to Transifex.
+  - Transifex extraction only picks direct `t("...")` keys.
+  - `t(variableOrExpression)` is not extracted (for example: `t(cat.label)` or `t(plural(type))`).
+  - Dynamic keys can still translate at runtime only if that key was extracted elsewhere before.
+
+### Transifex API Workflow (Download -> AI Translate -> Update)
+
+1. Download current translations for a resource: `TRANSIFEX_API_TOKEN='1/...' pnpm i18n:download --out='./tmp/transifex-download`
+2. Translate downloaded JSON files with your AI workflow.
+3. Update existing translations in Transifex: `TRANSIFEX_API_TOKEN='1/...' pnpm i18n:upload --dir='./tmp/transifex-download`
+
+Useful options:
+
+- Download only selected locales: `--locales='de,ru_RU,uk_UA'`
+- Include locales with zero translated strings: `--include-empty=true`
+- Dry run update without PATCH: `--dry-run=true`
+- Update a single file/locale: `--file='./tmp/transifex-download/de.json' --locale='de'`
 
 ### Test Files Overview
 

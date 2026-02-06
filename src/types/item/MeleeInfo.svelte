@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 import {
@@ -13,7 +13,6 @@ import type { Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
 let data = getContext<CBNData>("data");
-const _context = "Item Melee Info";
 export let item: Item;
 
 let techniques = (item.techniques ?? []).map((t) => data.byId("technique", t));
@@ -71,20 +70,24 @@ const piercing =
 {#if item.bashing || item.cutting}
   <!-- O.G -->
   <section>
-    <h1>{t("Melee", { _context, _comment: "Section heading" })}</h1>
+    <h1>{t("Melee", { _comment: "Section heading" })}</h1>
     <dl>
       <dt>{t("Bash", { _context: "Damage Type" })}</dt>
       <dd>{item.bashing ?? 0}</dd>
       <dt>
-        {t(piercing ? "Pierce" : "Cut", { _context: "Damage Type" })}
+        {#if piercing}
+          {t("Pierce", { _context: "Damage Type" })}
+        {:else}
+          {t("Cut", { _context: "Damage Type" })}
+        {/if}
       </dt>
       <dd>{item.cutting ?? 0}</dd>
-      <dt>{t("To Hit", { _context })}</dt>
+      <dt>{t("To Hit")}</dt>
       <dd>{to_hit}</dd>
-      <dt>{t("Moves Per Attack", { _context })}</dt>
+      <dt>{t("Moves Per Attack")}</dt>
       <dd>{attackTime(item)}</dd>
       {#if techniques.length}
-        <dt>{t("Techniques", { _context })}</dt>
+        <dt>{t("Techniques")}</dt>
         <dd>
           <ul class="no-bullets">
             {#each techniques as technique}
@@ -108,7 +111,7 @@ const piercing =
 
 {#if item.melee_damage}
   <section>
-    <h1>{t("Melee", { _context, _comment: "Section heading" })}</h1>
+    <h1>{t("Melee", { _comment: "Section heading" })}</h1>
     <dl>
       {#each Object.entries(item.melee_damage) as [damageType, damage]}
         <dt>
@@ -118,12 +121,12 @@ const piercing =
         </dt>
         <dd>{damage}</dd>
       {/each}
-      <dt>{t("To Hit", { _context })}</dt>
+      <dt>{t("To Hit")}</dt>
       <dd>{to_hit}</dd>
-      <dt>{t("Moves Per Attack", { _context })}</dt>
+      <dt>{t("Moves Per Attack")}</dt>
       <dd>{attackTime(item)}</dd>
       {#if techniques.length}
-        <dt>{t("Techniques", { _context })}</dt>
+        <dt>{t("Techniques")}</dt>
         <dd>
           <ul class="no-bullets">
             {#each techniques as technique}

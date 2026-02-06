@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 import { getContext } from "svelte";
 import { CBNData, i18n } from "../data";
@@ -44,6 +44,7 @@ const activityLevels = {
   EXTRA_EXERCISE: 10.0,
 };
 
+//TODO: Transifex extraction only recognizes direct t("...") keys; replace t(activityLevelName(...)) with literal keys.
 function activityLevelName(level: number) {
   const activity_descriptions = [
     "None",

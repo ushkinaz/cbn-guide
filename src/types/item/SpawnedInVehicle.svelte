@@ -4,7 +4,7 @@ import { CBNData, itemGroupFromVehicle } from "../../data";
 import { formatPercent } from "../../utils/format";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 
 export let item_id: string;
 

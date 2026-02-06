@@ -139,6 +139,8 @@ t("Cost: {n}", { n: 22 })
 t("A") + b  // Wrong
 ```
 
+Transifex note: extraction only sees direct string-literal keys in `t("...")`. Calls like `t(cat.label)` or `t(plural(type))` are not extracted.
+
 ### Data Source (.agent/rules/data-source.md)
 
 - Truth: `_test/all.json` is the compiled data blob (~30MB)

@@ -3,7 +3,7 @@ import { type CBNData, loadProgress, mapType, plural } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial } from "./types";
 import { setContext } from "svelte";
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import LimitedList from "./LimitedList.svelte";
 import {
   getOMSByAppearance,
@@ -18,6 +18,7 @@ $: setContext("data", data);
 export let search: string;
 
 $: matchingObjectsList = $searchResults ? [...$searchResults.entries()] : null;
+//TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(...)) section heading below with literal branches.
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();
@@ -44,7 +45,7 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
     <section>
       {#if type === "overmap_special"}
         {@const grouped = groupByAppearance(results)}
-        <h1>{t("Locations")}</h1>
+        <h1>{t("Locations", { _context: "Search Results" })}</h1>
         <LimitedList items={grouped} let:item={result} limit={25}>
           <ItemLink type="overmap_special" id={result[0].id} />
         </LimitedList>

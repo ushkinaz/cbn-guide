@@ -12,7 +12,7 @@ import { getVersionedBasePath, page } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 
 type ItemSymbolItem = {
   id: string;

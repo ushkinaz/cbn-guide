@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "../../i18n";
+import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 import { byName, CBNData, parseMass } from "../../data";

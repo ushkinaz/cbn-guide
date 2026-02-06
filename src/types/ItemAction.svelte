@@ -7,7 +7,7 @@ import {
   singularName,
 } from "../data";
 import { getContext } from "svelte";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
 import ItemLink from "./ItemLink.svelte";
 

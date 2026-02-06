@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 import { getContext } from "svelte";
 
 import {
@@ -87,8 +87,8 @@ vehiclesContainingPart.sort((a, b) =>
     <dt>{t("Location")}</dt>
     <dd>
       {item.flags?.includes("APPLIANCE")
-        ? "structure"
-        : (item.location ?? "none")}
+        ? t("structure", { _context })
+        : (item.location ?? t("none"))}
     </dd>
     <dt>{t("Weight")}</dt>
     <dd>{asKilograms(data.byId("item", item.item).weight ?? 0)}</dd>
@@ -105,18 +105,18 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Charge", { _context })}</dt>
       <dd><ItemLink type="item" id={item.fuel_type} showIcon={false} /></dd>
     {/if}
-    <dt title="Maximum damage part can sustain before being destroyed">
+    <dt title={t("Maximum damage part can sustain before being destroyed")}>
       {t("Durability", { _context })}
     </dt>
     <dd>{item.durability ?? 0}</dd>
     {#if item.flags?.includes("WHEEL")}
       {#if item.wheel_type}
-        <dt>Wheel Type</dt>
+        <dt>{t("Wheel Type", { _context })}</dt>
         <dd>{item.wheel_type}</dd>
       {/if}
-      <dt>Contact Area</dt>
+      <dt>{t("Contact Area", { _context })}</dt>
       <dd>{item.contact_area ?? 1} cm²</dd>
-      <dt>Rolling Resistance</dt>
+      <dt>{t("Rolling Resistance", { _context })}</dt>
       <dd>{item.rolling_resistance ?? 1}</dd>
     {/if}
     {#if item.size}
@@ -133,12 +133,10 @@ vehiclesContainingPart.sort((a, b) =>
         <ul class="no-bullets">
           {#each item.qualities as [quality, level]}
             <li>
-              Has level <strong
-                >{level ?? 1}
-                <ItemLink
-                  type="tool_quality"
-                  id={quality}
-                  showIcon={false} /></strong> quality.
+              {t("Has level", { _context })}
+              {level ?? 1}
+              <ItemLink type="tool_quality" id={quality} showIcon={false} />
+              {t("quality.", { _context })}
             </li>
           {/each}
         </ul>
@@ -233,12 +231,14 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements?.install?.skills ?? [] as [skill, level], i}
-          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.install?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.install?.skills?.length}{", "}{/if}
+          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.install?.skills?.length}
+            {t("and")}
+          {:else if i + 1 !== item.requirements?.install?.skills?.length}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
       </dd>
-      <dt title="Time required goes down with better skills">
+      <dt title={t("Time required goes down with better skills")}>
         {t("Time", { _context, _comment: "Time taken to perform the action" })}
       </dt>
       <dd>{item.requirements?.install?.time ?? "1 hour"}</dd>
@@ -258,12 +258,14 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements?.removal?.skills ?? [] as [skill, level], i}
-          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.removal?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.removal?.skills?.length}{", "}{/if}
+          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.removal?.skills?.length}
+            {t("and")}
+          {:else if i + 1 !== item.requirements?.removal?.skills?.length}{", "}{/if}
         {:else}
-          none
+          {t("none")}
         {/each}
       </dd>
-      <dt title="Time required goes down with better skills">
+      <dt title={t("Time required goes down with better skills")}>
         {t("Time", { _context, _comment: "Time taken to perform the action" })}
       </dt>
       <dd>
@@ -288,12 +290,14 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements.repair?.skills ?? [] as [skill, level], i}
-          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.repair?.skills?.length}{" and "}{:else if i + 1 !== item.requirements?.repair?.skills?.length}{", "}{/if}
+          <ItemLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.repair?.skills?.length}
+            {t("and")}
+          {:else if i + 1 !== item.requirements?.repair?.skills?.length}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
       </dd>
-      <dt title="Time required goes down with better skills">
+      <dt title={t("Time required goes down with better skills")}>
         {t("Time", { _context, _comment: "Time taken to perform the action" })}
       </dt>
       <dd>{item.requirements?.repair?.time ?? "1 hour"}</dd>

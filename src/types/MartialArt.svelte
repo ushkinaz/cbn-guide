@@ -7,7 +7,7 @@ import ItemLink from "./ItemLink.svelte";
 import Technique from "./Technique.svelte";
 import BonusContainer from "./BonusContainer.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 
 const data = getContext<CBNData>("data");
 

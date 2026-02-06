@@ -1,5 +1,5 @@
 <script lang="ts">
-import { t } from "./i18n";
+import { t } from "@transifex/native";
 import { isTesting } from "./utils/env";
 import { metrics } from "./metrics";
 export let items: any[];

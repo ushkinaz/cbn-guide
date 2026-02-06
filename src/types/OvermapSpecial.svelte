@@ -11,7 +11,7 @@ import {
   overmapAppearance,
 } from "./item/spawnLocations";
 import ItemLink from "./ItemLink.svelte";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 import OvermapAppearance from "./item/OvermapAppearance.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 

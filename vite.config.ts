@@ -36,6 +36,7 @@ export default defineConfig({
       PERF_ENABLED: "false",
       COMMIT_DATE: commitDate,
       DEPLOY_NEXT: null,
+      TRANSIFEX_TOKEN: "1/2e39db44e1e5ba8d2c455d407b183aca31facc52",
     }),
     svelte(),
     VitePWA({

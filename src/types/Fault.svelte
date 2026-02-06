@@ -4,7 +4,7 @@ import { i18n, singular, singularName } from "../data";
 import ItemLink from "./ItemLink.svelte";
 import { getContext } from "svelte";
 import type { Fault, RequirementData } from "../types";
-import { t } from "../i18n";
+import { t } from "@transifex/native";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
 
 const data = getContext<CBNData>("data");
