@@ -37,6 +37,16 @@ Built by the community on top of a lot of prior work.
 
 ---
 
+## 🌐 Translation
+
+The Guide follows Cataclysm's language coverage, and translation work is community-driven.
+
+- **Game Data**: Automatically synchronized with official game translations.
+- **Interface**: UI localization is crowdsourced and community-driven.
+- **Join Us**: Help us reach 100% coverage on [Transifex](https://explore.transifex.com/cataclysmbn-guide/web-guide/). Thanks to everyone who contributes!
+
+---
+
 ## ⚙️ Technical Details
 
 Stack is Svelte + Vite. For the data pipeline and dev details:
