@@ -11,6 +11,8 @@ For detailed documentation, parameters, and usage instructions for each script, 
 - **`fetch-fixtures.ts`** (`pnpm fetch:fixtures`): Fetches game data (`all.json`) for local development and testing. Use `pnpm fetch:fixtures:latest` to pull the nightly version.
 - **`fetch-builds.ts`** (`pnpm fetch:builds`): Fetches the latest `builds.json` containing version metadata.
 - **`fetch-icons.ts`** (`pnpm fetch:icons`): Extracts and renders icons for game entities from tilesets.
+- **`transifex-download.ts`** (`pnpm i18n:download:api`): Downloads resource translations per locale using `resource_translations_async_downloads` API and saves locale JSON files.
+- **`transifex-update.ts`** (`pnpm i18n:update:api`): Updates existing resource translations using bulk `PATCH /resource_translations` from local JSON files (for AI-assisted translation workflow).
 - **`gen-css.ts`** (`pnpm gen:css`): Generates CSS variables and palette classes from game color definitions.
 - **`gen-sitemap.ts`** (`pnpm gen:sitemap`): Generates a static `sitemap.xml` for SEO.
 - **`gen-ogimage.py`** (`pnpm gen:ogimage`): Generates a custom OpenGraph (OG) image with game data, icons, and system fonts.

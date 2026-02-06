@@ -122,6 +122,29 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
   - `t(variableOrExpression)` is not extracted (for example: `t(cat.label)` or `t(plural(type))`).
   - Dynamic keys can still translate at runtime only if that key was extracted elsewhere before.
 
+### Transifex API Workflow (Download -> AI Translate -> Update)
+
+1. Download current translations for a resource:
+
+```bash
+qTRANSIFEX_API_TOKEN='txp_...' pnpm i18n:download:api --resource='o:cataclysmbn-guide:p:web-guide:r:ui' --out='./tmp/transifex-download'
+```
+
+2. Translate downloaded JSON files with your AI workflow.
+
+3. Update existing translations in Transifex:
+
+```bash
+TRANSIFEX_API_TOKEN='txp_...' pnpm i18n:update:api --resource='o:cataclysmbn-guide:p:web-guide:r:ui' --dir='./tmp/transifex-download'
+```
+
+Useful options:
+
+- Download only selected locales: `--locales='de,ru_RU,uk_UA'`
+- Include locales with zero translated strings: `--include-empty=true`
+- Dry run update without PATCH: `--dry-run=true`
+- Update a single file/locale: `--file='./tmp/transifex-download/de.json' --locale='de'`
+
 ### Test Files Overview
 
 #### Integration & Rendering Tests
