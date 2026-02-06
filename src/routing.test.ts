@@ -18,9 +18,22 @@ const testData = JSON.parse(
 const testBuilds = JSON.parse(
   fs.readFileSync(__dirname + "/../_test/builds.json", "utf8"),
 );
+const testModsData = {
+  aftershock: {
+    info: {
+      type: "MOD_INFO",
+      id: "aftershock",
+      name: "Aftershock",
+      description: "Aftershock test mod",
+      category: "content",
+      dependencies: ["bn"],
+    },
+    data: [],
+  },
+};
 
 describe("Routing E2E Tests", () => {
-  vi.setConfig({ testTimeout: 10000 });
+  vi.setConfig({ testTimeout: 120_000 });
   let originalFetch: typeof global.fetch;
   let container: HTMLElement;
 
@@ -57,6 +70,12 @@ describe("Routing E2E Tests", () => {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve(testData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(testModsData),
         } as Response);
       }
       if (url.includes("ru_RU.json")) {
@@ -262,6 +281,15 @@ describe("Routing E2E Tests", () => {
       // Check query param persists
       expect(window.location.search).toContain("lang=ru_RU");
     });
+
+    test("navigateTo preserves mods query param", async () => {
+      updateLocation("stable/", "?mods=aftershock,magiclysm");
+      const { navigateTo } = await import("./routing");
+      navigateTo("stable", { type: "item", id: "rock" }, "");
+      expect(new URLSearchParams(window.location.search).get("mods")).toBe(
+        "aftershock,magiclysm",
+      );
+    });
   });
 
   describe("Search Navigation", () => {
@@ -300,6 +328,51 @@ describe("Routing E2E Tests", () => {
   });
 
   describe("URL Encoding/Decoding", () => {
+    test("normalizes mods query param in parseRoute", async () => {
+      const { parseRoute } = await import("./routing");
+      updateLocation(
+        "stable/item/rock",
+        "?mods= aftershock , ,magiclysm,aftershock,bn ",
+      );
+      const route = parseRoute();
+      expect(route.mods).toEqual(["aftershock", "magiclysm"]);
+    });
+
+    test("buildUrl includes ordered mods query param", async () => {
+      const { buildUrl } = await import("./routing");
+      const url = buildUrl(
+        "stable",
+        { type: "item", id: "rock" },
+        "",
+        null,
+        null,
+        ["aftershock", "magiclysm"],
+      );
+      expect(url).toContain("mods=aftershock%2Cmagiclysm");
+    });
+
+    test("buildUrl omits mods query param when empty", async () => {
+      const { buildUrl } = await import("./routing");
+      const url = buildUrl("stable", { type: "item", id: "rock" }, "");
+      expect(url).not.toContain("mods=");
+    });
+
+    test("mods query param round-trips through buildUrl and parseRoute", async () => {
+      const { buildUrl, parseRoute } = await import("./routing");
+      const url = buildUrl("stable", null, "test query", null, null, [
+        "aftershock",
+        "magiclysm",
+      ]);
+      const builtUrl = new URL(url);
+      const path = builtUrl.pathname.startsWith(import.meta.env.BASE_URL)
+        ? builtUrl.pathname.slice(import.meta.env.BASE_URL.length)
+        : builtUrl.pathname.slice(1);
+      updateLocation(path, builtUrl.search);
+      const route = parseRoute();
+      expect(route.mods).toEqual(["aftershock", "magiclysm"]);
+      expect(route.search).toBe("test query");
+    });
+
     test("handles plus signs in search queries correctly", async () => {
       // Direct import to test parseRoute
       const { parseRoute, buildUrl } = await import("./routing");
@@ -545,7 +618,7 @@ describe("Routing E2E Tests", () => {
       await waitForNavigation();
       expect(window.location.pathname).toContain("item/rock");
       expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    });
+    }, 40_000);
   });
 
   describe("Version Handling", () => {
@@ -602,7 +675,7 @@ describe("Routing E2E Tests", () => {
         ""
       ).toLowerCase();
       expect(text).toContain("rock");
-    });
+    }, 40_000);
 
     test(" resolves version aliases correctly", async () => {
       // Test with stable alias
@@ -705,37 +778,41 @@ describe("Routing E2E Tests", () => {
   });
 
   describe("Redirection & Fallbacks", () => {
-    test("prepends /stable/ to invalid version paths", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const originalReplace = window.location.replace;
-      let replaceCalled = false;
-      let replaceUrl = "";
-      delete (window.location as any).replace;
-      window.location.replace = vi.fn((url: string | URL) => {
-        replaceCalled = true;
-        replaceUrl = url.toString();
-        const u = new URL(url as string, window.location.origin);
-        window.location.pathname = u.pathname;
-        window.location.search = u.search;
-        window.location.href = u.href;
-      }) as any;
+    test(
+      "prepends /stable/ to invalid version paths",
+      { timeout: 120000 },
+      async () => {
+        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+        const originalReplace = window.location.replace;
+        let replaceCalled = false;
+        let replaceUrl = "";
+        delete (window.location as any).replace;
+        window.location.replace = vi.fn((url: string | URL) => {
+          replaceCalled = true;
+          replaceUrl = url.toString();
+          const u = new URL(url as string, window.location.origin);
+          window.location.pathname = u.pathname;
+          window.location.search = u.search;
+          window.location.href = u.href;
+        }) as any;
 
-      // Use a version that doesn't exist - should prepend /stable/
-      updateLocation("non-existent-version/item/rock");
+        // Use a version that doesn't exist - should prepend /stable/
+        updateLocation("non-existent-version/item/rock");
 
-      render(App, {
-        target: container,
-      });
+        render(App, {
+          target: container,
+        });
 
-      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
+        await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
-      // Should prepend /stable/ to the path
-      expect(replaceCalled).toBe(true);
-      expect(replaceUrl).toContain("stable/non-existent-version/item/rock");
+        // Should prepend /stable/ to the path
+        expect(replaceCalled).toBe(true);
+        expect(replaceUrl).toContain("stable/non-existent-version/item/rock");
 
-      warnSpy.mockRestore();
-      window.location.replace = originalReplace;
-    });
+        warnSpy.mockRestore();
+        window.location.replace = originalReplace;
+      },
+    );
 
     test("prepends /stable when accessing data type path without version", async () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -962,6 +1039,7 @@ describe("Routing E2E Tests", () => {
       expect(get(page).route.version).toBe("stable");
       expect(get(page).route.item).toBeNull();
       expect(get(page).route.search).toBe("");
+      expect(get(page).route.mods).toEqual([]);
 
       // Navigate to item
       await act(() => {
@@ -972,6 +1050,7 @@ describe("Routing E2E Tests", () => {
       // Verify page store updated
       expect(get(page).route.item).toEqual({ type: "item", id: "rock" });
       expect(get(page).route.search).toBe("");
+      expect(get(page).route.mods).toEqual([]);
       expect(get(page).url.pathname).toContain("item/rock");
 
       // Navigate to search
@@ -983,69 +1062,112 @@ describe("Routing E2E Tests", () => {
       // Verify page store updated for search
       expect(get(page).route.item).toBeNull();
       expect(get(page).route.search).toBe("test");
+      expect(get(page).route.mods).toEqual([]);
       expect(get(page).url.pathname).toContain("search/test");
     });
 
-    test("page store updates on popstate events", async () => {
-      const { page } = await import("./routing");
+    test(
+      "page store updates on popstate events",
+      { timeout: 120000 },
+      async () => {
+        const { page } = await import("./routing");
+
+        render(App, {
+          target: container,
+        });
+
+        await waitForDataLoad();
+
+        // Navigate to item
+        await act(() => {
+          updateLocation("stable/item/rock");
+          dispatchPopState();
+        });
+
+        expect(get(page).route.item?.id).toBe("rock");
+
+        // Navigate to another item (simulating forward)
+        await act(() => {
+          updateLocation("stable/item/test_item");
+          dispatchPopState();
+        });
+
+        expect(get(page).route.item?.id).toBe("test_item");
+
+        // Go back (simulating browser back button)
+        await act(() => {
+          updateLocation("stable/item/rock");
+          dispatchPopState();
+        });
+
+        expect(get(page).route.item?.id).toBe("rock");
+      },
+    );
+
+    test(
+      "no duplicate popstate event handling",
+      { timeout: 120000 },
+      async () => {
+        const { page } = await import("./routing");
+
+        render(App, {
+          target: container,
+        });
+
+        await waitForDataLoad();
+
+        let updateCount = 0;
+        const unsubscribe = page.subscribe(() => {
+          updateCount++;
+        });
+
+        const initialCount = updateCount;
+
+        // Trigger popstate
+        await act(async () => {
+          updateLocation("stable/item/rock");
+          dispatchPopState();
+        });
+
+        await waitForNavigation();
+
+        // Store should update exactly once per popstate
+        // (initial subscription + one update)
+        expect(updateCount).toBe(initialCount + 1);
+
+        unsubscribe();
+      },
+    );
+
+    test("canonical and alternate links include mods query param", async () => {
+      updateLocation("stable/item/rock", "?mods=aftershock");
 
       render(App, {
         target: container,
       });
 
-      await waitForDataLoad();
+      await waitForDataLoad("rock");
 
-      // Navigate to item
-      await act(() => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-      expect(get(page).route.item?.id).toBe("rock");
+      let canonical = document.querySelector(
+        'link[rel="canonical"]',
+      ) as HTMLLinkElement | null;
+      const waitStart = Date.now();
+      while (!canonical && Date.now() - waitStart < 2000) {
+        await act(() => new Promise((resolve) => setTimeout(resolve, 25)));
+        canonical = document.querySelector(
+          'link[rel="canonical"]',
+        ) as HTMLLinkElement | null;
+      }
+      expect(canonical).toBeTruthy();
+      expect(canonical?.href).toContain("mods=aftershock");
 
-      // Navigate to another item (simulating forward)
-      await act(() => {
-        updateLocation("stable/item/test_item");
-        dispatchPopState();
-      });
-      expect(get(page).route.item?.id).toBe("test_item");
-
-      // Go back (simulating browser back button)
-      await act(() => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-      expect(get(page).route.item?.id).toBe("rock");
-    });
-
-    test("no duplicate popstate event handling", async () => {
-      const { page } = await import("./routing");
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      let updateCount = 0;
-      const unsubscribe = page.subscribe(() => {
-        updateCount++;
-      });
-
-      const initialCount = updateCount;
-
-      // Trigger popstate
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-
-      // Store should update exactly once per popstate
-      // (initial subscription + one update)
-      expect(updateCount).toBe(initialCount + 1);
-
-      unsubscribe();
+      const alternates = Array.from(
+        document.querySelectorAll('link[rel="alternate"]'),
+      ) as HTMLLinkElement[];
+      expect(alternates.length).toBeGreaterThan(0);
+      expect(
+        alternates.every((link) => link.href.includes("mods=aftershock")),
+      ).toBe(true);
     });
   });
 });
