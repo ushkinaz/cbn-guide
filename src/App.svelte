@@ -357,7 +357,6 @@ function maybeFocusSearch(e: KeyboardEvent) {
  * Falls back to English or the raw code if strict native naming fails.
  */
 function getLanguageName(code: string) {
-  if (code === "en") return t("English");
   const bcp47 = code.replace(/_/, "-");
   try {
     if (Intl?.DisplayNames) {
@@ -694,8 +693,7 @@ $: canonicalUrl = buildUrl(
             const lang = e.currentTarget.value;
             updateQueryParam("lang", lang === "en" ? null : lang);
           }}>
-          <option value="en"
-            >{t("English", { _context: LANGUAGE_SELECTOR_CONTEXT })}</option>
+          <option value="en">English</option>
           {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => getLanguageName(a).localeCompare(getLanguageName(b)), ) as lang}
             <option value={lang}>{getLanguageName(lang)}</option>
           {/each}
