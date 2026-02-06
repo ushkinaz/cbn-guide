@@ -127,6 +127,7 @@ initializeRouting()
         localeParam,
         isBranchAlias ? requestedVersion : undefined,
         builds.find((b) => b.build_number === resolvedVersion)?.langs,
+        $page.route.mods,
       )
       .then(() => {
         if (
@@ -380,6 +381,8 @@ $: canonicalUrl = buildUrl(
   $page.route.item,
   $page.route.search,
   localeParam,
+  null,
+  $page.route.mods,
 );
 </script>
 
@@ -405,6 +408,8 @@ $: canonicalUrl = buildUrl(
             $page.route.item,
             $page.route.search,
             lang,
+            null,
+            $page.route.mods,
           )} />
       {/each}
     {/if}

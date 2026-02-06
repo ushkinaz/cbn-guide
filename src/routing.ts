@@ -46,6 +46,7 @@ export type ParsedRoute = {
   version: string;
   item: { type: string; id: string } | null;
   search: string;
+  mods: string[];
 };
 
 /**
@@ -159,6 +160,19 @@ function getSearchParams(): URLSearchParams {
  */
 function getSearchParam(param: string): string | null {
   return getSearchParams().get(param);
+}
+
+function normalizeMods(raw: string | null): string[] {
+  if (!raw) return [];
+  const normalized: string[] = [];
+  const seen = new Set<string>();
+  for (const part of raw.split(",")) {
+    const modId = part.trim();
+    if (!modId || modId === "bn" || seen.has(modId)) continue;
+    seen.add(modId);
+    normalized.push(modId);
+  }
+  return normalized;
 }
 
 /**
@@ -280,18 +294,21 @@ export function parseRoute(): ParsedRoute {
   const version = segments[0] || STABLE_VERSION;
   const type = segments[1];
   const id = segments[2];
+  const mods = normalizeMods(getSearchParam("mods"));
 
   if (type === "search") {
     return {
       version,
       item: null,
       search: id || "",
+      mods,
     };
   } else if (type) {
     return {
       version,
       item: { type, id: id || "" },
       search: "",
+      mods,
     };
   }
 
@@ -299,6 +316,7 @@ export function parseRoute(): ParsedRoute {
     version,
     item: null,
     search: "",
+    mods,
   };
 }
 
@@ -324,6 +342,7 @@ export function buildUrl(
   search: string,
   locale: string | null = null,
   tileset: string | null = null,
+  mods: string[] = [],
 ): string {
   let path = getBaseUrl() + version + "/";
 
@@ -344,6 +363,9 @@ export function buildUrl(
   }
   if (tileset) {
     url.searchParams.set("t", tileset);
+  }
+  if (mods.length > 0) {
+    url.searchParams.set("mods", mods.join(","));
   }
   return url.toString();
 }
@@ -467,6 +489,7 @@ export function navigateTo(
     search,
     getSearchParam("lang"),
     getSearchParam("t"),
+    normalizeMods(getSearchParam("mods")),
   );
 
   if (pushToHistory) {

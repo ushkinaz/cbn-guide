@@ -90,7 +90,8 @@ const typeLabelForItem = (item: SupportedTypeMapped): string => {
 
 const statsForMonster = (item: SupportedTypes["MONSTER"]): string[] => {
   const stats: string[] = [];
-  if (item.species != null) stats.push(toTitleCase(item.species?.join(" ")));
+  const species = toArray(item.species as string | string[] | null);
+  if (species.length > 0) stats.push(toTitleCase(species.join(" ")));
   if (item.hp != null) stats.push(formatStat("HP", item.hp));
   if (item.speed != null) stats.push(formatStat("Speed", item.speed));
   return stats;
