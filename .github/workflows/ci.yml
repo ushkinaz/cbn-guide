@@ -20,6 +20,10 @@ jobs:
       matrix:
         node-version: [22]
 
+    env:
+      TRANSIFEX_SECRET: ${{ secrets.TRANSIFEX_SECRET }}
+      TRANSIFEX_TOKEN: ${{ vars.TRANSIFEX_TOKEN }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -50,10 +54,7 @@ jobs:
         run: pnpm build
 
       - name: Upload Translation Strings
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.TRANSIFEX_SECRET != ''
-        env:
-          TRANSIFEX_SECRET: ${{ secrets.TRANSIFEX_SECRET }}
-          TRANSIFEX_TOKEN: ${{ vars.TRANSIFEX_TOKEN }}
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.TRANSIFEX_SECRET != ''
         run: pnpm i18n:push
 
       - name: Deploy 🚀
