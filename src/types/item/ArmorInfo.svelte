@@ -204,23 +204,21 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
   <dl>
     <dt>{t("Covers", { _context })}</dt>
     <dd>
-      {#if covers("head")}{t("The")} <strong>{t("head")}</strong>.{/if}
-      {#if covers("eyes")}{t("The")} <strong>{t("eyes")}</strong>.{/if}
-      {#if covers("mouth")}{t("The")} <strong>{t("mouth")}</strong>.{/if}
-      {#if covers("torso")}{t("The")} <strong>{t("torso")}</strong>.{/if}
+      {#if covers("head")}{t("head")}.{/if}
+      {#if covers("eyes")}{t("eyes")}{/if}
+      {#if covers("mouth")}{t("mouth")}{/if}
+      {#if covers("torso")}{t("torso")}{/if}
 
-      {#each expandedCoverage as coverage}
-        {#if coverage.either}
-          {t("Either")} <strong>{safeName(coverage.parts[0], true)}</strong>.
-        {:else if coverage.alias}
-          {t("The")} <strong>{safeName(coverage.parts[0], true)}</strong>.
-        {:else}
-          {t("The")} <strong>{safeName(coverage.parts[0], false)}</strong>.
-        {/if}
-        {" "}
-      {/each}
+      <ul class="comma-separated">
+        {#each expandedCoverage as coverage, i}
+          <li>
+            {safeName(coverage.parts[0], !!coverage.either || !!coverage.alias)}
+            {#if coverage.either}{t("(Either)")}{/if}
+          </li>
+        {/each}
+      </ul>
 
-      {#if !covers_anything}{t("Nothing.")}{/if}
+      {#if !covers_anything}{t("Nothing")}{/if}
     </dd>
     <dt>{t("Layer", { _context })}</dt>
     <dd>

@@ -133,14 +133,10 @@ vehiclesContainingPart.sort((a, b) =>
         <ul class="no-bullets">
           {#each item.qualities as [quality, level]}
             <li>
-              {t("Has level")}
-              <strong
-                >{level ?? 1}
-                <ItemLink
-                  type="tool_quality"
-                  id={quality}
-                  showIcon={false} /></strong>
-              {t("quality.")}
+              {t("Has level", { _context })}
+              {level ?? 1}
+              <ItemLink type="tool_quality" id={quality} showIcon={false} />
+              {t("quality.", { _context })}
             </li>
           {/each}
         </ul>

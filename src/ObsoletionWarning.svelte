@@ -8,10 +8,9 @@ export let item: any;
 <section class="obsolete-banner">
   <span class="icon">†</span>
   <span
-    >{t("This {type} is marked as", { type: mapType(item.type) })}
-    <strong>{t("obsolete")}</strong>,
-    {t(
-      "meaning that it is likely not possible to obtain in this version.",
+    >{t(
+      "This {type} is marked as obsolete meaning that it is likely not possible to obtain in this version.",
+      { type: mapType(item.type) },
     )}</span>
 </section>
 
@@ -32,10 +31,5 @@ export let item: any;
   width: 2ch;
   display: inline-block;
   flex-shrink: 0;
-}
-
-.obsolete-banner strong {
-  color: var(--cata-color-yellow);
-  letter-spacing: 1px;
 }
 </style>
