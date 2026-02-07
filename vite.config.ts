@@ -77,7 +77,7 @@ export default defineConfig({
           {
             urlPattern:
               /^https:\/\/data\.cataclysmbn-guide\.com\/builds\.json$/,
-            handler: "StaleWhileRevalidate",
+            handler: "NetworkFirst",
             options: {
               cacheName: "builds-cache-v2",
               expiration: {
