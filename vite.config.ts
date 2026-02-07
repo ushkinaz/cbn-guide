@@ -1,22 +1,22 @@
-/// <reference types="vitest" />
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { VitePWA } from "vite-plugin-pwa";
 import EnvironmentPlugin from "vite-plugin-environment";
-import { execSync } from "node:child_process";
+import { readFileSync } from "fs";
 
-const getCommitDate = () => {
-  let dateStr: string;
-  try {
-    dateStr = execSync("git show -s --format=%cs HEAD").toString().trim();
-  } catch {
-    const now = new Date();
-    dateStr = now.toISOString().split("T")[0];
-  }
-  return dateStr;
-};
+const commitSHA = (
+  process.env.CF_PAGES_COMMIT_SHA ??
+  process.env.GITHUB_SHA ??
+  "local"
+).slice(0, 8);
 
-const commitDate = getCommitDate();
+const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
+const buildDate = new Date().toISOString().split("T")[0].replace(/-/g, "");
+
+let build = commitSHA !== "local" ? `+${commitSHA}` : "";
+//Follows semantic versioning: https://semver.org/. Used in Sentry releases.
+//1.5.0-20260102+c635cbec
+const releaseID = `${pkg.version}-${buildDate}${build}`;
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -28,13 +28,19 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  define: {
+    __RELEASE_ID__: JSON.stringify(releaseID),
+    __COMMIT_SHA__: JSON.stringify(commitSHA),
+    __DEPLOY_ENV__: JSON.stringify(
+      process.env.DEPLOY_NEXT === "1" ? "next" : "production",
+    ),
+  },
   plugins: [
     EnvironmentPlugin({
       GITHUB_SHA: null,
       CF_PAGES_COMMIT_SHA: null,
       SENTRY_DSN: null,
       PERF_ENABLED: "false",
-      COMMIT_DATE: commitDate,
       DEPLOY_NEXT: null,
       TRANSIFEX_TOKEN: "1/2e39db44e1e5ba8d2c455d407b183aca31facc52",
     }),

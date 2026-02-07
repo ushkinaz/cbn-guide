@@ -22,3 +22,7 @@ declare namespace svelteHTML {
     "on:appinstalled"?: (event: Event) => void;
   }
 }
+
+declare const __RELEASE_ID__: string;
+declare const __COMMIT_SHA__: string;
+declare const __DEPLOY_ENV__: "next" | "production";

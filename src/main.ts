@@ -14,17 +14,9 @@ tx.init({
   token: process.env.TRANSIFEX_TOKEN,
 });
 
-if (import.meta.env.PROD) {
-  //The SHA1 is taken from either the GitHub var or the Cloudflare var.
-  const commitSHA = (
-    process.env.CF_PAGES_COMMIT_SHA ??
-    process.env.GITHUB_SHA ??
-    "none"
-  ).slice(0, 8);
-  let releaseID = `${process.env.COMMIT_DATE ? process.env.COMMIT_DATE + "_" : "unknown"}${commitSHA}`;
-  let buildID = commitSHA;
-  let releaseTag = `cbn-guide@${releaseID}`;
+const releaseID = __RELEASE_ID__;
 
+if (import.meta.env.PROD) {
   let running_mode = RUNNING_MODE;
 
   // Check metrics opt-out flag (defensive for puppeteer/restricted browsers)
@@ -37,7 +29,6 @@ if (import.meta.env.PROD) {
   }
 
   zaraz.set("release_id", releaseID, { scope: "session" });
-  zaraz.set("build_id", buildID, { scope: "session" });
   zaraz.set("running_mode", running_mode, { scope: "session" });
 
   Sentry.init({
@@ -47,6 +38,9 @@ if (import.meta.env.PROD) {
     tracesSampleRate: 1,
     //Custom Zaraz endpoints, we ignore any error happening in Zaraz
     denyUrls: [/srv\/z\/s\.js/i, /srv\/z\/t/i],
+    sendDefaultPii: true,
+    environment: __DEPLOY_ENV__,
+    skipBrowserExtensionCheck: true,
     // Runtime filter for dynamic toggling without reload
     beforeSendMetric: (metric) => {
       try {
@@ -58,8 +52,8 @@ if (import.meta.env.PROD) {
       }
       return metric;
     },
-    ...(commitSHA && {
-      release: releaseTag,
+    ...(releaseID && {
+      release: `cbn-guide@${releaseID}`,
     }),
   });
 }
