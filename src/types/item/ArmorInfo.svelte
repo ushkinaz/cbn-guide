@@ -184,7 +184,7 @@ function coverageLabel(apd: ArmorPortionData): Set<string> {
   return labels;
 }
 
-function safeName(bodyPartId: string, composite: boolean): string {
+function safeName(bodyPartId: string, composite: boolean = false): string {
   const bp = data.byId("body_part", bodyPartId);
   if (composite) {
     return singular(bp.heading_multiple ?? bp.heading);
@@ -204,13 +204,16 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
   <dl>
     <dt>{t("Covers", { _context })}</dt>
     <dd>
-      {#if covers("head")}{t("head")}.{/if}
-      {#if covers("eyes")}{t("eyes")}{/if}
-      {#if covers("mouth")}{t("mouth")}{/if}
-      {#if covers("torso")}{t("torso")}{/if}
-
       <ul class="comma-separated">
-        {#each expandedCoverage as coverage, i}
+        {#if covers("head")}
+          <li>{safeName("head")}</li>{/if}
+        {#if covers("eyes")}
+          <li>{safeName("eyes")}</li>{/if}
+        {#if covers("mouth")}
+          <li>{safeName("mouth")}</li>{/if}
+        {#if covers("torso")}
+          <li>{safeName("torso")}</li>{/if}
+        {#each expandedCoverage as coverage}
           <li>
             {safeName(coverage.parts[0], !!coverage.either || !!coverage.alias)}
             {#if coverage.either}{t("(Either)")}{/if}
