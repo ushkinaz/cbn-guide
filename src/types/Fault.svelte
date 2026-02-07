@@ -29,31 +29,6 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
   );
   return { mending_method: mm, components, requirement };
 });
-
-const fault_flag_descriptions: Record<string, string> = {
-  NO_ALTERNATOR_CHARGE:
-    "The alternator connected to this engine does not work.",
-  BAD_COLD_START:
-    "The engine starts as if the temperature was 20 F colder. Does not stack with multiples of itself.",
-  IMMOBILIZER: "Prevents engine from starting and makes it beep.",
-  BAD_FUEL_PUMP: "Prevents engine from starting and makes it stutter.",
-  BAD_STARTER: "Prevents engine from starting and makes click noise.",
-  DOUBLE_FUEL_CONSUMPTION:
-    "Doubles fuel consumption of the engine. Does not stack with multiples of itself.",
-  EXTRA_EXHAUST:
-    "Makes the engine emit more exhaust smoke. Does not stack with multiples of itself.",
-  REDUCE_ENG_POWER:
-    "Multiplies engine power by 0.6. Does not stack with multiples of itself.",
-  ENG_BACKFIRE: "Causes the engine to backfire as if it had zero hp.",
-  BLACKPOWDER_FOULING_DAMAGE:
-    "Causes the gun to take random acid damage over time.",
-  NO_DIRTYING: "Prevents the gun from receiving `fault_gun_dirt` fault.",
-  JAMMED_GUN: "Stops burst fire. Adds delay on next shot.",
-  UNLUBRICATED:
-    "Randomly causes screeching noise when firing and applies damage when that happens.",
-  BAD_CYCLING:
-    "One in 16 chance that the gun fails to cycle when fired resulting in `fault_gun_chamber_spent` fault.",
-};
 </script>
 
 <h1>{t("Fault")}: {singularName(item)}</h1>
@@ -64,7 +39,7 @@ const fault_flag_descriptions: Record<string, string> = {
     <dd>
       <ul class="comma-separated">
         {#each item.flags ?? [] as flag}
-          <li><abbr title={fault_flag_descriptions[flag]}>{flag}</abbr></li>
+          <li>{flag}</li>
         {:else}
           <li><em>{t("none")}</em></li>
         {/each}
