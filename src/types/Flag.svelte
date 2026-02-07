@@ -35,9 +35,13 @@ const bionicWithFlag = data
 </script>
 
 <h1>{t("Flag", { _comment: "Section heading" })}: {item.id}</h1>
+<!--We have to be defencive here, since some flags are not defined in JSON, and created on-the-fly-->
 {#if item.info}
   <section>
-    <p>{singular(item.info)}</p>
+    <p
+      style="color: var(--cata-color-gray); margin-bottom: 0; white-space: pre-wrap;">
+      {singular(item.info)}
+    </p>
   </section>
 {/if}
 {#if itemsWithFlag.length}

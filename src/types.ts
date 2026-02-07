@@ -765,6 +765,7 @@ export type JsonFlag = {
   type: "json_flag";
   id: string;
 
+  context: string[];
   info?: string;
   conflicts?: string[];
   inherit?: boolean; // default: true
