@@ -52,9 +52,6 @@ if (import.meta.env.PROD) {
       }
       return metric;
     },
-    ...(releaseID && {
-      release: `cbn-guide@${releaseID}`,
-    }),
   });
 }
 

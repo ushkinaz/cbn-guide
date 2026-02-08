@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { VitePWA } from "vite-plugin-pwa";
 import EnvironmentPlugin from "vite-plugin-environment";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { readFileSync } from "fs";
 
 const commitSHA = (
@@ -13,10 +14,13 @@ const commitSHA = (
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
 const buildDate = new Date().toISOString().split("T")[0].replace(/-/g, "");
 
-let build = commitSHA !== "local" ? `+${commitSHA}` : "";
+let build = commitSHA !== "local" ? `+${commitSHA}` : "+local";
 //Follows semantic versioning: https://semver.org/. Used in Sentry releases.
 //1.5.0-20260102+c635cbec
 const releaseID = `${pkg.version}-${buildDate}${build}`;
+
+// Deployment environment: "next" for preview deployments, "production" for main
+const deployEnv = process.env.DEPLOY_NEXT === "1" ? "next" : "production";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -31,17 +35,17 @@ export default defineConfig({
   define: {
     __RELEASE_ID__: JSON.stringify(releaseID),
     __COMMIT_SHA__: JSON.stringify(commitSHA),
-    __DEPLOY_ENV__: JSON.stringify(
-      process.env.DEPLOY_NEXT === "1" ? "next" : "production",
-    ),
+    __DEPLOY_ENV__: JSON.stringify(deployEnv),
   },
   plugins: [
     EnvironmentPlugin({
-      GITHUB_SHA: null,
-      CF_PAGES_COMMIT_SHA: null,
-      SENTRY_DSN: null,
       PERF_ENABLED: "false",
       DEPLOY_NEXT: null,
+      GITHUB_SHA: null,
+      CI: "0",
+      CF_PAGES_COMMIT_SHA: null,
+      SENTRY_DSN: null,
+      SENTRY_AUTH_TOKEN: null,
       TRANSIFEX_TOKEN: "1/2e39db44e1e5ba8d2c455d407b183aca31facc52",
     }),
     svelte(),
@@ -194,6 +198,25 @@ export default defineConfig({
         // and get out of date with the server.
         skipWaiting: true,
         clientsClaim: true,
+      },
+    }),
+    sentryVitePlugin({
+      org: "ushkinaz",
+      project: "cbn-guide",
+      disable:
+        !process.env.CI || process.env.CI === "0" || process.env.CI === "false",
+      release: {
+        name: `cbn-guide@${releaseID}`,
+        dist: commitSHA,
+        deploy: {
+          env: deployEnv,
+        },
+      },
+      bundleSizeOptimizations: {
+        excludeDebugStatements: true,
+        excludeReplayShadowDom: true,
+        excludeReplayIframe: true,
+        excludeReplayWorker: true,
       },
     }),
   ],

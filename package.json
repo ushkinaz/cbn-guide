@@ -86,6 +86,7 @@
   },
   "dependencies": {
     "@sentry/browser": "^10.34.0",
+    "@sentry/vite-plugin": "^4.9.0",
     "@transifex/native": "^7.1.5",
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",

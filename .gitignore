@@ -401,3 +401,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/node,linux,macos,svelte,windows,jetbrains,sublimetext,visualstudiocode,venv
+
+# Sentry Config File
+.env.sentry-build-plugin
