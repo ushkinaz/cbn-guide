@@ -3,6 +3,7 @@
  */
 
 import { act, cleanup, render } from "@testing-library/svelte";
+import { get } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 vi.hoisted(() => {
   (globalThis as any).__isTesting__ = true;
@@ -957,44 +958,32 @@ describe("Routing E2E Tests", () => {
 
       await waitForDataLoad();
 
-      // Get initial page state
-      let pageState: any;
-      const unsubscribe = page.subscribe((state) => {
-        pageState = state;
-      });
-
       // Verify initial state (home page)
-      expect(pageState.route.version).toBe("stable");
-      expect(pageState.route.item).toBeNull();
-      expect(pageState.route.search).toBe("");
+      expect(get(page).route.version).toBe("stable");
+      expect(get(page).route.item).toBeNull();
+      expect(get(page).route.search).toBe("");
 
       // Navigate to item
-      await act(async () => {
+      await act(() => {
         updateLocation("stable/item/rock");
         dispatchPopState();
       });
 
-      await waitForNavigation();
-
       // Verify page store updated
-      expect(pageState.route.item).toEqual({ type: "item", id: "rock" });
-      expect(pageState.route.search).toBe("");
-      expect(pageState.url.pathname).toContain("item/rock");
+      expect(get(page).route.item).toEqual({ type: "item", id: "rock" });
+      expect(get(page).route.search).toBe("");
+      expect(get(page).url.pathname).toContain("item/rock");
 
       // Navigate to search
-      await act(async () => {
+      await act(() => {
         updateLocation("stable/search/test");
         dispatchPopState();
       });
 
-      await waitForNavigation();
-
       // Verify page store updated for search
-      expect(pageState.route.item).toBeNull();
-      expect(pageState.route.search).toBe("test");
-      expect(pageState.url.pathname).toContain("search/test");
-
-      unsubscribe();
+      expect(get(page).route.item).toBeNull();
+      expect(get(page).route.search).toBe("test");
+      expect(get(page).url.pathname).toContain("search/test");
     });
 
     test("page store updates on popstate events", async () => {
@@ -1006,39 +995,26 @@ describe("Routing E2E Tests", () => {
 
       await waitForDataLoad();
 
-      let pageState: any;
-      const unsubscribe = page.subscribe((state) => {
-        pageState = state;
-      });
-
       // Navigate to item
-      await act(async () => {
+      await act(() => {
         updateLocation("stable/item/rock");
         dispatchPopState();
       });
-
-      await waitForNavigation();
-      expect(pageState.route.item?.id).toBe("rock");
+      expect(get(page).route.item?.id).toBe("rock");
 
       // Navigate to another item (simulating forward)
-      await act(async () => {
+      await act(() => {
         updateLocation("stable/item/test_item");
         dispatchPopState();
       });
-
-      await waitForNavigation();
-      expect(pageState.route.item?.id).toBe("test_item");
+      expect(get(page).route.item?.id).toBe("test_item");
 
       // Go back (simulating browser back button)
-      await act(async () => {
+      await act(() => {
         updateLocation("stable/item/rock");
         dispatchPopState();
       });
-
-      await waitForNavigation();
-      expect(pageState.route.item?.id).toBe("rock");
-
-      unsubscribe();
+      expect(get(page).route.item?.id).toBe("rock");
     });
 
     test("no duplicate popstate event handling", async () => {
