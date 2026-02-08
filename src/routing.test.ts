@@ -12,10 +12,10 @@ import * as fs from "fs";
 import App from "./App.svelte";
 // Load test data
 const testData = JSON.parse(
-  fs.readFileSync(__dirname + "/../_test/all.test.json", "utf8"),
+  fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
 );
 const testBuilds = JSON.parse(
-  fs.readFileSync(__dirname + "/../_test/builds.test.json", "utf8"),
+  fs.readFileSync(__dirname + "/../_test/builds.json", "utf8"),
 );
 
 describe("Routing E2E Tests", () => {
