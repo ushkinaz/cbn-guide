@@ -12,17 +12,29 @@ export let item: GunSlot & ItemBasicInfo;
 const data = getContext<CBNData>("data");
 
 // TODO: handle multiple ranged_damage type
-const ranged_damage = Array.isArray(item.ranged_damage)
-  ? item.ranged_damage[0]
-  : typeof item.ranged_damage === "number"
-    ? item.ranged_damage
-    : item.ranged_damage && "values" in item.ranged_damage
-      ? item.ranged_damage.values[0]
-      : ((item.ranged_damage as DamageUnit) ?? {
-          amount: 0,
-          damage_type: "bullet",
-          armor_penetration: 0,
-        });
+function extractRangedDamage(): DamageUnit {
+  const defaultDamage: DamageUnit = {
+    amount: 0,
+    damage_type: "bullet",
+    armor_penetration: 0,
+  };
+
+  if (Array.isArray(item.ranged_damage)) {
+    return item.ranged_damage[0];
+  }
+
+  if (
+    item.ranged_damage &&
+    typeof item.ranged_damage === "object" &&
+    "values" in item.ranged_damage
+  ) {
+    return item.ranged_damage.values[0];
+  }
+
+  return (item.ranged_damage as DamageUnit) ?? defaultDamage;
+}
+
+const ranged_damage = extractRangedDamage();
 </script>
 
 <section>
