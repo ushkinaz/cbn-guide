@@ -160,7 +160,10 @@ export type Recipe = {
 
   skill_used?: string; // skill_id
 
-  skills_required?: [string, number] | [string, number][]; // skill_id, level
+  // Flat array format: [skill1, level1, skill2, level2, ...]
+  // OR single pair: [skill, level]
+  // OR array of pairs: [[skill1, level1], [skill2, level2], ...]
+  skills_required?: [string, number] | [string, number][] | (string | number)[];
 
   autolearn?: boolean | [string, number][];
   never_learn?: boolean;
@@ -1974,22 +1977,22 @@ export type OvermapSpecial = OvermapSpecialFixed | OvermapSpecialMutable;
 export type Mutation = {
   id: string;
   type: "mutation";
-  name: Translation;
-  description: Translation;
-  points: integer;
+  name?: Translation;
+  description?: Translation;
+  points?: integer;
   mixed_effect?: boolean;
   profession?: boolean;
   purifiable?: boolean; // default: true
   visibility?: integer; // default: 0
   ugliness?: integer; // default: 0
 
-  prereqs?: string[];
-  prereqs2?: string[];
-  threshreq?: string[];
-  category?: string[];
-  leads_to?: string[];
-  changes_to?: string[];
-  cancels?: string[];
+  prereqs?: string | string[];
+  prereqs2?: string | string[];
+  threshreq?: string | string[];
+  category?: string | string[];
+  leads_to?: string | string[];
+  changes_to?: string | string[];
+  cancels?: string | string[];
 
   types?: string[];
 
@@ -2023,7 +2026,9 @@ export type Vehicle = {
   type: "vehicle";
   name: Translation;
   blueprint?: string[][] | string[];
-  parts: {
+  blueprint_origin?: { x: integer; y: integer };
+  palette?: Record<string, (string | string[])[]>;
+  parts?: {
     x: integer;
     y: integer;
     parts?: (string | { part: string; fuel?: string })[];
@@ -2133,7 +2138,7 @@ export type Bionic = {
   is_remote_fueled?: boolean;
 
   known_ma_styles?: string[];
-  learned_spells?: Record<string, number>;
+  learned_spells?: Record<string, number> | [string, number][];
   learned_proficiencies?: string[];
   canceled_mutations?: string[];
   mutation_conflicts?: string[];

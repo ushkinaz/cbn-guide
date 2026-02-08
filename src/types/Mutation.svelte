@@ -218,14 +218,20 @@ const conflictsWithBionics = data
       <dt>{t("Changes To", { _context })}</dt>
       <dd>
         <MutationList
-          mutations={item.changes_to.map((id) => data.byId("mutation", id))} />
+          mutations={(Array.isArray(item.changes_to)
+            ? item.changes_to
+            : [item.changes_to]
+          ).map((id) => data.byId("mutation", id))} />
       </dd>
     {/if}
     {#if item.cancels?.length}
       <dt>{t("Cancels", { _context })}</dt>
       <dd>
         <MutationList
-          mutations={item.cancels.map((id) => data.byId("mutation", id))} />
+          mutations={(Array.isArray(item.cancels)
+            ? item.cancels
+            : [item.cancels]
+          ).map((id) => data.byId("mutation", id))} />
       </dd>
     {/if}
     {#if canceledByMutations.length}

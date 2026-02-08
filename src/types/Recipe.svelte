@@ -15,12 +15,31 @@ const data = getContext<CBNData>("data");
 const _context = "Recipe";
 
 function normalizeSkillsRequired(
-  skills_required: [string, number] | [string, number][] | undefined,
+  skills_required:
+    | [string, number]
+    | [string, number][]
+    | (string | number)[]
+    | undefined,
 ): [string, number][] {
   if (skills_required === undefined) return [];
   if (skills_required.length === 0) return [];
   if (Array.isArray(skills_required[0]))
     return skills_required as [string, number][];
+  if (typeof skills_required[0] === "string" && skills_required.length === 2)
+    return [skills_required as [string, number]];
+  if (
+    typeof skills_required[0] === "string" &&
+    skills_required.length % 2 === 0
+  ) {
+    const result: [string, number][] = [];
+    for (let i = 0; i < skills_required.length; i += 2) {
+      result.push([
+        skills_required[i] as string,
+        skills_required[i + 1] as number,
+      ]);
+    }
+    return result;
+  }
   return [skills_required as [string, number]];
 }
 
