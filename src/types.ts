@@ -1930,23 +1930,46 @@ export type Spell = {
   description: Translation;
 };
 
-export type OvermapSpecial = {
+// Common properties for all OvermapSpecial types
+type OvermapSpecialBase = {
   id: string;
   type: "overmap_special" | "city_building";
   flags?: string[];
   locations?: string[];
-} & (
-  | {
-      subtype?: "fixed"; // default fixed
-      overmaps?: {
-        point: [integer, integer, integer];
-        overmap?: string;
-        flags?: string[];
-        locations?: string[];
-      }[];
+};
+
+// Fixed subtype: overmaps is an array with point coordinates
+type OvermapSpecialFixed = OvermapSpecialBase & {
+  subtype?: "fixed"; // default "fixed" when omitted
+  overmaps?: {
+    point: [integer, integer, integer];
+    overmap?: string;
+    flags?: string[];
+    locations?: string[];
+  }[];
+};
+
+// Mutable subtype: overmaps is an object (key-value mapping)
+type OvermapSpecialMutable = OvermapSpecialBase & {
+  subtype: "mutable";
+  overmaps?: Record<
+    string,
+    {
+      overmap?: string;
+      above?: string | { id: string; type: string };
+      below?: string;
+      north?: string | { id: string; type: string };
+      east?: string | { id: string; type: string };
+      south?: string | { id: string; type: string };
+      west?: string | { id: string; type: string };
+      connections?: Record<string, any>;
+      locations?: string[];
     }
-  | { subtype: "mutable" }
-);
+  >;
+};
+
+// Discriminated union
+export type OvermapSpecial = OvermapSpecialFixed | OvermapSpecialMutable;
 
 export type Mutation = {
   id: string;
