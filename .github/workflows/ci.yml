@@ -45,7 +45,7 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" != "push" ]; then
             pnpm test:nightly
           else
-            pnpm fetch:fixtures && pnpm test
+            pnpm fetch:fixtures && pnpm fetch:builds && pnpm test
           fi
 
       - name: Build
