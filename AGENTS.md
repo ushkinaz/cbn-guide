@@ -123,7 +123,7 @@ Main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#
 
 ### Localization (.agent/rules/localization.md)
 
-Use `t` from `i18n.ts` for ALL user-facing text:
+Use `t` from `@transifex/native` for ALL user-facing text:
 
 ```sveltehtml
 // Static
