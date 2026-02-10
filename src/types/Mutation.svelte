@@ -15,23 +15,28 @@ export let item: Mutation;
 let data = getContext<CBNData>("data");
 const _context = "Mutation";
 
+const toArray = (val: string | string[] | undefined): string[] => {
+  if (!val) return [];
+  return Array.isArray(val) ? val : [val];
+};
+
 const postThresholdMutations = data
   .byType("mutation")
-  .filter((m) => (m.threshreq ?? []).includes(item.id))
+  .filter((m) => toArray(m.threshreq).includes(item.id))
   .sort(byName);
 
 const requiredBy = data
   .byType("mutation")
   .filter(
     (m) =>
-      (m.prereqs ?? []).includes(item.id) ||
-      (m.prereqs2 ?? []).includes(item.id),
+      toArray(m.prereqs).includes(item.id) ||
+      toArray(m.prereqs2).includes(item.id),
   )
   .sort(byName);
 
 const canceledByMutations = data
   .byType("mutation")
-  .filter((m) => (m.cancels ?? []).includes(item.id))
+  .filter((m) => toArray(m.cancels).includes(item.id))
   .sort(byName);
 
 const canceledByBionics = data
@@ -53,12 +58,12 @@ const conflictsWithBionics = data
 <section>
   <dl>
     <dt>{t("Points", { _context })}</dt>
-    <dd><MutationColor mutation={item}>{item.points}</MutationColor></dd>
+    <dd><MutationColor mutation={item}>{item.points ?? 0}</MutationColor></dd>
     {#if item.category}
       <dt>{t("Category", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
-          {#each item.category as category_id}
+          {#each toArray(item.category) as category_id}
             <li>
               <ItemLink
                 type="mutation_category"
@@ -169,7 +174,7 @@ const conflictsWithBionics = data
         <ul>
           <li>
             <ul class="comma-separated or">
-              {#each item.prereqs as prereq_id}
+              {#each toArray(item.prereqs) as prereq_id}
                 <li>
                   <ItemLink type="mutation" id={prereq_id} showIcon={false} />
                 </li>
@@ -179,7 +184,7 @@ const conflictsWithBionics = data
           {#if item.prereqs2}
             <li>
               <ul class="comma-separated or">
-                {#each item.prereqs2 as prereq_id}
+                {#each toArray(item.prereqs2) as prereq_id}
                   <li>
                     <ItemLink type="mutation" id={prereq_id} showIcon={false} />
                   </li>
@@ -196,7 +201,7 @@ const conflictsWithBionics = data
       <dt>{t("Threshold Requirement", { _context })}</dt>
       <dd>
         <ul class="comma-separated or">
-          {#each item.threshreq as prereq_id}
+          {#each toArray(item.threshreq) as prereq_id}
             <li>
               <ItemLink type="mutation" id={prereq_id} showIcon={false} />
             </li>
@@ -208,7 +213,7 @@ const conflictsWithBionics = data
       <dt>{t("Leads To", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
-          {#each item.leads_to as id}
+          {#each toArray(item.leads_to) as id}
             <li><ItemLink {id} type="mutation" showIcon={false} /></li>
           {/each}
         </ul>
