@@ -49,8 +49,11 @@ const ranged_damage = extractRangedDamage();
     <dt>{t("Base Damage")}</dt>
     <dd>
       {ranged_damage.amount ?? 0} ({singularName(
-        data.byIdMaybe("damage_type", ranged_damage.damage_type) ?? {
-          id: ranged_damage.damage_type,
+        data.byIdMaybe(
+          "damage_type",
+          ranged_damage.damage_type ?? "bullet",
+        ) ?? {
+          id: ranged_damage.damage_type ?? "bullet",
         },
       )})
     </dd>
