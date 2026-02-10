@@ -316,6 +316,48 @@ test("_flatten: copy-from cycle does not recurse infinitely", () => {
   expect(b.id).toBe("b");
 });
 
+test("_flatten: abstract inheritance with mod layering works correctly", () => {
+  // Simulate base game + mod layering pattern
+  // This mimics the real scenario from alt_map_key mod
+  const data = new CBNData([
+    // Base game: root abstract
+    {
+      type: "overmap_terrain",
+      abstract: "generic_mansion",
+      color: "blue",
+    },
+    // Base game: abstract parent
+    {
+      type: "overmap_terrain",
+      abstract: "generic_mansion_no_sidewalk",
+      "copy-from": "generic_mansion",
+      color: "green",
+    },
+    // Mod: extends the abstract by copying from itself
+    {
+      type: "overmap_terrain",
+      abstract: "generic_mansion_no_sidewalk",
+      "copy-from": "generic_mansion_no_sidewalk",
+      name: "mansion",
+      sym: "m",
+      color: "i_light_green",
+    },
+    // Concrete object using the abstract
+    {
+      type: "overmap_terrain",
+      id: "mansion_entrance",
+      "copy-from": "generic_mansion_no_sidewalk",
+    },
+  ]);
+
+  const concrete = data.byId("overmap_terrain", "mansion_entrance");
+
+  // Should inherit from the final abstract (mod version)
+  expect(concrete.name).toBe("mansion");
+  expect(concrete.sym).toBe("m");
+  expect(concrete.color).toBe("i_light_green");
+});
+
 test("flattenItemGroup: deep nested groups", () => {
   const data = new CBNData([
     {

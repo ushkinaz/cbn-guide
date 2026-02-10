@@ -402,6 +402,13 @@ export class CBNData {
       if (Object.hasOwnProperty.call(obj, "abstract")) {
         if (!this._abstractsByType.has(mappedType))
           this._abstractsByType.set(mappedType, new Map());
+        // Track previous abstract if it exists (mod override pattern)
+        const previous = this._abstractsByType
+          .get(mappedType)!
+          .get(obj.abstract);
+        if (previous) {
+          this._overrides.set(obj, previous);
+        }
         this._abstractsByType.get(mappedType)!.set(obj.abstract, obj);
       }
 
@@ -545,6 +552,14 @@ export class CBNData {
       obj.id === parentId &&
       this._overrides.has(obj)
     ) {
+      parent = this._overrides.get(obj);
+    } else if (
+      typeof obj.abstract === "string" &&
+      typeof parentId === "string" &&
+      obj.abstract === parentId &&
+      this._overrides.has(obj)
+    ) {
+      // For abstract self-copies in layered mod overrides, use the previous object
       parent = this._overrides.get(obj);
     } else if (parent === obj && this._overrides.has(obj)) {
       parent = this._overrides.get(obj);
