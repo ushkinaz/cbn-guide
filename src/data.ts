@@ -299,6 +299,20 @@ export class CBNData {
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
+  /** Memoized direct touching mods keyed by mapped type + provenance key. */
+  _directModsByTypeByIdCache: Map<
+    keyof SupportedTypesWithMapped,
+    Map<string, ModInfo[]>
+  > = new Map();
+  /**
+   * Memoized contributing mods for concrete objects keyed by mapped type + id.
+   * Unlike `_directModsByTypeByIdCache`, this includes all mods in the resolved
+   * `copy-from` chain (parents first, then current object).
+   */
+  _contributingModsByTypeByIdCache: Map<
+    keyof SupportedTypesWithMapped,
+    Map<string, ModInfo[]>
+  > = new Map();
 
   release: any;
   /** Concrete build number from the game data (e.g., "v0.9.1") */
@@ -535,14 +549,290 @@ export class CBNData {
     return this._raw;
   }
 
+  /**
+   * Builds the canonical provenance key for a raw object in a mapped type family.
+   *
+   * Important:
+   * - `recipe` / `uncraft` are keyed by `result + optional id_suffix`.
+   * - `monstergroup` is keyed by `name`.
+   * - other families use `id`, falling back to `abstract`.
+   *
+   * This aligns provenance lookups with the same key strategy used by `_byTypeById`
+   * for non-`id` keyed object families.
+   */
+  _provenanceKeyForObject(
+    mappedType: keyof SupportedTypesWithMapped,
+    obj: unknown,
+  ): string | null {
+    if (typeof obj !== "object" || obj === null) return null;
+    const raw = obj as Record<string, unknown>;
+
+    if (mappedType === "recipe" || mappedType === "uncraft") {
+      if (typeof raw.result === "string") {
+        return `${raw.result}${
+          typeof raw.id_suffix === "string" ? `_${raw.id_suffix}` : ""
+        }`;
+      }
+      return typeof raw.abstract === "string" ? raw.abstract : null;
+    }
+
+    if (mappedType === "monstergroup") {
+      return typeof raw.name === "string"
+        ? raw.name
+        : typeof raw.id === "string"
+          ? raw.id
+          : typeof raw.abstract === "string"
+            ? raw.abstract
+            : null;
+    }
+
+    if (typeof raw.id === "string") return raw.id;
+    if (typeof raw.abstract === "string") return raw.abstract;
+    return null;
+  }
+
+  /**
+   * Returns the current raw object for a mapped type + provenance key.
+   * Supports both concrete keyed objects and abstract templates.
+   * Handles item migrations if the key is missing from the main maps.
+   *
+   * @param mappedType Mapped type family to search in.
+   * @param key Provenance key (identifier or abstract).
+   * @returns The raw game object or null if entries are missing.
+   */
+  _objectForProvenanceKey(
+    mappedType: keyof SupportedTypesWithMapped,
+    key: string,
+  ): Record<string, unknown> | null {
+    // Follow item migrations to the final ID
+    if (
+      mappedType === "item" &&
+      !this._byTypeById.get("item")?.has(key) &&
+      this._migrations.has(key)
+    ) {
+      return this._objectForProvenanceKey("item", this._migrations.get(key)!);
+    }
+
+    return (
+      this._byTypeById.get(mappedType)?.get(key) ??
+      this._abstractsByType.get(mappedType)?.get(key) ??
+      null
+    );
+  }
+
+  /**
+   * Resolves direct touching mods for a mapped type/key by scanning active mods
+   * on demand. This intentionally avoids any constructor-time provenance index.
+   */
+  _directModsForTypeIdByScan(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+  ): ModInfo[] {
+    const activeMods = this.active_mods;
+    const rawModsJson = this.raw_mods_json;
+    if (!activeMods || !rawModsJson) return [];
+
+    const directMods: ModInfo[] = [];
+    for (const modId of activeMods) {
+      const modData = rawModsJson[modId];
+      if (!modData) continue;
+
+      let touchesId = false;
+      for (const rawObj of modData.data) {
+        if (typeof rawObj !== "object" || rawObj === null) continue;
+        const candidate = rawObj as Record<string, unknown>;
+        if (typeof candidate.type !== "string") continue;
+
+        const candidateType = mapType(
+          candidate.type as keyof SupportedTypesWithMapped,
+        );
+        if (candidateType !== mappedType) continue;
+
+        if (this._provenanceKeyForObject(candidateType, candidate) === id) {
+          touchesId = true;
+          break;
+        }
+      }
+
+      if (touchesId) directMods.push(modData.info);
+    }
+    return directMods;
+  }
+
+  /**
+   * Returns direct touching mods for a mapped type/id pair using memoized
+   * on-demand scans (no global preindexing).
+   */
+  _directModsForTypeId(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+  ): readonly ModInfo[] {
+    if (!this._directModsByTypeByIdCache.has(mappedType)) {
+      this._directModsByTypeByIdCache.set(mappedType, new Map());
+    }
+    const byId = this._directModsByTypeByIdCache.get(mappedType)!;
+    const cached = byId.get(id);
+    if (cached) return cached;
+
+    const mods = this._directModsForTypeIdByScan(mappedType, id);
+    byId.set(id, mods);
+    return mods;
+  }
+
+  /**
+   * Merges parent-chain and current-node mod lists while preserving order and
+   * uniqueness by mod id.
+   *
+   * @param inherited Contributing mods from parent chain.
+   * @param current Direct touching mods of the current object node.
+   * @returns Ordered, unique merged mod list.
+   */
+  _mergeUniqueMods(
+    inherited: readonly ModInfo[],
+    current: readonly ModInfo[],
+  ): ModInfo[] {
+    if (inherited.length === 0) return [...current];
+    if (current.length === 0) return [...inherited];
+
+    const merged: ModInfo[] = [...inherited];
+    const seen = new Set(inherited.map((mod) => mod.id));
+    for (const mod of current) {
+      if (seen.has(mod.id)) continue;
+      seen.add(mod.id);
+      merged.push(mod);
+    }
+    return merged;
+  }
+
+  /** Clears memoized provenance caches when mod metadata changes. */
+  _clearModProvenanceCaches(): void {
+    this._directModsByTypeByIdCache.clear();
+    this._contributingModsByTypeByIdCache.clear();
+  }
+
+  /**
+   * Resolves immediate parent provenance id for a mapped type/id.
+   * Self-copy chains (same id copied from itself across overrides) are collapsed
+   * until a different parent id is found.
+   *
+   * @param mappedType Mapped type family to search in.
+   * @param id Provenance id (object id or abstract).
+   * @returns Parent mapped type/id pair or null when no parent exists.
+   */
+  _resolveParentTypeIdForModProvenance(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+  ): { mappedType: keyof SupportedTypesWithMapped; id: string } | null {
+    let current = this._objectForProvenanceKey(mappedType, id);
+    if (!current) return null;
+    const currentMappedType = mappedType;
+
+    const seen = new Set<Record<string, unknown>>();
+    while (current) {
+      if (seen.has(current)) return null;
+      seen.add(current);
+
+      const parent = this._resolveCopyFromParent(current);
+      if (!parent) return null;
+      const parentMappedType = mapType(
+        parent.type as keyof SupportedTypesWithMapped,
+      );
+      const parentId = this._provenanceKeyForObject(parentMappedType, parent);
+      if (!parentId) return null;
+
+      if (parentMappedType !== currentMappedType || parentId !== id) {
+        return { mappedType: parentMappedType, id: parentId };
+      }
+
+      // Continue traversing through self-copy overrides until parent id changes.
+      current = parent;
+    }
+    return null;
+  }
+
+  /**
+   * Resolves contributing mods for a mapped type/id by traversing its full
+   * `copy-from` parent chain recursively.
+   *
+   * @param mappedType Mapped type family to search in.
+   * @param id Provenance id (object id or abstract).
+   * @param stack Cycle-detection set for recursive traversal.
+   * @returns Ordered mod list for the full inheritance chain.
+   */
+  _modsForTypeIdChain(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+    stack: Set<string> = new Set(),
+  ): ModInfo[] {
+    const stackId = `${mappedType}::${id}`;
+    if (stack.has(stackId)) return [];
+    stack.add(stackId);
+
+    const parent = this._resolveParentTypeIdForModProvenance(mappedType, id);
+    const inheritedMods = parent
+      ? this._modsForTypeIdChain(parent.mappedType, parent.id, stack)
+      : [];
+    stack.delete(stackId);
+    return this._mergeUniqueMods(
+      inheritedMods,
+      this._directModsForTypeId(mappedType, id),
+    );
+  }
+
+  /**
+   * Returns mods that directly define/override the concrete object with the
+   * given type/id key. This method does not include `copy-from` ancestry.
+   * The key must match the same identifier used by `byId(...)` for the family
+   * (for example: item `id`, recipe `result[_id_suffix]`, monstergroup `name`).
+   *
+   * @param type Mapped type family to search in.
+   * @param id Concrete object key used by `byId(...)`.
+   * @returns Direct touching non-core mods in load order.
+   */
+  getDirectModsForId<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+    id: string,
+  ): readonly ModInfo[] {
+    if (typeof id !== "string") return [];
+    const mappedType = mapType(type);
+    if (!this._byTypeById.get(mappedType)?.has(id)) return [];
+    return [...this._directModsForTypeId(mappedType, id)];
+  }
+
+  /**
+   * Returns all mods that contribute to the resolved object with the given
+   * type/id key, including direct touches and all `copy-from` ancestors.
+   *
+   * @param type Mapped type family to search in.
+   * @param id Concrete object key used by `byId(...)`.
+   * @returns Contributing non-core mods across the full inheritance chain.
+   */
+  getContributingModsForId<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+    id: string,
+  ): readonly ModInfo[] {
+    if (typeof id !== "string") return [];
+    const mappedType = mapType(type);
+    const cached = this._contributingModsByTypeByIdCache
+      .get(mappedType)
+      ?.get(id);
+    if (cached) return [...cached];
+
+    if (!this._byTypeById.get(mappedType)?.has(id)) return [];
+    const mods = this._modsForTypeIdChain(mappedType, id);
+    if (!this._contributingModsByTypeByIdCache.has(mappedType)) {
+      this._contributingModsByTypeByIdCache.set(mappedType, new Map());
+    }
+    this._contributingModsByTypeByIdCache.get(mappedType)!.set(id, mods);
+    return [...mods];
+  }
+
   _resolveCopyFromParent(obj: any): any | null {
     if (!("copy-from" in obj)) return null;
 
     const parentId = obj["copy-from"];
-    let parent =
-      this._byTypeById.get(mapType(obj.type))?.get(parentId) ??
-      this._abstractsByType.get(mapType(obj.type))?.get(parentId) ??
-      null;
+    const mappedType = mapType(obj.type);
+    let parent = this._objectForProvenanceKey(mappedType, parentId);
 
     // For "self-looking" copy-from patterns in layered mod overrides, use the
     // previous object for this id instead of resolving to self.
@@ -2413,6 +2703,7 @@ export const data = {
       currentData.mods = [];
       currentData.active_mods = currentData.active_mods ?? [];
       currentData.raw_mods_json = {};
+      currentData._clearModProvenanceCaches();
       _currentData = currentData;
       set(currentData);
       return;
@@ -2424,11 +2715,13 @@ export const data = {
       currentData.mods = parsedMods.mods;
       currentData.active_mods = currentData.active_mods ?? [];
       currentData.raw_mods_json = parsedMods.raw;
+      currentData._clearModProvenanceCaches();
     } catch (e) {
       if (is404Error(e)) {
         currentData.mods = [];
         currentData.active_mods = [];
         currentData.raw_mods_json = {};
+        currentData._clearModProvenanceCaches();
       } else {
         throw e;
       }
