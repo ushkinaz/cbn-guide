@@ -97,12 +97,12 @@ const needsPlural = [
   "json_flag",
 ];
 
-function getMsgId(t: Translation | null | undefined) {
+function getMsgId(t: Translation) {
   if (t == null) return "";
   return typeof t === "string" ? t : "str_sp" in t ? t.str_sp : t.str;
 }
 
-function getMsgIdPlural(t: Translation | null | undefined): string {
+function getMsgIdPlural(t: Translation): string {
   if (t == null) return "";
   return typeof t === "string"
     ? t + "s"
@@ -114,7 +114,7 @@ function getMsgIdPlural(t: Translation | null | undefined): string {
 }
 
 export function translate(
-  t: Translation | null | undefined,
+  t: Translation,
   needsPlural: boolean,
   n: number,
   domain?: string,
@@ -127,13 +127,11 @@ export function translate(
   return stripColorTags(raw);
 }
 
-export const singular = (name: Translation | null | undefined): string =>
+export const singular = (name: Translation): string =>
   translate(name, false, 1);
 
-export const plural = (
-  name: Translation | null | undefined,
-  n: number = 2,
-): string => translate(name, true, n);
+export const plural = (name: Translation, n: number = 2): string =>
+  translate(name, true, n);
 
 export const singularName = (obj: any, domain?: string): string =>
   pluralName(obj, 1, domain);

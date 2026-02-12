@@ -276,7 +276,10 @@ const conflictsWithBionics = data
       </dd>
     {/if}
   </dl>
-  <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+  <!-- TODO remove after #92  -->
+  {#if item.description}
+    <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+  {/if}
 </section>
 
 {#if item.threshold && postThresholdMutations.length}

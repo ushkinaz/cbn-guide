@@ -1978,6 +1978,7 @@ export type Mutation = {
   id: string;
   type: "mutation";
   name?: Translation;
+  //description is not actually optional, but some mods copy-from descriptions. See issue #92ß
   description?: Translation;
   points?: integer;
   mixed_effect?: boolean;
