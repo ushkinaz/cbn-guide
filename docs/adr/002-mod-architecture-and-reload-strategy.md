@@ -8,56 +8,60 @@ Accepted
 
 ## Context
 
-Cataclysm: Bright Nights supports a wide variety of mods that can override or extend base game data. The C-BN Guide needs a robust way to:
+The Guide must support shareable modded views while keeping data behavior predictable.
 
-1. Load mod data alongside base data.
-2. Handle overrides correctly (data shadowing).
-3. Manage active mods via URL to support deep linking and sharing.
-4. Ensure data consistency given that the `CBNData` store is a singleton designed for a single version/modset per page load.
+We need to:
+
+1. represent active mods in a URL that can be bookmarked and shared;
+2. preserve mod override order deterministically;
+3. avoid partial in-place reconfiguration of a large immutable data model.
 
 ## Decision
 
-We have implemented the following architectural patterns for mods:
+### URL is the Source of Truth for Modset
 
-### 1. URL-Based State
+Active mods are represented by the `mods` query parameter as an ordered comma-separated list.
+Order defines precedence: later mods override earlier layers.
 
-The active modset is stored in the `mods` URL query parameter as a comma-separated list of mod IDs (e.g., `?mods=DinoMod,Magiclysm`).
+Normalization rules:
 
-- **Order is Important**: The order of IDs in the URL parameter defines the loading and override precedence. Mods listed later can override data from previous mods or the base game.
-- **No Dependency Validation**: The application does not perform dependency validation on the mods listed in the URL. We rely on the tool that generated the URL (e.g., the `ModSelector` UI) to have ensured a valid load order.
+1. empty entries are ignored;
+2. duplicates are removed;
+3. core `bn` is excluded from the URL-level active set.
 
-### 2. Full Page Reload on Change
+### Runtime Does Not Solve Mod Dependencies
 
-Any change to the active modset (adding, removing, or reordering mods) triggers a full page reload using `location.href`.
+The app does not compute or validate dependency graphs from arbitrary URLs.
+It accepts only known non-core mods and applies them in the provided order.
 
-- **Reasoning**: The `CBNData` architecture is optimized for immutability and high performance. It processes and flattens ~30MB of data into optimized lookup maps once per load. Allowing hot-swapping mods without a reload would significantly complicate state management and risk data inconsistencies or memory leaks.
-- **Consistency**: This aligns with how we handle Version and Language changes.
+### Modset Change Requires Full Reload
 
-### 3. Data Merging at Initialization
+Changing the mod list (add/remove/reorder) triggers a full page reload.
+This keeps the data model single-lifetime and avoids complex invalidation logic.
 
-Mod data is fetched and merged with base data during the `CBNData.setVersion` initialization phase. Shadowed entities are resolved based on the order provided in the URL.
+### Merge Strategy at Startup
+
+At initialization, the app builds one data stream by appending selected mod data to base data in active order, then constructs the runtime indexes once for that page lifetime.
 
 ## Consequences
 
 ### Positive
 
-- **Simplicity**: State management is simplified by treating data as immutable for the lifetime of the page.
-- **Deep Linking**: Users can share links that include their exact mod configuration.
-- **Performance**: High-performance lookup maps don't need logic for dynamic invalidation.
+- deterministic and shareable modded URLs;
+- simple and robust state model (no hot-swapping complexity);
+- stable override behavior tied directly to URL order.
 
 ### Negative
 
-- **UX Latency**: Changing mods requires a full reload and re-initialization of game data, which can take a few seconds.
+- changing mods has reload latency;
+- invalid dependency combinations are not corrected client-side.
 
 ### Neutral
 
-- **External Dependency**: We rely on upstream builds (via `all_mods.json`) to provide the necessary mod data and metadata.
-
----
+- behavior depends on upstream `all_mods.json` completeness and quality.
 
 ## References
 
-- Implementation: [routing.ts](file:///Users/dmitry/Workspace/C-BN/cbn-guide/src/routing.ts)
-- Implementation: [App.svelte](file:///Users/dmitry/Workspace/C-BN/cbn-guide/src/App.svelte)
-- Implementation: [data.ts](file:///Users/dmitry/Workspace/C-BN/cbn-guide/src/data.ts)
-- Project Rules: [data-source.md](file:///Users/dmitry/Workspace/C-BN/cbn-guide/.agent/rules/data-source.md)
+- `src/routing.ts`
+- `src/App.svelte`
+- `src/data.ts`
