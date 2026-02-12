@@ -3,11 +3,11 @@
  *
  * ARCHITECTURE:
  * - **Singleton pattern**: CBNData instantiated ONCE per page load, never mutates
- * - **Full page reload**: Version/language/tileset changes trigger location.href reload (see routing.md)
+ * - **Full page reload**: Version/language/tileset/mod changes trigger location.href reload (see routing.md, ADR-002)
  * - **Immutable after construction**: All data frozen after initial load (~30MB, 30K+ objects)
  * - **Caching**: Maps/WeakMaps never need invalidation - data lifetime = page lifetime
  *
- * This design is intentional - changing versions requires loading completely different JSON.
+ * This design is intentional - changing versions or mods requires loading completely different JSON.
  */
 import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";

@@ -14,3 +14,4 @@ An Architecture Decision Record captures an important architectural decision mad
 ## Index
 
 - [ADR-001](001-tileset-webp-format.md) - Tileset WebP Format Migration
+- [ADR-002](002-mod-architecture-and-reload-strategy.md) - Mod Architecture and Reload Strategy

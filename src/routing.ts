@@ -498,7 +498,7 @@ export function updateSearchRoute(
 }
 
 /**
- * Update URL query parameters and reload (for language changes)
+ * Update URL query parameters and reload (for language and mod changes)
  */
 export function updateQueryParam(param: string, value: string | null): void {
   const url = new URL(location.href);
