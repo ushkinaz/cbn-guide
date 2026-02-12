@@ -753,6 +753,8 @@ export class CBNData {
    * Resolves contributing mods for a mapped type/id by traversing its full
    * `copy-from` parent chain recursively.
    *
+   * ARCHITECTURE: Implements top-to-bottom inheritance unfurling (see docs/adr/003-mod-resolution-path.md and 004-mod-provenance-and-data-origin-tracking.md)
+   *
    * @param mappedType Mapped type family to search in.
    * @param id Provenance id (object id or abstract).
    * @param stack Cycle-detection set for recursive traversal.
@@ -878,6 +880,8 @@ export class CBNData {
    * Internal method to flatten an object by resolving its 'copy-from' inheritance.
    * Applies relative, proportional, extend, and delete modifiers.
    * Caches the result.
+   *
+   * ARCHITECTURE: Leverages top-down unfurling for performance (see docs/adr/003-mod-resolution-path.md and 004-mod-provenance-and-data-origin-tracking.md)
    *
    * @param _obj The raw object to flatten.
    * @param stack Recursion stack for inheritance cycle detection.
