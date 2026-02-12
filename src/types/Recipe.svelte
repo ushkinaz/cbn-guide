@@ -14,6 +14,12 @@ export let showResult: boolean = false;
 const data = getContext<CBNData>("data");
 const _context = "Recipe";
 
+const isSkillPair = (value: unknown): value is [string, number] =>
+  Array.isArray(value) &&
+  value.length === 2 &&
+  typeof value[0] === "string" &&
+  typeof value[1] === "number";
+
 function normalizeSkillsRequired(
   skills_required:
     | [string, number]
@@ -21,26 +27,35 @@ function normalizeSkillsRequired(
     | (string | number)[]
     | undefined,
 ): [string, number][] {
-  if (skills_required === undefined) return [];
-  if (skills_required.length === 0) return [];
-  if (Array.isArray(skills_required[0]))
-    return skills_required as [string, number][];
-  if (typeof skills_required[0] === "string" && skills_required.length === 2)
-    return [skills_required as [string, number]];
+  if (!skills_required || skills_required.length === 0) return [];
+
+  if (isSkillPair(skills_required)) {
+    return [skills_required];
+  }
+
+  if (skills_required.every((entry) => isSkillPair(entry))) {
+    return skills_required;
+  }
+
   if (
     typeof skills_required[0] === "string" &&
-    skills_required.length % 2 === 0
+    skills_required.length % 2 === 0 &&
+    skills_required.every((entry, index) =>
+      index % 2 === 0 ? typeof entry === "string" : typeof entry === "number",
+    )
   ) {
     const result: [string, number][] = [];
     for (let i = 0; i < skills_required.length; i += 2) {
-      result.push([
-        skills_required[i] as string,
-        skills_required[i + 1] as number,
-      ]);
+      const skill = skills_required[i];
+      const level = skills_required[i + 1];
+      if (typeof skill === "string" && typeof level === "number") {
+        result.push([skill, level]);
+      }
     }
     return result;
   }
-  return [skills_required as [string, number]];
+
+  return [];
 }
 
 let skillsRequired = normalizeSkillsRequired(recipe.skills_required);

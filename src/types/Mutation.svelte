@@ -19,6 +19,8 @@ const toArray = (val: string | string[] | undefined): string[] => {
   if (!val) return [];
   return Array.isArray(val) ? val : [val];
 };
+const changesTo = toArray(item.changes_to);
+const cancels = toArray(item.cancels);
 
 const postThresholdMutations = data
   .byType("mutation")
@@ -219,24 +221,18 @@ const conflictsWithBionics = data
         </ul>
       </dd>
     {/if}
-    {#if item.changes_to?.length}
+    {#if changesTo.length}
       <dt>{t("Changes To", { _context })}</dt>
       <dd>
         <MutationList
-          mutations={(Array.isArray(item.changes_to)
-            ? item.changes_to
-            : [item.changes_to]
-          ).map((id) => data.byId("mutation", id))} />
+          mutations={changesTo.map((id) => data.byId("mutation", id))} />
       </dd>
     {/if}
-    {#if item.cancels?.length}
+    {#if cancels.length}
       <dt>{t("Cancels", { _context })}</dt>
       <dd>
         <MutationList
-          mutations={(Array.isArray(item.cancels)
-            ? item.cancels
-            : [item.cancels]
-          ).map((id) => data.byId("mutation", id))} />
+          mutations={cancels.map((id) => data.byId("mutation", id))} />
       </dd>
     {/if}
     {#if canceledByMutations.length}
