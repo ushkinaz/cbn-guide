@@ -82,6 +82,6 @@ test("performSearch returns all results and dedups", () => {
   expect(monsters?.length).toBe(300); // Should return all 300 unique monsters
 
   // Check dedup: zombie_0 should appear once
-  const z0 = monsters?.filter((m) => m.item.id === "zombie_0");
+  const z0 = monsters?.filter((m) => m.id === "zombie_0");
   expect(z0?.length).toBe(1);
 });

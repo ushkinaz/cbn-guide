@@ -24,7 +24,7 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();
   const ret: OvermapSpecial[][] = [];
   for (const r of results) {
-    const oms = r.item as OvermapSpecial;
+    const oms = data.byId("overmap_special", r.id);
     const appearance = overmapAppearance(data, oms);
     if (!appearance) ret.push([oms]);
     else if (!seenAppearances.has(appearance)) {
@@ -52,7 +52,7 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
       {:else}
         <h1>{t(plural(type.replace(/_/g, " ")))}</h1>
         <LimitedList items={results} let:item={result} limit={25}>
-          <ItemLink type={mapType(result.item.type)} id={result.item.id} />
+          <ItemLink type={mapType(result.type)} id={result.id} />
         </LimitedList>
       {/if}
     </section>
