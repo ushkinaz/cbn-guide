@@ -1,0 +1,427 @@
+<script lang="ts">
+import { t } from "@transifex/native";
+import { createEventDispatcher } from "svelte";
+import { onDestroy } from "svelte";
+import type { ModInfo, Translation } from "./types";
+import { cleanText } from "./utils/format";
+
+const MOD_SELECTOR_CONTEXT = "Mod selector";
+
+export let open = false;
+export let mods: ModInfo[] = [];
+export let selectedModIds: string[] = [];
+export let loading = false;
+export let errorMessage: string | null = null;
+
+const dispatch = createEventDispatcher<{
+  close: void;
+  apply: string[];
+}>();
+
+let draftSelectedModIds: string[] = [];
+let wasOpen = false;
+
+function translateField(value: Translation | undefined): string {
+  if (!value) return "";
+  if (typeof value === "string") return cleanText(value);
+  if ("str" in value) return cleanText(value.str);
+  return cleanText(value.str_sp);
+}
+
+function categoryLabel(mod: ModInfo): string {
+  const normalized = translateField(mod.category).replaceAll("_", " ").trim();
+  return normalized || t("Uncategorized", { _context: MOD_SELECTOR_CONTEXT });
+}
+
+function modDisplayName(mod: ModInfo): string {
+  return translateField(mod.name) || mod.id;
+}
+
+function modDescription(mod: ModInfo): string {
+  return translateField(mod.description);
+}
+
+function close(): void {
+  dispatch("close");
+}
+
+function apply(): void {
+  dispatch("apply", draftSelectedModIds);
+}
+
+function reset(): void {
+  draftSelectedModIds = [];
+}
+
+function onOverlayClick(event: MouseEvent): void {
+  if (event.target === event.currentTarget) {
+    close();
+  }
+}
+
+function handleEscape(event: KeyboardEvent): void {
+  if (!open || event.key !== "Escape") return;
+  event.preventDefault();
+  close();
+}
+
+function syncBodyClass(enabled: boolean): void {
+  if (typeof document === "undefined") return;
+  document.body.classList.toggle("mods-selector-open", enabled);
+}
+
+$: {
+  if (open && !wasOpen) {
+    draftSelectedModIds = [...selectedModIds];
+  }
+  wasOpen = open;
+}
+
+$: groupedMods = mods.reduce((acc, mod) => {
+  const label = categoryLabel(mod);
+  if (!acc.has(label)) {
+    acc.set(label, []);
+  }
+  acc.get(label)!.push(mod);
+  return acc;
+}, new Map<string, ModInfo[]>());
+
+$: groupedCategories = [...groupedMods.entries()];
+
+$: syncBodyClass(open);
+
+onDestroy(() => {
+  syncBodyClass(false);
+});
+</script>
+
+<svelte:window on:keydown={handleEscape} />
+
+{#if open}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <div class="mods-overlay" on:click={onOverlayClick} role="presentation">
+    <div
+      class="mods-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="mods-dialog-title">
+      <header class="mods-header">
+        <h2 id="mods-dialog-title">
+          {t("Mod Loadout", { _context: MOD_SELECTOR_CONTEXT })}
+        </h2>
+        <button
+          type="button"
+          class="close-button"
+          on:click={close}
+          aria-label={t("Close mod selector", {
+            _context: MOD_SELECTOR_CONTEXT,
+          })}
+          title={t("Close mod selector", { _context: MOD_SELECTOR_CONTEXT })}>
+          ✕
+        </button>
+      </header>
+
+      <p class="mods-selected">
+        {t("Selected: {count}", {
+          count: draftSelectedModIds.length,
+          _context: MOD_SELECTOR_CONTEXT,
+        })}
+      </p>
+
+      {#if loading}
+        <p class="mods-state">
+          {t("Loading available mods…", { _context: MOD_SELECTOR_CONTEXT })}
+        </p>
+      {:else if errorMessage}
+        <p class="mods-state error">{errorMessage}</p>
+      {:else if groupedCategories.length === 0}
+        <p class="mods-state">
+          {t("No mods found for this build.", {
+            _context: MOD_SELECTOR_CONTEXT,
+          })}
+        </p>
+      {:else}
+        <div class="mods-list">
+          {#each groupedCategories as [category, categoryMods]}
+            <section class="mods-category">
+              <h3>{category}</h3>
+              <ul>
+                {#each categoryMods as mod}
+                  <li>
+                    <label class="mod-row">
+                      <input
+                        type="checkbox"
+                        bind:group={draftSelectedModIds}
+                        value={mod.id}
+                        aria-label={modDisplayName(mod)} />
+                      <span class="mod-body">
+                        <span class="mod-line">
+                          <span class="mod-name">{modDisplayName(mod)}</span>
+                          <span class="mod-id">[{mod.id}]</span>
+                        </span>
+                        {#if modDescription(mod)}
+                          <span class="mod-description"
+                            >{modDescription(mod)}</span>
+                        {/if}
+                      </span>
+                    </label>
+                  </li>
+                {/each}
+              </ul>
+            </section>
+          {/each}
+        </div>
+      {/if}
+
+      <footer class="mods-actions">
+        <button type="button" class="ghost" on:click={close}>
+          {t("Cancel", { _context: MOD_SELECTOR_CONTEXT })}
+        </button>
+        <button
+          type="button"
+          class="ghost"
+          on:click={reset}
+          disabled={draftSelectedModIds.length === 0}>
+          {t("Reset", { _context: MOD_SELECTOR_CONTEXT })}
+        </button>
+        <button
+          type="button"
+          class="apply"
+          on:click={apply}
+          disabled={loading || !!errorMessage}>
+          {t("Apply and Reload", { _context: MOD_SELECTOR_CONTEXT })}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}
+
+<style>
+:global(body.mods-selector-open) {
+  overflow: hidden;
+}
+
+.mods-overlay {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.75);
+  pointer-events: auto;
+  overscroll-behavior: contain;
+}
+
+.mods-dialog {
+  width: min(56rem, 100%);
+  max-height: min(86vh, 46rem);
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--cata-color-black) 92%, #06131a 8%);
+  border: 1px solid var(--cata-color-dark_gray);
+  border-top: 2px solid var(--cata-color-cyan);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 14px 34px rgba(0, 0, 0, 0.55);
+}
+
+.mods-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mods-header h2 {
+  margin: 0;
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cata-color-light_cyan);
+}
+
+.mods-selected {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  color: var(--cata-color-gray);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mods-list {
+  padding: 0.75rem 1rem;
+  overflow: auto;
+}
+
+.mods-category:not(:last-child) {
+  margin-bottom: 0.9rem;
+}
+
+.mods-category h3 {
+  margin: 0 0 0.5rem;
+  color: var(--cata-color-yellow);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+.mods-category ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mods-category li:not(:last-child) {
+  margin-bottom: 0.35rem;
+}
+
+.mod-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.mod-row:hover {
+  border-color: color-mix(in srgb, var(--cata-color-cyan) 55%, transparent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.mod-row input {
+  margin: 0.2rem 0 0;
+}
+
+.mod-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.mod-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.mod-name {
+  color: var(--cata-color-white);
+}
+
+.mod-id {
+  color: var(--cata-color-dark_gray);
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.78rem;
+}
+
+.mod-description {
+  color: var(--cata-color-gray);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.mods-state {
+  margin: 0;
+  padding: 1rem;
+  color: var(--cata-color-gray);
+}
+
+.mods-state.error {
+  color: var(--cata-color-light_red);
+}
+
+.mods-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mods-actions button,
+.close-button {
+  margin: 0;
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+  border-radius: 0;
+}
+
+.close-button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--cata-color-gray);
+  padding: 0.2rem 0.35rem;
+  line-height: 1;
+}
+
+.close-button:hover {
+  border-color: var(--cata-color-dark_gray);
+  color: var(--cata-color-white);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--cata-color-gray);
+  border: 1px solid var(--cata-color-dark_gray);
+}
+
+.ghost:hover {
+  border-color: var(--cata-color-cyan);
+  color: var(--cata-color-cyan);
+}
+
+.apply {
+  background: color-mix(in srgb, var(--cata-color-cyan) 18%, transparent);
+  color: var(--cata-color-light_cyan);
+  border: 1px solid var(--cata-color-cyan);
+}
+
+.apply:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cata-color-cyan) 28%, transparent);
+}
+
+.apply:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .mods-overlay {
+    padding: 0.65rem;
+  }
+
+  .mods-dialog {
+    max-height: 92vh;
+  }
+
+  .mods-actions {
+    flex-direction: column-reverse;
+  }
+
+  .mods-actions button {
+    width: 100%;
+  }
+}
+</style>

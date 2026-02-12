@@ -44,7 +44,7 @@ import type {
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
-import { formatKg, formatL, stripColorTags } from "./utils/format";
+import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
@@ -2437,6 +2437,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function sanitizeTranslation(value: Translation): Translation {
+  if (typeof value === "string") return cleanText(value);
+  if ("str" in value) {
+    return {
+      ...value,
+      str: cleanText(value.str),
+      ...(typeof value.str_pl === "string"
+        ? { str_pl: cleanText(value.str_pl) }
+        : {}),
+    };
+  }
+  return {
+    str_sp: cleanText(value.str_sp),
+  };
+}
+
 function parseModsJson(rawMods: unknown): ParsedModsJson {
   if (!isRecord(rawMods)) {
     throw new Error("Invalid all_mods.json: expected top-level object map");
@@ -2465,8 +2481,14 @@ function parseModsJson(rawMods: unknown): ParsedModsJson {
       throw new Error(`Invalid MOD_INFO id for "${modId}"`);
     }
 
+    const parsedInfo = rawInfo as ModInfo;
     const modData: ModData = {
-      info: rawInfo as ModInfo,
+      info: {
+        ...parsedInfo,
+        name: sanitizeTranslation(parsedInfo.name),
+        description: sanitizeTranslation(parsedInfo.description),
+        category: sanitizeTranslation(parsedInfo.category),
+      },
       data: rawData,
     };
     raw[modId] = modData;
@@ -2522,6 +2544,31 @@ const fetchModsJson = async (
   );
 };
 
+async function loadParsedModsJson(
+  version: string,
+  progress: (receivedBytes: number, totalBytes: number) => void,
+): Promise<ParsedModsJson | null> {
+  try {
+    const modsJson = await retry(() => fetchModsJson(version, progress));
+    return parseModsJson(modsJson);
+  } catch (e) {
+    if (is404Error(e)) {
+      return null;
+    }
+    throw e;
+  }
+}
+
+function applyLoadedModsMetadata(
+  targetData: CBNData,
+  parsedMods: ParsedModsJson | null,
+): void {
+  targetData.mods = parsedMods?.mods ?? [];
+  targetData.active_mods = targetData.active_mods ?? [];
+  targetData.raw_mods_json = parsedMods?.raw ?? {};
+  targetData._clearModProvenanceCaches();
+}
+
 /**
  * Retry a promise-generating function with exponential backoff.
  * Max 3 attempts with increasing delays: 2s, 4s, 8s.
@@ -2565,6 +2612,7 @@ const loadProgressStore = writable<[number, number] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 let _hasSetVersion = false;
 let _currentData: CBNData | null = null;
+let _ensureModsLoadedPromise: Promise<void> | null = null;
 const { subscribe, set } = writable<CBNData | null>(null);
 export const data = {
   subscribe,
@@ -2578,6 +2626,7 @@ export const data = {
     if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
     _hasSetVersion = true;
+    _ensureModsLoadedPromise = null;
     let totals = [0, 0, 0, 0];
     let receiveds = [0, 0, 0, 0];
     const updateProgress = () => {
@@ -2658,15 +2707,15 @@ export const data = {
     const requestedActiveMods = activeMods.filter((modId) => modId !== "bn");
 
     if (requestedActiveMods.length > 0) {
-      try {
-        const modsJson = await retry(() =>
-          fetchModsJson(urlVersion, (receivedBytes, totalBytes) => {
-            totals[3] = totalBytes;
-            receiveds[3] = receivedBytes;
-            updateProgress();
-          }),
-        );
-        const parsedMods = parseModsJson(modsJson);
+      const parsedMods = await loadParsedModsJson(
+        urlVersion,
+        (receivedBytes, totalBytes) => {
+          totals[3] = totalBytes;
+          receiveds[3] = receivedBytes;
+          updateProgress();
+        },
+      );
+      if (parsedMods) {
         mods = parsedMods.mods;
         rawModsJson = parsedMods.raw;
         filteredActiveMods = filterActiveMods(
@@ -2678,14 +2727,10 @@ export const data = {
           parsedMods.byId,
           filteredActiveMods,
         );
-      } catch (e) {
-        if (is404Error(e)) {
-          mods = [];
-          filteredActiveMods = [];
-          rawModsJson = {};
-        } else {
-          throw e;
-        }
+      } else {
+        mods = [];
+        filteredActiveMods = [];
+        rawModsJson = {};
       }
     }
 
@@ -2710,40 +2755,38 @@ export const data = {
     set(instance);
   },
   async ensureModsLoaded() {
-    const currentData = _currentData;
-    if (!currentData || currentData.mods !== null) return;
+    const startData = _currentData;
+    if (!startData || startData.mods !== null) return;
 
-    const modsVersion =
-      currentData.fetching_version ?? currentData.build_number;
-    if (!modsVersion) {
-      currentData.mods = [];
-      currentData.active_mods = currentData.active_mods ?? [];
-      currentData.raw_mods_json = {};
-      currentData._clearModProvenanceCaches();
-      _currentData = currentData;
-      set(currentData);
+    if (_ensureModsLoadedPromise) {
+      await _ensureModsLoadedPromise;
       return;
     }
 
-    try {
-      const modsJson = await retry(() => fetchModsJson(modsVersion, () => {}));
-      const parsedMods = parseModsJson(modsJson);
-      currentData.mods = parsedMods.mods;
-      currentData.active_mods = currentData.active_mods ?? [];
-      currentData.raw_mods_json = parsedMods.raw;
-      currentData._clearModProvenanceCaches();
-    } catch (e) {
-      if (is404Error(e)) {
-        currentData.mods = [];
-        currentData.active_mods = [];
-        currentData.raw_mods_json = {};
-        currentData._clearModProvenanceCaches();
-      } else {
-        throw e;
+    _ensureModsLoadedPromise = (async () => {
+      const modsVersion = startData.fetching_version ?? startData.build_number;
+      if (!modsVersion) {
+        if (_currentData !== startData) return;
+        applyLoadedModsMetadata(startData, null);
+        _currentData = startData;
+        set(startData);
+        return;
       }
+
+      const parsedMods = await loadParsedModsJson(modsVersion, () => {});
+      if (_currentData !== startData) return;
+      applyLoadedModsMetadata(startData, parsedMods);
+
+      if (_currentData !== startData) return;
+      _currentData = startData;
+      set(startData);
+    })();
+
+    try {
+      await _ensureModsLoadedPromise;
+    } finally {
+      _ensureModsLoadedPromise = null;
     }
-    _currentData = currentData;
-    set(currentData);
   },
 };
 

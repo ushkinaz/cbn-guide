@@ -740,6 +740,120 @@ describe("Mod Data Loading", () => {
     }
   });
 
+  test("ensureModsLoaded lazily loads mod metadata when initially absent", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+    const mockMods = {
+      aftershock: {
+        info: {
+          type: "MOD_INFO",
+          id: "aftershock",
+          name: "Aftershock",
+          description: "Aftershock",
+          category: "content",
+          dependencies: ["bn"],
+        },
+        data: [],
+      },
+    };
+
+    const originalFetch = globalThis.fetch;
+    const fetchCalls: string[] = [];
+    globalThis.fetch = ((url: string) => {
+      fetchCalls.push(url);
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockMods),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, []);
+      const initial = await getLoadedData();
+      expect(initial.mods).toBeNull();
+      expect(initial.active_mods).toBeNull();
+      expect(initial.raw_mods_json).toBeNull();
+
+      await data.ensureModsLoaded();
+      const loaded = await getLoadedData();
+
+      expect(fetchCalls.some((url) => url.includes("all_mods.json"))).toBe(
+        true,
+      );
+      expect(loaded.mods?.map((mod) => mod.id)).toEqual(["aftershock"]);
+      expect(loaded.active_mods).toEqual([]);
+      expect(Object.keys(loaded.raw_mods_json ?? {})).toEqual(["aftershock"]);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test("ensureModsLoaded deduplicates concurrent requests", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+    const mockMods = {
+      aftershock: {
+        info: {
+          type: "MOD_INFO",
+          id: "aftershock",
+          name: "Aftershock",
+          description: "Aftershock",
+          category: "content",
+          dependencies: ["bn"],
+        },
+        data: [],
+      },
+    };
+
+    const originalFetch = globalThis.fetch;
+    let allModsFetchCount = 0;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        allModsFetchCount += 1;
+        return new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                ok: true,
+                json: () => Promise.resolve(mockMods),
+              } as Response),
+            10,
+          ),
+        );
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, []);
+      await Promise.all([data.ensureModsLoaded(), data.ensureModsLoaded()]);
+      expect(allModsFetchCount).toBe(1);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   test("setVersion with active mods filters unknown/core ids and preserves ordered active_mods", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
@@ -826,6 +940,59 @@ describe("Mod Data Loading", () => {
     }
   });
 
+  test("setVersion cleans mod names and descriptions from color tags", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
+    const mockMods = {
+      aftershock: {
+        info: {
+          type: "MOD_INFO",
+          id: "aftershock",
+          name: "<color_red>Aftershock</color>",
+          description: "Line 1 <good>tagged</good>\nLine 2",
+          category: "content",
+          dependencies: ["bn"],
+        },
+        data: [{ type: "GENERIC", id: "aftershock_item" }],
+      },
+    };
+
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = ((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockMods),
+        } as Response);
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    }) as any;
+
+    try {
+      await data.setVersion("latest", null, undefined, undefined, [
+        "aftershock",
+      ]);
+      const loaded = await getLoadedData();
+      expect(loaded.mods?.[0]?.name).toBe("Aftershock");
+      expect(loaded.mods?.[0]?.description).toBe("Line 1 tagged Line 2");
+      expect(loaded.raw_mods_json?.aftershock.info.name).toBe("Aftershock");
+      expect(loaded.raw_mods_json?.aftershock.info.description).toBe(
+        "Line 1 tagged Line 2",
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   test("setVersion handles 404 all_mods.json with empty arrays", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
@@ -892,67 +1059,6 @@ describe("Mod Data Loading", () => {
       await expect(
         data.setVersion("latest", null, undefined, undefined, ["aftershock"]),
       ).rejects.toThrow("Invalid all_mods.json");
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
-  });
-
-  test("ensureModsLoaded fetches metadata once and initializes active_mods to empty list", async () => {
-    const mockData = {
-      data: [{ type: "GENERIC", id: "core_item" }],
-      build_number: "123",
-      release: "test-release",
-    };
-    const mockMods = {
-      aftershock: {
-        info: {
-          type: "MOD_INFO",
-          id: "aftershock",
-          name: "Aftershock",
-          description: "Aftershock",
-          category: "content",
-          dependencies: ["bn"],
-        },
-        data: [],
-      },
-    };
-
-    const originalFetch = globalThis.fetch;
-    const fetchCalls: string[] = [];
-    globalThis.fetch = ((url: string) => {
-      fetchCalls.push(url);
-      if (url.includes("all.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockData),
-        } as Response);
-      }
-      if (url.includes("all_mods.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockMods),
-        } as Response);
-      }
-      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
-    }) as any;
-
-    try {
-      await data.setVersion("latest", null, undefined, undefined, []);
-      const loaded = await getLoadedData();
-      expect(loaded.mods).toBeNull();
-      expect(loaded.active_mods).toBeNull();
-      expect(loaded.raw_mods_json).toBeNull();
-
-      await data.ensureModsLoaded();
-      expect(loaded.mods?.map((mod) => mod.id)).toEqual(["aftershock"]);
-      expect(loaded.active_mods).toEqual([]);
-      expect(Object.keys(loaded.raw_mods_json ?? {})).toEqual(["aftershock"]);
-
-      await data.ensureModsLoaded();
-      const allModsCalls = fetchCalls.filter((url) =>
-        url.includes("all_mods.json"),
-      );
-      expect(allModsCalls).toHaveLength(1);
     } finally {
       globalThis.fetch = originalFetch;
     }

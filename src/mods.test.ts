@@ -142,4 +142,20 @@ describe("DinoMod regressions", () => {
       ),
     ).toBe(true);
   });
+
+  test("self copy-from overrides in DinoMod preserve base fields and apply extensions", () => {
+    const coreJson = JSON.parse(
+      fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
+    );
+    const modsJson = JSON.parse(
+      fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
+    ) as Record<string, { data: unknown[] }>;
+    const merged = [...coreJson.data, ...modsJson.DinoMod.data];
+    const loaded = new CBNData(merged);
+    const mutation = loaded.byId("mutation", "RUMINANT");
+
+    expect(Array.isArray(mutation.category)).toBe(true);
+    expect(mutation.category).toContain("CATTLE");
+    expect(mutation.category).toContain("STEGO");
+  });
 });

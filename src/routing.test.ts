@@ -2,7 +2,13 @@
  * @vitest-environment jsdom
  */
 
-import { act, cleanup, render } from "@testing-library/svelte";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+} from "@testing-library/svelte";
 import { get } from "svelte/store";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 vi.hoisted(() => {
@@ -26,6 +32,17 @@ const testModsData = {
       name: "Aftershock",
       description: "Aftershock test mod",
       category: "content",
+      dependencies: ["bn"],
+    },
+    data: [],
+  },
+  magiclysm: {
+    info: {
+      type: "MOD_INFO",
+      id: "magiclysm",
+      name: "Magiclysm",
+      description: "Magiclysm test mod",
+      category: "total_conversion",
       dependencies: ["bn"],
     },
     data: [],
@@ -287,6 +304,38 @@ describe("Routing E2E Tests", () => {
       const { navigateTo } = await import("./routing");
       navigateTo("stable", { type: "item", id: "rock" }, "");
       expect(new URLSearchParams(window.location.search).get("mods")).toBe(
+        "aftershock,magiclysm",
+      );
+    });
+
+    test("mod selector apply updates mods query param in order", async () => {
+      updateLocation("stable/", "?mods=aftershock");
+      const { getByLabelText, getByRole, getByText } = render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+      await waitFor(() =>
+        expect(
+          (
+            getByRole("button", {
+              name: "Mods (1 active)",
+            }) as HTMLButtonElement
+          ).disabled,
+        ).toBe(false),
+      );
+
+      await fireEvent.click(getByRole("button", { name: "Mods (1 active)" }));
+      await waitFor(() =>
+        expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
+          true,
+        ),
+      );
+
+      await fireEvent.click(getByLabelText("Magiclysm"));
+      await fireEvent.click(getByText("Apply and Reload"));
+
+      expect(new URL(window.location.href).searchParams.get("mods")).toBe(
         "aftershock,magiclysm",
       );
     });

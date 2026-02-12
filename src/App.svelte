@@ -10,6 +10,7 @@ import {
 } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
+import ModSelector from "./ModSelector.svelte";
 import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
@@ -327,6 +328,43 @@ const handleSearchKeydown = (e: KeyboardEvent) => {
   }
 };
 
+let isModSelectorOpen = false;
+let isModSelectorLoading = false;
+let modSelectorError: string | null = null;
+
+async function openModSelector(): Promise<void> {
+  if (!$data) return;
+
+  modSelectorError = null;
+  isModSelectorOpen = true;
+  if ($data.mods !== null) return;
+
+  isModSelectorLoading = true;
+  try {
+    await data.ensureModsLoaded();
+  } catch (e) {
+    console.error(e);
+    Sentry.captureException(e);
+    modSelectorError = t("Failed to load mods. Please try again.");
+  } finally {
+    isModSelectorLoading = false;
+  }
+}
+
+function closeModSelector(): void {
+  isModSelectorOpen = false;
+}
+
+function applyMods(event: CustomEvent<string[]>): void {
+  // Changing mods triggers a full page reload to ensure data consistency.
+  isModSelectorOpen = false;
+  const selectedMods = event.detail;
+  updateQueryParam(
+    "mods",
+    selectedMods.length > 0 ? selectedMods.join(",") : null,
+  );
+}
+
 function handleNavigation(event: MouseEvent) {
   const target = event.target as HTMLElement;
   const link = target.closest("a");
@@ -490,8 +528,30 @@ $: canonicalUrl = buildUrl(
         </div>
       </form>
     </div>
+    <div class="header-actions">
+      <button
+        class="mods-button"
+        type="button"
+        on:click={openModSelector}
+        disabled={!$data}
+        aria-label={t("Mods ({count} active)", {
+          count: $page.route.mods.length,
+        })}>
+        <span class="mods-label">{t("Mods")}</span>
+        <span class="mods-count">[{String($page.route.mods.length)}]</span>
+      </button>
+    </div>
   </nav>
 </header>
+
+<ModSelector
+  open={isModSelectorOpen}
+  mods={$data?.mods ?? []}
+  selectedModIds={$page.route.mods}
+  loading={isModSelectorLoading}
+  errorMessage={modSelectorError}
+  on:close={closeModSelector}
+  on:apply={applyMods} />
 
 <main>
   {#if item}
@@ -836,6 +896,57 @@ nav {
   align-items: center;
   justify-content: space-between;
   height: 100%;
+}
+
+nav > .search {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-actions {
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.mods-button {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--cata-color-dark_gray);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--cata-color-gray);
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.mods-button:hover:not(:disabled) {
+  border-color: var(--cata-color-cyan);
+  color: var(--cata-color-cyan);
+}
+
+.mods-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mods-count {
+  color: var(--cata-color-dark_gray);
+}
+
+.mods-button:hover:not(:disabled) .mods-count {
+  color: var(--cata-color-gray);
 }
 
 kbd {
@@ -1362,6 +1473,15 @@ footer .link:hover::after {
 
   nav > .search {
     flex: 1;
+  }
+
+  .mods-button {
+    min-height: 2.25rem;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .mods-label {
+    display: none;
   }
 }
 </style>
