@@ -595,6 +595,9 @@ export class CBNData {
    * Supports both concrete keyed objects and abstract templates.
    * Handles item migrations if the key is missing from the main maps.
    *
+   * ARCHITECTURE: Follows ADR-005 (Robust inheritance: Migrations and Self-Copy Handling)
+   * traversal of migration maps.
+   *
    * @param mappedType Mapped type family to search in.
    * @param key Provenance key (identifier or abstract).
    * @returns The raw game object or null if entries are missing.
@@ -622,6 +625,8 @@ export class CBNData {
   /**
    * Resolves direct touching mods for a mapped type/key by scanning active mods
    * on demand. This intentionally avoids any constructor-time provenance index.
+   *
+   * ARCHITECTURE: Uses top-down scanning (see docs/adr/003-mod-resolution-path.md and 004-mod-provenance-and-data-origin-tracking.md)
    */
   _directModsForTypeIdByScan(
     mappedType: keyof SupportedTypesWithMapped,
@@ -713,6 +718,9 @@ export class CBNData {
    * Resolves immediate parent provenance id for a mapped type/id.
    * Self-copy chains (same id copied from itself across overrides) are collapsed
    * until a different parent id is found.
+   *
+   * ARCHITECTURE: ADR-005 (Robust inheritance: Migrations and Self-Copy Handling).
+   * Collapses self-referential inheritance chains for clean provenance.
    *
    * @param mappedType Mapped type family to search in.
    * @param id Provenance id (object id or abstract).
@@ -828,6 +836,11 @@ export class CBNData {
     return [...mods];
   }
 
+  /**
+   * ARCHITECTURE: ADR-005 (Robust inheritance: Migrations and Self-Copy Handling).
+   * Resolves the parent object for a given object, specifically handling
+   * "self-copy" overrides by looking up the previous version in the override stack.
+   */
   _resolveCopyFromParent(obj: any): any | null {
     if (!("copy-from" in obj)) return null;
 

@@ -17,3 +17,4 @@ An Architecture Decision Record captures an important architectural decision mad
 - [ADR-002](002-mod-architecture-and-reload-strategy.md) - Mod Architecture and Reload Strategy
 - [ADR-003](003-mod-resolution-path.md) - Mod Resolution Path
 - [ADR-004](004-mod-provenance-and-data-origin-tracking.md) - Mod Provenance and Data Origin Tracking
+- [ADR-005](005-robust-inheritance-migrations-and-self-copy-handling.md) - Robust Inheritance: Migrations and Self-Copy Handling
