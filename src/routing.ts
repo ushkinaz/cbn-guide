@@ -380,6 +380,62 @@ export function isSupportedVersion(buildNumber: string): boolean {
   return parseInt(major) > 0 || (parseInt(major) === 0 && parseInt(minor) >= 7);
 }
 
+import type { SupportedTypesWithMapped } from "./types";
+
+/**
+ * Type guard to check if a string is a supported entity type
+ */
+export function isSupportedType(
+  type: string,
+): type is keyof SupportedTypesWithMapped {
+  // This is a comprehensive list of all types mapped in data.ts
+  const supportedTypes = new Set([
+    "AMMO",
+    "ARMOR",
+    "BATTERY",
+    "BIONIC_ITEM",
+    "BOOK",
+    "COMESTIBLE",
+    "CONTAINER",
+    "ENGINE",
+    "GENERIC",
+    "GUN",
+    "GUNMOD",
+    "MAGAZINE",
+    "MONSTER",
+    "PET_ARMOR",
+    "TOOL",
+    "TOOLMOD",
+    "TOOL_ARMOR",
+    "WHEEL",
+    "city_building",
+    "construction",
+    "damage_type",
+    "fault",
+    "flag",
+    "item",
+    "item_group",
+    "json_flag",
+    "mapgen",
+    "material",
+    "monster",
+    "monstergroup",
+    "mutation",
+    "overmap_special",
+    "profession",
+    "recipe",
+    "requirement",
+    "skill",
+    "spell",
+    "technique",
+    "terrain",
+    "uncraft",
+    "vehicle",
+    "vehicle_part",
+  ]);
+  return supportedTypes.has(type);
+}
+
 // ============================================================================
 // Action Utilities (Navigation & state change)
 // ============================================================================
