@@ -1965,7 +1965,7 @@ type OvermapSpecialMutable = OvermapSpecialBase & {
       east?: string | { id: string; type: string };
       south?: string | { id: string; type: string };
       west?: string | { id: string; type: string };
-      connections?: Record<string, any>;
+      connections?: Record<string, unknown>;
       locations?: string[];
     }
   >;
