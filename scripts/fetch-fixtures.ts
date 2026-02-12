@@ -80,7 +80,8 @@ async function fetchFile(url: string, destPath: string): Promise<void> {
   res.body.pipe(dest);
 
   return new Promise<void>((resolve, reject) => {
-    res.body.on("end", resolve);
+    // Resolve only after destination stream has flushed all bytes to disk.
+    dest.on("finish", resolve);
     res.body.on("error", reject);
     dest.on("error", reject);
   });
