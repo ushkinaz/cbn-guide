@@ -423,7 +423,9 @@ export function lootForOmt(
   lootFn: (mapgen: raw.Mapgen) => Loot,
 ) {
   const mapgensByOmt = getMapgensByOmt(data);
-  const mapgens = mapgensByOmt.get(omt_id) ?? [];
+  const mapgens = (mapgensByOmt.get(omt_id) ?? []).filter(
+    (mg): mg is raw.JsonMapgen => mg.method === "json",
+  );
   const loot = mergeLoot(
     mapgens.map((mg) => ({
       weight: mg.weight ?? DEFAULT_MAPGEN_WEIGHT,

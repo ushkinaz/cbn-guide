@@ -6,6 +6,7 @@ import {
   getFurnitureForMapgen,
   getLootForMapgen,
   getTerrainForMapgen,
+  lootForOmt,
   lootForOmSpecial,
   parseItemGroup,
   parsePalette,
@@ -96,6 +97,36 @@ describe("parseItemGroup()", () => {
     const x = parseItemGroup(data, "fake_item_group", 2, 0.5);
     expect(x).toStrictEqual(
       new Map([["fake_item", { prob: 0.75, expected: 1 }]]),
+    );
+  });
+});
+
+describe("lootForOmt()", () => {
+  it("skips lua mapgen entries when computing weighted loot", () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_omt",
+        object: {
+          rows: ["."],
+          place_item: [{ item: "json_item", x: 0, y: 0 }],
+        },
+      },
+      {
+        type: "mapgen",
+        method: "lua",
+        om_terrain: "test_omt",
+        luamethod: "test_lua_mapgen",
+      },
+    ]);
+
+    const loot = lootForOmt(data, "test_omt", (mg) =>
+      getLootForMapgen(data, mg),
+    );
+
+    expect(loot).toStrictEqual(
+      new Map([["json_item", { prob: 1, expected: 1 }]]),
     );
   });
 });
