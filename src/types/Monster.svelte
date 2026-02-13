@@ -305,15 +305,23 @@ let upgrades =
       }
     : null;
 
-interface UpgradeFromInfo {
-  monsterId: string;
-  age_grow?: number;
-  half_life?: number;
+type TimingType = "age_grow" | "half_life" | "no_timing";
+
+interface UpgradeGroup {
+  type: TimingType;
+  value: number;
+  monsters: string[];
 }
 
-// TODO: This iterates over all monsters (~900 items), see if we can optimize it somehow
-let upgradesFromRaw: UpgradeFromInfo[] = [];
+const TIMING_PRIORITY: Record<TimingType, number> = {
+  age_grow: 0,
+  half_life: 1,
+  no_timing: 2,
+};
 
+const upgradesFromGrouped = new Map<string, UpgradeGroup>();
+
+// TODO: This iterates over all monsters (~900 items), see if we can/need optimize
 for (const monster of data.byType("monster")) {
   const { upgrades } = monster;
   if (!upgrades || monster.id === item.id) continue;
@@ -325,50 +333,33 @@ for (const monster of data.byType("monster")) {
         item.id,
       ));
 
-  if (matches) {
-    upgradesFromRaw.push({
-      monsterId: monster.id,
-      age_grow: upgrades.age_grow,
-      half_life: upgrades.half_life,
-    });
+  if (!matches) continue;
+
+  const [type, value]: [TimingType, number] = upgrades.age_grow
+    ? ["age_grow", upgrades.age_grow]
+    : upgrades.half_life
+      ? ["half_life", upgrades.half_life]
+      : ["no_timing", 0];
+  const key = `${type}:${value}`;
+  let group = upgradesFromGrouped.get(key);
+  if (!group) {
+    group = { type, value, monsters: [] };
+    upgradesFromGrouped.set(key, group);
   }
+  group.monsters.push(monster.id);
 }
 
-// Group by timing and sort groups
-const upgradesFromGrouped = new Map<string, string[]>();
-
-for (const upgrade of upgradesFromRaw) {
-  let timingKey = "";
-
-  if (upgrade.age_grow) {
-    timingKey = `age_grow:${upgrade.age_grow}`;
-  } else if (upgrade.half_life) {
-    timingKey = `half_life:${upgrade.half_life}`;
-  } else {
-    timingKey = "no_timing";
+const sortedGroups = Array.from(upgradesFromGrouped.values()).sort((a, b) => {
+  if (a.type !== b.type) {
+    return TIMING_PRIORITY[a.type] - TIMING_PRIORITY[b.type];
   }
+  return a.value - b.value;
+});
 
-  if (!upgradesFromGrouped.has(timingKey)) {
-    upgradesFromGrouped.set(timingKey, []);
-  }
-
-  upgradesFromGrouped.get(timingKey)!.push(upgrade.monsterId);
-}
-
-for (const [_, monsters] of upgradesFromGrouped) {
-  monsters.sort((a, b) =>
+for (const group of sortedGroups) {
+  group.monsters.sort((a, b) =>
     byName(data.byIdMaybe("monster", a), data.byIdMaybe("monster", b)),
   );
-}
-
-/**
- * Returns a numerical value for the timing key to allow sorting.
- * age_grow/half_life are sorted numerically, items without timing go last.
- */
-function getTimingValue(key: string): number {
-  if (key.startsWith("age_grow:")) return parseInt(key.split(":")[1], 10);
-  if (key.startsWith("half_life:")) return parseInt(key.split(":")[1], 10);
-  return Number.MAX_SAFE_INTEGER;
 }
 </script>
 
@@ -572,32 +563,27 @@ function getTimingValue(key: string): number {
           {/if}
         </dd>
       {/if}
-      {#if upgradesFromGrouped.size}
+      {#if sortedGroups.length}
         <dt>{t("Upgrades From", { _context })}</dt>
         <dd>
-          {#each [...upgradesFromGrouped.entries()].sort(([a], [b]) => {
-            return getTimingValue(a) - getTimingValue(b);
-          }) as [timingKey, monsterIds], i}
+          {#each sortedGroups as group, i}
             {#if i > 0};
             {/if}
             <span>
-              {#each monsterIds as monId, j}
+              {#each group.monsters as monId, j}
                 {#if j > 0},
                 {/if}<ItemLink type="monster" id={monId} showIcon={false} />
               {/each}
             </span>
-            {@const timingValue = timingKey.includes(":")
-              ? parseInt(timingKey.split(":")[1], 10)
-              : null}
-            {#if timingKey.startsWith("age_grow:")}
+            {#if group.type === "age_grow"}
               &nbsp;{t("in {days} {days, plural, =1 {day} other {days}}", {
                 _context,
-                days: timingValue,
+                days: group.value,
               })}
-            {:else if timingKey.startsWith("half_life:")}
+            {:else if group.type === "half_life"}
               &nbsp;({t(
                 "with a half-life of {half_life} {half_life, plural, =1 {day} other {days}}",
-                { _context, half_life: timingValue },
+                { _context, half_life: group.value },
               )})
             {/if}
           {/each}
