@@ -17,6 +17,7 @@ vi.hoisted(() => {
 import * as fs from "fs";
 
 import App from "./App.svelte";
+import { dismiss, notifications } from "./Notification.svelte";
 // Load test data
 const testData = JSON.parse(
   fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
@@ -125,6 +126,10 @@ describe("Routing E2E Tests", () => {
     // Create a container for rendering
     container = document.createElement("div");
     document.body.appendChild(container);
+
+    for (const notification of get(notifications)) {
+      dismiss(notification.id);
+    }
   });
 
   afterEach(() => {
@@ -338,6 +343,34 @@ describe("Routing E2E Tests", () => {
       expect(new URL(window.location.href).searchParams.get("mods")).toBe(
         "aftershock,magiclysm",
       );
+    });
+
+    test("filters unknown mods from URL, rewrites URL, and shows warning", async () => {
+      updateLocation(
+        "stable/item/rock",
+        "?mods=aftershock,missing_mod,magiclysm,bad_mod",
+      );
+      const replaceStateSpy = vi.spyOn(history, "replaceState");
+
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad("rock");
+
+      await waitFor(() =>
+        expect(replaceStateSpy).toHaveBeenCalledWith(
+          null,
+          "",
+          expect.stringContaining("mods=aftershock%2Cmagiclysm"),
+        ),
+      );
+
+      const warnNotification = get(notifications).find(
+        (notification) => notification.type === "warn",
+      );
+      expect(warnNotification?.message).toContain("missing_mod, bad_mod");
+      replaceStateSpy.mockRestore();
     });
   });
 

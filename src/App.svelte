@@ -60,6 +60,15 @@ const SEARCH_RESULTS_CONTEXT = "Search Results";
 const PAGE_DESCRIPTION_CONTEXT = "Page description";
 const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
+const URL_MODS_CONTEXT = "URL mods";
+
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -122,6 +131,7 @@ initializeRouting()
     resolvedVersion = result.resolvedVersion;
     latestStableBuild = result.latestStableBuild;
     latestNightlyBuild = result.latestNightlyBuild;
+    const requestedModsFromUrl = [...$page.route.mods];
 
     data
       .setVersion(
@@ -129,9 +139,31 @@ initializeRouting()
         localeParam,
         isBranchAlias ? requestedVersion : undefined,
         builds.find((b) => b.build_number === resolvedVersion)?.langs,
-        $page.route.mods,
+        requestedModsFromUrl,
       )
       .then(() => {
+        if ($data) {
+          const resolvedMods = $data.active_mods ?? [];
+          if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
+            const removedMods = requestedModsFromUrl.filter(
+              (modId) => !resolvedMods.includes(modId),
+            );
+            updateQueryParamNoReload(
+              "mods",
+              resolvedMods.length > 0 ? resolvedMods.join(",") : null,
+            );
+            if (removedMods.length > 0) {
+              notify(
+                t("Ignored unknown mods from URL: {mods}.", {
+                  mods: removedMods.join(", "),
+                  _context: URL_MODS_CONTEXT,
+                }),
+                "warn",
+              );
+            }
+          }
+        }
+
         if (
           $data &&
           $data.requested_locale !== $data.effective_locale &&
