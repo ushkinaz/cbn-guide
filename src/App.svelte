@@ -366,6 +366,7 @@ let modSelectorError: string | null = null;
 
 async function openModSelector(): Promise<void> {
   if (!$data) return;
+  metrics.count("ui.mod_selector.click");
 
   modSelectorError = null;
   isModSelectorOpen = true;
@@ -391,6 +392,7 @@ function applyMods(event: CustomEvent<string[]>): void {
   // Changing mods triggers a full page reload to ensure data consistency.
   isModSelectorOpen = false;
   const selectedMods = event.detail;
+  metrics.gauge("data.mods.load", selectedMods.length);
   updateQueryParam(
     "mods",
     selectedMods.length > 0 ? selectedMods.join(",") : null,
