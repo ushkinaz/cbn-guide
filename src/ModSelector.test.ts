@@ -10,6 +10,30 @@ import type { ModInfo } from "./types";
 const testMods: ModInfo[] = [
   {
     type: "MOD_INFO",
+    id: "bn_lua",
+    name: "Lua",
+    description: "Lua support",
+    category: "core",
+    dependencies: ["bn"],
+  },
+  {
+    type: "MOD_INFO",
+    id: "no_npc_food",
+    name: "No NPC Food",
+    description: "Disables NPC food consumption",
+    category: "rebalance",
+    dependencies: ["bn"],
+  },
+  {
+    type: "MOD_INFO",
+    id: "cbm_slots",
+    name: "CBM Slots",
+    description: "Adds CBM slot rules",
+    category: "rebalance",
+    dependencies: ["bn"],
+  },
+  {
+    type: "MOD_INFO",
     id: "aftershock",
     name: "Aftershock",
     description: "Adds futuristic content",
@@ -102,5 +126,52 @@ describe("ModSelector", () => {
 
     await fireEvent.click(getByText("Apply and Reload"));
     expect(applied).toEqual([]);
+  });
+
+  test("default selects game default mods that are available", async () => {
+    const { component, getByText } = render(ModSelector, {
+      open: true,
+      mods: testMods,
+      selectedModIds: ["aftershock"],
+      loading: false,
+      errorMessage: null,
+    });
+
+    let applied: string[] | null = null;
+    component.$on("apply", (event) => {
+      applied = event.detail;
+    });
+
+    await fireEvent.click(getByText("Default"));
+    await waitFor(() => expect(getByText("Selected: 3")).toBeTruthy());
+    await fireEvent.click(getByText("Apply and Reload"));
+    expect(applied).toEqual(["bn_lua", "no_npc_food", "cbm_slots"]);
+  });
+
+  test("default restores full defaults after manual uncheck", async () => {
+    const { component, getByLabelText, getByText } = render(ModSelector, {
+      open: true,
+      mods: testMods,
+      selectedModIds: [],
+      loading: false,
+      errorMessage: null,
+    });
+
+    let applied: string[] | null = null;
+    component.$on("apply", (event) => {
+      applied = event.detail;
+    });
+
+    await fireEvent.click(getByText("Default"));
+    await waitFor(() => expect(getByText("Selected: 3")).toBeTruthy());
+
+    await fireEvent.click(getByLabelText("No NPC Food"));
+    await waitFor(() => expect(getByText("Selected: 2")).toBeTruthy());
+
+    await fireEvent.click(getByText("Default"));
+    await waitFor(() => expect(getByText("Selected: 3")).toBeTruthy());
+
+    await fireEvent.click(getByText("Apply and Reload"));
+    expect(applied).toEqual(["bn_lua", "no_npc_food", "cbm_slots"]);
   });
 });

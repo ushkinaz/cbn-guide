@@ -6,6 +6,21 @@ import type { ModInfo, Translation } from "./types";
 import { cleanText } from "./utils/format";
 
 const MOD_SELECTOR_CONTEXT = "Mod selector";
+const DEFAULT_MOD_IDS = [
+  "bn",
+  "bn_lua",
+  "nuclear_tear",
+  "no_npc_food",
+  "novitamins",
+  "No_Rail_Stations",
+  "no_reviving_zombies",
+  "limit_fungal_growth",
+  "udp_redux",
+  "pride_flags",
+  "tablet_ebook",
+  "change_hairstyle",
+  "cbm_slots",
+];
 
 export let open = false;
 export let mods: ModInfo[] = [];
@@ -20,6 +35,7 @@ const dispatch = createEventDispatcher<{
 
 let draftSelectedModIds: string[] = [];
 let wasOpen = false;
+let availableDefaultModIds: string[] = [];
 
 function translateField(value: Translation | undefined): string {
   if (!value) return "";
@@ -51,6 +67,10 @@ function apply(): void {
 
 function reset(): void {
   draftSelectedModIds = [];
+}
+
+function selectDefaultMods(): void {
+  draftSelectedModIds = [...availableDefaultModIds];
 }
 
 function onOverlayClick(event: MouseEvent): void {
@@ -88,6 +108,12 @@ $: groupedMods = mods.reduce((acc, mod) => {
 
 $: groupedCategories = [...groupedMods.entries()];
 
+$: availableDefaultModIds = DEFAULT_MOD_IDS.filter((modId, idx, all) => {
+  if (modId === "bn") return false;
+  if (all.indexOf(modId) !== idx) return false;
+  return mods.some((mod) => mod.id === modId);
+});
+
 $: syncBodyClass(open);
 
 onDestroy(() => {
@@ -120,13 +146,6 @@ onDestroy(() => {
           ✕
         </button>
       </header>
-
-      <p class="mods-selected">
-        {t("Selected: {count}", {
-          count: draftSelectedModIds.length,
-          _context: MOD_SELECTOR_CONTEXT,
-        })}
-      </p>
 
       {#if loading}
         <p class="mods-state">
@@ -174,23 +193,44 @@ onDestroy(() => {
       {/if}
 
       <footer class="mods-actions">
-        <button type="button" class="ghost" on:click={close}>
-          {t("Cancel", { _context: MOD_SELECTOR_CONTEXT })}
-        </button>
-        <button
-          type="button"
-          class="ghost"
-          on:click={reset}
-          disabled={draftSelectedModIds.length === 0}>
-          {t("Reset", { _context: MOD_SELECTOR_CONTEXT })}
-        </button>
-        <button
-          type="button"
-          class="apply"
-          on:click={apply}
-          disabled={loading || !!errorMessage}>
-          {t("Apply and Reload", { _context: MOD_SELECTOR_CONTEXT })}
-        </button>
+        <p class="mods-selected">
+          {t("Selected: {count}", {
+            count: draftSelectedModIds.length,
+            _context: MOD_SELECTOR_CONTEXT,
+          })}
+        </p>
+        <div class="mods-actions-buttons">
+          <div class="mods-actions-utilities">
+            <button
+              type="button"
+              class="ghost"
+              on:click={selectDefaultMods}
+              disabled={availableDefaultModIds.length === 0 ||
+                loading ||
+                !!errorMessage}>
+              {t("Default", { _context: MOD_SELECTOR_CONTEXT })}
+            </button>
+            <button
+              type="button"
+              class="ghost"
+              on:click={reset}
+              disabled={draftSelectedModIds.length === 0}>
+              {t("Reset", { _context: MOD_SELECTOR_CONTEXT })}
+            </button>
+          </div>
+          <div class="mods-actions-main">
+            <button type="button" class="ghost" on:click={close}>
+              {t("Cancel", { _context: MOD_SELECTOR_CONTEXT })}
+            </button>
+            <button
+              type="button"
+              class="apply"
+              on:click={apply}
+              disabled={loading || !!errorMessage}>
+              {t("Apply and Reload", { _context: MOD_SELECTOR_CONTEXT })}
+            </button>
+          </div>
+        </div>
       </footer>
     </div>
   </div>
@@ -254,11 +294,10 @@ onDestroy(() => {
 
 .mods-selected {
   margin: 0;
-  padding: 0.65rem 1rem;
   font-family:
     "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
   color: var(--cata-color-gray);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.8rem;
 }
 
 .mods-list {
@@ -351,10 +390,29 @@ onDestroy(() => {
 
 .mods-actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.6rem;
   padding: 0.75rem 1rem 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mods-actions-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.mods-actions-utilities,
+.mods-actions-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.mods-actions-main {
+  margin-left: 0.35rem;
 }
 
 .mods-actions button,
@@ -417,11 +475,35 @@ onDestroy(() => {
   }
 
   .mods-actions {
-    flex-direction: column-reverse;
+    align-items: stretch;
+    flex-direction: column;
   }
 
-  .mods-actions button {
+  .mods-actions-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .mods-actions-utilities,
+  .mods-actions-main {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .mods-actions-main {
+    margin-left: 0;
+  }
+
+  .mods-actions-utilities button,
+  .mods-actions-main button {
     width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .mods-actions-buttons {
+    grid-template-columns: 1fr;
   }
 }
 </style>
