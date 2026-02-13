@@ -26,8 +26,12 @@ import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import vehicleIcon from "./assets/category-icons/vehicle.svg";
 import { t } from "@transifex/native";
 import { CBNData, data, mapType } from "./data";
-import { getVersionedBasePath } from "./routing";
-import type { SupportedTypeMapped } from "./types";
+import {
+  getCurrentVersionSlug,
+  getVersionedBasePath,
+  navigateTo,
+} from "./routing";
+import type { SupportedTypesWithMapped } from "./types";
 
 const categories = [
   {
@@ -87,7 +91,7 @@ const categories = [
   },
 ];
 
-const randomizableItemTypes = new Set([
+const randomizableItemTypes = new Set<keyof SupportedTypesWithMapped>([
   "item",
   "monster",
   "furniture",
@@ -99,6 +103,8 @@ const randomizableItemTypes = new Set([
   // "json_flag",
   "achievement",
 ]);
+const RANDOM_PICK_MAX_RETRIES = 30;
+const RANDOM_PICK_FALLBACK = { type: "item", id: "guidebook" } as const;
 
 /**
  * Selects a random game entity for the "Random Page" card.
@@ -115,30 +121,45 @@ async function getRandomPage() {
     });
   });
 
-  const items = d
-    .all()
-    .filter(
-      (x) => "id" in x && randomizableItemTypes.has(mapType(x.type)),
-    ) as (SupportedTypeMapped & { id: string })[];
+  const all = d.all();
+  if (all.length === 0) return null;
 
-  return items[(Math.random() * items.length) | 0];
+  for (let attempt = 0; attempt < RANDOM_PICK_MAX_RETRIES; attempt += 1) {
+    const candidate = all[(Math.random() * all.length) | 0] as
+      | { id?: unknown; type?: unknown }
+      | undefined;
+    if (!candidate) continue;
+    if (typeof candidate.id !== "string" || typeof candidate.type !== "string")
+      continue;
+
+    const mappedType = mapType(
+      candidate.type as keyof SupportedTypesWithMapped,
+    ) as keyof SupportedTypesWithMapped;
+    if (!randomizableItemTypes.has(mappedType)) continue;
+
+    // Verify candidate resolves in current mod set (e.g. blacklist/disabled monsters).
+    if (!d.byIdMaybe(mappedType, candidate.id)) continue;
+
+    return { type: mappedType, id: candidate.id };
+  }
+
+  return null;
 }
-
-let randomPage: string | null = null;
 
 /**
- * Updates the randomPage reactive variable with a new random destination.
+ * Chooses a random destination on demand and navigates to it.
  */
-function refreshRandomPage() {
-  getRandomPage().then((r) => {
-    randomPage = `${getVersionedBasePath()}${mapType(r.type)}/${r.id}${
-      location.search
-    }`;
-  });
+async function openRandomPage(event: MouseEvent) {
+  event.preventDefault();
+  const r = await getRandomPage();
+  const destination = r ?? RANDOM_PICK_FALLBACK;
+  navigateTo(
+    getCurrentVersionSlug(),
+    { type: destination.type, id: destination.id },
+    "",
+    true,
+  );
 }
-
-// Initial selection
-refreshRandomPage();
 </script>
 
 <div class="category-grid">
@@ -158,9 +179,9 @@ refreshRandomPage();
     </a>
   {/each}
   <a
-    href={randomPage}
+    href={`${getVersionedBasePath()}${location.search}`}
     class="category-card random"
-    on:click={() => setTimeout(refreshRandomPage)}>
+    on:click={openRandomPage}>
     <div class="icon-wrapper">
       <img
         src={randomIcon}
