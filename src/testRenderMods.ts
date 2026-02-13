@@ -1,12 +1,19 @@
 import { act, cleanup, render } from "@testing-library/svelte";
 import { screen } from "@testing-library/dom";
-import { afterEach, expect, test, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import * as fs from "fs";
 
 import { CBNData, mapType } from "./data";
 import type { ModInfo } from "./types";
 
-import Thing from "./Thing.svelte";
 import {
   furnitureByOMSAppearance,
   lootByOMSAppearance,
@@ -94,41 +101,16 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
   );
   const modSubset = modEntries.filter((_, idx) => idx % numChunks === chunkIdx);
 
-  const dataByMod = new Map<string, CBNData>();
-  const preparedByMod = new Map<string, Promise<void>>();
-
-  const getDataForMod = (modId: string): CBNData => {
-    if (!dataByMod.has(modId)) {
-      const mergedData = [...(coreJson.data ?? [])];
-      const dependencyChain = resolveDependencyChain(
-        modsJson,
-        modId,
-        new Set(),
-      );
-      for (const depModId of dependencyChain) {
-        const depData = modsJson[depModId]?.data;
-        if (depData) {
-          mergedData.push(...depData);
-        }
+  const createDataForMod = (modId: string): CBNData => {
+    const mergedData = [...(coreJson.data ?? [])];
+    const dependencyChain = resolveDependencyChain(modsJson, modId, new Set());
+    for (const depModId of dependencyChain) {
+      const depData = modsJson[depModId]?.data;
+      if (depData) {
+        mergedData.push(...depData);
       }
-      dataByMod.set(modId, new CBNData(mergedData));
     }
-    return dataByMod.get(modId)!;
-  };
-
-  const prepareRenderingData = (modId: string): Promise<void> => {
-    if (!preparedByMod.has(modId)) {
-      const data = getDataForMod(modId);
-      preparedByMod.set(
-        modId,
-        Promise.all([
-          lootByOMSAppearance(data),
-          furnitureByOMSAppearance(data),
-          terrainByOMSAppearance(data),
-        ]).then(() => undefined),
-      );
-    }
-    return preparedByMod.get(modId)!;
+    return new CBNData(mergedData);
   };
 
   const allModObjects: ModObjectCase[] = modSubset.flatMap(([modId, mod]) =>
@@ -158,72 +140,97 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
       (!process.env.TEST_ONLY || process.env.TEST_ONLY === selector)
     );
   });
-  const flattenCases = modSubset.map(
-    ([modId, mod]) => [modId, mod.data ?? []] as const,
-  );
-  const renderCaseTuples = renderCases.map(
-    ({ modId, type, id }) => [modId, type, id] as const,
-  );
+  const renderCaseTuplesByMod = new Map<string, [string, string][]>();
+  for (const { modId, type, id } of renderCases) {
+    if (!renderCaseTuplesByMod.has(modId)) renderCaseTuplesByMod.set(modId, []);
+    renderCaseTuplesByMod.get(modId)!.push([type, id]);
+  }
 
   afterEach(cleanup);
 
-  test.each(flattenCases)(
-    "flatten mod=%s objects",
-    { timeout: MOD_RENDER_TIMEOUT_MS },
-    (modId, modData) => {
-      const data = getDataForMod(modId);
-      const failures: string[] = [];
-      for (const [index, obj] of modData.entries()) {
-        if (!obj || typeof obj !== "object") continue;
-        const typed = obj as Record<string, unknown>;
-        const rawType = typeof typed.type === "string" ? typed.type : null;
-        if (!rawType) continue;
-        const mappedType = mapType(rawType as any);
+  for (const [modId, mod] of modSubset) {
+    const modData = mod.data ?? [];
+    const tuples = renderCaseTuplesByMod.get(modId) ?? [];
+    let Thing: any;
+    let data: CBNData;
 
-        try {
-          if (typeof typed.id === "string" && typed.id.length > 0) {
-            (data.byIdMaybe as any)(mappedType, typed.id);
-            continue;
-          }
-          if (typeof typed.abstract === "string" && typed.abstract.length > 0) {
-            (data.abstractById as any)(mappedType, typed.abstract);
-            continue;
-          }
-          if (
-            (rawType === "recipe" || rawType === "uncraft") &&
-            typeof typed.result === "string" &&
-            typed.result.length > 0
-          ) {
-            (data.byIdMaybe as any)(mappedType, typed.result);
-          }
-        } catch (error) {
-          failures.push(`${index}:${rawType}:${String(error)}`);
-        }
-      }
-      expect(failures).toEqual([]);
-    },
-  );
-
-  test.each(renderCaseTuples)(
-    "render mod=%s type=%s id=%s",
-    { timeout: MOD_RENDER_TIMEOUT_MS },
-    async (modId, type, id) => {
-      await prepareRenderingData(modId);
-      const data = getDataForMod(modId);
-
-      (globalThis as any).__isTesting__ = true;
-      const { container } = render(Thing, {
-        item: { type: mapType(type as any), id },
-        data,
+    describe(`mod=${modId}`, () => {
+      beforeAll(async () => {
+        data = createDataForMod(modId);
+        await Promise.all([
+          lootByOMSAppearance(data),
+          furnitureByOMSAppearance(data),
+          terrainByOMSAppearance(data),
+        ]);
+        // Isolate module-level singleton caches between mods.
+        vi.resetModules();
+        const imported = await import("./Thing.svelte");
+        Thing = imported.default;
       });
-      await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
-      expect(screen.queryByTestId("loading-indicator")).toBe(null);
-      if (type !== "technique") {
-        expect(
-          container.textContent,
-          `Rendered output for ${modId}:${type}:${id} contains invalid placeholder text.`,
-        ).not.toMatch(/undefined|NaN|object Object/);
-      }
-    },
-  );
+      afterAll(() => {
+        Thing = undefined;
+        // Allow singleton modules to be released before the next mod block.
+        vi.resetModules();
+      });
+
+      test(
+        `flatten mod=${modId} objects`,
+        { timeout: MOD_RENDER_TIMEOUT_MS },
+        () => {
+          const failures: string[] = [];
+          for (const [index, obj] of modData.entries()) {
+            if (!obj || typeof obj !== "object") continue;
+            const typed = obj as Record<string, unknown>;
+            const rawType = typeof typed.type === "string" ? typed.type : null;
+            if (!rawType) continue;
+            const mappedType = mapType(rawType as any);
+
+            try {
+              if (typeof typed.id === "string" && typed.id.length > 0) {
+                (data.byIdMaybe as any)(mappedType, typed.id);
+                continue;
+              }
+              if (
+                typeof typed.abstract === "string" &&
+                typed.abstract.length > 0
+              ) {
+                (data.abstractById as any)(mappedType, typed.abstract);
+                continue;
+              }
+              if (
+                (rawType === "recipe" || rawType === "uncraft") &&
+                typeof typed.result === "string" &&
+                typed.result.length > 0
+              ) {
+                (data.byIdMaybe as any)(mappedType, typed.result);
+              }
+            } catch (error) {
+              failures.push(`${index}:${rawType}:${String(error)}`);
+            }
+          }
+          expect(failures).toEqual([]);
+        },
+      );
+
+      test.each(tuples)(
+        `render mod=${modId} type=%s id=%s`,
+        { timeout: MOD_RENDER_TIMEOUT_MS },
+        async (type, id) => {
+          (globalThis as any).__isTesting__ = true;
+          const { container } = render(Thing, {
+            item: { type: mapType(type as any), id },
+            data,
+          });
+          await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+          expect(screen.queryByTestId("loading-indicator")).toBe(null);
+          if (type !== "technique") {
+            expect(
+              container.textContent,
+              `Rendered output for ${modId}:${type}:${id} contains invalid placeholder text.`,
+            ).not.toMatch(/undefined|NaN|object Object/);
+          }
+        },
+      );
+    });
+  }
 }
