@@ -464,7 +464,7 @@ for (const group of sortedGroups) {
         <dd>{item.hp}</dd>
         {#if item.regenerates}
           <dt>{t("Regenerates", { _context })}</dt>
-          <dd>{item.regenerates} hp/turn</dd>
+          <dd>{t("{hp} hp/turn", { hp: item.regenerates })}</dd>
         {/if}
         <dt>{t("Dodge", { _context })}</dt>
         <dd>{item.dodge ?? 0}</dd>
@@ -500,11 +500,13 @@ for (const group of sortedGroups) {
     <h1>{t("Behavior", { _context, _comment: "Section heading" })}</h1>
     <dl>
       <dt
-        title="Monsters with high aggression are more likely to be hostile. Ranges from -100 to 100">
+        title={t(
+          "Monsters with high aggression are more likely to be hostile. Ranges from -100 to 100",
+        )}>
         {t("Aggression", { _context })}
       </dt>
       <dd>{item.aggression ?? 0}</dd>
-      <dt title="Morale at spawn. Monsters with low morale will flee.">
+      <dt title={t("Morale at spawn. Monsters with low morale will flee.")}>
         {t("Morale", { _context })}
       </dt>
       <dd>{item.morale ?? 0}</dd>
