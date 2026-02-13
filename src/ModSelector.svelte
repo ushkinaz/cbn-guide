@@ -147,7 +147,9 @@ $: modsById = mods.reduce((acc, mod) => {
   return acc;
 }, new Map<string, ModInfo>());
 
-$: {
+$: if (modsById.size > 0) {
+  // Keep URL-selected ids intact while mod metadata is still loading.
+  // Otherwise, resolving against an empty map clears valid selections.
   const normalizedSelection = resolveSelectionWithDependencies(
     draftSelectedModIds,
     modsById,
