@@ -13,7 +13,7 @@ import {
   singularName,
 } from "../data";
 import ItemLink from "./ItemLink.svelte";
-import type { Harvest, Monster, MonsterGroup } from "../types";
+import type { Harvest, Monster } from "../types";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ItemTable from "./item/ItemTable.svelte";
@@ -275,16 +275,41 @@ let harvest: Harvest | undefined = item.harvest
   ? data.byId("harvest", item.harvest)
   : undefined;
 
-function flattenGroup(mg: MonsterGroup): string[] {
+const flattenedGroupCache = new Map<string, string[]>();
+const flattenedGroupSetCache = new Map<string, Set<string>>();
+
+function flattenGroup(
+  groupId: string,
+  path: Set<string> = new Set(),
+): string[] {
+  const cached = flattenedGroupCache.get(groupId);
+  if (cached) return cached;
+  if (path.has(groupId)) return [];
+
+  const mg = data.byIdMaybe("monstergroup", groupId);
+  if (!mg) return [];
+
+  path.add(groupId);
   const results = new Set<string>();
   if (mg.default) results.add(mg.default);
   for (const m of mg.monsters ?? []) {
     if (m.monster) results.add(m.monster);
-    if (m.group)
-      for (const n of flattenGroup(data.byId("monstergroup", m.group)))
-        results.add(n);
+    if (m.group) for (const n of flattenGroup(m.group, path)) results.add(n);
   }
-  return [...results];
+  path.delete(groupId);
+
+  const flattened = [...results];
+  flattenedGroupCache.set(groupId, flattened);
+  return flattened;
+}
+
+function flattenedGroupSet(groupId: string): Set<string> {
+  let ids = flattenedGroupSetCache.get(groupId);
+  if (!ids) {
+    ids = new Set(flattenGroup(groupId));
+    flattenedGroupSetCache.set(groupId, ids);
+  }
+  return ids;
 }
 
 let upgrades =
@@ -294,7 +319,7 @@ let upgrades =
         monsters: (item.upgrades.into
           ? [item.upgrades.into]
           : item.upgrades.into_group
-            ? flattenGroup(data.byId("monstergroup", item.upgrades.into_group))
+            ? flattenGroup(item.upgrades.into_group)
             : []
         )
           .filter((id) => id !== item.id)
@@ -329,9 +354,7 @@ for (const monster of data.byType("monster")) {
   const matches =
     upgrades.into === item.id ||
     (upgrades.into_group &&
-      flattenGroup(data.byId("monstergroup", upgrades.into_group)).includes(
-        item.id,
-      ));
+      flattenedGroupSet(upgrades.into_group).has(item.id));
 
   if (!matches) continue;
 
