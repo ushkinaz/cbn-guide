@@ -109,7 +109,7 @@ function damage(mon: Monster) {
     melee_damage = [],
     melee_cut,
   } = mon;
-  const du = normalizeDamageInstance(melee_damage);
+  const du = normalizeDamageInstance(melee_damage).map((u) => ({ ...u }));
   if (melee_cut) {
     du.push({
       damage_type: "cut",
