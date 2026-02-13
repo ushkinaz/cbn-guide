@@ -6,9 +6,11 @@ import { cleanText } from "./utils/format";
 import { resolveSelectionWithDependencies } from "./data";
 
 const MOD_SELECTOR_CONTEXT = "Mod selector";
+
+//From https://github.com/cataclysmbn/Cataclysm-BN/blob/main/data/mods/default.json
 const DEFAULT_MOD_IDS = [
-  "bn",
-  "bn_lua",
+  // "bn",
+  // "bn_lua",
   "nuclear_tear",
   "no_npc_food",
   "novitamins",
@@ -66,9 +68,12 @@ function modDescription(mod: ModInfo): string {
 }
 
 function modDependencies(mod: ModInfo): string {
-  if (mod.dependencies.length === 0) return "";
-  return t("Depends on: {dependencies}", {
-    dependencies: mod.dependencies.join(", "),
+  let nonCoreDependencies = mod.dependencies.filter(
+    (mod_id) => mod_id !== "bn" && mod_id !== "bn_lua",
+  );
+  if (nonCoreDependencies.length === 0) return "";
+  return t("requires: {dependencies}", {
+    dependencies: nonCoreDependencies.join(", "),
     _context: MOD_SELECTOR_CONTEXT,
   });
 }
@@ -122,7 +127,14 @@ $: groupedMods = mods.reduce((acc, mod) => {
   return acc;
 }, new Map<string, ModInfo[]>());
 
-$: groupedCategories = [...groupedMods.entries()];
+$: groupedCategories = [...groupedMods.entries()]
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([category, mods]): [string, ModInfo[]] => [
+    category,
+    [...mods].sort((a, b) =>
+      modDisplayName(a).localeCompare(modDisplayName(b)),
+    ),
+  ]);
 
 $: availableDefaultModIds = DEFAULT_MOD_IDS.filter((modId, idx, all) => {
   if (modId === "bn") return false;
@@ -163,9 +175,17 @@ onDestroy(() => {
       aria-modal="true"
       aria-labelledby="mods-dialog-title">
       <header class="mods-header">
-        <h2 id="mods-dialog-title">
-          {t("Mod Loadout", { _context: MOD_SELECTOR_CONTEXT })}
-        </h2>
+        <div class="mods-header-info">
+          <h2 id="mods-dialog-title">
+            {t("Mods", { _context: MOD_SELECTOR_CONTEXT })}
+          </h2>
+          <span class="mods-selected">
+            {t("selected: {count}", {
+              count: draftSelectedModIds.length,
+              _context: MOD_SELECTOR_CONTEXT,
+            })}
+          </span>
+        </div>
         <button
           type="button"
           class="close-button"
@@ -228,12 +248,6 @@ onDestroy(() => {
       {/if}
 
       <footer class="mods-actions">
-        <p class="mods-selected">
-          {t("Selected: {count}", {
-            count: draftSelectedModIds.length,
-            _context: MOD_SELECTOR_CONTEXT,
-          })}
-        </p>
         <div class="mods-actions-buttons">
           <div class="mods-actions-utilities">
             <button
@@ -272,24 +286,22 @@ onDestroy(() => {
 {/if}
 
 <style>
+/*noinspection CssUnusedSymbol*/
 :global(body.mods-selector-open) {
-  overflow: hidden;
+  overflow: hidden !important;
 }
 
 .mods-overlay {
   position: fixed !important;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  inset: 0;
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  box-sizing: border-box;
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
   background: rgba(0, 0, 0, 0.75);
   pointer-events: auto;
   overscroll-behavior: contain;
@@ -297,7 +309,8 @@ onDestroy(() => {
 
 .mods-dialog {
   width: min(56rem, 100%);
-  max-height: min(86vh, 46rem);
+  max-width: 100%;
+  max-height: min(86dvh, 60rem);
   display: flex;
   flex-direction: column;
   background: color-mix(in srgb, var(--cata-color-black) 92%, #06131a 8%);
@@ -315,6 +328,12 @@ onDestroy(() => {
   gap: 1rem;
   padding: 0.9rem 1rem 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mods-header-info {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
 }
 
 .mods-header h2 {
@@ -346,7 +365,7 @@ onDestroy(() => {
 
 .mods-category h3 {
   margin: 0 0 0.5rem;
-  color: var(--cata-color-yellow);
+  color: var(--cata-color-gray);
   font-size: 0.8rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -514,7 +533,7 @@ onDestroy(() => {
   }
 
   .mods-dialog {
-    max-height: 92vh;
+    max-height: 92dvh;
   }
 
   .mods-actions {

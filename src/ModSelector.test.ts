@@ -10,14 +10,6 @@ import type { ModInfo } from "./types";
 const testMods: ModInfo[] = [
   {
     type: "MOD_INFO",
-    id: "bn_lua",
-    name: "Lua",
-    description: "Lua support",
-    category: "core",
-    dependencies: ["bn"],
-  },
-  {
-    type: "MOD_INFO",
     id: "no_npc_food",
     name: "No NPC Food",
     description: "Disables NPC food consumption",
@@ -80,8 +72,7 @@ describe("ModSelector", () => {
     expect((getByLabelText("Magiclysm") as HTMLInputElement).checked).toBe(
       false,
     );
-    expect(getAllByText("Depends on: bn")).toHaveLength(2);
-    expect(getByText("Depends on: aftershock")).toBeTruthy();
+    expect(getByText("requires: aftershock")).toBeTruthy();
   });
 
   test("closes on Escape and applies ordered mod ids", async () => {
@@ -127,7 +118,7 @@ describe("ModSelector", () => {
     );
 
     await fireEvent.click(getByText("Reset"));
-    await waitFor(() => expect(getByText("Selected: 0")).toBeTruthy());
+    await waitFor(() => expect(getByText("selected: 0")).toBeTruthy());
     await waitFor(() =>
       expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
         false,
@@ -159,7 +150,7 @@ describe("ModSelector", () => {
       ),
     );
     expect((getByLabelText("Arcana") as HTMLInputElement).checked).toBe(true);
-    await waitFor(() => expect(getByText("Selected: 2")).toBeTruthy());
+    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
 
     await fireEvent.click(getByText("Apply and Reload"));
     expect(applied).toEqual(["aftershock", "arcana"]);
@@ -180,9 +171,9 @@ describe("ModSelector", () => {
     });
 
     await fireEvent.click(getByText("Default"));
-    await waitFor(() => expect(getByText("Selected: 3")).toBeTruthy());
+    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
     await fireEvent.click(getByText("Apply and Reload"));
-    expect(applied).toEqual(["bn_lua", "no_npc_food", "cbm_slots"]);
+    expect(applied).toEqual(["no_npc_food", "cbm_slots"]);
   });
 
   test("default restores full defaults after manual uncheck", async () => {
@@ -200,15 +191,15 @@ describe("ModSelector", () => {
     });
 
     await fireEvent.click(getByText("Default"));
-    await waitFor(() => expect(getByText("Selected: 3")).toBeTruthy());
+    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
 
     await fireEvent.click(getByLabelText("No NPC Food"));
-    await waitFor(() => expect(getByText("Selected: 2")).toBeTruthy());
+    await waitFor(() => expect(getByText("selected: 1")).toBeTruthy());
 
     await fireEvent.click(getByText("Default"));
-    await waitFor(() => expect(getByText("Selected: 3")).toBeTruthy());
+    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
 
     await fireEvent.click(getByText("Apply and Reload"));
-    expect(applied).toEqual(["bn_lua", "no_npc_food", "cbm_slots"]);
+    expect(applied).toEqual(["no_npc_food", "cbm_slots"]);
   });
 });
