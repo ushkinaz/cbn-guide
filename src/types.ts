@@ -1080,7 +1080,7 @@ type MonsterAttack = (
   | SpellAttack
 ) & { cooldown?: number };
 export type SpecialAttack = [string, number] | MonsterAttack;
-export interface Mapgen {
+export type JsonMapgen = {
   type: "mapgen";
   method: "json";
   om_terrain?: string | string[] | string[][];
@@ -1088,7 +1088,19 @@ export interface Mapgen {
   object: MapgenObject;
   nested_mapgen_id?: string;
   update_mapgen_id?: string;
-}
+};
+
+export type LuaMapgen = {
+  type: "mapgen";
+  method: "lua";
+  om_terrain?: string | string[] | string[][];
+  weight?: integer;
+  luamethod: string;
+  nested_mapgen_id?: string;
+  update_mapgen_id?: string;
+};
+
+export type Mapgen = JsonMapgen | LuaMapgen;
 
 export type PlaceMapping<T> = Record<string, T | T[]>;
 export type PlaceMappingAlternative<T> = Record<

@@ -15,6 +15,10 @@ const MIN_TIME_REMAINING_MS = 0;
 /** 0.0 <= chance <= 1.0 */
 type chance = number;
 
+function isJsonMapgen(mapgen: raw.Mapgen): mapgen is raw.JsonMapgen {
+  return mapgen.method === "json";
+}
+
 /**
  * Extract weight from a weighted value tuple.
  * If value is not weighted (plain T), returns default weight of 1.
@@ -227,7 +231,10 @@ function setToLoot(
   return new Map([[set.id, itemChance]]);
 }
 
-function getSetLoot(mapgen: raw.Mapgen, kind: "furniture" | "terrain"): Loot[] {
+function getSetLoot(
+  mapgen: raw.JsonMapgen,
+  kind: "furniture" | "terrain",
+): Loot[] {
   return (mapgen.object.set ?? [])
     .map((set) => setToLoot(set, kind))
     .filter((set): set is Loot => Boolean(set));
@@ -251,7 +258,11 @@ export function collection(items: Array<Loot>): Loot {
   return ret;
 }
 
-function offsetMapgen(mapgen: raw.Mapgen, x: number, y: number): raw.Mapgen {
+function offsetMapgen(
+  mapgen: raw.JsonMapgen,
+  x: number,
+  y: number,
+): raw.JsonMapgen {
   const object = {
     ...mapgen.object,
     rows: (mapgen.object.rows ?? [])
@@ -392,9 +403,13 @@ function getMapgensByOmt(data: CBNData): Map<string, raw.Mapgen[]> {
       } else {
         // 3. an array of arrays of strings. if so, this is actually several
         // mapgens in a trench coat, and the ids are a grid.
-        for (let y = 0; y < mapgen.om_terrain.length; y++)
-          for (let x = 0; x < mapgen.om_terrain[y].length; x++)
-            add(mapgen.om_terrain[y][x], offsetMapgen(mapgen, x, y));
+        for (let y = 0; y < mapgen.om_terrain.length; y++) {
+          for (let x = 0; x < mapgen.om_terrain[y].length; x++) {
+            const omt = mapgen.om_terrain[y][x];
+            if (isJsonMapgen(mapgen)) add(omt, offsetMapgen(mapgen, x, y));
+            else add(omt, mapgen);
+          }
+        }
       }
     }
   }
@@ -408,7 +423,9 @@ export function lootForOmt(
   lootFn: (mapgen: raw.Mapgen) => Loot,
 ) {
   const mapgensByOmt = getMapgensByOmt(data);
-  const mapgens = mapgensByOmt.get(omt_id) ?? [];
+  const mapgens = (mapgensByOmt.get(omt_id) ?? []).filter(
+    (mg): mg is raw.JsonMapgen => mg.method === "json",
+  );
   const loot = mergeLoot(
     mapgens.map((mg) => ({
       weight: mg.weight ?? DEFAULT_MAPGEN_WEIGHT,
@@ -813,6 +830,11 @@ function getLootForMapgenInternal(
   stack: WeakSet<raw.Mapgen>,
 ): Loot {
   if (lootForMapgenCache.has(mapgen)) return lootForMapgenCache.get(mapgen)!;
+  if (!isJsonMapgen(mapgen)) {
+    const loot = new Map();
+    lootForMapgenCache.set(mapgen, loot);
+    return loot;
+  }
   if (stack.has(mapgen)) return new Map();
   stack.add(mapgen);
   const palette = parsePalette(data, mapgen.object, stack);
@@ -899,6 +921,11 @@ const furnitureForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
 export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (furnitureForMapgenCache.has(mapgen))
     return furnitureForMapgenCache.get(mapgen)!;
+  if (!isJsonMapgen(mapgen)) {
+    const loot = new Map();
+    furnitureForMapgenCache.set(mapgen, loot);
+    return loot;
+  }
   const palette = parseFurniturePalette(data, mapgen.object);
   const mappingPalette = parseMappingFurniture(
     mapgen.object.mapping,
@@ -932,6 +959,11 @@ const terrainForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
 export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (terrainForMapgenCache.has(mapgen))
     return terrainForMapgenCache.get(mapgen)!;
+  if (!isJsonMapgen(mapgen)) {
+    const loot = new Map();
+    terrainForMapgenCache.set(mapgen, loot);
+    return loot;
+  }
   const palette = parseTerrainPalette(data, mapgen.object);
   const mappingPalette = parseMappingTerrain(
     mapgen.object.mapping,
