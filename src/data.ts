@@ -2541,6 +2541,20 @@ export function normalizeUseAction(action: Item["use_action"]): UseFunction[] {
   }
 }
 
+function createHttpStatusError(
+  status: number,
+  url: string,
+  statusText?: string,
+): Error & { status: number } {
+  const prefix = status === 404 ? "404" : `HTTP ${status}`;
+  const suffix = statusText ? ` ${statusText}` : "";
+  const error = new Error(`${prefix}${suffix}: ${url}`) as Error & {
+    status: number;
+  };
+  error.status = status;
+  return error;
+}
+
 const fetchJsonWithProgress = (
   url: string,
   progress: (receivedBytes: number, totalBytes: number) => void,
@@ -2553,7 +2567,7 @@ const fetchJsonWithProgress = (
     progress(100, 100);
     return fetch(url).then((r) => {
       if (!r.ok && r.status === 404) {
-        throw new Error(`404: ${url}`);
+        throw createHttpStatusError(404, url, r.statusText);
       }
       return r.json();
     });
@@ -2566,7 +2580,7 @@ const fetchJsonWithProgress = (
       // If status is 0, it often means a CORS error, network error,
       // or a request aborted by the browser/extensions.
       if (status === 404) {
-        reject(new Error(`404: ${url}`));
+        reject(createHttpStatusError(404, url, xhr.statusText));
         return;
       }
       if (status === 0) {
@@ -2582,7 +2596,7 @@ const fetchJsonWithProgress = (
 
     xhr.onload = (e) => {
       if (xhr.status === 404) {
-        reject(new Error(`404: ${url}`));
+        reject(createHttpStatusError(404, url, xhr.statusText));
       } else if (xhr.status >= 200 && xhr.status < 300) {
         if (xhr.response) resolve(xhr.response);
         else reject(new Error(`Empty/invalid JSON response from ${url}`));
@@ -2747,8 +2761,26 @@ function mergeDataWithActiveMods(
  * @param error The error to check
  */
 function is404Error(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes("404");
+  const message =
+    error instanceof Error
+      ? error.message.trim()
+      : typeof error === "string"
+        ? error.trim()
+        : "";
+  if (/^(?:HTTP\s+)?404\b/i.test(message)) {
+    return true;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status?: unknown }).status === 404
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 const fetchModsJson = async (
@@ -2761,6 +2793,13 @@ const fetchModsJson = async (
   );
 };
 
+/**
+ * Loads and parses the mod index with background retries.
+ *
+ * SILENT FAIL POLICY: If loading fails due to missing `all_mods.json` (404),
+ * this function returns null instead of throwing. Other failures (network/parsing)
+ * are propagated to avoid masking data corruption or unexpected errors.
+ */
 async function loadParsedModsJson(
   version: string,
   progress: (receivedBytes: number, totalBytes: number) => void,

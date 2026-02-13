@@ -146,4 +146,42 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       (globalThis as any).__isTesting__ = false;
     }
   });
+
+  test(
+    "setVersion should throw when non-404 error message contains 404",
+    { timeout: 12_000 },
+    async () => {
+      const mockData = {
+        data: [{ type: "GENERIC", id: "core_item" }],
+        build_number: "123",
+        release: "test-release",
+      };
+
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+        if (url.includes("all.json")) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve(mockData),
+          } as Response);
+        }
+        if (url.includes("all_mods.json")) {
+          return Promise.reject(
+            new Error("Malformed schema near line 404 in all_mods.json"),
+          );
+        }
+        return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+      });
+
+      try {
+        (globalThis as any).__isTesting__ = true;
+        await expect(
+          data.setVersion("latest", null, undefined, undefined, ["some_mod"]),
+        ).rejects.toThrow("Failed to load data after 3 attempts");
+      } finally {
+        globalThis.fetch = originalFetch;
+        (globalThis as any).__isTesting__ = false;
+      }
+    },
+  );
 });
