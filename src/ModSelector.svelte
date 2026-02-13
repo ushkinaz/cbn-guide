@@ -1,9 +1,9 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { createEventDispatcher } from "svelte";
-import { onDestroy } from "svelte";
+import { createEventDispatcher, onDestroy } from "svelte";
 import type { ModInfo, Translation } from "./types";
 import { cleanText } from "./utils/format";
+import { resolveSelectionWithDependencies } from "./data";
 
 const MOD_SELECTOR_CONTEXT = "Mod selector";
 const DEFAULT_MOD_IDS = [
@@ -37,6 +37,14 @@ let draftSelectedModIds: string[] = [];
 let wasOpen = false;
 let availableDefaultModIds: string[] = [];
 
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 function translateField(value: Translation | undefined): string {
   if (!value) return "";
   if (typeof value === "string") return cleanText(value);
@@ -55,6 +63,14 @@ function modDisplayName(mod: ModInfo): string {
 
 function modDescription(mod: ModInfo): string {
   return translateField(mod.description);
+}
+
+function modDependencies(mod: ModInfo): string {
+  if (mod.dependencies.length === 0) return "";
+  return t("Depends on: {dependencies}", {
+    dependencies: mod.dependencies.join(", "),
+    _context: MOD_SELECTOR_CONTEXT,
+  });
 }
 
 function close(): void {
@@ -113,6 +129,21 @@ $: availableDefaultModIds = DEFAULT_MOD_IDS.filter((modId, idx, all) => {
   if (all.indexOf(modId) !== idx) return false;
   return mods.some((mod) => mod.id === modId);
 });
+
+$: modsById = mods.reduce((acc, mod) => {
+  acc.set(mod.id, mod);
+  return acc;
+}, new Map<string, ModInfo>());
+
+$: {
+  const normalizedSelection = resolveSelectionWithDependencies(
+    draftSelectedModIds,
+    modsById,
+  );
+  if (!arraysEqual(normalizedSelection, draftSelectedModIds)) {
+    draftSelectedModIds = normalizedSelection;
+  }
+}
 
 $: syncBodyClass(open);
 
@@ -181,6 +212,10 @@ onDestroy(() => {
                         {#if modDescription(mod)}
                           <span class="mod-description"
                             >{modDescription(mod)}</span>
+                        {/if}
+                        {#if modDependencies(mod)}
+                          <span class="mod-dependencies"
+                            >{modDependencies(mod)}</span>
                         {/if}
                       </span>
                     </label>
@@ -376,6 +411,14 @@ onDestroy(() => {
   color: var(--cata-color-gray);
   font-size: 0.84rem;
   line-height: 1.35;
+}
+
+.mod-dependencies {
+  color: var(--cata-color-dark_gray);
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.78rem;
+  line-height: 1.3;
 }
 
 .mods-state {

@@ -30,6 +30,8 @@ import type {
   MapgenValue,
   ModData,
   ModInfo,
+  Monster,
+  MonsterGroup,
   OvermapSpecial,
   PaletteData,
   QualityRequirement,
@@ -41,12 +43,11 @@ import type {
   Translation,
   UseFunction,
   Vehicle,
-  Monster,
-  MonsterGroup,
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
 import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
+
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
@@ -3084,4 +3085,34 @@ export function omsName(data: CBNData, oms: OvermapSpecial): string {
     }
   }
   return oms.id;
+}
+
+export function resolveSelectionWithDependencies(
+  selectedIds: string[],
+  modsById: Map<string, ModInfo>,
+): string[] {
+  const ordered: string[] = [];
+  const visited = new Set<string>();
+  const stack = new Set<string>();
+
+  function visit(modId: string): void {
+    if (visited.has(modId) || stack.has(modId)) return;
+    const mod = modsById.get(modId);
+    if (!mod) return;
+
+    stack.add(modId);
+    for (const depId of mod.dependencies) {
+      visit(depId);
+    }
+    stack.delete(modId);
+
+    visited.add(modId);
+    ordered.push(modId);
+  }
+
+  for (const modId of selectedIds) {
+    visit(modId);
+  }
+
+  return ordered;
 }

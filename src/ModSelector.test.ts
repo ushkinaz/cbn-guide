@@ -48,6 +48,14 @@ const testMods: ModInfo[] = [
     category: "total_conversion",
     dependencies: ["bn"],
   },
+  {
+    type: "MOD_INFO",
+    id: "arcana",
+    name: "Arcana",
+    description: "Adds arcane tech",
+    category: "content",
+    dependencies: ["aftershock"],
+  },
 ];
 
 afterEach(() => {
@@ -56,7 +64,7 @@ afterEach(() => {
 
 describe("ModSelector", () => {
   test("checks currently selected mods when opened", () => {
-    const { getByLabelText, getByText } = render(ModSelector, {
+    const { getAllByText, getByLabelText, getByText } = render(ModSelector, {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
@@ -72,6 +80,8 @@ describe("ModSelector", () => {
     expect((getByLabelText("Magiclysm") as HTMLInputElement).checked).toBe(
       false,
     );
+    expect(getAllByText("Depends on: bn")).toHaveLength(2);
+    expect(getByText("Depends on: aftershock")).toBeTruthy();
   });
 
   test("closes on Escape and applies ordered mod ids", async () => {
@@ -126,6 +136,33 @@ describe("ModSelector", () => {
 
     await fireEvent.click(getByText("Apply and Reload"));
     expect(applied).toEqual([]);
+  });
+
+  test("selecting mod auto-selects dependencies", async () => {
+    const { component, getByLabelText, getByText } = render(ModSelector, {
+      open: true,
+      mods: testMods,
+      selectedModIds: [],
+      loading: false,
+      errorMessage: null,
+    });
+
+    let applied: string[] | null = null;
+    component.$on("apply", (event) => {
+      applied = event.detail;
+    });
+
+    await fireEvent.click(getByLabelText("Arcana"));
+    await waitFor(() =>
+      expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
+        true,
+      ),
+    );
+    expect((getByLabelText("Arcana") as HTMLInputElement).checked).toBe(true);
+    await waitFor(() => expect(getByText("Selected: 2")).toBeTruthy());
+
+    await fireEvent.click(getByText("Apply and Reload"));
+    expect(applied).toEqual(["aftershock", "arcana"]);
   });
 
   test("default selects game default mods that are available", async () => {
