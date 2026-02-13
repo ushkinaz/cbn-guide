@@ -20,7 +20,6 @@ import ItemTable from "./item/ItemTable.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 
 const _context = "Monster";
-
 export let item: Monster;
 
 let data = getContext<CBNData>("data");
@@ -391,8 +390,8 @@ for (const group of sortedGroups) {
   <ItemLink type="monster" id={item.id} link={false} showIcon={false} />
 </h1>
 <section class="monster-header">
-  <div class="stats-grid">
-    <div class="stats-column">
+  <div class="monster-header-layout">
+    <div class="monster-header-data">
       <dl>
         {#if item.bodytype}
           <dt>{t("Body Type", { _context })}</dt>
@@ -426,13 +425,15 @@ for (const group of sortedGroups) {
           {/each}
         </dd>
       </dl>
+      {#if item.description}
+        <p class="monster-description">{singular(item.description)}</p>
+      {/if}
     </div>
-    <div class="monster-image">
-      <ItemSymbol {item} width={64} height={64} />
-    </div>
-    {#if item.description}
-      <p class="monster-description">{singular(item.description)}</p>
-    {/if}
+    <aside class="monster-stage" aria-label={t("Monster Sprite", { _context })}>
+      <div class="monster-stage__sprite">
+        <ItemSymbol {item} width={64} height={64} />
+      </div>
+    </aside>
   </div>
 </section>
 <Spoiler spoily={item.id === "mon_dragon_dummy"}>
@@ -562,7 +563,9 @@ for (const group of sortedGroups) {
         <dd>
           <ul class="comma-separated">
             {#each item.flags ?? [] as flag}
-              <li><abbr title={mon_flag_descriptions[flag]}>{flag}</abbr></li>
+              <li>
+                <abbr title={mon_flag_descriptions[flag]}>{flag}</abbr>
+              </li>
             {/each}
           </ul>
         </dd>
@@ -676,49 +679,60 @@ for (const group of sortedGroups) {
   color: hsl(350deg 70% 60%);
 }
 
-.monster-header {
-  padding: 1em;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1em;
-  align-items: start;
-}
-
-.stats-column {
+.monster-header-layout {
   display: flex;
-  flex-direction: column;
   gap: 1em;
+}
+
+.monster-header-data {
+  flex: 0 1 70%;
+  min-width: 0;
+}
+
+.monster-stage {
+  flex: 1 1 30%;
+  min-width: 180px;
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 3%);
+  border: 1px solid hsl(190deg 100% 20% / 30%);
+  border-radius: 4px;
+  padding: 1em;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.monster-stage__sprite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: contrast(1.1);
 }
 
 .monster-description {
   color: var(--cata-color-gray);
-  margin: 0;
-  grid-column: 1 / -1;
-}
-
-.monster-image {
-  align-self: center;
-  justify-self: center;
-  padding: 32px 32px 8px 8px;
-  filter: contrast(1.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
+  margin: 1em 0 0;
 }
 
 @media (max-width: 600px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
+  .monster-header-layout {
+    flex-direction: column;
   }
 
-  .monster-image {
-    justify-self: center;
-    align-self: center;
+  .monster-stage {
+    order: -1;
+    min-width: 0;
+    min-height: 250px;
+    max-height: 250px;
+    width: 100%;
+    padding: 0.75em;
+    background: rgba(255, 255, 255, 6%);
+  }
+
+  .monster-stage__sprite {
+    transform: scale(0.75);
+    transform-origin: center;
   }
 }
 </style>
