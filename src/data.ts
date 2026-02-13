@@ -753,6 +753,10 @@ export class CBNData {
   mapgenSpawnItems(mapgen: Mapgen): string[] {
     if (this._cachedMapgenSpawnItems.has(mapgen))
       return this._cachedMapgenSpawnItems.get(mapgen)!;
+    if (mapgen.method !== "json") {
+      this._cachedMapgenSpawnItems.set(mapgen, []);
+      return [];
+    }
     const p = perf.mark(`CBNData.mapgenSpawnItems`, true);
     const palette = new Map<string, Set<string>>();
     const add = (c: string, item_id: MapgenValue) => {
