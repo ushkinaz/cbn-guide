@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment happy-dom
  */
 import { render, fireEvent, cleanup, waitFor } from "@testing-library/svelte";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";

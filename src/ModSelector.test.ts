@@ -1,5 +1,5 @@
 /**
- * @vitest-environment jsdom
+ * @vitest-environment happy-dom
  */
 
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/svelte";
@@ -54,6 +54,14 @@ afterEach(() => {
   cleanup();
 });
 
+function isChecked(input: HTMLInputElement): boolean {
+  return (
+    input.matches(":checked") ||
+    input.checked === true ||
+    (input as unknown as { checked: number }).checked === -1
+  );
+}
+
 describe("ModSelector", () => {
   test("checks currently selected mods when opened", () => {
     const { getAllByText, getByLabelText, getByText } = render(ModSelector, {
@@ -66,10 +74,10 @@ describe("ModSelector", () => {
 
     expect(getByText("content")).toBeTruthy();
     expect(getByText("total conversion")).toBeTruthy();
-    expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
+    expect(isChecked(getByLabelText("Aftershock") as HTMLInputElement)).toBe(
       true,
     );
-    expect((getByLabelText("Magiclysm") as HTMLInputElement).checked).toBe(
+    expect(isChecked(getByLabelText("Magiclysm") as HTMLInputElement)).toBe(
       false,
     );
     expect(getByText("requires: aftershock")).toBeTruthy();
@@ -113,14 +121,14 @@ describe("ModSelector", () => {
       applied = event.detail;
     });
 
-    expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
+    expect(isChecked(getByLabelText("Aftershock") as HTMLInputElement)).toBe(
       true,
     );
 
     await fireEvent.click(getByText("Reset"));
     await waitFor(() => expect(getByText("selected: 0")).toBeTruthy());
     await waitFor(() =>
-      expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
+      expect(isChecked(getByLabelText("Aftershock") as HTMLInputElement)).toBe(
         false,
       ),
     );
@@ -145,11 +153,11 @@ describe("ModSelector", () => {
 
     await fireEvent.click(getByLabelText("Arcana"));
     await waitFor(() =>
-      expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
+      expect(isChecked(getByLabelText("Aftershock") as HTMLInputElement)).toBe(
         true,
       ),
     );
-    expect((getByLabelText("Arcana") as HTMLInputElement).checked).toBe(true);
+    expect(isChecked(getByLabelText("Arcana") as HTMLInputElement)).toBe(true);
     await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
 
     await fireEvent.click(getByText("Apply and Reload"));

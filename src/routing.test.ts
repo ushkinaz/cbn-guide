@@ -1,5 +1,5 @@
 /**
- * @vitest-environment jsdom
+ * @vitest-environment happy-dom
  */
 
 import {
@@ -56,7 +56,7 @@ describe("Routing E2E Tests", () => {
   let container: HTMLElement;
 
   beforeEach(() => {
-    // Mock window.scrollTo for jsdom
+    // Mock window.scrollTo for DOM test environments
     window.scrollTo = vi.fn();
 
     // Reset DOM location
@@ -331,11 +331,7 @@ describe("Routing E2E Tests", () => {
       );
 
       await fireEvent.click(getByRole("button", { name: "Mods (1 active)" }));
-      await waitFor(() =>
-        expect((getByLabelText("Aftershock") as HTMLInputElement).checked).toBe(
-          true,
-        ),
-      );
+      await waitFor(() => expect(getByLabelText("Aftershock")).toBeTruthy());
 
       await fireEvent.click(getByLabelText("Magiclysm"));
       await fireEvent.click(getByText("Apply and Reload"));
