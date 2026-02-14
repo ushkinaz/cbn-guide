@@ -1,0 +1,4 @@
+interface:
+  display_name: "Final Cleanup"
+  short_description: "Surgical post-task code cleanup with strict scope."
+  default_prompt: "Use $final-cleanup to perform a final scoped cleanup of code touched in this task without modifying unrelated legacy files."
