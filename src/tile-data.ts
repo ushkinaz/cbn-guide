@@ -1,6 +1,5 @@
 import { writable } from "svelte/store";
 import * as Sentry from "@sentry/browser";
-import { t } from "@transifex/native";
 import type { CBNData } from "./data";
 
 const fetchJson = async (url: string) => {
@@ -81,7 +80,7 @@ async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
     }
   }
 
-  // TypeScript flow analysis - should never reach here
+  // TypeScript flow analysis should never reach here
   throw new Error("Unexpected: retry loop exhausted");
 }
 
@@ -176,7 +175,7 @@ export const getTilesetUrl = (version: string, path: string): string =>
   `https://data.cataclysmbn-guide.com/data/${version}/gfx/${path}`;
 
 export const TILESETS = [
-  //tileinfo prop contains pre-cached data used by initial layouting phase. Is overridden when actual data comes from the server.
+  //tileinfo prop contains pre-cached data used by the initial layouting phase. Is overridden when actual data comes from the server.
   {
     name: "undead_people",
     displayName: "Undead People",
