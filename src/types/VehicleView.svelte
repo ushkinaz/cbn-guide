@@ -1,6 +1,10 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CBNData, getVehiclePartIdAndVariant } from "../data";
+import {
+  CBNData,
+  getVehiclePartIdAndVariant,
+  normalizeVehicleMountedParts,
+} from "../data";
 import type { Vehicle, VehiclePart } from "../types";
 import {
   tileData,
@@ -20,14 +24,6 @@ let minX = Infinity;
 let maxX = -Infinity;
 let minY = Infinity;
 let maxY = -Infinity;
-if (item.parts) {
-  for (const part of item.parts) {
-    if (part.x < minX) minX = part.x;
-    if (part.x > maxX) maxX = part.x;
-    if (part.y < minY) minY = part.y;
-    if (part.y > maxY) maxY = part.y;
-  }
-}
 //https://github.com/cataclysmbn/Cataclysm-BN/blob/1f1f5abf1e5135933fb2bbdbd74194d0e2dc75a8/src/veh_type.cpp#L552
 const zOrder: Record<NonNullable<VehiclePart["location"]>, number> = {
   on_roof: 9,
@@ -59,12 +55,16 @@ type NormalizedPartList = {
   parts: NormalizedPart[];
 };
 
-const normalizedParts: NormalizedPartList[] = (item.parts ?? []).map((part) => {
+const normalizedParts: NormalizedPartList[] = normalizeVehicleMountedParts(
+  item,
+).map((part) => {
+  if (part.x < minX) minX = part.x;
+  if (part.x > maxX) maxX = part.x;
+  if (part.y < minY) minY = part.y;
+  if (part.y > maxY) maxY = part.y;
+
   const parts =
-    (part.part
-      ? [{ part: part.part, fuel: part.fuel }]
-      : part.parts?.map((p) => (typeof p === "string" ? { part: p } : p))
-    )?.map(({ part, fuel }) => {
+    part.parts?.map(({ part, fuel }) => {
       const [partId, variant] = getVehiclePartIdAndVariant(data, part);
       return { partId, variant, fuel };
     }) ?? [];

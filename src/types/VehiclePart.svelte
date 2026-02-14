@@ -8,6 +8,7 @@ import {
   asMinutes,
   CBNData,
   getVehiclePartIdAndVariant,
+  normalizeVehicleMountedParts,
   parseDuration,
   formatPercent,
   singular,
@@ -58,21 +59,17 @@ const breaksIntoGroup: ItemGroupData | null =
 const breaksIntoGroupFlattened =
   breaksIntoGroup && data.flattenItemGroup(breaksIntoGroup);
 
-const vehiclesContainingPart = data.byType("vehicle").filter(
-  (v) =>
-    v.id &&
-    v.parts &&
-    v.parts.some((part) => {
-      const parts = part.part
-        ? [{ part: part.part, fuel: part.fuel }]
-        : (part.parts?.map((part) =>
-            typeof part === "string" ? { part } : part,
-          ) ?? []);
-      return parts.some(
-        (p) => getVehiclePartIdAndVariant(data, p.part)[0] === item.id,
-      );
-    }),
-);
+const vehiclesContainingPart = data
+  .byType("vehicle")
+  .filter(
+    (v) =>
+      v.id &&
+      normalizeVehicleMountedParts(v).some((mountedPart) =>
+        mountedPart.parts.some(
+          (p) => getVehiclePartIdAndVariant(data, p.part)[0] === item.id,
+        ),
+      ),
+  );
 vehiclesContainingPart.sort((a, b) =>
   singularName(a).localeCompare(singularName(b)),
 );

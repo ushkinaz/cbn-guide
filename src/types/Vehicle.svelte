@@ -7,6 +7,7 @@ import {
   CBNData,
   getVehiclePartIdAndVariant,
   itemGroupFromVehicle,
+  normalizeVehicleMountedParts,
   singularName,
 } from "../data";
 import LimitedList from "../LimitedList.svelte";
@@ -22,12 +23,9 @@ export let item: Vehicle;
 const data = getContext<CBNData>("data");
 const _context = "Vehicle";
 
-const normalizedParts = (item.parts ?? []).map((part) => {
+const normalizedParts = normalizeVehicleMountedParts(item).map((part) => {
   const parts =
-    (part.part
-      ? [{ part: part.part, fuel: part.fuel }]
-      : part.parts?.map((part) => (typeof part === "string" ? { part } : part))
-    )?.map(({ part, fuel }) => {
+    part.parts?.map(({ part, fuel }) => {
       const [partId, variant] = getVehiclePartIdAndVariant(data, part);
       return {
         partId,

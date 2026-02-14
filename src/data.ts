@@ -2504,6 +2504,59 @@ export const getVehiclePartIdAndVariant = (
   return [compositePartId, ""];
 };
 
+export type NormalizedVehicleMountedPart = {
+  x: number;
+  y: number;
+  parts: { part: string; fuel?: string }[];
+};
+
+export const normalizeVehicleMountedParts = (
+  vehicle: Vehicle,
+): NormalizedVehicleMountedPart[] => {
+  if (vehicle.parts) {
+    return vehicle.parts.map((part) => ({
+      x: part.x,
+      y: part.y,
+      parts:
+        (part.part
+          ? [{ part: part.part, fuel: part.fuel }]
+          : part.parts?.map((p) =>
+              typeof p === "string" ? { part: p } : p,
+            )) ?? [],
+    }));
+  }
+
+  if (!vehicle.blueprint || !vehicle.palette) return [];
+
+  const origin = vehicle.blueprint_origin ?? { x: 0, y: 0 };
+  const rows = vehicle.blueprint.map((row) =>
+    Array.isArray(row) ? row.join("") : row,
+  );
+  const ret: NormalizedVehicleMountedPart[] = [];
+
+  for (const [rowIndex, row] of rows.entries()) {
+    for (const [colIndex, symbol] of [...row].entries()) {
+      const paletteEntries = vehicle.palette[symbol];
+      if (!paletteEntries) continue;
+
+      const parts = paletteEntries.flatMap((entry) => {
+        if (typeof entry === "string") return [{ part: entry }];
+        const [part] = entry;
+        return typeof part === "string" ? [{ part }] : [];
+      });
+      if (!parts.length) continue;
+
+      ret.push({
+        x: rowIndex - origin.y,
+        y: colIndex - origin.x,
+        parts,
+      });
+    }
+  }
+
+  return ret;
+};
+
 const _itemGroupFromVehicleCache = new Map<Vehicle, ItemGroupData>();
 export function itemGroupFromVehicle(vehicle: Vehicle): ItemGroupData {
   if (_itemGroupFromVehicleCache.has(vehicle))
