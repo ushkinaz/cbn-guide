@@ -6,7 +6,7 @@ This project is a Svelte 4 application that uses Vite 5 for building and Vitest 
 
 ### Prerequisites
 
-- **Node.js**: version 18 or higher, 22 recommended
+- **Node.js**: version 20 or higher, 24 recommended
 - **pnpm**: version 10.x
 - **Python**: version 3.x (Required for Unifont generation).
 

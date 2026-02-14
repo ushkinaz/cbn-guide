@@ -7,7 +7,7 @@
 
 ## Tech Stack
 
-- Node.js: 22
+- Node.js: 24
 - pnpm: 10.x
 - Core: `TypeScript` 5, `Svelte` 4 + `Vite` 5
 - Testing: `vitest`, `puppeteer`

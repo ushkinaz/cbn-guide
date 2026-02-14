@@ -61,7 +61,7 @@
     "@transifex/cli": "^7.1.5",
     "@tsconfig/svelte": "^5.0.6",
     "@types/gettext.js": "^2.0.0",
-    "@types/node": "^22.19.7",
+    "@types/node": "^24.10.13",
     "@types/requestidlecallback": "^0.3.7",
     "ajv": "^8.17.1",
     "esbuild": ">=0.25.0",
