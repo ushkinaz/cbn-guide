@@ -601,8 +601,20 @@ export class CBNData {
     }
 
     for (const monster of monsters) {
-      const monsterCategories = new Set(monster.categories ?? []);
-      const monsterSpecies = new Set(monster.species ?? []);
+      const monsterCategories = new Set(
+        Array.isArray(monster.categories)
+          ? monster.categories
+          : typeof monster.categories === "string"
+            ? [monster.categories]
+            : [],
+      );
+      const monsterSpecies = new Set(
+        Array.isArray(monster.species)
+          ? monster.species
+          : typeof monster.species === "string"
+            ? [monster.species]
+            : [],
+      );
 
       const isWhitelisted =
         explicitWhitelisted.has(monster.id) ||

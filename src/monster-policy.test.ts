@@ -66,6 +66,35 @@ describe("monster policy filtering", () => {
     ).toEqual(["mon_blacklisted_direct", "mon_visible"]);
   });
 
+  test("normalizes string species and categories for policy filtering", () => {
+    const data = new CBNData([
+      {
+        type: "MONSTER",
+        id: "mon_string_species",
+        species: "FUNGUS", // as string
+      },
+      {
+        type: "MONSTER",
+        id: "mon_string_category",
+        categories: "WILDLIFE", // as string
+      },
+      {
+        type: "MONSTER_BLACKLIST",
+        species: ["FUNGUS"],
+      },
+      {
+        type: "MONSTER_WHITELIST",
+        mode: "EXCLUSIVE",
+        categories: ["WILDLIFE"],
+      },
+    ]);
+
+    // mon_string_species is blacklisted by species FUNGUS
+    expect(data.byIdMaybe("monster", "mon_string_species")).toBeUndefined();
+    // mon_string_category is whitelisted by category WILDLIFE (and it's EXCLUSIVE mode)
+    expect(data.byIdMaybe("monster", "mon_string_category")).toBeDefined();
+  });
+
   test("blocks alias lookup for hidden monsters", () => {
     const data = new CBNData([
       {
