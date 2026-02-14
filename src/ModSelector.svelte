@@ -1,9 +1,14 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { createEventDispatcher, onDestroy } from "svelte";
-import type { ModInfo, Translation } from "./types";
+import type {
+  ModData,
+  ModInfo,
+  SupportedTypesWithMapped,
+  Translation,
+} from "./types";
+import { mapType, resolveSelectionWithDependencies } from "./data";
 import { cleanText } from "./utils/format";
-import { resolveSelectionWithDependencies } from "./data";
 
 const MOD_SELECTOR_CONTEXT = "Mod selector";
 
@@ -26,6 +31,7 @@ const DEFAULT_MOD_IDS = [
 
 export let open = false;
 export let mods: ModInfo[] = [];
+export let rawModsJson: Record<string, ModData> = {};
 export let selectedModIds: string[] = [];
 export let loading = false;
 export let errorMessage: string | null = null;
@@ -76,6 +82,70 @@ function modDependencies(mod: ModInfo): string {
     dependencies: nonCoreDependencies.join(", "),
     _context: MOD_SELECTOR_CONTEXT,
   });
+}
+
+const LOCATION_RELATED_TYPES = new Set<string>([
+  "overmap_connection",
+  "overmap_location",
+  "overmap_terrain",
+  "start_location",
+]);
+
+type ModContentCounts = {
+  items: number;
+  monsters: number;
+  mutations: number;
+  locations: number;
+};
+
+type ModContentStat = {
+  label: string;
+  value: number;
+};
+
+const MOD_STAT_LABELS = {
+  items: t("items", { _context: MOD_SELECTOR_CONTEXT }),
+  monsters: t("monsters", { _context: MOD_SELECTOR_CONTEXT }),
+  mutations: t("mutations", { _context: MOD_SELECTOR_CONTEXT }),
+  locations: t("locations", { _context: MOD_SELECTOR_CONTEXT }),
+} as const;
+
+function deriveModContentCounts(rawData: unknown[]): ModContentCounts {
+  let items = 0;
+  let monsters = 0;
+  let mutations = 0;
+  let locations = 0;
+
+  for (const entry of rawData) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const rawType =
+      "type" in entry && typeof (entry as { type?: unknown }).type === "string"
+        ? (entry as { type: string }).type
+        : null;
+    if (!rawType) continue;
+
+    const mappedType = mapType(rawType as keyof SupportedTypesWithMapped);
+    if (mappedType === "item" && rawType !== "item") items += 1;
+    if (mappedType === "monster") monsters += 1;
+    if (mappedType === "mutation") mutations += 1;
+    if (mappedType === "overmap_special" || LOCATION_RELATED_TYPES.has(rawType))
+      locations += 1;
+  }
+
+  return { items, monsters, mutations, locations };
+}
+
+function toVisibleStats(counts: ModContentCounts): ModContentStat[] {
+  const stats: ModContentStat[] = [];
+  if (counts.items > 0)
+    stats.push({ label: MOD_STAT_LABELS.items, value: counts.items });
+  if (counts.monsters > 0)
+    stats.push({ label: MOD_STAT_LABELS.monsters, value: counts.monsters });
+  if (counts.mutations > 0)
+    stats.push({ label: MOD_STAT_LABELS.mutations, value: counts.mutations });
+  if (counts.locations > 0)
+    stats.push({ label: MOD_STAT_LABELS.locations, value: counts.locations });
+  return stats;
 }
 
 function close(): void {
@@ -141,6 +211,12 @@ $: availableDefaultModIds = DEFAULT_MOD_IDS.filter((modId, idx, all) => {
   if (all.indexOf(modId) !== idx) return false;
   return mods.some((mod) => mod.id === modId);
 });
+
+$: modContentStatsById = mods.reduce((acc, mod) => {
+  const rawData = rawModsJson[mod.id]?.data ?? [];
+  acc.set(mod.id, toVisibleStats(deriveModContentCounts(rawData)));
+  return acc;
+}, new Map<string, ModContentStat[]>());
 
 $: modsById = mods.reduce((acc, mod) => {
   acc.set(mod.id, mod);
@@ -219,6 +295,7 @@ onDestroy(() => {
               <h3>{category}</h3>
               <ul>
                 {#each categoryMods as mod}
+                  {@const contentStats = modContentStatsById.get(mod.id) ?? []}
                   <li>
                     <label class="mod-row">
                       <input
@@ -227,17 +304,32 @@ onDestroy(() => {
                         value={mod.id}
                         aria-label={modDisplayName(mod)} />
                       <span class="mod-body">
-                        <span class="mod-line">
-                          <span class="mod-name">{modDisplayName(mod)}</span>
-                          <span class="mod-id">[{mod.id}]</span>
+                        <span class="mod-main">
+                          <span class="mod-line">
+                            <span class="mod-name">{modDisplayName(mod)}</span>
+                            <span class="mod-id">[{mod.id}]</span>
+                          </span>
+                          {#if modDescription(mod)}
+                            <span class="mod-description"
+                              >{modDescription(mod)}</span>
+                          {/if}
+                          {#if modDependencies(mod)}
+                            <span class="mod-dependencies"
+                              >{modDependencies(mod)}</span>
+                          {/if}
                         </span>
-                        {#if modDescription(mod)}
-                          <span class="mod-description"
-                            >{modDescription(mod)}</span>
-                        {/if}
-                        {#if modDependencies(mod)}
-                          <span class="mod-dependencies"
-                            >{modDependencies(mod)}</span>
+                        {#if contentStats.length > 0}
+                          <span
+                            class={`mod-stats mod-stats-count-${contentStats.length}`}>
+                            {#each contentStats as stat}
+                              <span class="mod-stat">
+                                <span class="mod-stat-label"
+                                  >{stat.label}:</span>
+                                <span class="mod-stat-value"
+                                  >{stat.value.toLocaleString()}</span>
+                              </span>
+                            {/each}
+                          </span>
                         {/if}
                       </span>
                     </label>
@@ -405,9 +497,17 @@ onDestroy(() => {
 }
 
 .mod-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem 1rem;
+  align-items: flex-start;
+}
+
+.mod-main {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  min-width: 0;
 }
 
 .mod-line {
@@ -440,6 +540,35 @@ onDestroy(() => {
     "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
   font-size: 0.78rem;
   line-height: 1.3;
+}
+
+.mod-stats {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  justify-content: end;
+  align-content: start;
+  column-gap: 0.45rem;
+  row-gap: 0.1rem;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--cata-color-dark_gray);
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.mod-stat {
+  display: contents;
+}
+
+.mod-stat-label {
+  text-align: right;
+  color: var(--cata-color-gray);
+}
+
+.mod-stat-value {
+  color: var(--cata-color-cyan);
 }
 
 .mods-state {
@@ -529,7 +658,7 @@ onDestroy(() => {
   cursor: not-allowed;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 600px) {
   .mods-overlay {
     padding: 0.65rem;
   }
@@ -563,9 +692,43 @@ onDestroy(() => {
   .mods-actions-main button {
     width: 100%;
   }
+
+  .mod-body {
+    grid-template-columns: 1fr;
+  }
+
+  .mod-stats {
+    justify-content: start;
+    justify-self: end;
+    text-align: right;
+    white-space: normal;
+    grid-template-columns: repeat(4, minmax(0, max-content));
+    column-gap: 0.75rem;
+    row-gap: 0.2rem;
+  }
+
+  .mod-stats.mod-stats-count-1 {
+    grid-template-columns: repeat(2, minmax(0, max-content));
+  }
+
+  .mod-stats.mod-stats-count-2 {
+    grid-template-columns: repeat(4, minmax(0, max-content));
+  }
+
+  .mod-stats.mod-stats-count-3 {
+    grid-template-columns: repeat(6, minmax(0, max-content));
+  }
+
+  .mod-stats.mod-stats-count-4 {
+    grid-template-columns: repeat(4, minmax(0, max-content));
+  }
+
+  .mod-stat {
+    display: contents;
+  }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 600px) {
   .mods-actions-buttons {
     grid-template-columns: 1fr;
   }

@@ -210,4 +210,34 @@ describe("ModSelector", () => {
     await fireEvent.click(getByText("Apply and Reload"));
     expect(applied).toEqual(["no_npc_food", "cbm_slots"]);
   });
+
+  test("renders mod content stats and skips missing categories", () => {
+    const modsWithStats: ModInfo[] = [{ ...testMods[2] }];
+    const rawModsJson = {
+      aftershock: {
+        info: testMods[2],
+        data: [
+          ...Array.from({ length: 22 }, () => ({ type: "GENERIC" })),
+          { type: "MONSTER" },
+          ...Array.from({ length: 700 }, () => ({ type: "overmap_terrain" })),
+        ],
+      },
+    };
+    const { getByText, queryByText } = render(ModSelector, {
+      open: true,
+      mods: modsWithStats,
+      rawModsJson,
+      selectedModIds: [],
+      loading: false,
+      errorMessage: null,
+    });
+
+    expect(getByText("items:")).toBeTruthy();
+    expect(getByText("monsters:")).toBeTruthy();
+    expect(getByText("locations:")).toBeTruthy();
+    expect(queryByText("mutations:")).toBeNull();
+    expect(getByText("22")).toBeTruthy();
+    expect(getByText("1")).toBeTruthy();
+    expect(getByText("700")).toBeTruthy();
+  });
 });

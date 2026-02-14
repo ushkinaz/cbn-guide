@@ -581,6 +581,7 @@ $: canonicalUrl = buildUrl(
 <ModSelector
   open={isModSelectorOpen}
   mods={$data?.mods ?? []}
+  rawModsJson={$data?.raw_mods_json ?? {}}
   selectedModIds={$page.route.mods}
   loading={isModSelectorLoading}
   errorMessage={modSelectorError}
