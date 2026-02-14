@@ -637,7 +637,7 @@ for (const group of sortedGroups) {
   {#if harvest && (harvest.entries ?? []).length}
     <section>
       <h1>{t("Butchering Results", { _context })}</h1>
-      <ul>
+      <ul class="no-bullets">
         {#each harvest.entries as harvest_entry}
           {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
             {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
