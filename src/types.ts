@@ -9,6 +9,25 @@ export type Translation =
   | { str: string; str_pl?: string }
   | { str_sp: string };
 
+export type ModInfo = {
+  type: "MOD_INFO";
+  id: string;
+  name: Translation;
+  description: Translation;
+  category: Translation;
+  dependencies: string[];
+  core?: boolean;
+  obsolete?: boolean;
+  license?: string | string[];
+  maintainers?: string[];
+  path?: string;
+};
+
+export type ModData = {
+  info: ModInfo;
+  data: unknown[];
+};
+
 export type ItemGroupEntry = (
   | { item: string }
   | { group: string }
@@ -141,7 +160,10 @@ export type Recipe = {
 
   skill_used?: string; // skill_id
 
-  skills_required?: [string, number] | [string, number][]; // skill_id, level
+  // Flat array format: [skill1, level1, skill2, level2, ...]
+  // OR single pair: [skill, level]
+  // OR array of pairs: [[skill1, level1], [skill2, level2], ...]
+  skills_required?: [string, number] | [string, number][] | (string | number)[];
 
   autolearn?: boolean | [string, number][];
   never_learn?: boolean;
@@ -1911,43 +1933,67 @@ export type Spell = {
   description: Translation;
 };
 
-export type OvermapSpecial = {
+// Common properties for all OvermapSpecial types
+type OvermapSpecialBase = {
   id: string;
   type: "overmap_special" | "city_building";
   flags?: string[];
   locations?: string[];
-} & (
-  | {
-      subtype?: "fixed"; // default fixed
-      overmaps?: {
-        point: [integer, integer, integer];
-        overmap?: string;
-        flags?: string[];
-        locations?: string[];
-      }[];
+};
+
+// Fixed subtype: overmaps is an array with point coordinates
+type OvermapSpecialFixed = OvermapSpecialBase & {
+  subtype?: "fixed"; // default "fixed" when omitted
+  overmaps?: {
+    point: [integer, integer, integer];
+    overmap?: string;
+    flags?: string[];
+    locations?: string[];
+  }[];
+};
+
+// Mutable subtype: overmaps is an object (key-value mapping)
+type OvermapSpecialMutable = OvermapSpecialBase & {
+  subtype: "mutable";
+  overmaps?: Record<
+    string,
+    {
+      overmap?: string;
+      above?: string | { id: string; type: string };
+      below?: string;
+      north?: string | { id: string; type: string };
+      east?: string | { id: string; type: string };
+      south?: string | { id: string; type: string };
+      west?: string | { id: string; type: string };
+      connections?: Record<string, unknown>;
+      locations?: string[];
     }
-  | { subtype: "mutable" }
-);
+  >;
+};
+
+// Discriminated union
+export type OvermapSpecial = OvermapSpecialFixed | OvermapSpecialMutable;
 
 export type Mutation = {
   id: string;
   type: "mutation";
-  name: Translation;
-  description: Translation;
-  points: integer;
+  name?: Translation;
+  //description is not actually optional, but some mods copy-from descriptions. See issue #92ß
+  description?: Translation;
+  points?: integer;
   mixed_effect?: boolean;
   profession?: boolean;
   purifiable?: boolean; // default: true
   visibility?: integer; // default: 0
   ugliness?: integer; // default: 0
 
-  prereqs?: string[];
-  prereqs2?: string[];
-  threshreq?: string[];
-  category?: string[];
-  leads_to?: string[];
-  changes_to?: string[];
-  cancels?: string[];
+  prereqs?: string | string[];
+  prereqs2?: string | string[];
+  threshreq?: string | string[];
+  category?: string | string[];
+  leads_to?: string | string[];
+  changes_to?: string | string[];
+  cancels?: string | string[];
 
   types?: string[];
 
@@ -1981,7 +2027,9 @@ export type Vehicle = {
   type: "vehicle";
   name: Translation;
   blueprint?: string[][] | string[];
-  parts: {
+  blueprint_origin?: { x: integer; y: integer };
+  palette?: Record<string, (string | string[])[]>;
+  parts?: {
     x: integer;
     y: integer;
     parts?: (string | { part: string; fuel?: string })[];
@@ -2091,7 +2139,7 @@ export type Bionic = {
   is_remote_fueled?: boolean;
 
   known_ma_styles?: string[];
-  learned_spells?: Record<string, number>;
+  learned_spells?: Record<string, number> | [string, number][];
   learned_proficiencies?: string[];
   canceled_mutations?: string[];
   mutation_conflicts?: string[];

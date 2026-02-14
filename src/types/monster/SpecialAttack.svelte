@@ -7,7 +7,7 @@ export let special_attack: SpecialAttack;
 </script>
 
 {#if Array.isArray(special_attack)}
-  {special_attack[0]}{#if special_attack.length > 1}{" "}(cooldown: {special_attack[1]}){/if}
+  {special_attack[0]}{#if special_attack[1] !== undefined}{" "}(cooldown: {special_attack[1]}){/if}
 {:else if "type" in special_attack}
   {#if special_attack.type === "gun"}
     <GunAttack attack={special_attack} />

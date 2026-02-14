@@ -3,11 +3,12 @@
  *
  * ARCHITECTURE:
  * - **Singleton pattern**: CBNData instantiated ONCE per page load, never mutates
- * - **Full page reload**: Version/language/tileset changes trigger location.href reload (see routing.md)
+ * - **Full page reload**: Version/language/tileset/mod changes trigger location.href reload (see routing.md, ADR-002)
+ * - **Incremental Mod Resolution**: Mods are resolved via top-to-bottom unfurling during flattening (see ADR-003)
  * - **Immutable after construction**: All data frozen after initial load (~30MB, 30K+ objects)
  * - **Caching**: Maps/WeakMaps never need invalidation - data lifetime = page lifetime
  *
- * This design is intentional - changing versions requires loading completely different JSON.
+ * This design is intentional - changing versions or mods requires loading completely different JSON.
  */
 import { writable } from "svelte/store";
 import makeI18n, { type Gettext } from "gettext.js";
@@ -27,6 +28,10 @@ import type {
   ItemGroupEntry,
   Mapgen,
   MapgenValue,
+  ModData,
+  ModInfo,
+  Monster,
+  MonsterGroup,
   OvermapSpecial,
   PaletteData,
   QualityRequirement,
@@ -41,7 +46,8 @@ import type {
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
-import { formatKg, formatL, stripColorTags } from "./utils/format";
+import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
+
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
@@ -96,10 +102,12 @@ const needsPlural = [
 ];
 
 function getMsgId(t: Translation) {
+  if (t == null) return "";
   return typeof t === "string" ? t : "str_sp" in t ? t.str_sp : t.str;
 }
 
 function getMsgIdPlural(t: Translation): string {
+  if (t == null) return "";
   return typeof t === "string"
     ? t + "s"
     : "str_sp" in t
@@ -287,11 +295,33 @@ export class CBNData {
   _byType: Map<string, any[]> = new Map();
   _byTypeById: Map<string, Map<string, any>> = new Map();
   _abstractsByType: Map<string, Map<string, any>> = new Map();
+  _overrides: Map<any, any> = new Map();
   _toolReplacements: Map<string, string[]> = new Map();
   _craftingPseudoItems: Map<string, string> = new Map();
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
+  /** Memoized direct touching mods keyed by mapped type + provenance key. */
+  _directModsByTypeByIdCache: Map<
+    keyof SupportedTypesWithMapped,
+    Map<string, ModInfo[]>
+  > = new Map();
+  /**
+   * Memoized contributing mods for concrete objects keyed by mapped type + id.
+   * Unlike `_directModsByTypeByIdCache`, this includes all mods in the resolved
+   * `copy-from` chain (parents first, then current object).
+   */
+  _contributingModsByTypeByIdCache: Map<
+    keyof SupportedTypesWithMapped,
+    Map<string, ModInfo[]>
+  > = new Map();
+  /**
+   * Precomputed visibility for monsters after applying MONSTER_BLACKLIST /
+   * MONSTER_WHITELIST policy objects from the merged dataset.
+   *
+   * @internal
+   */
+  _monsterVisibilityById: Map<string, boolean> = new Map();
 
   release: any;
   /** Concrete build number from the game data (e.g., "v0.9.1") */
@@ -302,6 +332,12 @@ export class CBNData {
   effective_locale: string;
   /** Locale originally requested by the user */
   requested_locale: string;
+  /** Ordered non-core mod metadata. null means metadata wasn't fetched yet. */
+  mods: ModInfo[] | null;
+  /** Ordered active non-core mod ids. null means metadata wasn't fetched yet. */
+  active_mods: string[] | null;
+  /** Full all_mods.json payload keyed by mod id. null means metadata wasn't fetched yet. */
+  raw_mods_json: Record<string, ModData> | null;
 
   /**
    * @param raw Raw game data objects
@@ -318,6 +354,9 @@ export class CBNData {
     fetching_version?: string,
     effective_locale: string = "en",
     requested_locale: string = "en",
+    mods: ModInfo[] | null = null,
+    active_mods: string[] | null = null,
+    raw_mods_json: Record<string, ModData> | null = null,
   ) {
     const p = perf.mark("CBNData.constructor");
 
@@ -326,6 +365,9 @@ export class CBNData {
     this.fetching_version = fetching_version;
     this.effective_locale = effective_locale;
     this.requested_locale = requested_locale;
+    this.mods = mods;
+    this.active_mods = active_mods;
+    this.raw_mods_json = raw_mods_json;
     // For some reason O—G has the string "mapgen" as one of its objects.
     this._raw = raw.filter((x) => typeof x === "object");
     for (const obj of raw) {
@@ -343,9 +385,14 @@ export class CBNData {
       if (Object.hasOwnProperty.call(obj, "id")) {
         if (!this._byTypeById.has(mappedType))
           this._byTypeById.set(mappedType, new Map());
-        if (typeof obj.id === "string")
-          this._byTypeById.get(mappedType)!.set(obj.id, obj);
-        else if (Array.isArray(obj.id))
+        if (typeof obj.id === "string") {
+          const byTypeById = this._byTypeById.get(mappedType)!;
+          const previous = byTypeById.get(obj.id);
+          if (previous) {
+            this._overrides.set(obj, previous);
+          }
+          byTypeById.set(obj.id, obj);
+        } else if (Array.isArray(obj.id))
           for (const id of obj.id)
             this._byTypeById.get(mappedType)!.set(id, obj);
 
@@ -378,6 +425,13 @@ export class CBNData {
       if (Object.hasOwnProperty.call(obj, "abstract")) {
         if (!this._abstractsByType.has(mappedType))
           this._abstractsByType.set(mappedType, new Map());
+        // Track previous abstract if it exists (mod override pattern)
+        const previous = this._abstractsByType
+          .get(mappedType)!
+          .get(obj.abstract);
+        if (previous) {
+          this._overrides.set(obj, previous);
+        }
         this._abstractsByType.get(mappedType)!.set(obj.abstract, obj);
       }
 
@@ -405,7 +459,200 @@ export class CBNData {
     this._byTypeById
       .get("item_group")
       ?.set("EMPTY_GROUP", { id: "EMPTY_GROUP", entries: [] });
+    this._indexMonsterVisibilityPolicy();
     p.finish();
+  }
+
+  _collectStringArrayValues(
+    obj: Record<string, unknown>,
+    key: string,
+  ): string[] {
+    const value = obj[key];
+    if (!Array.isArray(value)) return [];
+    return value.filter((x): x is string => typeof x === "string");
+  }
+
+  _resolveMonstersFromGroup(
+    groupId: string,
+    cache: Map<string, Set<string>>,
+    stack: Set<string> = new Set(),
+  ): Set<string> {
+    const cached = cache.get(groupId);
+    if (cached) return cached;
+    if (stack.has(groupId)) return new Set();
+    stack.add(groupId);
+
+    const result = new Set<string>();
+    const group = this.byIdMaybe("monstergroup", groupId) as
+      | (MonsterGroup & { __filename: string })
+      | undefined;
+
+    if (group) {
+      if (typeof group.default === "string") result.add(group.default);
+      for (const entry of group.monsters ?? []) {
+        if (typeof entry.monster === "string") result.add(entry.monster);
+        if (typeof entry.group === "string") {
+          for (const member of this._resolveMonstersFromGroup(
+            entry.group,
+            cache,
+            stack,
+          )) {
+            result.add(member);
+          }
+        }
+      }
+    }
+
+    stack.delete(groupId);
+    cache.set(groupId, result);
+    return result;
+  }
+
+  /**
+   * Indexes `MONSTER_BLACKLIST` and `MONSTER_WHITELIST` objects to compute
+   * a final visibility map for all monsters.
+   *
+   * Logic:
+   * 1. Collects all explicit IDs, Species, and Categories from policy objects.
+   * 2. Resolves monster groups to individual monster IDs.
+   * 3. Iterates over all monsters and determines visibility based on:
+   *    - WHITELIST (if present): defaults to visible unless EXCLUSIVE mode.
+   *    - BLACKLIST: overrides default visibility.
+   *
+   * This is called once during data construction.
+   *
+   * @internal
+   */
+  _indexMonsterVisibilityPolicy(): void {
+    const allMonsterRows = this._byType.get("monster") ?? [];
+    if (allMonsterRows.length === 0) return;
+
+    const monsters: Monster[] = allMonsterRows
+      .map((raw) => this._flatten(raw) as Monster)
+      .filter((monster) => typeof monster.id === "string");
+    if (monsters.length === 0) return;
+
+    const blacklists = this._byType.get("MONSTER_BLACKLIST") ?? [];
+    const whitelists = this._byType.get("MONSTER_WHITELIST") ?? [];
+
+    const explicitBlacklisted = new Set<string>();
+    const blacklistedSpecies = new Set<string>();
+    const blacklistedCategories = new Set<string>();
+
+    const explicitWhitelisted = new Set<string>();
+    const whitelistedSpecies = new Set<string>();
+    const whitelistedCategories = new Set<string>();
+
+    let hasExclusiveWhitelist = false;
+
+    for (const raw of blacklists) {
+      if (typeof raw !== "object" || raw === null) continue;
+      const policy = raw as Record<string, unknown>;
+      for (const id of this._collectStringArrayValues(policy, "monsters")) {
+        explicitBlacklisted.add(id);
+      }
+      for (const species of this._collectStringArrayValues(policy, "species")) {
+        blacklistedSpecies.add(species);
+      }
+      for (const category of this._collectStringArrayValues(
+        policy,
+        "categories",
+      )) {
+        blacklistedCategories.add(category);
+      }
+    }
+
+    for (const raw of whitelists) {
+      if (typeof raw !== "object" || raw === null) continue;
+      const policy = raw as Record<string, unknown>;
+      if (typeof policy.mode === "string" && policy.mode === "EXCLUSIVE") {
+        hasExclusiveWhitelist = true;
+      }
+      for (const id of this._collectStringArrayValues(policy, "monsters")) {
+        explicitWhitelisted.add(id);
+      }
+      for (const species of this._collectStringArrayValues(policy, "species")) {
+        whitelistedSpecies.add(species);
+      }
+      for (const category of this._collectStringArrayValues(
+        policy,
+        "categories",
+      )) {
+        whitelistedCategories.add(category);
+      }
+    }
+
+    const groupCache = new Map<string, Set<string>>();
+    const blacklistedViaGroups = new Set<string>();
+    const whitelistedViaGroups = new Set<string>();
+    const monsterGroupIds = this._byTypeById.get("monstergroup");
+
+    for (const category of blacklistedCategories) {
+      if (!monsterGroupIds?.has(category)) continue;
+      for (const id of this._resolveMonstersFromGroup(category, groupCache)) {
+        blacklistedViaGroups.add(id);
+      }
+    }
+    for (const category of whitelistedCategories) {
+      if (!monsterGroupIds?.has(category)) continue;
+      for (const id of this._resolveMonstersFromGroup(category, groupCache)) {
+        whitelistedViaGroups.add(id);
+      }
+    }
+
+    for (const monster of monsters) {
+      const monsterCategories = new Set(
+        Array.isArray(monster.categories)
+          ? monster.categories
+          : typeof monster.categories === "string"
+            ? [monster.categories]
+            : [],
+      );
+      const monsterSpecies = new Set(
+        Array.isArray(monster.species)
+          ? monster.species
+          : typeof monster.species === "string"
+            ? [monster.species]
+            : [],
+      );
+
+      const isWhitelisted =
+        explicitWhitelisted.has(monster.id) ||
+        whitelistedViaGroups.has(monster.id) ||
+        [...monsterSpecies].some((species) =>
+          whitelistedSpecies.has(species),
+        ) ||
+        [...monsterCategories].some((category) =>
+          whitelistedCategories.has(category),
+        );
+
+      const isBlacklisted =
+        explicitBlacklisted.has(monster.id) ||
+        blacklistedViaGroups.has(monster.id) ||
+        [...monsterSpecies].some((species) =>
+          blacklistedSpecies.has(species),
+        ) ||
+        [...monsterCategories].some((category) =>
+          blacklistedCategories.has(category),
+        );
+
+      const isVisible = hasExclusiveWhitelist
+        ? isWhitelisted
+        : isWhitelisted || !isBlacklisted;
+      this._monsterVisibilityById.set(monster.id, isVisible);
+    }
+  }
+
+  /**
+   * Checks if a monster ID is visible according to the loaded policy.
+   *
+   * @param id The monster ID to check.
+   * @returns true if visible (default), false if blacklisted/not whitelisted.
+   */
+  isMonsterVisible(id: string): boolean {
+    if (typeof id !== "string") return false;
+    const visible = this._monsterVisibilityById.get(id);
+    return visible ?? true;
   }
 
   /**
@@ -429,7 +676,21 @@ export class CBNData {
     if (type === "item" && !byId?.has(id) && this._migrations.has(id))
       return this.byIdMaybe(type, this._migrations.get(id)!);
     const obj = byId?.get(id);
-    if (obj) return this._flatten(obj);
+    if (obj) {
+      const flattened = this._flatten(
+        obj,
+      ) as SupportedTypesWithMapped[TypeName];
+      if (type === "monster") {
+        const canonicalId =
+          typeof (flattened as { id?: unknown }).id === "string"
+            ? ((flattened as { id: string }).id as string)
+            : id;
+        if (!this.isMonsterVisible(canonicalId)) return undefined;
+      }
+      return flattened as SupportedTypesWithMapped[TypeName] & {
+        __filename: string;
+      };
+    }
   }
 
   /**
@@ -460,7 +721,14 @@ export class CBNData {
   byType<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
   ): SupportedTypesWithMapped[TypeName][] {
-    return this._byType.get(type)?.map((x) => this._flatten(x)) ?? [];
+    const flattened =
+      this._byType.get(type)?.map((x) => this._flatten(x)) ?? [];
+    if (type !== "monster") return flattened;
+    return flattened.filter(
+      (monster) =>
+        typeof (monster as { id?: unknown }).id === "string" &&
+        this.isMonsterVisible((monster as { id: string }).id),
+    );
   }
 
   abstractById<TypeName extends keyof SupportedTypesWithMapped>(
@@ -504,21 +772,343 @@ export class CBNData {
     return this._raw;
   }
 
+  /**
+   * Builds the canonical provenance key for a raw object in a mapped type family.
+   *
+   * Important:
+   * - `recipe` / `uncraft` are keyed by `result + optional id_suffix`.
+   * - `monstergroup` is keyed by `name`.
+   * - other families use `id`, falling back to `abstract`.
+   *
+   * This aligns provenance lookups with the same key strategy used by `_byTypeById`
+   * for non-`id` keyed object families.
+   */
+  _provenanceKeyForObject(
+    mappedType: keyof SupportedTypesWithMapped,
+    obj: unknown,
+  ): string | null {
+    if (typeof obj !== "object" || obj === null) return null;
+    const raw = obj as Record<string, unknown>;
+
+    if (mappedType === "recipe" || mappedType === "uncraft") {
+      if (typeof raw.result === "string") {
+        return `${raw.result}${
+          typeof raw.id_suffix === "string" ? `_${raw.id_suffix}` : ""
+        }`;
+      }
+      return typeof raw.abstract === "string" ? raw.abstract : null;
+    }
+
+    if (mappedType === "monstergroup") {
+      return typeof raw.name === "string"
+        ? raw.name
+        : typeof raw.id === "string"
+          ? raw.id
+          : typeof raw.abstract === "string"
+            ? raw.abstract
+            : null;
+    }
+
+    if (typeof raw.id === "string") return raw.id;
+    if (typeof raw.abstract === "string") return raw.abstract;
+    return null;
+  }
+
+  /**
+   * Returns the current raw object for a mapped type + provenance key.
+   * Supports both concrete keyed objects and abstract templates.
+   * Handles item migrations if the key is missing from the main maps.
+   *
+   * ARCHITECTURE: Follows ADR-005 (Robust inheritance: Migrations and Self-Copy Handling)
+   * traversal of migration maps.
+   *
+   * @param mappedType Mapped type family to search in.
+   * @param key Provenance key (identifier or abstract).
+   * @returns The raw game object or null if entries are missing.
+   */
+  _objectForProvenanceKey(
+    mappedType: keyof SupportedTypesWithMapped,
+    key: string,
+  ): Record<string, unknown> | null {
+    // Follow item migrations to the final ID
+    if (
+      mappedType === "item" &&
+      !this._byTypeById.get("item")?.has(key) &&
+      this._migrations.has(key)
+    ) {
+      return this._objectForProvenanceKey("item", this._migrations.get(key)!);
+    }
+
+    return (
+      this._byTypeById.get(mappedType)?.get(key) ??
+      this._abstractsByType.get(mappedType)?.get(key) ??
+      null
+    );
+  }
+
+  /**
+   * Resolves direct touching mods for a mapped type/key by scanning active mods
+   * on demand. This intentionally avoids any constructor-time provenance index.
+   *
+   * ARCHITECTURE: Uses top-down scanning (see docs/adr/003-mod-resolution-path.md and 004-mod-provenance-and-data-origin-tracking.md)
+   */
+  _directModsForTypeIdByScan(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+  ): ModInfo[] {
+    const activeMods = this.active_mods;
+    const rawModsJson = this.raw_mods_json;
+    if (!activeMods || !rawModsJson) return [];
+
+    const directMods: ModInfo[] = [];
+    for (const modId of activeMods) {
+      const modData = rawModsJson[modId];
+      if (!modData) continue;
+
+      let touchesId = false;
+      for (const rawObj of modData.data) {
+        if (typeof rawObj !== "object" || rawObj === null) continue;
+        const candidate = rawObj as Record<string, unknown>;
+        if (typeof candidate.type !== "string") continue;
+
+        const candidateType = mapType(
+          candidate.type as keyof SupportedTypesWithMapped,
+        );
+        if (candidateType !== mappedType) continue;
+
+        if (this._provenanceKeyForObject(candidateType, candidate) === id) {
+          touchesId = true;
+          break;
+        }
+      }
+
+      if (touchesId) directMods.push(modData.info);
+    }
+    return directMods;
+  }
+
+  /**
+   * Returns direct touching mods for a mapped type/id pair using memoized
+   * on-demand scans (no global preindexing).
+   */
+  _directModsForTypeId(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+  ): readonly ModInfo[] {
+    if (!this._directModsByTypeByIdCache.has(mappedType)) {
+      this._directModsByTypeByIdCache.set(mappedType, new Map());
+    }
+    const byId = this._directModsByTypeByIdCache.get(mappedType)!;
+    const cached = byId.get(id);
+    if (cached) return cached;
+
+    const mods = this._directModsForTypeIdByScan(mappedType, id);
+    byId.set(id, mods);
+    return mods;
+  }
+
+  /**
+   * Merges parent-chain and current-node mod lists while preserving order and
+   * uniqueness by mod id.
+   *
+   * @param inherited Contributing mods from parent chain.
+   * @param current Direct touching mods of the current object node.
+   * @returns Ordered, unique merged mod list.
+   */
+  _mergeUniqueMods(
+    inherited: readonly ModInfo[],
+    current: readonly ModInfo[],
+  ): ModInfo[] {
+    if (inherited.length === 0) return [...current];
+    if (current.length === 0) return [...inherited];
+
+    const merged: ModInfo[] = [...inherited];
+    const seen = new Set(inherited.map((mod) => mod.id));
+    for (const mod of current) {
+      if (seen.has(mod.id)) continue;
+      seen.add(mod.id);
+      merged.push(mod);
+    }
+    return merged;
+  }
+
+  /** Clears memoized provenance caches when mod metadata changes. */
+  _clearModProvenanceCaches(): void {
+    this._directModsByTypeByIdCache.clear();
+    this._contributingModsByTypeByIdCache.clear();
+  }
+
+  /**
+   * Resolves immediate parent provenance id for a mapped type/id.
+   * Self-copy chains (same id copied from itself across overrides) are collapsed
+   * until a different parent id is found.
+   *
+   * ARCHITECTURE: ADR-005 (Robust inheritance: Migrations and Self-Copy Handling).
+   * Collapses self-referential inheritance chains for clean provenance.
+   *
+   * @param mappedType Mapped type family to search in.
+   * @param id Provenance id (object id or abstract).
+   * @returns Parent mapped type/id pair or null when no parent exists.
+   */
+  _resolveParentTypeIdForModProvenance(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+  ): { mappedType: keyof SupportedTypesWithMapped; id: string } | null {
+    let current = this._objectForProvenanceKey(mappedType, id);
+    if (!current) return null;
+    const currentMappedType = mappedType;
+
+    const seen = new Set<Record<string, unknown>>();
+    while (current) {
+      if (seen.has(current)) return null;
+      seen.add(current);
+
+      const parent = this._resolveCopyFromParent(current);
+      if (!parent) return null;
+      const parentMappedType = mapType(
+        parent.type as keyof SupportedTypesWithMapped,
+      );
+      const parentId = this._provenanceKeyForObject(parentMappedType, parent);
+      if (!parentId) return null;
+
+      if (parentMappedType !== currentMappedType || parentId !== id) {
+        return { mappedType: parentMappedType, id: parentId };
+      }
+
+      // Continue traversing through self-copy overrides until parent id changes.
+      current = parent;
+    }
+    return null;
+  }
+
+  /**
+   * Resolves contributing mods for a mapped type/id by traversing its full
+   * `copy-from` parent chain recursively.
+   *
+   * ARCHITECTURE: Implements top-to-bottom inheritance unfurling (see docs/adr/003-mod-resolution-path.md and 004-mod-provenance-and-data-origin-tracking.md)
+   *
+   * @param mappedType Mapped type family to search in.
+   * @param id Provenance id (object id or abstract).
+   * @param stack Cycle-detection set for recursive traversal.
+   * @returns Ordered mod list for the full inheritance chain.
+   */
+  _modsForTypeIdChain(
+    mappedType: keyof SupportedTypesWithMapped,
+    id: string,
+    stack: Set<string> = new Set(),
+  ): ModInfo[] {
+    const stackId = `${mappedType}::${id}`;
+    if (stack.has(stackId)) return [];
+    stack.add(stackId);
+
+    const parent = this._resolveParentTypeIdForModProvenance(mappedType, id);
+    const inheritedMods = parent
+      ? this._modsForTypeIdChain(parent.mappedType, parent.id, stack)
+      : [];
+    stack.delete(stackId);
+    return this._mergeUniqueMods(
+      inheritedMods,
+      this._directModsForTypeId(mappedType, id),
+    );
+  }
+
+  /**
+   * Returns mods that directly define/override the concrete object with the
+   * given type/id key. This method does not include `copy-from` ancestry.
+   * The key must match the same identifier used by `byId(...)` for the family
+   * (for example: item `id`, recipe `result[_id_suffix]`, monstergroup `name`).
+   *
+   * @param type Mapped type family to search in.
+   * @param id Concrete object key used by `byId(...)`.
+   * @returns Direct touching non-core mods in load order.
+   */
+  getDirectModsForId<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+    id: string,
+  ): readonly ModInfo[] {
+    if (typeof id !== "string") return [];
+    const mappedType = mapType(type);
+    if (!this._byTypeById.get(mappedType)?.has(id)) return [];
+    return [...this._directModsForTypeId(mappedType, id)];
+  }
+
+  /**
+   * Returns all mods that contribute to the resolved object with the given
+   * type/id key, including direct touches and all `copy-from` ancestors.
+   *
+   * @param type Mapped type family to search in.
+   * @param id Concrete object key used by `byId(...)`.
+   * @returns Contributing non-core mods across the full inheritance chain.
+   */
+  getContributingModsForId<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+    id: string,
+  ): readonly ModInfo[] {
+    if (typeof id !== "string") return [];
+    const mappedType = mapType(type);
+    const cached = this._contributingModsByTypeByIdCache
+      .get(mappedType)
+      ?.get(id);
+    if (cached) return [...cached];
+
+    if (!this._byTypeById.get(mappedType)?.has(id)) return [];
+    const mods = this._modsForTypeIdChain(mappedType, id);
+    if (!this._contributingModsByTypeByIdCache.has(mappedType)) {
+      this._contributingModsByTypeByIdCache.set(mappedType, new Map());
+    }
+    this._contributingModsByTypeByIdCache.get(mappedType)!.set(id, mods);
+    return [...mods];
+  }
+
+  /**
+   * ARCHITECTURE: ADR-005 (Robust inheritance: Migrations and Self-Copy Handling).
+   * Resolves the parent object for a given object, specifically handling
+   * "self-copy" overrides by looking up the previous version in the override stack.
+   */
+  _resolveCopyFromParent(obj: any): any | null {
+    if (!("copy-from" in obj)) return null;
+
+    const parentId = obj["copy-from"];
+    const mappedType = mapType(obj.type);
+    let parent = this._objectForProvenanceKey(mappedType, parentId);
+
+    // For "self-looking" copy-from patterns in layered mod overrides, use the
+    // previous object for this id instead of resolving to self.
+    if (
+      typeof obj.id === "string" &&
+      typeof parentId === "string" &&
+      obj.id === parentId &&
+      this._overrides.has(obj)
+    ) {
+      parent = this._overrides.get(obj);
+    } else if (
+      typeof obj.abstract === "string" &&
+      typeof parentId === "string" &&
+      obj.abstract === parentId &&
+      this._overrides.has(obj)
+    ) {
+      // For abstract self-copies in layered mod overrides, use the previous object
+      parent = this._overrides.get(obj);
+    } else if (parent === obj && this._overrides.has(obj)) {
+      parent = this._overrides.get(obj);
+    }
+
+    return parent;
+  }
+
   resolveOne(obj: any, key: string): any {
     let current = obj;
-    const type = mapType(obj.type);
+    const visited = new Set<any>();
     while (current) {
+      if (visited.has(current)) {
+        console.warn("Cycle detected while resolving inherited field:", key);
+        break;
+      }
+      visited.add(current);
       if (Object.prototype.hasOwnProperty.call(current, key)) {
         return current[key];
       }
-      if ("copy-from" in current) {
-        const parentId = current["copy-from"];
-        current =
-          this._abstractsByType.get(type)?.get(parentId) ??
-          this._byTypeById.get(type)?.get(parentId);
-      } else {
-        break;
-      }
+      current = this._resolveCopyFromParent(current);
     }
     return undefined;
   }
@@ -528,19 +1118,25 @@ export class CBNData {
    * Applies relative, proportional, extend, and delete modifiers.
    * Caches the result.
    *
+   * ARCHITECTURE: Leverages top-down unfurling for performance (see docs/adr/003-mod-resolution-path.md and 004-mod-provenance-and-data-origin-tracking.md)
+   *
    * @param _obj The raw object to flatten.
+   * @param stack Recursion stack for inheritance cycle detection.
    * @returns The flattened object.
    */
-  _flatten<T = any>(_obj: T): T {
+  _flatten<T = any>(_obj: T, stack: Set<any> = new Set()): T {
     const obj: any = _obj;
     if (this._flattenCache.has(obj)) {
       return this._flattenCache.get(obj);
     }
-    const parent =
-      "copy-from" in obj
-        ? (this._byTypeById.get(mapType(obj.type))?.get(obj["copy-from"]) ??
-          this._abstractsByType.get(mapType(obj.type))?.get(obj["copy-from"]))
-        : null;
+
+    if (stack.has(obj)) {
+      console.warn("Cycle detected in copy-from inheritance:", obj);
+      return obj;
+    }
+    stack.add(obj);
+
+    const parent = this._resolveCopyFromParent(obj);
     if ("copy-from" in obj && !parent)
       console.error(
         `Missing parent in ${
@@ -551,13 +1147,16 @@ export class CBNData {
       // Working around bad data upstream, see: https://github.com/CleverRaven/Cataclysm-DDA/pull/53930
       console.warn("Object copied from itself:", obj);
       this._flattenCache.set(obj, obj);
+      stack.delete(obj);
       return obj;
     }
     if (!parent) {
       this._flattenCache.set(obj, obj);
+      stack.delete(obj);
       return obj;
     }
-    const { abstract, ...parentProps } = this._flatten(parent);
+    const { abstract, ...parentProps } = this._flatten(parent, stack);
+    stack.delete(obj);
     const ret = { ...parentProps, ...obj };
     if (parentProps.vitamins && obj.vitamins) {
       ret.vitamins = [
@@ -585,33 +1184,13 @@ export class CBNData {
         } else {
           ret[k] = (ret[k] ?? 0) + ret.relative[k];
         }
-      } else if ((k === "damage" || k === "ranged_damage") && ret[k]) {
-        ret[k] = cloneDamageInstance(ret[k]);
-        const relativeDamage = normalizeDamageInstance(ret.relative[k]);
-        for (const rdu of relativeDamage) {
-          const modified: DamageUnit = Array.isArray(ret[k])
-            ? ret[k].find(
-                (du: DamageUnit) => du.damage_type === rdu.damage_type,
-              )
-            : ret[k].damage_type === rdu.damage_type
-              ? ret[k]
-              : null;
-          if (modified) {
-            modified.amount = (modified.amount ?? 0) + (rdu.amount ?? 0);
-            modified.armor_penetration =
-              (modified.armor_penetration ?? 0) + (rdu.armor_penetration ?? 0);
-            modified.armor_multiplier =
-              (modified.armor_multiplier ?? 0) + (rdu.armor_multiplier ?? 0);
-            modified.damage_multiplier =
-              (modified.damage_multiplier ?? 0) + (rdu.damage_multiplier ?? 0);
-            modified.constant_armor_multiplier =
-              (modified.constant_armor_multiplier ?? 0) +
-              (rdu.constant_armor_multiplier ?? 0);
-            modified.constant_damage_multiplier =
-              (modified.constant_damage_multiplier ?? 0) +
-              (rdu.constant_damage_multiplier ?? 0);
-          }
-        }
+      } else if (
+        (k === "damage" || k === "ranged_damage" || k === "melee_damage") &&
+        ret[k] &&
+        isDamageInstanceLike(ret[k]) &&
+        isDamageInstanceLike(ret.relative[k])
+      ) {
+        ret[k] = applyRelativeDamageInstance(ret[k], ret.relative[k]);
       } else if (
         (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
         ret[k]
@@ -644,35 +1223,13 @@ export class CBNData {
           ret[k] *= ret.proportional[k];
           ret[k] = ret[k] | 0; // most things are ints.. TODO: what keys are float?
         }
-      } else if (k === "damage" && ret[k]) {
-        ret.damage = cloneDamageInstance(ret.damage);
-        const proportionalDamage = normalizeDamageInstance(
-          ret.proportional.damage,
-        );
-        for (const pdu of proportionalDamage) {
-          const modified: DamageUnit = Array.isArray(ret.damage)
-            ? ret.damage.find(
-                (du: DamageUnit) => du.damage_type === pdu.damage_type,
-              )
-            : ret.damage.damage_type === pdu.damage_type
-              ? ret.damage
-              : null;
-          if (modified) {
-            modified.amount = (modified.amount ?? 0) * (pdu.amount ?? 1);
-            modified.armor_penetration =
-              (modified.armor_penetration ?? 0) * (pdu.armor_penetration ?? 1);
-            modified.armor_multiplier =
-              (modified.armor_multiplier ?? 0) * (pdu.armor_multiplier ?? 1);
-            modified.damage_multiplier =
-              (modified.damage_multiplier ?? 0) * (pdu.damage_multiplier ?? 1);
-            modified.constant_armor_multiplier =
-              (modified.constant_armor_multiplier ?? 0) *
-              (pdu.constant_armor_multiplier ?? 1);
-            modified.constant_damage_multiplier =
-              (modified.constant_damage_multiplier ?? 0) *
-              (pdu.constant_damage_multiplier ?? 1);
-          }
-        }
+      } else if (
+        (k === "damage" || k === "ranged_damage" || k === "melee_damage") &&
+        ret[k] &&
+        isDamageInstanceLike(ret[k]) &&
+        isDamageInstanceLike(ret.proportional[k])
+      ) {
+        ret[k] = applyProportionalDamageInstance(ret[k], ret.proportional[k]);
       } else if (
         (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
         ret[k]
@@ -1713,11 +2270,142 @@ export const countsByCharges = (item: any): boolean => {
 };
 
 export function normalizeDamageInstance(
-  damageInstance: DamageInstance,
+  damageInstance: DamageInstance | number | null | undefined,
 ): DamageUnit[] {
+  if (typeof damageInstance === "number") {
+    return [{ damage_type: "bash", amount: damageInstance }];
+  }
+  if (!damageInstance || typeof damageInstance !== "object") {
+    return [];
+  }
   if (Array.isArray(damageInstance)) return damageInstance;
-  else if ("values" in damageInstance) return damageInstance.values;
-  else return [damageInstance];
+  else if ("values" in damageInstance && Array.isArray(damageInstance.values))
+    return damageInstance.values;
+  else if ("damage_type" in damageInstance) return [damageInstance];
+  else return [];
+}
+
+function isDamageInstanceLike(value: unknown): value is DamageInstance {
+  if (Array.isArray(value)) return true;
+  if (!value || typeof value !== "object") return false;
+  const typed = value as Record<string, unknown>;
+  return "values" in typed || "damage_type" in typed;
+}
+
+function applyRelativeDamageInstance(
+  baseDamage: DamageInstance,
+  relativeDamage: DamageInstance,
+): DamageUnit[] {
+  const baseUnits = normalizeDamageInstance(cloneDamageInstance(baseDamage));
+  const relativeUnits = normalizeDamageInstance(relativeDamage);
+
+  for (const relUnit of relativeUnits) {
+    if (typeof relUnit.damage_type !== "string") continue;
+    let modified = baseUnits.find(
+      (du) => du.damage_type === relUnit.damage_type,
+    );
+    if (!modified) {
+      baseUnits.push({ ...relUnit });
+      continue;
+    }
+    if (modified.amount != null || relUnit.amount != null) {
+      modified.amount = (modified.amount ?? 0) + (relUnit.amount ?? 0);
+    }
+    if (
+      modified.armor_penetration != null ||
+      relUnit.armor_penetration != null
+    ) {
+      modified.armor_penetration =
+        (modified.armor_penetration ?? 0) + (relUnit.armor_penetration ?? 0);
+    }
+    if (modified.armor_multiplier != null || relUnit.armor_multiplier != null) {
+      modified.armor_multiplier =
+        (modified.armor_multiplier ?? 0) + (relUnit.armor_multiplier ?? 0);
+    }
+    if (
+      modified.damage_multiplier != null ||
+      relUnit.damage_multiplier != null
+    ) {
+      modified.damage_multiplier =
+        (modified.damage_multiplier ?? 0) + (relUnit.damage_multiplier ?? 0);
+    }
+    if (
+      modified.constant_armor_multiplier != null ||
+      relUnit.constant_armor_multiplier != null
+    ) {
+      modified.constant_armor_multiplier =
+        (modified.constant_armor_multiplier ?? 0) +
+        (relUnit.constant_armor_multiplier ?? 0);
+    }
+    if (
+      modified.constant_damage_multiplier != null ||
+      relUnit.constant_damage_multiplier != null
+    ) {
+      modified.constant_damage_multiplier =
+        (modified.constant_damage_multiplier ?? 0) +
+        (relUnit.constant_damage_multiplier ?? 0);
+    }
+  }
+
+  return baseUnits;
+}
+
+function applyProportionalDamageInstance(
+  baseDamage: DamageInstance,
+  proportionalDamage: DamageInstance,
+): DamageUnit[] {
+  const baseUnits = normalizeDamageInstance(cloneDamageInstance(baseDamage));
+  const proportionalUnits = normalizeDamageInstance(proportionalDamage);
+
+  for (const propUnit of proportionalUnits) {
+    if (typeof propUnit.damage_type !== "string") continue;
+    const modified = baseUnits.find(
+      (du) => du.damage_type === propUnit.damage_type,
+    );
+    if (!modified) continue;
+    if (modified.amount != null || propUnit.amount != null) {
+      modified.amount = (modified.amount ?? 0) * (propUnit.amount ?? 1);
+    }
+    if (
+      modified.armor_penetration != null ||
+      propUnit.armor_penetration != null
+    ) {
+      modified.armor_penetration =
+        (modified.armor_penetration ?? 0) * (propUnit.armor_penetration ?? 1);
+    }
+    if (
+      modified.armor_multiplier != null ||
+      propUnit.armor_multiplier != null
+    ) {
+      modified.armor_multiplier =
+        (modified.armor_multiplier ?? 0) * (propUnit.armor_multiplier ?? 1);
+    }
+    if (
+      modified.damage_multiplier != null ||
+      propUnit.damage_multiplier != null
+    ) {
+      modified.damage_multiplier =
+        (modified.damage_multiplier ?? 0) * (propUnit.damage_multiplier ?? 1);
+    }
+    if (
+      modified.constant_armor_multiplier != null ||
+      propUnit.constant_armor_multiplier != null
+    ) {
+      modified.constant_armor_multiplier =
+        (modified.constant_armor_multiplier ?? 0) *
+        (propUnit.constant_armor_multiplier ?? 1);
+    }
+    if (
+      modified.constant_damage_multiplier != null ||
+      propUnit.constant_damage_multiplier != null
+    ) {
+      modified.constant_damage_multiplier =
+        (modified.constant_damage_multiplier ?? 0) *
+        (propUnit.constant_damage_multiplier ?? 1);
+    }
+  }
+
+  return baseUnits;
 }
 
 export function cloneDamageInstance(di: DamageInstance): DamageInstance {
@@ -1866,6 +2554,20 @@ export function normalizeUseAction(action: Item["use_action"]): UseFunction[] {
   }
 }
 
+function createHttpStatusError(
+  status: number,
+  url: string,
+  statusText?: string,
+): Error & { status: number } {
+  const prefix = status === 404 ? "404" : `HTTP ${status}`;
+  const suffix = statusText ? ` ${statusText}` : "";
+  const error = new Error(`${prefix}${suffix}: ${url}`) as Error & {
+    status: number;
+  };
+  error.status = status;
+  return error;
+}
+
 const fetchJsonWithProgress = (
   url: string,
   progress: (receivedBytes: number, totalBytes: number) => void,
@@ -1878,7 +2580,7 @@ const fetchJsonWithProgress = (
     progress(100, 100);
     return fetch(url).then((r) => {
       if (!r.ok && r.status === 404) {
-        throw new Error(`404: ${url}`);
+        throw createHttpStatusError(404, url, r.statusText);
       }
       return r.json();
     });
@@ -1891,7 +2593,7 @@ const fetchJsonWithProgress = (
       // If status is 0, it often means a CORS error, network error,
       // or a request aborted by the browser/extensions.
       if (status === 404) {
-        reject(new Error(`404: ${url}`));
+        reject(createHttpStatusError(404, url, xhr.statusText));
         return;
       }
       if (status === 0) {
@@ -1907,7 +2609,7 @@ const fetchJsonWithProgress = (
 
     xhr.onload = (e) => {
       if (xhr.status === 404) {
-        reject(new Error(`404: ${url}`));
+        reject(createHttpStatusError(404, url, xhr.statusText));
       } else if (xhr.status >= 200 && xhr.status < 300) {
         if (xhr.response) resolve(xhr.response);
         else reject(new Error(`Empty/invalid JSON response from ${url}`));
@@ -1963,6 +2665,179 @@ const fetchLocaleJson = async (
   );
 };
 
+type ParsedModsJson = {
+  mods: ModInfo[];
+  raw: Record<string, ModData>;
+  byId: Map<string, ModData>;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function sanitizeTranslation(value: Translation): Translation {
+  if (typeof value === "string") return cleanText(value);
+  if ("str" in value) {
+    return {
+      ...value,
+      str: cleanText(value.str),
+      ...(typeof value.str_pl === "string"
+        ? { str_pl: cleanText(value.str_pl) }
+        : {}),
+    };
+  }
+  return {
+    str_sp: cleanText(value.str_sp),
+  };
+}
+
+function parseModsJson(rawMods: unknown): ParsedModsJson {
+  if (!isRecord(rawMods)) {
+    throw new Error("Invalid all_mods.json: expected top-level object map");
+  }
+
+  const mods: ModInfo[] = [];
+  const raw: Record<string, ModData> = {};
+  const byId = new Map<string, ModData>();
+
+  for (const [modId, rawEntry] of Object.entries(rawMods)) {
+    if (!isRecord(rawEntry)) {
+      throw new Error(`Invalid all_mods.json entry for "${modId}"`);
+    }
+    const rawInfo = rawEntry.info;
+    const rawData = rawEntry.data;
+    if (!isRecord(rawInfo)) {
+      throw new Error(`Invalid all_mods.json info for "${modId}"`);
+    }
+    if (!Array.isArray(rawData)) {
+      throw new Error(`Invalid all_mods.json data array for "${modId}"`);
+    }
+    if (rawInfo.type !== "MOD_INFO") {
+      throw new Error(`Invalid MOD_INFO type for "${modId}"`);
+    }
+    if (typeof rawInfo.id !== "string" || rawInfo.id !== modId) {
+      throw new Error(`Invalid MOD_INFO id for "${modId}"`);
+    }
+
+    const parsedInfo = rawInfo as ModInfo;
+    const modData: ModData = {
+      info: {
+        ...parsedInfo,
+        name: sanitizeTranslation(parsedInfo.name),
+        description: sanitizeTranslation(parsedInfo.description),
+        category: sanitizeTranslation(parsedInfo.category),
+      },
+      data: rawData,
+    };
+    raw[modId] = modData;
+    byId.set(modId, modData);
+    if (!modData.info.core) {
+      mods.push(modData.info);
+    }
+  }
+
+  return { mods, raw, byId };
+}
+
+function filterActiveMods(
+  requestedActiveMods: string[],
+  modsById: Map<string, ModData>,
+): string[] {
+  const filtered: string[] = [];
+  const seen = new Set<string>();
+  for (const modId of requestedActiveMods) {
+    if (modId === "bn" || seen.has(modId)) continue;
+    const modData = modsById.get(modId);
+    if (!modData || modData.info.core) continue;
+    seen.add(modId);
+    filtered.push(modId);
+  }
+  return filtered;
+}
+
+function mergeDataWithActiveMods(
+  coreData: any[],
+  modsById: Map<string, ModData>,
+  activeMods: string[],
+): any[] {
+  const mergedData = [...coreData];
+  for (const modId of activeMods) {
+    mergedData.push(...modsById.get(modId)!.data);
+  }
+  return mergedData;
+}
+
+/**
+ * Checks if an error corresponds to a 404 Not Found response.
+ * Handles both Error objects with messages and raw strings.
+ *
+ * @param error The error to check
+ */
+function is404Error(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message.trim()
+      : typeof error === "string"
+        ? error.trim()
+        : "";
+  if (/^(?:HTTP\s+)?404\b/i.test(message)) {
+    return true;
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status?: unknown }).status === 404
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+const fetchModsJson = async (
+  version: string,
+  progress: (receivedBytes: number, totalBytes: number) => void,
+) => {
+  return fetchJsonWithProgress(
+    getDataJsonUrl(version, "all_mods.json"),
+    progress,
+  );
+};
+
+/**
+ * Loads and parses the mod index with background retries.
+ *
+ * SILENT FAIL POLICY: If loading fails due to missing `all_mods.json` (404),
+ * this function returns null instead of throwing. Other failures (network/parsing)
+ * are propagated to avoid masking data corruption or unexpected errors.
+ */
+async function loadParsedModsJson(
+  version: string,
+  progress: (receivedBytes: number, totalBytes: number) => void,
+): Promise<ParsedModsJson | null> {
+  try {
+    const modsJson = await retry(() => fetchModsJson(version, progress));
+    return parseModsJson(modsJson);
+  } catch (e) {
+    if (is404Error(e)) {
+      return null;
+    }
+    throw e;
+  }
+}
+
+function applyLoadedModsMetadata(
+  targetData: CBNData,
+  parsedMods: ParsedModsJson | null,
+): void {
+  targetData.mods = parsedMods?.mods ?? [];
+  targetData.active_mods = targetData.active_mods ?? [];
+  targetData.raw_mods_json = parsedMods?.raw ?? {};
+  targetData._clearModProvenanceCaches();
+}
+
 /**
  * Retry a promise-generating function with exponential backoff.
  * Max 3 attempts with increasing delays: 2s, 4s, 8s.
@@ -1976,8 +2851,7 @@ async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
     try {
       return await promiseGenerator();
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      if (message.startsWith("404")) {
+      if (is404Error(e)) {
         // Fast-fail for missing files (including CORS-blocked 404s)
         throw e;
       }
@@ -2005,6 +2879,8 @@ async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
 const loadProgressStore = writable<[number, number] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 let _hasSetVersion = false;
+let _currentData: CBNData | null = null;
+let _ensureModsLoadedPromise: Promise<void> | null = null;
 const { subscribe, set } = writable<CBNData | null>(null);
 export const data = {
   subscribe,
@@ -2013,12 +2889,14 @@ export const data = {
     locale: string | null,
     versionSlug?: string,
     availableLangs?: string[],
+    activeMods: string[] = [],
   ) {
     if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
     _hasSetVersion = true;
-    let totals = [0, 0, 0];
-    let receiveds = [0, 0, 0];
+    _ensureModsLoadedPromise = null;
+    let totals = [0, 0, 0, 0];
+    let receiveds = [0, 0, 0, 0];
     const updateProgress = () => {
       const total = totals.reduce((a, b) => a + b, 0);
       const received = receiveds.reduce((a, b) => a + b, 0);
@@ -2090,13 +2968,50 @@ export const data = {
       }
     }
 
+    let mods: ModInfo[] | null = null;
+    let filteredActiveMods: string[] | null = null;
+    let rawModsJson: Record<string, ModData> | null = null;
+    let mergedData = dataJson.data;
+    const requestedActiveMods = activeMods.filter((modId) => modId !== "bn");
+
+    if (requestedActiveMods.length > 0) {
+      const parsedMods = await loadParsedModsJson(
+        urlVersion,
+        (receivedBytes, totalBytes) => {
+          totals[3] = totalBytes;
+          receiveds[3] = receivedBytes;
+          updateProgress();
+        },
+      );
+      if (parsedMods) {
+        mods = parsedMods.mods;
+        rawModsJson = parsedMods.raw;
+        filteredActiveMods = filterActiveMods(
+          requestedActiveMods,
+          parsedMods.byId,
+        );
+        mergedData = mergeDataWithActiveMods(
+          dataJson.data,
+          parsedMods.byId,
+          filteredActiveMods,
+        );
+      } else {
+        mods = [];
+        filteredActiveMods = [];
+        rawModsJson = {};
+      }
+    }
+
     const instance = new CBNData(
-      dataJson.data,
+      mergedData,
       dataJson.build_number,
       dataJson.release,
       urlVersion,
       effective_locale,
       locale || "en",
+      mods,
+      filteredActiveMods,
+      rawModsJson,
     );
     try {
       if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
@@ -2104,7 +3019,42 @@ export const data = {
       console.error("Failed to apply locale JSON:", e);
       instance.effective_locale = "en";
     }
+    _currentData = instance;
     set(instance);
+  },
+  async ensureModsLoaded() {
+    const startData = _currentData;
+    if (!startData || startData.mods !== null) return;
+
+    if (_ensureModsLoadedPromise) {
+      await _ensureModsLoadedPromise;
+      return;
+    }
+
+    _ensureModsLoadedPromise = (async () => {
+      const modsVersion = startData.fetching_version ?? startData.build_number;
+      if (!modsVersion) {
+        if (_currentData !== startData) return;
+        applyLoadedModsMetadata(startData, null);
+        _currentData = startData;
+        set(startData);
+        return;
+      }
+
+      const parsedMods = await loadParsedModsJson(modsVersion, () => {});
+      if (_currentData !== startData) return;
+      applyLoadedModsMetadata(startData, parsedMods);
+
+      if (_currentData !== startData) return;
+      _currentData = startData;
+      set(startData);
+    })();
+
+    try {
+      await _ensureModsLoadedPromise;
+    } finally {
+      _ensureModsLoadedPromise = null;
+    }
   },
 };
 
@@ -2147,4 +3097,34 @@ export function omsName(data: CBNData, oms: OvermapSpecial): string {
     }
   }
   return oms.id;
+}
+
+export function resolveSelectionWithDependencies(
+  selectedIds: string[],
+  modsById: Map<string, ModInfo>,
+): string[] {
+  const ordered: string[] = [];
+  const visited = new Set<string>();
+  const stack = new Set<string>();
+
+  function visit(modId: string): void {
+    if (visited.has(modId) || stack.has(modId)) return;
+    const mod = modsById.get(modId);
+    if (!mod) return;
+
+    stack.add(modId);
+    for (const depId of mod.dependencies) {
+      visit(depId);
+    }
+    stack.delete(modId);
+
+    visited.add(modId);
+    ordered.push(modId);
+  }
+
+  for (const modId of selectedIds) {
+    visit(modId);
+  }
+
+  return ordered;
 }

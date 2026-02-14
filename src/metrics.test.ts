@@ -23,7 +23,7 @@ vi.mock("@sentry/browser", () => ({
 vi.mock("./routing", () => ({
   getCurrentVersionSlug: () => "stable",
   getUrlConfig: () => ({ locale: "en", tileset: "default" }),
-  parseRoute: () => ({ version: "stable", item: null, search: "" }),
+  parseRoute: () => ({ version: "stable", item: null, search: "", mods: [] }),
 }));
 
 describe("metrics", () => {

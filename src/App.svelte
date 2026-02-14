@@ -10,6 +10,7 @@ import {
 } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
+import ModSelector from "./ModSelector.svelte";
 import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
@@ -29,6 +30,7 @@ import {
   getUrlConfig,
   handleInternalNavigation,
   initializeRouting,
+  isSupportedType,
   isSupportedVersion,
   navigateTo,
   page,
@@ -58,6 +60,15 @@ const SEARCH_RESULTS_CONTEXT = "Search Results";
 const PAGE_DESCRIPTION_CONTEXT = "Page description";
 const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
+const URL_MODS_CONTEXT = "URL mods";
+
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -120,6 +131,7 @@ initializeRouting()
     resolvedVersion = result.resolvedVersion;
     latestStableBuild = result.latestStableBuild;
     latestNightlyBuild = result.latestNightlyBuild;
+    const requestedModsFromUrl = [...$page.route.mods];
 
     data
       .setVersion(
@@ -127,8 +139,31 @@ initializeRouting()
         localeParam,
         isBranchAlias ? requestedVersion : undefined,
         builds.find((b) => b.build_number === resolvedVersion)?.langs,
+        requestedModsFromUrl,
       )
       .then(() => {
+        if ($data) {
+          const resolvedMods = $data.active_mods ?? [];
+          if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
+            const removedMods = requestedModsFromUrl.filter(
+              (modId) => !resolvedMods.includes(modId),
+            );
+            updateQueryParamNoReload(
+              "mods",
+              resolvedMods.length > 0 ? resolvedMods.join(",") : null,
+            );
+            if (removedMods.length > 0) {
+              notify(
+                t("Ignored unknown mods from URL: {mods}.", {
+                  mods: removedMods.join(", "),
+                  _context: URL_MODS_CONTEXT,
+                }),
+                "warn",
+              );
+            }
+          }
+        }
+
         if (
           $data &&
           $data.requested_locale !== $data.effective_locale &&
@@ -237,22 +272,6 @@ let tileset: string =
 // React to tileset changes
 $: tileData.setTileset($data, tileset);
 
-$: {
-  if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
-    const it = $data.byId(item.type as any, item.id);
-    document.title = formatTitle(singularName(it));
-  } else if (item && !item.id && item.type) {
-    document.title = formatTitle(item.type);
-  } else if ($page.route.search) {
-    document.title = formatTitle(
-      `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${$page.route.search}`,
-    );
-  } else {
-    document.title = formatTitle();
-  }
-  setOgTitle(document.title);
-}
-
 function formatTitle(pageTitle: string | null = null): string {
   if (RUNNING_MODE !== "browser") {
     return pageTitle ?? "";
@@ -269,26 +288,42 @@ const defaultMetaDescription = t(
 
 let metaDescription = defaultMetaDescription;
 
-$: if (item && item.id && $data && $data.byIdMaybe(item.type as any, item.id)) {
-  const it = $data.byId(item.type as any, item.id);
-  metaDescription = buildMetaDescription(it);
-} else if (item && !item.id && item.type) {
-  metaDescription = t("{type} catalog in {guide}.", {
-    type: item.type,
-    guide: UI_GUIDE_NAME,
-    _context: PAGE_DESCRIPTION_CONTEXT,
-  });
-} else if (search) {
-  metaDescription = t("Search {guide} for {query}.", {
-    guide: UI_GUIDE_NAME,
-    query: search,
-    _context: PAGE_DESCRIPTION_CONTEXT,
-  });
-} else {
-  metaDescription = defaultMetaDescription;
-}
+$: {
+  if (
+    item &&
+    item.id &&
+    $data &&
+    isSupportedType(item.type) &&
+    $data.byIdMaybe(item.type, item.id)
+  ) {
+    const it = $data.byId(item.type, item.id);
+    document.title = formatTitle(singularName(it));
+    metaDescription = buildMetaDescription(it);
+  } else if (item && !item.id && item.type) {
+    document.title = formatTitle(item.type);
+    metaDescription = t("{type} catalog in {guide}.", {
+      type: item.type,
+      guide: UI_GUIDE_NAME,
+      _context: PAGE_DESCRIPTION_CONTEXT,
+    });
+  } else if ($page.route.search) {
+    const searchQuery = $page.route.search;
+    document.title = formatTitle(
+      `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${searchQuery}`,
+    );
+    metaDescription = t("Search {guide} for {query}.", {
+      guide: UI_GUIDE_NAME,
+      query: searchQuery,
+      _context: PAGE_DESCRIPTION_CONTEXT,
+    });
+  } else {
+    document.title = formatTitle();
+    metaDescription = defaultMetaDescription;
+  }
 
-$: if (metaDescription) setMetaDescription(metaDescription);
+  setOgTitle(document.title);
+  if (metaDescription) setMetaDescription(metaDescription);
+}
 
 $: if ($data) {
   syncSearch(search, $data);
@@ -324,6 +359,45 @@ const handleSearchKeydown = (e: KeyboardEvent) => {
     executeSearchAction();
   }
 };
+
+let isModSelectorOpen = false;
+let isModSelectorLoading = false;
+let modSelectorError: string | null = null;
+
+async function openModSelector(): Promise<void> {
+  if (!$data) return;
+  metrics.count("ui.mod_selector.click");
+
+  modSelectorError = null;
+  isModSelectorOpen = true;
+  if ($data.mods !== null) return;
+
+  isModSelectorLoading = true;
+  try {
+    await data.ensureModsLoaded();
+  } catch (e) {
+    console.error(e);
+    Sentry.captureException(e);
+    modSelectorError = t("Failed to load mods. Please try again.");
+  } finally {
+    isModSelectorLoading = false;
+  }
+}
+
+function closeModSelector(): void {
+  isModSelectorOpen = false;
+}
+
+function applyMods(event: CustomEvent<string[]>): void {
+  // Changing mods triggers a full page reload to ensure data consistency.
+  isModSelectorOpen = false;
+  const selectedMods = event.detail;
+  metrics.gauge("data.mods.load", selectedMods.length);
+  updateQueryParam(
+    "mods",
+    selectedMods.length > 0 ? selectedMods.join(",") : null,
+  );
+}
 
 function handleNavigation(event: MouseEvent) {
   const target = event.target as HTMLElement;
@@ -380,6 +454,8 @@ $: canonicalUrl = buildUrl(
   $page.route.item,
   $page.route.search,
   localeParam,
+  null,
+  $page.route.mods,
 );
 </script>
 
@@ -405,6 +481,8 @@ $: canonicalUrl = buildUrl(
             $page.route.item,
             $page.route.search,
             lang,
+            null,
+            $page.route.mods,
           )} />
       {/each}
     {/if}
@@ -484,8 +562,31 @@ $: canonicalUrl = buildUrl(
         </div>
       </form>
     </div>
+    <div class="header-actions">
+      <button
+        class="mods-button"
+        type="button"
+        on:click={openModSelector}
+        disabled={!$data}
+        aria-label={t("Mods ({count} active)", {
+          count: $page.route.mods.length,
+        })}>
+        <span class="mods-label">{t("Mods")}</span>
+        <span class="mods-count">[{String($page.route.mods.length)}]</span>
+      </button>
+    </div>
   </nav>
 </header>
+
+<ModSelector
+  open={isModSelectorOpen}
+  mods={$data?.mods ?? []}
+  rawModsJson={$data?.raw_mods_json ?? {}}
+  selectedModIds={$page.route.mods}
+  loading={isModSelectorLoading}
+  errorMessage={modSelectorError}
+  on:close={closeModSelector}
+  on:apply={applyMods} />
 
 <main>
   {#if item}
@@ -830,6 +931,57 @@ nav {
   align-items: center;
   justify-content: space-between;
   height: 100%;
+}
+
+nav > .search {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-actions {
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.mods-button {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid var(--cata-color-dark_gray);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--cata-color-gray);
+  font-family:
+    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.mods-button:hover:not(:disabled) {
+  border-color: var(--cata-color-cyan);
+  color: var(--cata-color-cyan);
+}
+
+.mods-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mods-count {
+  color: var(--cata-color-dark_gray);
+}
+
+.mods-button:hover:not(:disabled) .mods-count {
+  color: var(--cata-color-gray);
 }
 
 kbd {
@@ -1356,6 +1508,15 @@ footer .link:hover::after {
 
   nav > .search {
     flex: 1;
+  }
+
+  .mods-button {
+    min-height: 2.25rem;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .mods-label {
+    display: none;
   }
 }
 </style>

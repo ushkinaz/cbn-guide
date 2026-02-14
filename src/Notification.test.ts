@@ -1,12 +1,7 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment happy-dom
  */
-import {
-  render,
-  fireEvent,
-  cleanup,
-  waitForElementToBeRemoved,
-} from "@testing-library/svelte";
+import { render, fireEvent, cleanup, waitFor } from "@testing-library/svelte";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import Notification from "./Notification.svelte";
 import { notifications, notify, dismiss } from "./Notification.svelte";
@@ -72,7 +67,19 @@ describe("Notification component", () => {
       const closeBtn = getByLabelText("Dismiss notification");
       await fireEvent.click(closeBtn);
 
-      await waitForElementToBeRemoved(() => queryByText("Dismiss me"));
+      await waitFor(
+        () =>
+          expect(
+            (get(notifications) as any[]).some(
+              (n) => n.message === "Dismiss me",
+            ),
+          ).toBe(false),
+        { timeout: 10000 },
+      );
+
+      await waitFor(() => expect(queryByText("Dismiss me")).toBeNull(), {
+        timeout: 10000,
+      });
 
       expect(queryByText("Dismiss me")).toBeNull();
     });

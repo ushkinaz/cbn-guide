@@ -222,7 +222,7 @@ export default defineConfig({
   ],
   // @ts-ignore
   test: {
-    environment: "jsdom",
+    environment: "happy-dom",
     setupFiles: ["src/test-setup.ts"],
   },
 });

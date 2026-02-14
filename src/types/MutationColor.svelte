@@ -8,9 +8,9 @@ let displayColor =
     ? "white"
     : mutation.mixed_effect
       ? "light_magenta"
-      : mutation.points > 0
+      : (mutation.points ?? 0) > 0
         ? "light_green"
-        : mutation.points < 0
+        : (mutation.points ?? 0) < 0
           ? "light_red"
           : "yellow";
 </script>

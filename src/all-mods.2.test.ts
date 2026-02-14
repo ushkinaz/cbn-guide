@@ -2,11 +2,11 @@
  * @vitest-environment happy-dom
  */
 
-import { makeRenderTests } from "./testRender";
+import { makeModRenderTests } from "./testRenderMods";
 
-const chunkNum = /all\.(\d+)\.test\.ts$/.exec(__filename)?.[1];
+const chunkNum = /all-mods\.(\d+)\.test\.ts$/.exec(__filename)?.[1];
 if (!chunkNum) throw new Error("No chunk index found");
 const chunkIdx = parseInt(chunkNum, 10) - 1;
 const numChunks = 4;
 
-makeRenderTests(chunkIdx, numChunks);
+makeModRenderTests(chunkIdx, numChunks);

@@ -2,15 +2,15 @@
  * Test environment setup for vitest.
  *
  * This file is loaded via vite.config.ts `test.setupFiles` and runs before each test.
- * It provides necessary browser API mocks for JSDOM environments.
+ * It provides necessary browser API mocks for DOM-like test environments.
  */
 import { vi } from "vitest";
 
 /**
- * Mock window.matchMedia for JSDOM environments.
+ * Mock window.matchMedia when the test DOM environment doesn't provide it.
  *
- * JSDOM doesn't provide matchMedia by default, but our metrics code uses it
- * to detect PWA display mode (`display-mode: standalone`). This mock ensures
+ * Our metrics code uses matchMedia to detect PWA display mode
+ * (`display-mode: standalone`). This mock ensures
  * tests can run without errors and defaults to browser mode (matches: false).
  */
 if (typeof window !== "undefined" && !window.matchMedia) {

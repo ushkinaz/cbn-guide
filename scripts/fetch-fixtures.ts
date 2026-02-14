@@ -1,8 +1,8 @@
 /**
  * @file fetch-fixtures.ts
- * @description This script fetches the nightly or a specific build of the game data (all.json)
+ * @description This script fetches the nightly or a specific build of the game data (all.json and all_mods.json)
  * and saves it for local development and testing purposes. It also updates the
- * metadata file (_test/all.meta.json) with the new build number and SHA.
+ * metadata file (_test/all.meta.json) with the new build number and SHAs.
  *
  * @usage
  * ```bash
@@ -28,20 +28,23 @@ setGlobalDispatcher(envHttpProxyAgent);
 interface MetaData {
   buildNum: string;
   sha: string;
+  modsSha?: string;
 }
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");
 
 const metaPath = path.join(projectRoot, "_test", "all.meta.json");
-const { buildNum, sha }: MetaData = JSON.parse(readFileSync(metaPath, "utf8"));
+const currentMeta: MetaData = JSON.parse(readFileSync(metaPath, "utf8"));
 const update = process.argv[2] === "nightly";
-const dataUrl = getDataJsonUrl(update ? "nightly" : buildNum, "all.json");
+
+const targetVersion = update ? "nightly" : currentMeta.buildNum;
 
 function computeSha(file: string): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const hash = crypto.createHash("sha256");
     const s = createReadStream(file);
+    s.on("error", reject);
     s.on("data", (d) => hash.update(d));
     s.on("end", () => {
       resolve(hash.digest("hex"));
@@ -49,56 +52,89 @@ function computeSha(file: string): Promise<string> {
   });
 }
 
-async function matchesSha(file: string, expectedSha: string): Promise<boolean> {
-  return expectedSha === (await computeSha(file));
+async function matchesSha(
+  file: string,
+  expectedSha?: string,
+): Promise<boolean> {
+  if (!expectedSha) return false;
+  try {
+    await fs.access(file);
+    const sha = await computeSha(file);
+    return expectedSha === sha;
+  } catch {
+    return false;
+  }
+}
+
+async function fetchFile(url: string, destPath: string): Promise<void> {
+  // console.log(`Fetching ${url} -> ${destPath}`);
+  const res = await request(url);
+  if (!res.body) {
+    throw new Error(`No response body received for ${url}`);
+  }
+  if (res.statusCode !== 200) {
+    throw new Error(`Failed to fetch ${url}: Status ${res.statusCode}`);
+  }
+
+  const dest = createWriteStream(destPath);
+  res.body.pipe(dest);
+
+  return new Promise<void>((resolve, reject) => {
+    // Resolve only after destination stream has flushed all bytes to disk.
+    dest.on("finish", resolve);
+    res.body.on("error", reject);
+    dest.on("error", reject);
+  });
 }
 
 (async () => {
-  const filename = path.join(projectRoot, "_test", "all.json");
+  const allJsonPath = path.join(projectRoot, "_test", "all.json");
+  const allModsJsonPath = path.join(projectRoot, "_test", "all_mods.json");
 
-  const exists = await fs
-    .access(filename)
-    .then(() => true)
-    .catch(() => false);
+  // We check if fetch is needed for either file, or forced update
+  let fetchAll = update;
+  let fetchMods = update;
 
-  if (!exists) {
-    console.log("Test data not present, fetching...");
-  } else if (!(await matchesSha(filename, sha)) || update) {
-    if (update) {
-      console.log("Updating test data...");
-    } else {
-      console.log("Test data not up-to-date, fetching...");
-    }
-  } else {
+  if (!update) {
+    if (!(await matchesSha(allJsonPath, currentMeta.sha))) fetchAll = true;
+    if (!(await matchesSha(allModsJsonPath, currentMeta.modsSha)))
+      fetchMods = true;
+  }
+
+  if (!fetchAll && !fetchMods) {
+    console.log("All test data up-to-date.");
     return;
   }
 
+  const newMeta: MetaData = { ...currentMeta };
+
   try {
-    const res = await request(dataUrl);
-    if (!res.body) {
-      throw new Error("No response body received");
+    if (fetchAll) {
+      const url = getDataJsonUrl(targetVersion, "all.json");
+      console.log(`Fetching all.json from ${targetVersion}...`);
+      await fetchFile(url, allJsonPath);
+      newMeta.sha = await computeSha(allJsonPath);
+
+      // Update build number from new file content
+      const dataContent = await fs.readFile(allJsonPath, "utf8");
+      const json = JSON.parse(dataContent);
+      if (json.build_number) {
+        newMeta.buildNum = json.build_number;
+      }
     }
 
-    const dest = createWriteStream(filename);
-    res.body.pipe(dest);
+    if (fetchMods) {
+      const url = getDataJsonUrl(targetVersion, "all_mods.json");
+      console.log(`Fetching all_mods.json from ${targetVersion}...`);
+      await fetchFile(url, allModsJsonPath);
+      newMeta.modsSha = await computeSha(allModsJsonPath);
+    }
 
-    await new Promise<void>((resolve, reject) => {
-      res.body.on("end", resolve);
-      res.body.on("error", reject);
-      dest.on("error", reject);
-    });
-
-    const newSha = await computeSha(filename);
-    const dataContent = await fs.readFile(filename, "utf8");
-    const newBuildNum = JSON.parse(dataContent).build_number;
-
-    await fs.writeFile(
-      metaPath,
-      JSON.stringify({ buildNum: newBuildNum, sha: newSha }, null, 2),
-    );
-    console.log(`Successfully updated test data to build ${newBuildNum}`);
+    // Save updated metadata
+    await fs.writeFile(metaPath, JSON.stringify(newMeta, null, 2));
+    console.log(`Successfully updated test data to build ${newMeta.buildNum}`);
   } catch (error) {
-    console.error("Failed to fetch or process test data:", error);
+    console.error("Failed to fetch fixtures:", error);
     process.exit(1);
   }
 })();

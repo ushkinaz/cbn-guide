@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment happy-dom
  */
 import { render } from "@testing-library/svelte";
 

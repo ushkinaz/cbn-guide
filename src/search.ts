@@ -85,6 +85,11 @@ export function buildSearchIndex(data: CBNData): SearchTarget[] {
         SEARCHABLE_TYPES.has(mapType(x.type)),
     )
     .filter((x) => (x.type === "mutation" ? !/Fake\d$/.test(x.id) : true))
+    .filter((x) =>
+      x.type === "MONSTER"
+        ? data.isMonsterVisible((x as { id: string }).id)
+        : true,
+    )
     .flatMap((x) => [
       {
         id: (x as any).id,
