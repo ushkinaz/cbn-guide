@@ -431,7 +431,7 @@ for (const group of sortedGroups) {
     </div>
     <aside class="monster-stage" aria-label={t("Monster Sprite", { _context })}>
       <div class="monster-stage__sprite">
-        <ItemSymbol {item} width={64} height={64} />
+        <ItemSymbol {item} width={64} height={64} centered={true} />
       </div>
     </aside>
   </div>

@@ -14,6 +14,7 @@ export let item: {
 };
 export let width: number | undefined = undefined;
 export let height: number | undefined = undefined;
+export let centered: boolean = false;
 
 let data: CBNData = getContext("data");
 
@@ -230,8 +231,13 @@ function fallbackTile(
           background-image: url({layerUrl(tile.bg)});
           background-position: {-tile.bg.tx * tile.bg.width}px
             {-tile.bg.ty * tile.bg.height}px;
+          {centered ? 'left: 50%; top: 50%;' : ''}
           transform: scale({scaleX}, {scaleY})
-          translate({tile.bg.offx}px, {tile.bg.offy}px);
+            {centered
+          ? ''
+          : `translate(${tile.bg.offx}px, ${tile.bg.offy}px)`}{centered
+          ? ' translate(-50%, -50%)'
+          : ''};
         " />
     {/if}
     {#if tile.fg != null}
@@ -243,8 +249,13 @@ function fallbackTile(
           background-image: url({layerUrl(tile.fg)});
           background-position: {-tile.fg.tx * tile.fg.width}px {-tile.fg.ty *
           tile.fg.height}px;
-          transform: scale({scaleX}, {scaleY}) translate({tile.fg.offx}px, {tile
-          .fg.offy}px);
+          {centered ? 'left: 50%; top: 50%;' : ''}
+          transform: scale({scaleX}, {scaleY})
+            {centered
+          ? ''
+          : `translate(${tile.fg.offx}px, ${tile.fg.offy}px)`}{centered
+          ? ' translate(-50%, -50%)'
+          : ''};
         " />
     {/if}
   </div>
@@ -258,6 +269,9 @@ function fallbackTile(
       height: {finalHeight}px;
       line-height: {finalHeight}px;
       font-size: {finalHeight}px;
+      {centered
+      ? 'display: flex; align-items: center; justify-content: center;'
+      : ''}
     ">{symbol}</span>
   <!--    class="-&#45;&#45;c_{color}">&nbsp;</span>-->
 {:else}
@@ -268,6 +282,9 @@ function fallbackTile(
       height: {finalHeight}px;
       line-height: {finalHeight}px;
       font-size: {finalHeight}px;
+      {centered
+      ? 'display: flex; align-items: center; justify-content: center;'
+      : ''}
     ">{symbol}</span>
 {/if}
 
