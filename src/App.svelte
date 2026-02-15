@@ -342,7 +342,7 @@ const executeSearchAction = () => {
     // Get the first item from the first group in the results
     const firstGroup = results.values().next().value;
     if (firstGroup && firstGroup.length > 0) {
-      const firstResult = firstGroup[0].item;
+      const firstResult = firstGroup[0];
       metrics.count("search.enter_navigation");
       navigateTo(
         getCurrentVersionSlug(),
