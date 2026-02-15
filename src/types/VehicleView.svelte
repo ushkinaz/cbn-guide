@@ -7,6 +7,7 @@ import {
 } from "../data";
 import type { Vehicle, VehiclePart } from "../types";
 import {
+  resolveTileLayerUrl,
   tileData,
   type TilesetData,
   type TileInfo,
@@ -97,7 +98,6 @@ for (let x = maxX; x >= minX; x--) {
 }
 
 $: tile_info = $tileData?.tile_info[0];
-$: baseUrl = $tileData?.baseUrl;
 
 function findTile(
   tileData: TilesetData | null,
@@ -128,6 +128,8 @@ function findTile(
     const fgTy = (offsetInFile / range.chunk.nx) | 0;
     return {
       file: range.chunk.file,
+      file_url: range.chunk.file_url,
+      source_base_url: range.chunk.source_base_url,
       // Safe to use ! because we check tileData at function entry
       width: range.chunk.sprite_width ?? tileData!.tile_info[0].width,
       height: range.chunk.sprite_height ?? tileData!.tile_info[0].height,
@@ -144,7 +146,12 @@ function findTile(
         /^_season_(autumn|spring|summer|winter)$/.test(
           testId.substring(id.length),
         )));
-  for (const chunk of tileData["tiles-new"]) {
+  for (
+    let chunkIdx = tileData["tiles-new"].length - 1;
+    chunkIdx >= 0;
+    chunkIdx--
+  ) {
+    const chunk = tileData["tiles-new"][chunkIdx];
     for (const info of chunk.tiles) {
       if (
         Array.isArray(info.id) ? info.id.some(idMatches) : idMatches(info.id)
@@ -282,7 +289,10 @@ function getFallback(partId: string, variant: string) {
                     style="
                     width: {tile.bg.width}px;
                     height: {tile.bg.height}px;
-                    background-image: url({`${baseUrl}/${encodeURIComponent(tile.bg.file)}`});
+                    background-image: url({resolveTileLayerUrl(
+                      $tileData,
+                      tile.bg,
+                    )});
                     background-position: {-tile.bg.tx * tile.bg.width}px
                       {-tile.bg.ty * tile.bg.height}px;
                     transform: scale({tile_info.pixelscale})
@@ -295,7 +305,10 @@ function getFallback(partId: string, variant: string) {
                     style="
                     width: {tile.fg.width}px;
                     height: {tile.fg.height}px;
-                    background-image: url({`${baseUrl}/${encodeURIComponent(tile.fg.file)}`});
+                    background-image: url({resolveTileLayerUrl(
+                      $tileData,
+                      tile.fg,
+                    )});
                     background-position: {-tile.fg.tx * tile.fg.width}px {-tile
                       .fg.ty * tile.fg.height}px;
                     transform: scale({tile_info.pixelscale}) translate({tile.fg

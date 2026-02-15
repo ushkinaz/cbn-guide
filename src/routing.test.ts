@@ -48,6 +48,30 @@ const testModsData = {
     },
     data: [],
   },
+  civilians: {
+    info: {
+      type: "MOD_INFO",
+      id: "civilians",
+      name: "Civilians",
+      description: "Civilians test mod",
+      category: "creatures",
+      dependencies: ["bn"],
+    },
+    data: [
+      {
+        type: "mod_tileset",
+        compatibility: ["UNDEAD_PEOPLE"],
+        "tiles-new": [
+          {
+            file: "gfx/cops.png",
+            tiles: [{ id: "mon_civilian_police", fg: 0 }],
+            sprite_width: 32,
+            sprite_height: 32,
+          },
+        ],
+      },
+    ],
+  },
 };
 
 describe("Routing E2E Tests", () => {
@@ -338,6 +362,27 @@ describe("Routing E2E Tests", () => {
 
       expect(new URL(window.location.href).searchParams.get("mods")).toBe(
         "aftershock,magiclysm",
+      );
+    });
+
+    test("loads compatible mod tileset chunk URLs for active mods", async () => {
+      render(App, {
+        target: container,
+      });
+
+      await act(async () => {
+        updateLocation("stable/", "?mods=civilians&t=undead_people");
+        dispatchPopState();
+      });
+      await waitForDataLoad();
+      await waitForNavigation();
+
+      await waitFor(() =>
+        expect(
+          (global.fetch as any).mock.calls.some(([input]: [unknown]) =>
+            String(input).includes("/mods/civilians/gfx/cops.webp"),
+          ),
+        ).toBe(true),
       );
     });
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { tileData } from "../../tile-data";
+import { resolveTileLayerUrl, tileData } from "../../tile-data";
 import { colorForName } from "../../colors";
 import { CBNData, mapType } from "../../data";
 import { getContext } from "svelte";
@@ -22,7 +22,6 @@ $: tile = typeHasTile(item)
   ? (findTileOrLooksLike($tileData, item) ??
     fallbackTile($tileData, item.symbol, item.color ?? "white"))
   : null;
-$: baseUrl = $tileData?.baseUrl;
 
 $: finalWidth =
   width ?? (tile_info?.width ?? 32) * (tile_info?.pixelscale ?? 1);
@@ -78,6 +77,8 @@ function findTileOrLooksLike(
 
 type TilePosition = {
   file: string;
+  file_url?: string;
+  source_base_url?: string;
   tx: number;
   ty: number;
   width: number;
@@ -89,6 +90,10 @@ type TileInfo = {
   fg?: TilePosition;
   bg?: TilePosition;
 };
+
+function layerUrl(tile: TilePosition | undefined): string {
+  return resolveTileLayerUrl($tileData, tile) ?? "";
+}
 
 function findTile(tileData: any, id: string): TileInfo | undefined {
   if (!tileData || !id) return;
@@ -115,6 +120,8 @@ function findTile(tileData: any, id: string): TileInfo | undefined {
     const fgTy = (offsetInFile / range.chunk.nx) | 0;
     return {
       file: range.chunk.file,
+      file_url: range.chunk.file_url,
+      source_base_url: range.chunk.source_base_url,
       width: range.chunk.sprite_width ?? tileData.tile_info[0].width,
       height: range.chunk.sprite_height ?? tileData.tile_info[0].height,
       offx: range.chunk.sprite_offset_x ?? 0,
@@ -130,7 +137,12 @@ function findTile(tileData: any, id: string): TileInfo | undefined {
         /^_season_(autumn|spring|summer|winter)$/.test(
           testId.substring(id.length),
         )));
-  for (const chunk of tileData["tiles-new"]) {
+  for (
+    let chunkIdx = tileData["tiles-new"].length - 1;
+    chunkIdx >= 0;
+    chunkIdx--
+  ) {
+    const chunk = tileData["tiles-new"][chunkIdx];
     for (const info of chunk.tiles) {
       if (
         Array.isArray(info.id) ? info.id.some(idMatches) : idMatches(info.id)
@@ -215,7 +227,7 @@ function fallbackTile(
         style="
           width: {tile.bg.width}px;
           height: {tile.bg.height}px;
-          background-image: url({`${baseUrl}/${encodeURIComponent(tile.bg.file)}`});
+          background-image: url({layerUrl(tile.bg)});
           background-position: {-tile.bg.tx * tile.bg.width}px
             {-tile.bg.ty * tile.bg.height}px;
           transform: scale({scaleX}, {scaleY})
@@ -228,7 +240,7 @@ function fallbackTile(
         style="
           width: {tile.fg.width}px;
           height: {tile.fg.height}px;
-          background-image: url({`${baseUrl}/${encodeURIComponent(tile.fg.file)}`});
+          background-image: url({layerUrl(tile.fg)});
           background-position: {-tile.fg.tx * tile.fg.width}px {-tile.fg.ty *
           tile.fg.height}px;
           transform: scale({scaleX}, {scaleY}) translate({tile.fg.offx}px, {tile
