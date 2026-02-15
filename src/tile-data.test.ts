@@ -3,9 +3,11 @@ import type { CBNData } from "./data";
 import {
   TILESETS,
   collectActiveModTilesets,
+  collectExternalTilesets,
   getTilesetCompatibilityIdentities,
   isContributionCompatible,
   loadMergedTileset,
+  resolveExternalChunkUrl,
   resolveModChunkUrl,
 } from "./tile-data";
 
@@ -160,6 +162,39 @@ describe("tile-data mod_tileset support", () => {
     );
   });
 
+  test("resolveExternalChunkUrl resolves external tileset path and webp conversion", () => {
+    expect(
+      resolveExternalChunkUrl(
+        "v0.10.0",
+        "external_tileset/rabbit_mutations/rabbit_ears.png",
+      ),
+    ).toBe(
+      "https://data.cataclysmbn-guide.com/data/v0.10.0/external_tileset/rabbit_mutations/rabbit_ears.webp",
+    );
+  });
+
+  test("collectExternalTilesets reads built-in external tileset entries", () => {
+    const data = fakeData({
+      all: (() => [
+        {
+          type: "mod_tileset",
+          compatibility: ["UNDEAD_PEOPLE"],
+          "tiles-new": [{ file: "external_tileset/a.png", tiles: [] }],
+        },
+        {
+          type: "mod_tileset",
+          compatibility: ["UNDEAD_PEOPLE"],
+          "tiles-new": [{ file: "gfx/not-external.png", tiles: [] }],
+        },
+      ]) as unknown as CBNData["all"],
+    });
+
+    const collected = collectExternalTilesets(data);
+    expect(collected).toHaveLength(1);
+    expect(collected[0].source).toBe("external_tileset");
+    expect(collected[0].chunks[0].file).toBe("external_tileset/a.png");
+  });
+
   test("loadMergedTileset appends mod chunks and offsets sprite indices", async () => {
     const fetchSpy = vi.fn((input: string | URL | Request) => {
       const url = typeof input === "string" ? input : input.toString();
@@ -188,6 +223,7 @@ describe("tile-data mod_tileset support", () => {
     globalThis.fetch = fetchSpy as typeof fetch;
 
     const data = fakeData({
+      all: () => [],
       active_mods: ["mod_a", "mod_b"],
       raw_mods_json: {
         mod_a: {
@@ -266,6 +302,7 @@ describe("tile-data mod_tileset support", () => {
     globalThis.fetch = fetchSpy as typeof fetch;
 
     const data = fakeData({
+      all: () => [],
       active_mods: ["civilians"],
       raw_mods_json: {
         civilians: {
@@ -338,6 +375,7 @@ describe("tile-data mod_tileset support", () => {
     globalThis.fetch = fetchSpy as typeof fetch;
 
     const data = fakeData({
+      all: () => [],
       active_mods: [],
       raw_mods_json: {},
     });
@@ -354,5 +392,59 @@ describe("tile-data mod_tileset support", () => {
     );
     expect(merged["tiles-new"][0].file).toBe("base.webp");
     expect(tileConfigCalls).toBe(2);
+  });
+
+  test("loadMergedTileset loads built-in external tileset chunks", async () => {
+    const fetchSpy = vi.fn((input: string | URL | Request) => {
+      const url = typeof input === "string" ? input : input.toString();
+      if (url.includes("tile_config.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              tile_info: [{ width: 32, height: 32, pixelscale: 1 }],
+              "tiles-new": [],
+            }),
+        } as Response);
+      }
+      return Promise.resolve({
+        ok: true,
+        blob: () => Promise.resolve(new Blob()),
+      } as Response);
+    });
+    globalThis.fetch = fetchSpy as typeof fetch;
+
+    const data = fakeData({
+      all: (() => [
+        {
+          type: "mod_tileset",
+          compatibility: ["UNDEAD_PEOPLE"],
+          "tiles-new": [
+            {
+              file: "external_tileset/custom.png",
+              tiles: [{ id: "external", fg: 0 }],
+            },
+          ],
+        },
+      ]) as unknown as CBNData["all"],
+      active_mods: [],
+      raw_mods_json: {},
+    });
+
+    const tileset = TILESETS.find((entry) => entry.name === "undead_people")!;
+    const merged = await loadMergedTileset(
+      data,
+      "v0.10.0-test-external",
+      tileset,
+    );
+
+    expect(merged["tiles-new"].map((chunk) => chunk.file)).toContain(
+      "external_tileset/custom.webp",
+    );
+    expect(
+      fetchSpy.mock.calls.some(([arg]) =>
+        String(arg).includes("/external_tileset/custom.webp"),
+      ),
+    ).toBe(true);
   });
 });

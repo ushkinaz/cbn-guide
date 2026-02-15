@@ -1,8 +1,7 @@
 import { writable } from "svelte/store";
 import * as Sentry from "@sentry/browser";
 import type { CBNData } from "./data";
-
-const DATA_HOST = "https://data.cataclysmbn-guide.com";
+import { CBN_DATA_BASE_URL } from "./constants";
 
 type TileInfoMeta = { width: number; height: number; pixelscale: number };
 
@@ -27,10 +26,19 @@ type ModTilesetEntity = {
 };
 
 type ModTilesetContribution = {
+  source: "mod";
   modId: string;
   compatibility: Set<string>;
   chunks: RawTileChunk[];
 };
+
+type ExternalTilesetContribution = {
+  source: "external_tileset";
+  compatibility: Set<string>;
+  chunks: RawTileChunk[];
+};
+
+type TilesetContribution = ModTilesetContribution | ExternalTilesetContribution;
 
 type TilesetDefinition = {
   name: string;
@@ -146,7 +154,11 @@ function resolvePath(baseUrl: string, file: string): string {
 }
 
 function getModBaseUrl(version: string, modId: string): string {
-  return `${DATA_HOST}/data/${version}/mods/${encodeURIComponent(modId)}`;
+  return `${CBN_DATA_BASE_URL}/data/${version}/mods/${encodeURIComponent(modId)}`;
+}
+
+function getDataBaseUrl(version: string): string {
+  return `${CBN_DATA_BASE_URL}/data/${version}`;
 }
 
 export function resolveModChunkUrl(
@@ -157,6 +169,13 @@ export function resolveModChunkUrl(
   return resolvePath(
     getModBaseUrl(version, modId),
     normalizeTileFilename(file),
+  );
+}
+
+export function resolveExternalChunkUrl(version: string, file: string): string {
+  return resolvePath(
+    getDataBaseUrl(version),
+    `gfx/${normalizeTileFilename(file)}`,
   );
 }
 
@@ -320,6 +339,7 @@ export function collectActiveModTilesets(
         ? toNormalizedSet(entry.compatibility)
         : new Set<string>();
       result.push({
+        source: "mod",
         modId,
         compatibility,
         chunks: entry["tiles-new"],
@@ -330,8 +350,38 @@ export function collectActiveModTilesets(
   return result;
 }
 
+function isExternalTilesetChunk(file: string): boolean {
+  return file.startsWith("external_tileset/");
+}
+
+export function collectExternalTilesets(
+  data: Pick<CBNData, "all">,
+): ExternalTilesetContribution[] {
+  const result: ExternalTilesetContribution[] = [];
+
+  for (const entry of data.all() as unknown[]) {
+    if (!isModTilesetEntity(entry)) continue;
+    const hasExternalChunk = entry["tiles-new"].some((chunk) =>
+      isExternalTilesetChunk(chunk.file),
+    );
+    if (!hasExternalChunk) continue;
+
+    const compatibility = hasStringArray(entry.compatibility)
+      ? toNormalizedSet(entry.compatibility)
+      : new Set<string>();
+
+    result.push({
+      source: "external_tileset",
+      compatibility,
+      chunks: entry["tiles-new"],
+    });
+  }
+
+  return result;
+}
+
 export function isContributionCompatible(
-  contribution: Pick<ModTilesetContribution, "compatibility">,
+  contribution: Pick<TilesetContribution, "compatibility">,
   selectedAliases: Set<string>,
 ): boolean {
   if (contribution.compatibility.size === 0) {
@@ -395,9 +445,10 @@ export async function loadMergedTileset(
     const baseUrl = getTilesetUrl(version, tileset.path!);
     const base = await getCachedBaseTileset(baseUrl);
 
-    const contributions = collectActiveModTilesets(data).filter(
-      (contribution) => isContributionCompatible(contribution, aliases),
-    );
+    const contributions: TilesetContribution[] = [
+      ...collectExternalTilesets(data),
+      ...collectActiveModTilesets(data),
+    ].filter((contribution) => isContributionCompatible(contribution, aliases));
 
     if (contributions.length === 0) {
       return {
@@ -409,37 +460,53 @@ export async function loadMergedTileset(
     const modChunks: TileChunk[] = [];
     let nextSpriteOffset = totalSpritesInChunks(base["tiles-new"]);
 
-    for (const contribution of contributions) {
-      const hydratedContributionChunks: TileChunk[] = [];
-      for (const chunk of contribution.chunks) {
-        const fileUrl = resolveModChunkUrl(
-          version,
-          contribution.modId,
-          chunk.file,
+    const hydratedContributions = await Promise.all(
+      contributions.map(async (contribution) => {
+        const hydratedContributionChunks = await Promise.all(
+          contribution.chunks.map(async (chunk) => {
+            const resolvedUrl =
+              contribution.source === "mod"
+                ? resolveModChunkUrl(version, contribution.modId, chunk.file)
+                : resolveExternalChunkUrl(version, chunk.file);
+            try {
+              return await hydrateChunk(
+                chunk,
+                base.tile_info[0],
+                resolvedUrl,
+                getChunkSourceBase(resolvedUrl),
+              );
+            } catch (err) {
+              console.warn("Failed to load tileset contribution chunk", {
+                source: contribution.source,
+                modId:
+                  contribution.source === "mod"
+                    ? contribution.modId
+                    : undefined,
+                chunkFile: chunk.file,
+                resolvedUrl,
+              });
+              Sentry.captureException(err, {
+                extra: {
+                  source: contribution.source,
+                  modId:
+                    contribution.source === "mod"
+                      ? contribution.modId
+                      : undefined,
+                  chunkFile: chunk.file,
+                  resolvedUrl,
+                },
+              });
+              return null;
+            }
+          }),
         );
-        try {
-          const hydrated = await hydrateChunk(
-            chunk,
-            base.tile_info[0],
-            fileUrl,
-            getChunkSourceBase(fileUrl),
-          );
-          hydratedContributionChunks.push(hydrated);
-        } catch (err) {
-          console.warn("Failed to load mod tileset chunk", {
-            modId: contribution.modId,
-            chunkFile: chunk.file,
-            resolvedUrl: fileUrl,
-          });
-          Sentry.captureException(err, {
-            extra: {
-              modId: contribution.modId,
-              chunkFile: chunk.file,
-              resolvedUrl: fileUrl,
-            },
-          });
-        }
-      }
+        return hydratedContributionChunks.filter(
+          (chunk): chunk is TileChunk => chunk !== null,
+        );
+      }),
+    );
+
+    for (const hydratedContributionChunks of hydratedContributions) {
       const offsetChunks = offsetContributionIndices(
         hydratedContributionChunks,
         nextSpriteOffset,
@@ -574,7 +641,7 @@ export function isValidTileset(tilesetID: string | null) {
  * @returns {string}
  */
 export const getTilesetUrl = (version: string, path: string): string =>
-  `${DATA_HOST}/data/${version}/gfx/${path}`;
+  `${CBN_DATA_BASE_URL}/data/${version}/gfx/${path}`;
 
 export const TILESETS: TilesetDefinition[] = [
   //tileinfo prop contains pre-cached data used by the initial layouting phase. Is overridden when actual data comes from the server.
