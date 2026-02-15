@@ -255,14 +255,11 @@ onDestroy(() => {
       <header class="mods-header">
         <div class="mods-header-info">
           <h2 id="mods-dialog-title">
-            {t("Mods", { _context: MOD_SELECTOR_CONTEXT })}
-          </h2>
-          <span class="mods-selected">
-            {t("selected: {count}", {
-              count: draftSelectedModIds.length,
+            {t("Mods [{count}]", {
               _context: MOD_SELECTOR_CONTEXT,
+              count: draftSelectedModIds.length,
             })}
-          </span>
+          </h2>
         </div>
         <button
           type="button"
@@ -343,6 +340,18 @@ onDestroy(() => {
 
       <footer class="mods-actions">
         <div class="mods-actions-buttons">
+          <button type="button" class="ghost" on:click={close}>
+            {t("Cancel", { _context: MOD_SELECTOR_CONTEXT })}
+          </button>
+          <button
+            type="button"
+            class="ghost"
+            on:click={reset}
+            disabled={draftSelectedModIds.length === 0}>
+            {t("Reset", { _context: MOD_SELECTOR_CONTEXT })}
+          </button>
+        </div>
+        <div class="mods-actions-main">
           <div class="mods-actions-utilities">
             <button
               type="button"
@@ -350,27 +359,18 @@ onDestroy(() => {
               on:click={selectDefaultMods}
               disabled={availableDefaultModIds.length === 0 ||
                 loading ||
-                !!errorMessage}>
+                !!errorMessage}
+              title={t("Load default in-game preset", {
+                _context: MOD_SELECTOR_CONTEXT,
+              })}>
               {t("Default", { _context: MOD_SELECTOR_CONTEXT })}
-            </button>
-            <button
-              type="button"
-              class="ghost"
-              on:click={reset}
-              disabled={draftSelectedModIds.length === 0}>
-              {t("Reset", { _context: MOD_SELECTOR_CONTEXT })}
-            </button>
-          </div>
-          <div class="mods-actions-main">
-            <button type="button" class="ghost" on:click={close}>
-              {t("Cancel", { _context: MOD_SELECTOR_CONTEXT })}
             </button>
             <button
               type="button"
               class="apply"
               on:click={apply}
               disabled={loading || !!errorMessage}>
-              {t("Apply and Reload", { _context: MOD_SELECTOR_CONTEXT })}
+              {t("Apply", { _context: MOD_SELECTOR_CONTEXT })}
             </button>
           </div>
         </div>
@@ -438,14 +438,6 @@ onDestroy(() => {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--cata-color-light_cyan);
-}
-
-.mods-selected {
-  margin: 0;
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
-  color: var(--cata-color-gray);
-  font-size: 0.8rem;
 }
 
 .mods-list {
