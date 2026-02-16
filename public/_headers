@@ -43,9 +43,9 @@
   Cache-Control: public, max-age=86400, must-revalidate
 
 
-# Service Worker should always revalidate to pick up updates.
+# Service Worker uses fast caching
 /sw.js
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=300, s-maxage=3600, must-revalidate
 
 /*
   X-Frame-Options: SAMEORIGIN
