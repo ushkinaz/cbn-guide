@@ -1171,13 +1171,7 @@ export class CBNData {
     }
     for (const k of Object.keys(ret.relative ?? {})) {
       if (typeof ret.relative[k] === "number") {
-        if (k === "melee_damage") {
-          const di = normalizeDamageInstance(
-            cloneDamageInstance(ret.melee_damage),
-          );
-          for (const du of di) du.amount = (du.amount ?? 0) + ret.relative[k];
-          ret.melee_damage = di;
-        } else if (k === "weight") {
+        if (k === "weight") {
           ret[k] = (parseMass(ret[k]) ?? 0) + ret.relative[k];
         } else if (k === "volume") {
           ret[k] = (parseVolume(ret[k]) ?? 0) + ret.relative[k];
@@ -1185,11 +1179,12 @@ export class CBNData {
           ret[k] = (ret[k] ?? 0) + ret.relative[k];
         }
       } else if (
-        (k === "damage" || k === "ranged_damage" || k === "melee_damage") &&
+        (k === "damage" || k === "ranged_damage") &&
         ret[k] &&
         isDamageInstanceLike(ret[k]) &&
         isDamageInstanceLike(ret.relative[k])
       ) {
+        // See docs/copy-from-modifiers.md for which fields support this
         ret[k] = applyRelativeDamageInstance(ret[k], ret.relative[k]);
       } else if (k === "armor" && ret.type === "MONSTER" && ret[k]) {
         ret[k] = { ...ret[k] };
@@ -1220,11 +1215,12 @@ export class CBNData {
           ret[k] = ret[k] | 0; // most things are ints.. TODO: what keys are float?
         }
       } else if (
-        (k === "damage" || k === "ranged_damage" || k === "melee_damage") &&
+        (k === "damage" || k === "ranged_damage") &&
         ret[k] &&
         isDamageInstanceLike(ret[k]) &&
         isDamageInstanceLike(ret.proportional[k])
       ) {
+        // See docs/copy-from-modifiers.md for which fields support this
         ret[k] = applyProportionalDamageInstance(ret[k], ret.proportional[k]);
       } else if (k === "armor" && ret.type === "MONSTER" && ret[k]) {
         ret[k] = { ...ret[k] };
