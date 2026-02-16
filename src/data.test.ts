@@ -8,7 +8,7 @@ import {
   singularName,
   omsName,
 } from "./data";
-import type { OvermapSpecial } from "./types";
+import type { GunSlot, ItemBasicInfo, OvermapSpecial } from "./types";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([
@@ -179,50 +179,50 @@ test("_flatten: copy-from inheritance", () => {
 test("_flatten: relative", () => {
   const data = new CBNData([
     {
-      type: "item",
+      type: "GUN",
       abstract: "parent",
       weight: "1 kg",
       volume: "1 L",
-      melee_damage: { damage_type: "bash", amount: 10 },
+      ranged_damage: { damage_type: "bash", amount: 10 },
       qualities: [["CUT", 1]],
     },
     {
-      type: "item",
+      type: "GUN",
       id: "child",
       "copy-from": "parent",
       relative: {
-        weight: 500, // weight is in grams
-        volume: 250, // volume is in 250ml units if number? No, looking at code: (parseVolume(ret[k]) ?? 0) + ret.relative[k]
-        melee_damage: { amount: 5 },
+        weight: 500,
+        volume: 250,
+        ranged_damage: { damage_type: "bash", amount: 5 },
         qualities: [["CUT", 1]],
       },
     },
   ]);
-  const child = data.byId("item", "child");
+  const child = data.byId("item", "child") as ItemBasicInfo & GunSlot;
   expect(child.weight).toBe(1500); // 1kg (1000) + 500
   expect(child.volume).toBe(1250); // 1L (1000) + 250
-  expect(child.melee_damage).toEqual({ damage_type: "bash", amount: 15 });
+  expect(child.ranged_damage).toEqual([{ damage_type: "bash", amount: 15 }]);
   expect(child.qualities).toEqual([["CUT", 2]]);
 });
 
 test("_flatten: relative melee_damage supports damage instances in object/array form", () => {
   const data = new CBNData([
     {
-      type: "item",
+      type: "GUN",
       abstract: "parent",
-      melee_damage: [{ damage_type: "bash", amount: 10 }],
+      ranged_damage: [{ damage_type: "bash", amount: 10 }],
     },
     {
-      type: "item",
+      type: "GUN",
       id: "child",
       "copy-from": "parent",
       relative: {
-        melee_damage: [{ damage_type: "stab", amount: 2 }],
+        ranged_damage: [{ damage_type: "stab", amount: 2 }],
       },
     },
   ]);
-  const child = data.byId("item", "child");
-  expect(child.melee_damage).toEqual([
+  const child = data.byId("item", "child") as ItemBasicInfo & GunSlot;
+  expect(child.ranged_damage).toEqual([
     { damage_type: "bash", amount: 10 },
     { damage_type: "stab", amount: 2 },
   ]);
@@ -259,21 +259,21 @@ test("_flatten: proportional", () => {
 test("_flatten: proportional melee_damage supports damage instance arrays", () => {
   const data = new CBNData([
     {
-      type: "item",
+      type: "GUN",
       abstract: "parent",
-      melee_damage: [{ damage_type: "bash", amount: 10 }],
+      ranged_damage: [{ damage_type: "bash", amount: 10 }],
     },
     {
-      type: "item",
+      type: "GUN",
       id: "child",
       "copy-from": "parent",
       proportional: {
-        melee_damage: [{ damage_type: "bash", amount: 1.5 }],
+        ranged_damage: [{ damage_type: "bash", amount: 1.5 }],
       },
     },
   ]);
-  const child = data.byId("item", "child");
-  expect(child.melee_damage).toEqual([{ damage_type: "bash", amount: 15 }]);
+  const child = data.byId("item", "child") as ItemBasicInfo & GunSlot;
+  expect(child.ranged_damage).toEqual([{ damage_type: "bash", amount: 15 }]);
 });
 
 test("_flatten: extend and delete", () => {

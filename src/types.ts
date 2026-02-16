@@ -703,8 +703,6 @@ export type ItemBasicInfo = {
   bashing?: number;
   cutting?: number;
 
-  melee_damage?: Record<string /* damage_type_id */, number>;
-
   min_strength?: number;
   techniques?: string[];
   to_hit?:

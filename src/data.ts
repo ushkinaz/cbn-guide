@@ -1191,12 +1191,8 @@ export class CBNData {
         isDamageInstanceLike(ret.relative[k])
       ) {
         ret[k] = applyRelativeDamageInstance(ret[k], ret.relative[k]);
-      } else if (
-        (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
-        ret[k]
-      ) {
-        if (k === "melee_damage") ret[k] = cloneDamageInstance(ret[k]);
-        else ret[k] = { ...ret[k] };
+      } else if (k === "armor" && ret.type === "MONSTER" && ret[k]) {
+        ret[k] = { ...ret[k] };
         for (const k2 of Object.keys(ret.relative[k])) {
           ret[k][k2] = (ret[k][k2] ?? 0) + ret.relative[k][k2];
         }
@@ -1230,12 +1226,8 @@ export class CBNData {
         isDamageInstanceLike(ret.proportional[k])
       ) {
         ret[k] = applyProportionalDamageInstance(ret[k], ret.proportional[k]);
-      } else if (
-        (k === "melee_damage" || (k === "armor" && ret.type === "MONSTER")) &&
-        ret[k]
-      ) {
-        if (k === "melee_damage") ret[k] = cloneDamageInstance(ret[k]);
-        else ret[k] = { ...ret[k] };
+      } else if (k === "armor" && ret.type === "MONSTER" && ret[k]) {
+        ret[k] = { ...ret[k] };
         for (const k2 of Object.keys(ret.proportional[k])) {
           ret[k][k2] *= ret.proportional[k][k2];
           ret[k][k2] = ret[k][k2] | 0; // most things are ints.. TODO: what keys are float?
