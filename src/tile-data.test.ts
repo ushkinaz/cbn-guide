@@ -169,7 +169,7 @@ describe("tile-data mod_tileset support", () => {
         "external_tileset/rabbit_mutations/rabbit_ears.png",
       ),
     ).toBe(
-      "https://data.cataclysmbn-guide.com/data/v0.10.0/external_tileset/rabbit_mutations/rabbit_ears.webp",
+      "https://data.cataclysmbn-guide.com/data/v0.10.0/gfx/external_tileset/rabbit_mutations/rabbit_ears.webp",
     );
   });
 
