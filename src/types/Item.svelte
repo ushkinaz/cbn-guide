@@ -63,11 +63,6 @@ let qualities = (item.qualities ?? []).map(([id, level]) => ({
   level,
 }));
 
-let chargedQualities = (item.charged_qualities ?? []).map(([id, level]) => ({
-  quality: data.byId("tool_quality", id),
-  level,
-}));
-
 function isStrings<T>(array: string[] | T[]): array is string[] {
   return typeof array[0] === "string";
 }
@@ -256,7 +251,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           </dd>
         {/if}
 
-        {#if qualities.length || chargedQualities.length}
+        {#if qualities.length}
           <dt>{t("Qualities", { _context })}</dt>
           <dd>
             <ul class="no-bullets">
@@ -279,16 +274,6 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                       id={quality.id}
                       showIcon={false} />
                   </InterpolatedTranslation>
-                </li>
-              {/each}
-              {#each chargedQualities as { quality, level }}
-                <li>
-                  Has level <strong
-                    >{level}
-                    <ItemLink
-                      type="tool_quality"
-                      id={quality.id}
-                      showIcon={false} /></strong> quality (when charged).
                 </li>
               {/each}
             </ul>

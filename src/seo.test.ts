@@ -154,14 +154,13 @@ test("tool-like description shows qualities and flags", () => {
     id: "tool_test",
     name: "Test Tool",
     qualities: [["COOK", 1]],
-    charged_qualities: [["CUT", 2]],
     material: "steel",
     flags: ["WATERPROOF"],
   };
 
   const desc = buildMetaDescription(tool);
 
-  expect(desc).toBe("Tool: qual COOK 1, CUT 2 & flags WATERPROOF.");
+  expect(desc).toBe("Tool: qual COOK 1 & flags WATERPROOF.");
 });
 
 test("cleans color tags and newlines from names", () => {

@@ -686,7 +686,6 @@ export type ItemBasicInfo = {
   looks_like?: string;
   description?: Translation;
   qualities?: [string, number][];
-  charged_qualities?: [string, number][];
   stackable?: boolean;
   volume?: volume;
   weight?: mass;

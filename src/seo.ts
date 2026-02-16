@@ -57,14 +57,6 @@ const formatQualities = (qualities?: [string, number][]): string | null => {
   return formatted.length > 0 ? formatted.join(", ") : null;
 };
 
-const mergeQualities = (item: ItemBasicInfo): string | null => {
-  const combined = [
-    ...(item.qualities ?? []),
-    ...(item.charged_qualities ?? []),
-  ];
-  return formatQualities(combined);
-};
-
 const primaryDamageUnit = (damage?: DamageInstance): DamageUnit | null => {
   if (!damage) return null;
   if (Array.isArray(damage)) return damage[0] ?? null;
@@ -184,7 +176,7 @@ const statsForContainer = (item: SupportedTypes["CONTAINER"]): string[] => {
 
 const statsForGeneric = (item: ItemBasicInfo): string[] => {
   const stats: string[] = [];
-  const qualities = mergeQualities(item);
+  const qualities = formatQualities(item.qualities);
   if (qualities) stats.push(`qual ${qualities}`);
   const flags = formatFlags(item.flags);
   if (flags) stats.push(`flags ${flags}`);
