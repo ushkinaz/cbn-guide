@@ -1260,6 +1260,9 @@ export class CBNData {
         ret[k] = (ret[k] ?? []).filter(
           (x: any) => !ret.delete[k].some((y: any) => isEqual(y, x)),
         );
+      } else {
+        // For non-array properties (like objects), delete the entire property
+        delete ret[k];
       }
     }
     delete ret.delete;
