@@ -8,7 +8,7 @@ An Architecture Decision Record captures an important architectural decision mad
 
 ## Creating a New ADR
 
-1. Use the [create-adr workflow](../../.agent/workflows/create-adr.md): `/create-adr`
+1. Use the [create-adr workflow](../../.agents/skills/create-adr/SKILL.md): `/create-adr`
 2. Or manually copy [000-template.md](000-template.md) and follow the structure
 
 ## Index

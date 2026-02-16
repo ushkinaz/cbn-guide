@@ -1,5 +1,5 @@
 ---
-name: final-cleanup
+name: cleanup-final
 description: Perform a final, surgical cleanup pass on code introduced or touched in the current task while preserving strict scope boundaries. Use when the user asks for "final cleanup", "polish pass", "surgical refactor", or "last pass" before handoff, and when changes must be limited to newly edited files/hunks without modifying unrelated legacy code.
 ---
 

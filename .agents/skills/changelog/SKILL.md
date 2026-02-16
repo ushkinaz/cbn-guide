@@ -1,7 +1,8 @@
 ---
-name: changelog-app
+name: changelog
 description: This agent generates a CHANGELOG.md for the cbn-guide application by analyzing git history from the last month. It maps conventional commit types to preferred user-friendly prefixes and enriches entries with GitHub issue descriptions if referenced.
 ---
+
 # Parameters
 
 ## Inputs
@@ -13,17 +14,17 @@ description: This agent generates a CHANGELOG.md for the cbn-guide application b
 
 ## Analysis & Tone
 
-- **Player-Centric Benefits**: Explain *what* the user experiences, not *how* it was implemented.
-    - Bad: "Optimized search index loading speed."
-    - Good: "Faster search with less stuttering when you are typing."
+- **Player-Centric Benefits**: Explain _what_ the user experiences, not _how_ it was implemented.
+  - Bad: "Optimized search index loading speed."
+  - Good: "Faster search with less stuttering when you are typing."
 - **Group Related Fixes**: If there are multiple technical fixes for a single system (e.g., mapgen, loot), aggregate them into one impactful line.
-    - Bad:
-        - "[FIX] Correct loot calculations..."
-        - "[FIX] Fixed mapgen probability..."
-        - "[FIX] Fixed parameterized mapgen..."
-    - Good: "[FIX] Corrected loot calculations chances and mapgen logic."
+  - Bad:
+    - "[FIX] Correct loot calculations..."
+    - "[FIX] Fixed mapgen probability..."
+    - "[FIX] Fixed parameterized mapgen..."
+  - Good: "[FIX] Corrected loot calculations chances and mapgen logic."
 - **Active & Simple**: Use natural language. Avoid "Improved X" if you can say "X is now Y".
-- **Volume**: It is better to list *more* candidates than fewer. The user will curate the list. Do not aggressive filter out minor valid user-facing changes, but DO group highly redundant ones.
+- **Volume**: It is better to list _more_ candidates than fewer. The user will curate the list. Do not aggressive filter out minor valid user-facing changes, but DO group highly redundant ones.
 
 ## Mapping & Prefixes
 
@@ -38,7 +39,7 @@ Map conventional commit types (extracted from `git log`) to these prefixes:
 ## GitHub Issue Enrichment
 
 - If a commit message contains an issue reference (e.g., `#123` or `closes #123`), use the `remote-github` MCP server (`issue_read`) to fetch the issue title and body.
-- Use the issue information to find the *user-facing symptom* or *benefit*, rather than the technical bug description.
+- Use the issue information to find the _user-facing symptom_ or _benefit_, rather than the technical bug description.
 
 ## Formatting (Markdown)
 
@@ -49,28 +50,37 @@ Map conventional commit types (extracted from `git log`) to these prefixes:
 # Examples
 
 ## Example 1: Grouping Fixes
+
 **Input Commits:**
+
 - `fix: correct fill_ter tile count`
 - `fix: handle ammo in mapgen`
 - `fix: resolve parameterized mapgen values`
 
 **Output:**
+
 - `[FIX] Corrected loot calculations and mapgen logic`
 
 ## Example 2: User Benefit
+
 **Input Commit:**
+
 - `perf(search): optimize search index initialization by avoiding eager flattening`
 
 **Output:**
+
 - `[SEARCH] Faster search with less stuttering when you are typing`
 
 ## Example 3: Feature Summary
+
 **Input Commits:**
+
 - `feat(i18n): add Transifex API scripts`
 - `feat(i18n): simplify strings`
 - `chore(i18n): own instance`
 
 **Output:**
+
 - `[FEATURE] Translations moved to Transifex project`
 
 # Execution Plan
