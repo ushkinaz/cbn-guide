@@ -92,7 +92,7 @@ export default defineConfig({
               cacheName: "builds-cache-v2",
               expiration: {
                 maxEntries: 1,
-                maxAgeSeconds: 60 * 60 * 3,
+                maxAgeSeconds: 60 * 15, // 15 minutes - align with nightly freshness
               },
               cacheableResponse: {
                 statuses: [200],
@@ -104,7 +104,7 @@ export default defineConfig({
             },
           },
           {
-            // The latest nightly / updates regularly
+            // The latest nightly / updates daily
             urlPattern:
               /^https:\/\/data\.cataclysmbn-guide\.com\/data\/nightly\//,
             handler: "NetworkFirst",
@@ -112,7 +112,7 @@ export default defineConfig({
               cacheName: "nightly-cache-v2",
               expiration: {
                 maxEntries: 15,
-                maxAgeSeconds: 60 * 60 * 3,
+                maxAgeSeconds: 60 * 15, // 15 minutes - align with Edge cache
               },
               cacheableResponse: {
                 statuses: [200],
