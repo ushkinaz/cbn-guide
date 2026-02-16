@@ -927,10 +927,6 @@ export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
     return loot;
   }
   const palette = parseFurniturePalette(data, mapgen.object);
-  const mappingPalette = parseMappingFurniture(
-    mapgen.object.mapping,
-    mapgen.object.parameters,
-  );
   const place_furniture: Loot[] = (mapgen.object.place_furniture ?? []).map(
     ({ furn, repeat }) =>
       new Map([
@@ -942,12 +938,9 @@ export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   );
   const set_furniture = getSetLoot(mapgen, "furniture");
   const additional_items = collection([...place_furniture, ...set_furniture]);
-  const symbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
+  const symbols = new Set(palette.keys());
   const counts = countSymbols(mapgen.object.rows, symbols);
-  const items: Loot[] = [
-    ...lootFromCounts(counts, palette),
-    ...lootFromCounts(counts, mappingPalette),
-  ];
+  const items: Loot[] = [...lootFromCounts(counts, palette)];
   items.push(additional_items);
   const loot = collection(items);
   loot.delete("f_null");
@@ -965,10 +958,6 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
     return loot;
   }
   const palette = parseTerrainPalette(data, mapgen.object);
-  const mappingPalette = parseMappingTerrain(
-    mapgen.object.mapping,
-    mapgen.object.parameters,
-  );
   const rows = mapgen.object.rows ?? [];
   const fill_ter = mapgen.object.fill_ter
     ? getMapgenValueDistribution(
@@ -982,7 +971,7 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   const set_terrain = getSetLoot(mapgen, "terrain");
   const additional_items = collection([...place_terrain, ...set_terrain]);
   const countByPalette = new Map<string, number>();
-  const terrainSymbols = new Set([...palette.keys(), ...mappingPalette.keys()]);
+  const terrainSymbols = new Set(palette.keys());
   let fillCount = 0;
   for (const row of rows)
     for (const char of row)
@@ -993,10 +982,7 @@ export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
     const [width, height] = mapgen.object.mapgensize ?? [1, 1];
     fillCount = width * height * OMAP_TILE_SIZE * OMAP_TILE_SIZE;
   }
-  const items: Loot[] = [
-    ...lootFromCounts(countByPalette, palette),
-    ...lootFromCounts(countByPalette, mappingPalette),
-  ];
+  const items: Loot[] = [...lootFromCounts(countByPalette, palette)];
   if (fillCount > 0) {
     const loot = toLoot(fill_ter);
     const multipliedLoot: Loot = new Map();
@@ -1455,7 +1441,11 @@ export function parseFurniturePalette(
     data,
     palette,
   );
-  const ret = mergePalettes([furniture, ...palettes]);
+  const ret = mergePalettes([
+    furniture,
+    parseMappingFurniture(palette.mapping, palette.parameters),
+    ...palettes,
+  ]);
   furniturePaletteCache.set(palette, ret);
   return ret;
 }
@@ -1484,7 +1474,11 @@ export function parseTerrainPalette(
     data,
     palette,
   );
-  const ret = mergePalettes([terrain, ...palettes]);
+  const ret = mergePalettes([
+    terrain,
+    parseMappingTerrain(palette.mapping, palette.parameters),
+    ...palettes,
+  ]);
   terrainPaletteCache.set(palette, ret);
   return ret;
 }

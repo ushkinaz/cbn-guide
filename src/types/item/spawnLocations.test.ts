@@ -1034,6 +1034,52 @@ describe("mapping", () => {
     expect(loot.get("t_floor")).toEqual({ prob: 1, expected: 1 });
   });
 
+  it("inherits furniture mapping from referenced palettes", () => {
+    const data = new CBNData([
+      {
+        type: "palette",
+        id: "furniture_palette",
+        mapping: {
+          F: { furniture: "f_ref_furn" },
+        },
+      },
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["F"],
+          palettes: ["furniture_palette"],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getFurnitureForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("f_ref_furn")).toEqual({ prob: 1, expected: 1 });
+  });
+
+  it("inherits terrain mapping from referenced palettes", () => {
+    const data = new CBNData([
+      {
+        type: "palette",
+        id: "terrain_palette",
+        mapping: {
+          T: { terrain: "t_ref_terrain" },
+        },
+      },
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: ["T"],
+          palettes: ["terrain_palette"],
+        },
+      } as Mapgen,
+    ]);
+    const loot = getTerrainForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("t_ref_terrain")).toEqual({ prob: 1, expected: 1 });
+  });
+
   it("set furniture", async () => {
     const data = new CBNData([
       {
