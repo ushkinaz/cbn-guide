@@ -103,7 +103,7 @@ describe("ModSelector", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
 
     await fireEvent.click(getByLabelText("Magiclysm"));
-    await fireEvent.click(getByText("Apply and Reload"));
+    await fireEvent.click(getByText("Apply"));
     expect(applied).toEqual(["aftershock", "magiclysm"]);
   });
 
@@ -126,14 +126,14 @@ describe("ModSelector", () => {
     );
 
     await fireEvent.click(getByText("Reset"));
-    await waitFor(() => expect(getByText("selected: 0")).toBeTruthy());
+    await waitFor(() => expect(getByText("Mods [0]")).toBeTruthy());
     await waitFor(() =>
       expect(isChecked(getByLabelText("Aftershock") as HTMLInputElement)).toBe(
         false,
       ),
     );
 
-    await fireEvent.click(getByText("Apply and Reload"));
+    await fireEvent.click(getByText("Apply"));
     expect(applied).toEqual([]);
   });
 
@@ -158,9 +158,9 @@ describe("ModSelector", () => {
       ),
     );
     expect(isChecked(getByLabelText("Arcana") as HTMLInputElement)).toBe(true);
-    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
+    await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
 
-    await fireEvent.click(getByText("Apply and Reload"));
+    await fireEvent.click(getByText("Apply"));
     expect(applied).toEqual(["aftershock", "arcana"]);
   });
 
@@ -179,8 +179,8 @@ describe("ModSelector", () => {
     });
 
     await fireEvent.click(getByText("Default"));
-    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
-    await fireEvent.click(getByText("Apply and Reload"));
+    await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
+    await fireEvent.click(getByText("Apply"));
     expect(applied).toEqual(["no_npc_food", "cbm_slots"]);
   });
 
@@ -199,15 +199,15 @@ describe("ModSelector", () => {
     });
 
     await fireEvent.click(getByText("Default"));
-    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
+    await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
 
     await fireEvent.click(getByLabelText("No NPC Food"));
-    await waitFor(() => expect(getByText("selected: 1")).toBeTruthy());
+    await waitFor(() => expect(getByText("Mods [1]")).toBeTruthy());
 
     await fireEvent.click(getByText("Default"));
-    await waitFor(() => expect(getByText("selected: 2")).toBeTruthy());
+    await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
 
-    await fireEvent.click(getByText("Apply and Reload"));
+    await fireEvent.click(getByText("Apply"));
     expect(applied).toEqual(["no_npc_food", "cbm_slots"]);
   });
 

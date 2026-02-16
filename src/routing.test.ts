@@ -358,7 +358,7 @@ describe("Routing E2E Tests", () => {
       await waitFor(() => expect(getByLabelText("Aftershock")).toBeTruthy());
 
       await fireEvent.click(getByLabelText("Magiclysm"));
-      await fireEvent.click(getByText("Apply and Reload"));
+      await fireEvent.click(getByText("Apply"));
 
       expect(new URL(window.location.href).searchParams.get("mods")).toBe(
         "aftershock,magiclysm",
