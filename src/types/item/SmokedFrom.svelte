@@ -20,7 +20,7 @@ sources.sort(byName);
 
 {#if sources.length}
   <section>
-    <h1>{t("Smoke", { _context: "Obtaining" })}</h1>
+    <h2>{t("Smoke", { _context: "Obtaining" })}</h2>
     <LimitedList items={sources} let:item>
       <ItemLink type="item" id={item.id} />
     </LimitedList>

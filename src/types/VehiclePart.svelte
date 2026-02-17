@@ -78,7 +78,7 @@ vehiclesContainingPart.sort((a, b) =>
 <h1><ItemLink type="vehicle_part" id={item.id} link={false} /></h1>
 
 <section>
-  <h1>{t("Vehicle Part")}</h1>
+  <h2>{t("Vehicle Part")}</h2>
   <dl>
     <dt>{t("Item")}</dt>
     <dd><ItemLink id={item.item} type="item" showIcon={false} /></dd>
@@ -224,7 +224,7 @@ vehiclesContainingPart.sort((a, b) =>
 
 <div class="side-by-side">
   <section>
-    <h1>{t("Install", { _context })}</h1>
+    <h2>{t("Install", { _context })}</h2>
     <dl>
       <dt>{t("Skills Required")}</dt>
       <dd>
@@ -251,7 +251,7 @@ vehiclesContainingPart.sort((a, b) =>
   </section>
 
   <section>
-    <h1>{t("Remove", { _context })}</h1>
+    <h2>{t("Remove", { _context })}</h2>
     <dl>
       <dt>{t("Skills Required")}</dt>
       <dd>
@@ -283,7 +283,7 @@ vehiclesContainingPart.sort((a, b) =>
 
 {#if item.requirements?.repair}
   <section>
-    <h1>{t("Repair", { _context })}</h1>
+    <h2>{t("Repair", { _context })}</h2>
     <dl>
       <dt>{t("Skills Required")}</dt>
       <dd>
@@ -311,13 +311,13 @@ vehiclesContainingPart.sort((a, b) =>
 
 {#if vehiclesContainingPart.length}
   <section>
-    <h1>
+    <h2>
       {t("Vehicles", {
         _context,
         _comment:
           "Heading for list of vehicles which contain this vehicle part",
       })}
-    </h1>
+    </h2>
     <LimitedList items={vehiclesContainingPart} let:item>
       <ItemLink type="vehicle" id={item.id} showIcon={false} />
     </LimitedList>

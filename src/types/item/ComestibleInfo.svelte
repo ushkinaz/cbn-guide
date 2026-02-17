@@ -13,7 +13,7 @@ const data = getContext<CBNData>("data");
 </script>
 
 <section>
-  <h1>{t("Comestible")}</h1>
+  <h2>{t("Comestible")}</h2>
   <dl>
     <dt>{t("Calories")}</dt>
     <dd>{item.calories ?? 0} kcal</dd>

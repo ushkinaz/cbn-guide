@@ -34,7 +34,7 @@ const bionicWithFlag = data
   );
 </script>
 
-<h1>{t("Flag", { _comment: "Section heading" })}: {item.id}</h1>
+<h2>{t("Flag", { _comment: "Section heading" })}: {item.id}</h2>
 <!--We have to be defencive here, since some flags are not defined in JSON, and created on-the-fly-->
 {#if item.info}
   <section>
@@ -46,7 +46,7 @@ const bionicWithFlag = data
 {/if}
 {#if itemsWithFlag.length}
   <section>
-    <h1>{t("Items", { _comment: "Section heading" })}</h1>
+    <h2>{t("Items", { _comment: "Section heading" })}</h2>
     <LimitedList items={itemsWithFlag.sort(byName)} let:item>
       <ItemLink type="item" id={item.id} />
     </LimitedList>
@@ -54,7 +54,7 @@ const bionicWithFlag = data
 {/if}
 {#if vpartsWithFlag.length}
   <section>
-    <h1>{t("Vehicle Parts")}</h1>
+    <h2>{t("Vehicle Parts")}</h2>
     <LimitedList items={vpartsWithFlag.sort(byName)} let:item>
       <ItemLink type="vehicle_part" id={item.id} />
     </LimitedList>
@@ -62,7 +62,7 @@ const bionicWithFlag = data
 {/if}
 {#if terrainWithFlag.length}
   <section>
-    <h1>{t("Terrain")}</h1>
+    <h2>{t("Terrain")}</h2>
     <LimitedList items={terrainWithFlag.sort(byName)} let:item>
       <ItemLink type="terrain" id={item.id} />
     </LimitedList>
@@ -70,7 +70,7 @@ const bionicWithFlag = data
 {/if}
 {#if furnitureWithFlag.length}
   <section>
-    <h1>{t("Furniture")}</h1>
+    <h2>{t("Furniture")}</h2>
     <LimitedList items={furnitureWithFlag.sort(byName)} let:item>
       <ItemLink type="furniture" id={item.id} />
     </LimitedList>
@@ -78,7 +78,7 @@ const bionicWithFlag = data
 {/if}
 {#if bionicWithFlag.length}
   <section>
-    <h1>{t("Bionics")}</h1>
+    <h2>{t("Bionics")}</h2>
     <LimitedList items={bionicWithFlag.sort(byName)} let:item>
       <ItemLink type="bionic" id={item.id} />
     </LimitedList>

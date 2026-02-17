@@ -45,7 +45,7 @@ const harvestableFrom = data
 
 {#if harvestableFrom.length}
   <section>
-    <h1>{t("Butcher", { _context: "Obtaining" })}</h1>
+    <h2>{t("Butcher", { _context: "Obtaining" })}</h2>
     <LimitedList items={harvestableFrom} let:item={m}>
       <ItemLink id={m.id} type="monster" />
     </LimitedList>

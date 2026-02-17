@@ -40,7 +40,7 @@ function computeLoudness(item: AmmoSlot): number {
 
 {#if item.damage || item.show_stats}
   <section>
-    <h1>{t("Ammunition")}</h1>
+    <h2>{t("Ammunition")}</h2>
     <dl>
       <dt>{t("Ammunition Type")}</dt>
       <dd>

@@ -23,7 +23,7 @@ const constructions = data
 
 {#if constructions.length}
   <section>
-    <h1>{t("Construct", { _context: "Obtaining" })}</h1>
+    <h2>{t("Construct", { _context: "Obtaining" })}</h2>
     <LimitedList items={constructions} let:item={f}>
       <ItemLink id={f.group} type="construction_group" showIcon={false} />
       {#if f.pre_terrain}

@@ -18,7 +18,7 @@ milledFrom.sort(byName);
 
 {#if milledFrom.length}
   <section>
-    <h1>{t("Mill", { _context: "Obtaining" })}</h1>
+    <h2>{t("Mill", { _context: "Obtaining" })}</h2>
     <LimitedList items={milledFrom} let:item>
       <ItemLink type="item" id={item.id} />
     </LimitedList>

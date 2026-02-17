@@ -26,7 +26,7 @@ martialArts.sort(byName);
 
 <h1>{t("Weapon Category")}: {singularName(item)}</h1>
 <section>
-  <h1>{t("Weapons", { _context: "Martial Art" })}</h1>
+  <h2>{t("Weapons", { _context: "Martial Art" })}</h2>
   {#if itemsInCategory.length}
     <LimitedList items={itemsInCategory} let:item>
       <ItemLink type="item" id={item.id} />
@@ -39,7 +39,7 @@ martialArts.sort(byName);
 </section>
 
 <section>
-  <h1>{t("Martial Arts")}</h1>
+  <h2>{t("Martial Arts")}</h2>
   {#if martialArts.length}
     <LimitedList items={martialArts} let:item>
       <ItemLink type="martial_art" id={item.id} />

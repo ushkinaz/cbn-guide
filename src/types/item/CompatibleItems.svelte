@@ -44,7 +44,7 @@ const items = data
 
 {#if items.length}
   <section>
-    <h1>{config.title}</h1>
+    <h2>{config.title}</h2>
     <LimitedList {items} let:item limit={5} grace={2}>
       <ItemLink type="item" id={item.id} />
     </LimitedList>

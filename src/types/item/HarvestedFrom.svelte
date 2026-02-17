@@ -40,7 +40,7 @@ harvestedFrom.sort(byName);
 
 {#if harvestedFrom.length}
   <section>
-    <h1>{t("Harvest", { _context: "Obtaining" })}</h1>
+    <h2>{t("Harvest", { _context: "Obtaining" })}</h2>
     <LimitedList items={harvestedFrom} let:item>
       <ItemLink type={item.type} id={item.id} />
     </LimitedList>

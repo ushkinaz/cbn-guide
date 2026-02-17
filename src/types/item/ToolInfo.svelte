@@ -9,7 +9,7 @@ export let item: ToolSlot;
 
 {#if item.charges_per_use || item.sub || item.power_draw || item.turns_per_charge}
   <section>
-    <h1>{t("Tool", { _comment: "Section heading" })}</h1>
+    <h2>{t("Tool", { _comment: "Section heading" })}</h2>
     <dl>
       {#if item.ammo?.length}
         <dt>{t("Ammo")}</dt>

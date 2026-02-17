@@ -90,7 +90,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
 
 {#if booksWithSkill.length}
   <section>
-    <h1>{t("Books", { _context: "Skill" })}</h1>
+    <h2>{t("Books", { _context: "Skill" })}</h2>
     <dl>
       {#each booksByLevelList as [level, books]}
         <dt style="font-variant: tabular-nums">Level {level}</dt>
@@ -108,7 +108,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
 
 {#if itemsTrainingSkillByLevelList.length}
   <section>
-    <h1>{t("Trained By", { _context: "Skill" })}</h1>
+    <h2>{t("Trained By", { _context: "Skill" })}</h2>
     <dl>
       {#each itemsTrainingSkillByLevelList as [level, items]}
         <dt style="font-variant: tabular-nums">Level {level}</dt>
@@ -126,7 +126,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
 
 {#if itemsUsingSkill.length}
   <section>
-    <h1>{t("Used By", { _context: "Skill" })}</h1>
+    <h2>{t("Used By", { _context: "Skill" })}</h2>
     <LimitedList items={itemsUsingSkill} let:item>
       <ItemLink type="item" id={item.id} />
     </LimitedList>

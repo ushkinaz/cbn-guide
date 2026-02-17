@@ -7,7 +7,7 @@ export let item: ContainerSlot;
 </script>
 
 <section>
-  <h1>{t("Container")}</h1>
+  <h2>{t("Container")}</h2>
   <dl>
     <dt>{t("Contains")}</dt>
     <dd>{item.contains ?? 0}</dd>

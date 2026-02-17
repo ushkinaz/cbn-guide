@@ -15,7 +15,7 @@ const sources = data.brewedFrom(item_id);
 
 {#if sources.length}
   <section>
-    <h1>{t("Fermented From", { _context: "Obtaining" })}</h1>
+    <h2>{t("Fermented From", { _context: "Obtaining" })}</h2>
     <LimitedList items={sources} let:item>
       <ItemLink id={item.id} type="item" /> ({item.brewable.time ?? "1 turn"})
     </LimitedList>

@@ -38,7 +38,7 @@ const ranged_damage = extractRangedDamage();
 </script>
 
 <section>
-  <h1>{t("Ranged", { _comment: "Section heading" })}</h1>
+  <h2>{t("Ranged", { _comment: "Section heading" })}</h2>
   <dl>
     <dt>{t("Skill")}</dt>
     <dd><ItemLink type="skill" id={item.skill} showIcon={false} /></dd>

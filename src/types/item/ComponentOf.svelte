@@ -57,12 +57,12 @@ const toolResults = [...toolRecipes].sort((a, b) =>
 
 {#if providedByVparts.length}
   <section>
-    <h1>
+    <h2>
       {t("Provided By Vehicle Parts", {
         _context,
         _comment: "Section heading",
       })}
-    </h1>
+    </h2>
     <LimitedList items={providedByVparts} let:item>
       <ItemLink type={item.type} id={item.id} />
     </LimitedList>
@@ -71,9 +71,9 @@ const toolResults = [...toolRecipes].sort((a, b) =>
 
 {#if providedByFurniture.length}
   <section>
-    <h1>
+    <h2>
       {t("Provided By Furniture", { _context, _comment: "Section heading" })}
-    </h1>
+    </h2>
     <LimitedList items={providedByFurniture} let:item>
       <ItemLink type={item.type} id={item.id} />
     </LimitedList>
@@ -84,7 +84,7 @@ const toolResults = [...toolRecipes].sort((a, b) =>
   <div class="side-by-side">
     {#if results.length}
       <section>
-        <h1>{t("Component Of", { _context, _comment: "Section heading" })}</h1>
+        <h2>{t("Component Of", { _context, _comment: "Section heading" })}</h2>
         <LimitedList items={results} let:item>
           <ItemLink type="item" id={item} />
         </LimitedList>
@@ -93,9 +93,9 @@ const toolResults = [...toolRecipes].sort((a, b) =>
 
     {#if toolResults.length}
       <section>
-        <h1>
+        <h2>
           {t("Tool For Crafting", { _context, _comment: "Section heading" })}
-        </h1>
+        </h2>
         <LimitedList items={toolResults} let:item>
           <ItemLink type="item" id={item} />
         </LimitedList>
@@ -108,9 +108,9 @@ const toolResults = [...toolRecipes].sort((a, b) =>
   <div class="side-by-side">
     {#if constructions.length}
       <section>
-        <h1>
+        <h2>
           {t("Used In Construction", { _context, _comment: "Section heading" })}
-        </h1>
+        </h2>
         <LimitedList items={constructions} let:item={f}>
           <ItemLink id={f.group} type="construction_group" showIcon={false} />
           {#if f.pre_terrain}
@@ -127,12 +127,12 @@ const toolResults = [...toolRecipes].sort((a, b) =>
     {/if}
     {#if toolConstructions.length}
       <section>
-        <h1>
+        <h2>
           {t("Tool For Construction", {
             _context,
             _comment: "Section heading",
           })}
-        </h1>
+        </h2>
         <LimitedList items={toolConstructions} let:item={f}>
           <ItemLink id={f.group} type="construction_group" showIcon={false} />
           {#if f.pre_terrain}

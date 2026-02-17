@@ -35,7 +35,7 @@ let itemsWithMaterial = data
 
 <h1>{t("Material")}: {singularName(item)}</h1>
 <section>
-  <h1>{t("Properties", { _context })}</h1>
+  <h2>{t("Properties", { _context })}</h2>
   <dl>
     <dt>{t("Density", { _context })}</dt>
     <dd>{item.density} kg / L</dd>
@@ -100,7 +100,7 @@ let itemsWithMaterial = data
 
 {#if itemsWithMaterial.length}
   <section>
-    <h1>{t("Items Made From {material}", { material: singularName(item) })}</h1>
+    <h2>{t("Items Made From {material}", { material: singularName(item) })}</h2>
     <LimitedList items={itemsWithMaterial} let:item>
       <ItemLink id={item.id} type="item" />
     </LimitedList>

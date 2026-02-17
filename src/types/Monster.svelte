@@ -439,7 +439,7 @@ for (const group of sortedGroups) {
 <Spoiler spoily={item.id === "mon_dragon_dummy"}>
   <div class="side-by-side">
     <section>
-      <h1>{t("Attack", { _context, _comment: "Section heading" })}</h1>
+      <h2>{t("Attack", { _context, _comment: "Section heading" })}</h2>
       <dl>
         <dt>{t("Speed", { _context })}</dt>
         <dd>{item.speed ?? 0}</dd>
@@ -469,7 +469,7 @@ for (const group of sortedGroups) {
       </dl>
     </section>
     <section>
-      <h1>{t("Defense", { _context, _comment: "Section heading" })}</h1>
+      <h2>{t("Defense", { _context, _comment: "Section heading" })}</h2>
       <dl style="flex: 1">
         <dt>{t("HP", { _context })}</dt>
         <dd>{item.hp}</dd>
@@ -508,7 +508,7 @@ for (const group of sortedGroups) {
     </section>
   </div>
   <section>
-    <h1>{t("Behavior", { _context, _comment: "Section heading" })}</h1>
+    <h2>{t("Behavior", { _context, _comment: "Section heading" })}</h2>
     <dl>
       <dt
         title={t(
@@ -636,7 +636,7 @@ for (const group of sortedGroups) {
 
   {#if harvest && (harvest.entries ?? []).length}
     <section>
-      <h1>{t("Butchering Results", { _context })}</h1>
+      <h2>{t("Butchering Results", { _context })}</h2>
       <ul class="no-bullets">
         {#each harvest.entries as harvest_entry}
           {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}

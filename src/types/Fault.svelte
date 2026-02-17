@@ -55,7 +55,7 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
 
 {#each mendingMethods as { components, requirement, mending_method }}
   <section>
-    <h1>{singularName(mending_method)}</h1>
+    <h2>{singularName(mending_method)}</h2>
     <dl>
       <dt>{t("Skills Used", { _context })}</dt>
       <dd>

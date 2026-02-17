@@ -97,12 +97,12 @@ function activityLevelName(level: number) {
 </script>
 
 <section class="recipe">
-  <h1>
+  <h2>
     {#if showResult}{t("Byproduct", {
         _context,
         _comment: "Section heading",
       })}{:else}{t("Craft", { _context, _comment: "Section heading" })}{/if}
-  </h1>
+  </h2>
   <p>
     {#if recipe.never_learn}
       <section class="warning">

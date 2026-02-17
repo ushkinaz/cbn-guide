@@ -280,14 +280,14 @@ const conflictsWithBionics = data
 
 {#if item.threshold && postThresholdMutations.length}
   <section>
-    <h1>{t("Post-Threshold Mutations", { _context })}</h1>
+    <h2>{t("Post-Threshold Mutations", { _context })}</h2>
     <MutationList mutations={postThresholdMutations} />
   </section>
 {/if}
 
 {#if requiredBy.length}
   <section>
-    <h1>{t("Required By", { _context })}</h1>
+    <h2>{t("Required By", { _context })}</h2>
     <ul>
       {#each requiredBy as m}
         <li><ItemLink id={m.id} type="mutation" showIcon={false} /></li>

@@ -53,7 +53,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
 <h1><ItemLink type="furniture" id={item.id} link={false} /></h1>
 
 <section>
-  <h1>{t("General", { _context })}</h1>
+  <h2>{t("General", { _context })}</h2>
   <dl>
     <dt>{t("Move Cost Modifier", { _context })}</dt>
     <dd>
@@ -176,7 +176,7 @@ const pseudo_items: string[] = item.crafting_pseudo_item
 
 {#if bashedFrom.length}
   <section>
-    <h1>{t("Bashed From", { _context })}</h1>
+    <h2>{t("Bashed From", { _context })}</h2>
     <LimitedList items={bashedFrom} let:item>
       <ItemLink type="furniture" id={item.id} />
     </LimitedList>

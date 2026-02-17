@@ -32,7 +32,7 @@ const forageSources = data
 
 {#if forageable.length}
   <section>
-    <h1>{t("Forage", { _context: "Obtaining" })}</h1>
+    <h2>{t("Forage", { _context: "Obtaining" })}</h2>
     <LimitedList items={forageSources} let:item>
       <ItemLink type="terrain" id={item.id} /> in
       <ul class="comma-separated or">

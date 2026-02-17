@@ -173,7 +173,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <ItemLink type="item" id={item.id} link={false} />
 </h1>
 <section>
-  <h1>{t("General", { _context })}</h1>
+  <h2>{t("General", { _context })}</h2>
   <div class="side-by-side no-margin">
     <div>
       <dl>
@@ -395,7 +395,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {/if}
 {#if item.type === "ENGINE" && item.displacement}
   <section>
-    <h1>{t("Engine", { _context })}</h1>
+    <h2>{t("Engine", { _context })}</h2>
     <dl>
       <dt>{t("Displacement", { _context })}</dt>
       <dd>{item.displacement} cc</dd>
@@ -413,7 +413,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {/if}
 {#if item.seed_data}
   <section>
-    <h1>{t("Grows Into", { _context: "Seed Data" })}</h1>
+    <h2>{t("Grows Into", { _context: "Seed Data" })}</h2>
     <dl>
       <dt>{t("Harvest Results", { _context: "Seed Data" })}</dt>
       <dd>
@@ -441,7 +441,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {/if}
 {#if fuelForItems.length}
   <section>
-    <h1>{t("Fuel For", { _context })}</h1>
+    <h2>{t("Fuel For", { _context })}</h2>
     <LimitedList items={fuelForItems} let:item>
       <ItemLink type={item.type} id={item.id} />
     </LimitedList>
@@ -449,7 +449,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {/if}
 {#if usedToRepair.length}
   <section>
-    <h1>{t("Used to Repair", { _context })}</h1>
+    <h2>{t("Used to Repair", { _context })}</h2>
     <LimitedList items={usedToRepair} let:item>
       <ItemLink type="fault" id={item.id} showIcon={false} />
     </LimitedList>

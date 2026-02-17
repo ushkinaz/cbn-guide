@@ -112,7 +112,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
 <h1>{t("Quality", { _comment: "Tool Quality" })}: {singularName(item)}</h1>
 {#if item.usages}
   <section>
-    <h1>{t("Usages", { _context })}</h1>
+    <h2>{t("Usages", { _context })}</h2>
     <dl>
       {#each item.usages as [level, usages]}
         <dt style="font-variant: tabular-nums">
@@ -130,7 +130,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
 {/if}
 {#if toolsWithQualityByLevelList.length}
   <section>
-    <h1>{t("Tools", { _context })}</h1>
+    <h2>{t("Tools", { _context })}</h2>
     <dl>
       {#each toolsWithQualityByLevelList as [level, tools]}
         <dt style="font-variant: tabular-nums">
@@ -147,7 +147,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
 {/if}
 {#if vpartsWithQualityByLevelList.length}
   <section>
-    <h1>{t("Vehicle Parts")}</h1>
+    <h2>{t("Vehicle Parts")}</h2>
     <dl>
       {#each vpartsWithQualityByLevelList as [level, vparts]}
         <dt style="font-variant: tabular-nums">
@@ -164,7 +164,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
 {/if}
 {#if recipesUsingQualityList.length}
   <section>
-    <h1>{t("Recipes")}</h1>
+    <h2>{t("Recipes")}</h2>
     <dl>
       {#each recipesUsingQualityList as [level, recipes]}
         <dt style="font-variant: tabular-nums">
@@ -181,7 +181,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
 {/if}
 {#if constructionsUsingQualityByLevelList.length}
   <section>
-    <h1>{t("Constructions")}</h1>
+    <h2>{t("Constructions")}</h2>
     <dl>
       {#each constructionsUsingQualityByLevelList as [level, constructions]}
         <dt style="font-variant: tabular-nums">

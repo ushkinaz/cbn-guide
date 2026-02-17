@@ -27,7 +27,7 @@ const getTransformAction = (item: Item) =>
 
 {#if transformedFrom.length}
   <section>
-    <h1>{t("Transformed From", { _context: "Obtaining" })}</h1>
+    <h2>{t("Transformed From", { _context: "Obtaining" })}</h2>
     <LimitedList items={transformedFrom} let:item>
       {@const ua = getTransformAction(item)}
       <ItemLink

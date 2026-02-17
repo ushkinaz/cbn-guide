@@ -36,7 +36,7 @@ const salvagedFromMaterials = data
 
 {#if salvagedFromMaterials.length}
   <section>
-    <h1>{t("Salvage", { _context: "Obtaining" })}</h1>
+    <h2>{t("Salvage", { _context: "Obtaining" })}</h2>
     <LimitedList items={salvagedFromMaterials} let:item>
       <ItemLink type="item" id={item.id} />
     </LimitedList>

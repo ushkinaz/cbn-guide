@@ -264,7 +264,7 @@ function getFallback(partId: string, variant: string) {
 </script>
 
 <section>
-  <h1>{t("Render", { _context })}</h1>
+  <h2>{t("Render", { _context })}</h2>
   <div
     class="vehicle-view"
     style="grid-template-columns: repeat({maxY - minY + 1}, auto)">

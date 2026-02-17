@@ -70,7 +70,7 @@ const piercing =
 {#if item.bashing || item.cutting}
   <!-- O.G -->
   <section>
-    <h1>{t("Melee", { _comment: "Section heading" })}</h1>
+    <h2>{t("Melee", { _comment: "Section heading" })}</h2>
     <dl>
       <dt>{t("Bash", { _context: "Damage Type" })}</dt>
       <dd>{item.bashing ?? 0}</dd>

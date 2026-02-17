@@ -77,7 +77,7 @@ const byproducts = getByproductsIndex(data)[item_id] ?? [];
 
 {#if byproducts.length}
   <section>
-    <h1>{t("Byproduct when crafting", { _context: "Obtaining" })}</h1>
+    <h2>{t("Byproduct when crafting", { _context: "Obtaining" })}</h2>
     <LimitedList items={byproducts} let:item>
       <ItemLink type="item" id={item.result} />
     </LimitedList>

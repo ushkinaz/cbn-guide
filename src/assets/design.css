@@ -213,28 +213,24 @@ section > *:last-child {
 section > *:first-child {
   margin-top: 0;
 }
-section h1 {
-  /* 1. VISUALS: High contrast, Tech feel */
+section h2 {
   color: var(--cata-color-white);
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 
-  /* 2. LAYOUT: Flexbox guarantees vertical centering */
   display: flex;
-  align-items: center; /* This locks the text to the vertical center */
-  height: 24px; /* Explicit height for the "bar" */
+  align-items: center;
+  height: 24px;
 
-  /* 3. THE FLAG: Only the left accent remains */
   border-left: 2px solid var(--cata-color-cyan);
-  border-bottom: none; /* Removed */
+  border-bottom: none;
 
-  /* 4. SPACING */
-  margin: 0 0 12px 0; /* Spacing below the header */
-  padding-left: 10px; /* Air gap between bar and text */
-  padding-top: 1px; /* Optical correction: Caps often look low without a 1px nudge */
-  line-height: 1; /* Crucial: prevents font leading from ruining alignment */
+  margin: 0 0 12px 0;
+  padding-left: 10px;
+  padding-top: 1px;
+  line-height: 1;
 }
 
 h1:first-child {

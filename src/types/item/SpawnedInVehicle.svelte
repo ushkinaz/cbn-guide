@@ -25,7 +25,7 @@ vehiclesAndProbabilities.sort((a, b) => b.prob - a.prob);
 
 {#if vehiclesAndProbabilities.length}
   <section>
-    <h1>{t("In Vehicle", { _context: "Obtaining" })}</h1>
+    <h2>{t("In Vehicle", { _context: "Obtaining" })}</h2>
     <LimitedList items={vehiclesAndProbabilities} let:item={{ vehicle, prob }}>
       <ItemLink id={vehicle.id} type="vehicle" showIcon={false} /> ({formatPercent(
         prob,

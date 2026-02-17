@@ -26,7 +26,7 @@ const compatibleGuns = data
 </script>
 
 <section>
-  <h1>{t("Magazine", { _context: "Item Magazine Info" })}</h1>
+  <h2>{t("Magazine", { _context: "Item Magazine Info" })}</h2>
   <dl>
     {#if ammo_types.length}
       <dt>{t("Ammo Type")}</dt>
@@ -62,7 +62,7 @@ const compatibleGuns = data
 <div class="side-by-side">
   {#if compatibleGuns.length}
     <section>
-      <h1>{t("Weapons", { _context: "Item Magazine Info" })}</h1>
+      <h2>{t("Weapons", { _context: "Item Magazine Info" })}</h2>
       <LimitedList items={compatibleGuns} let:item>
         <ItemLink type="item" id={item.id} />
       </LimitedList>

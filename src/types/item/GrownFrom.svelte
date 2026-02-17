@@ -15,7 +15,7 @@ const sources = data.grownFrom(item_id);
 
 {#if sources.length}
   <section>
-    <h1>{t("Grown From", { _context: "Obtaining" })}</h1>
+    <h2>{t("Grown From", { _context: "Obtaining" })}</h2>
     <LimitedList items={sources} let:item>
       <ItemLink id={item.id} type="item" /> ({item.seed_data.grow ?? "1 day"})
     </LimitedList>

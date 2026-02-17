@@ -200,7 +200,7 @@ function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {
 </script>
 
 <section>
-  <h1>{t("Armor", { _context })}</h1>
+  <h2>{t("Armor", { _context })}</h2>
   <dl>
     <dt>{t("Covers", { _context })}</dt>
     <dd>

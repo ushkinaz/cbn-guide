@@ -119,7 +119,7 @@ const deficiencyNames = item.deficiency
 </section>
 {#if containing.length}
   <section>
-    <h1>{t("Comestibles", { _context })}</h1>
+    <h2>{t("Comestibles", { _context })}</h2>
     <LimitedList items={containing} let:item={other}>
       <ItemLink id={other.comestible.id} type="item" showIcon={false} /> ({other.pct.toFixed(
         2,

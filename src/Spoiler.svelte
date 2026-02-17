@@ -10,7 +10,7 @@ export let revealed = isTesting; // Spoilers are revealed in test mode.
 {#if spoily}
   {#if !revealed}
     <section>
-      <h1>{t("Spoiler Warning")}</h1>
+      <h2>{t("Spoiler Warning")}</h2>
       <p style="font-style: italic; color: var(--cata-color-gray)">
         {t(
           "This page contains spoilers for Cataclysm: Bright Nights. If you are new to the game, it is recommended that you do not read this page. If you are a veteran player, you may find this page useful.",

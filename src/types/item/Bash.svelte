@@ -18,7 +18,7 @@ let bashFrom = (
 
 {#if bashFrom.length}
   <section>
-    <h1>{t("Bash", { _context: "Obtaining" })}</h1>
+    <h2>{t("Bash", { _context: "Obtaining" })}</h2>
     <LimitedList items={bashFrom} let:item={f}>
       <ItemLink id={f.id} type={f.type} />
       {#if f.bash?.str_min}

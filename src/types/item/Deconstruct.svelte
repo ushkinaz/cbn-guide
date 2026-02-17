@@ -21,7 +21,7 @@ let deconstructibleFrom = (
 
 {#if deconstructibleFrom.length}
   <section>
-    <h1>{t("Deconstruct", { _context: "Obtaining" })}</h1>
+    <h2>{t("Deconstruct", { _context: "Obtaining" })}</h2>
     <LimitedList items={deconstructibleFrom} let:item={f}>
       <ItemLink id={f.id} type={f.type} />
     </LimitedList>

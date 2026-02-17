@@ -60,7 +60,7 @@ if (item.stunned_target)
 
 <section>
   {#if !standalone}
-    <h1>{t("Technique", { _context })}: {singularName(item)}</h1>
+    <h2>{t("Technique", { _context })}: {singularName(item)}</h2>
   {/if}
   <dl>
     <dt>{t("Type", { _context })}</dt>
@@ -122,7 +122,7 @@ if (item.stunned_target)
 
 {#if weapons.length}
   <section>
-    <h1>{t("Weapons", { _context })}</h1>
+    <h2>{t("Weapons", { _context })}</h2>
     <LimitedList items={weapons} let:item limit={20}>
       <ItemLink type="item" id={item.id} />
     </LimitedList>

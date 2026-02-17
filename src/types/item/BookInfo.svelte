@@ -35,7 +35,7 @@ for (const recipe of data.byType("recipe")) {
 </script>
 
 <section>
-  <h1>{t("Book", { _comment: "Section heading" })}</h1>
+  <h2>{t("Book", { _comment: "Section heading" })}</h2>
   <dl>
     {#if item.skill}
       <dt>{t("Skill")}</dt>

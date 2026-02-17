@@ -54,7 +54,7 @@ const buffMap = new Map(
 <h1>{t("Martial Art")}: {singularName(item)}</h1>
 
 <section>
-  <h1>{t("General", { _context })}</h1>
+  <h2>{t("General", { _context })}</h2>
   {#if item.learn_difficulty != null || item.autolearn?.length || (item.arm_block ?? 99) !== 99 || (item.leg_block ?? 99) !== 99 || item.arm_block_with_bio_armor_arms || item.leg_block_with_bio_armor_legs || books.length}
     <dl>
       {#if item.learn_difficulty != null}
@@ -133,7 +133,7 @@ const buffMap = new Map(
 
 {#if item.weapons?.length}
   <section>
-    <h1>{t("Weapons", { _context })}</h1>
+    <h2>{t("Weapons", { _context })}</h2>
     <LimitedList
       items={[...item.weapons].sort((a, b) =>
         singularName(data.byId("item", a)).localeCompare(
@@ -146,11 +146,11 @@ const buffMap = new Map(
   </section>
 {/if}
 
-<h1>{t("Buffs", { _context })}</h1>
+<h2>{t("Buffs", { _context })}</h2>
 {#each buffss as [title, buffs]}
   {#each buffs as buff}
     <section>
-      <h1>{i18n.__(title)}: {singularName(buff)}</h1>
+      <h2>{i18n.__(title)}: {singularName(buff)}</h2>
       <dl>
         <MartialArtRequirements item={buff} {buffMap} />
         <BonusContainer item={buff} />
@@ -199,7 +199,7 @@ const buffMap = new Map(
 {/each}
 
 {#if item.techniques?.length}
-  <h1>{t("Techniques", { _context })}</h1>
+  <h2>{t("Techniques", { _context })}</h2>
   {#each item.techniques as tec_id}
     <Technique
       item={data.byId("technique", tec_id)}

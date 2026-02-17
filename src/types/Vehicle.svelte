@@ -63,7 +63,7 @@ partsCounted.sort((a, b) => {
 
 {#if partsCounted.length}
   <section>
-    <h1>{t("Parts", { _context })}</h1>
+    <h2>{t("Parts", { _context })}</h2>
     <LimitedList items={partsCounted} let:item={{ id, count }}>
       <ItemLink {id} type="vehicle_part" showIcon={false} /> ({count})
     </LimitedList>

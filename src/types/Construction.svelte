@@ -47,7 +47,7 @@ if (construction.pre_flags)
 
 <section>
   {#if includeTitle}
-    <h1>{singularName(data.byId("construction_group", construction.group))}</h1>
+    <h2>{singularName(data.byId("construction_group", construction.group))}</h2>
   {/if}
   <dl>
     <dt>{t("Required Skills")}</dt>

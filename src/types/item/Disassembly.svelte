@@ -33,7 +33,7 @@ const uncraftableFrom = [...uncraftableFromSet].sort((a, b) =>
 
 {#if uncraftableFrom.length}
   <section>
-    <h1>{t("Disassemble", { _context: "Obtaining" })}</h1>
+    <h2>{t("Disassemble", { _context: "Obtaining" })}</h2>
     <LimitedList items={uncraftableFrom} let:item={id}>
       <ItemLink type="item" {id} />
     </LimitedList>

@@ -23,7 +23,7 @@ let showData = isTesting;
 {#if showData}
   {#await Promise.resolve(typeof loot === "function" ? loot() : loot)}
     <section>
-      <h1>{heading}</h1>
+      <h2>{heading}</h2>
       <p style="color: var(--cata-color-gray)" data-testid="loading-indicator">
         <em>{t("Loading...")}</em>
       </p>

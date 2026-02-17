@@ -38,7 +38,7 @@ const providerQualities = data
 
 {#if providers.length}
   <section>
-    <h1>{t("Provided By", { _context: "Use action" })}</h1>
+    <h2>{t("Provided By", { _context: "Use action" })}</h2>
     <LimitedList items={providers} let:item>
       <ItemLink type="item" id={item.id} />
     </LimitedList>
@@ -47,7 +47,7 @@ const providerQualities = data
 
 {#if providerQualities.length}
   <section>
-    <h1>{t("Provided By Quality", { _context: "Use action" })}</h1>
+    <h2>{t("Provided By Quality", { _context: "Use action" })}</h2>
     <LimitedList items={providerQualities} let:item>
       <ItemLink type={item.type} id={item.id} />
     </LimitedList>

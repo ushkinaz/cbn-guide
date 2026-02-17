@@ -36,7 +36,7 @@ const ammoData = ammo_types.map((ammo_type) => {
 {#each ammoData as { id: ammoTypeId, magazines }}
   <div class="side-by-side">
     <section>
-      <h1>{t("Ammunition")}</h1>
+      <h2>{t("Ammunition")}</h2>
       <dl>
         {#if "clip_size" in item && item.clip_size}
           <dt>{t("Capacity")}</dt>

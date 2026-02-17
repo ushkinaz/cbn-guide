@@ -7,7 +7,7 @@ export let item: ItemBasicInfo & BionicSlot;
 </script>
 
 <section>
-  <h1>{t("Bionic", { _comment: "Section heading" })}</h1>
+  <h2>{t("Bionic", { _comment: "Section heading" })}</h2>
   <dl>
     <dt>{t("Installs as")}</dt>
     <dd>

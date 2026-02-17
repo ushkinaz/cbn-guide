@@ -20,7 +20,7 @@ const containingBionics = data
 
 <h1>{t("Bionic")}: {singularName(item)}</h1>
 <section>
-  <h1>{t("General", { _context, _comment: "Section heading" })}</h1>
+  <h2>{t("General", { _context, _comment: "Section heading" })}</h2>
   <dl>
     {#if correspondingItem}
       <dt>{t("Item")}</dt>

@@ -136,7 +136,7 @@ const display = (obj && displays[obj.type]) ?? Unknown;
 {:else}
   {#if error}
     <section>
-      <h1>{t("Error")}</h1>
+      <h2>{t("Error")}</h2>
       <p>
         {t(
           "There was a problem displaying this page. Not all versions of Cataclysm are supported by the Guide currently. Try selecting a different build.",
