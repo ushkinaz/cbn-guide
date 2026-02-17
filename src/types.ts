@@ -363,7 +363,6 @@ export type ComestibleSlot = {
   healthy?: integer; // int, default 0
   parasites?: integer; // int, default 0
   radiation?: integer; // int, default 0
-  freezing_point?: number; // float, default 32
   spoils_in?: string | number; // duration, default 0 (never spoils)
   cooks_like?: string; // item_id
   smoking_result?: string; // item_id
@@ -426,7 +425,6 @@ export type ArmorSlot = {
   weight_capacity_modifier?: number; // default 1.0
   weight_capacity_bonus?: mass;
   valid_mods?: string[];
-  sided?: boolean;
   max_encumbrance?: number;
   warmth?: number;
   storage?: volume;
@@ -1532,7 +1530,6 @@ export type Monster = {
   scent_ignored?: string[];
   flags?: string[];
   harvest?: string; // harvest_id
-  emit_field?: any; //todo
   bodytype?: string;
   species?: string[];
   speed?: number;
@@ -1855,7 +1852,6 @@ export type Material = {
   specific_heat_liquid?: number; // default 4.186
   specific_heat_solid?: number; // default 2.108
   latent_heat?: number; // default 334.0
-  freezing_point?: number;
 
   conductive?: boolean;
   edible?: boolean;
