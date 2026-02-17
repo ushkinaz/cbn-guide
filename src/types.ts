@@ -49,7 +49,7 @@ export type ItemGroupEntry = (
   "contents-group"?: string | string[];
   "ammo-item"?: string;
   "ammo-group"?: string;
-  // TODO: damage, dirt, charges, ammo, contents, snippets?, sealed, custom-flags, etc.
+  // TODO: damage, dirt, charges, ammo, contents, snippets?, custom-flags, etc.
 };
 
 export type ItemGroupEntryOrShortcut = ItemGroupEntry | [string, number]; // item_id, prob (or item_group_id, prob if in 'groups' array)
@@ -151,7 +151,6 @@ export type Recipe = {
 
   contained?: boolean;
   container?: string /* item_id, implies contained */;
-  sealed?: boolean;
 
   batch_time_factors?: [number /* int */, number /* int */]; // [rscale (percentage), rsize]
 
@@ -170,16 +169,6 @@ export type Recipe = {
   decomp_learn?: number | [string, number][];
   book_learn?: ([string, number] | [string, number, string])[];
 
-  activity_level?:
-    | "SLEEP_EXERCISE"
-    | "NO_EXERCISE"
-    | "LIGHT_EXERCISE"
-    | "MODERATE_EXERCISE"
-    | "BRISK_EXERCISE"
-    | "ACTIVE_EXERCISE"
-    | "EXTRA_EXERCISE"
-    | "fake";
-
   delete_flags?: string[]; // flag_id
   using?: string | ([string, number] | [string, number, "LIST"])[]; // requirement_id
 
@@ -189,7 +178,6 @@ export type Recipe = {
   description?: Translation;
   reversible?: boolean | { time: duration };
   byproducts?: ([string] | [string, number])[];
-  construction_blueprint?: any;
 } & RequirementData;
 
 export type DamageType = {

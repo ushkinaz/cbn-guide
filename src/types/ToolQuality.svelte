@@ -57,12 +57,7 @@ vpartsWithQualityByLevelList.forEach(([, vparts]) => {
 
 const recipesUsingQualitySet = new Map<number, Set<string>>();
 for (const it of data.byType("recipe")) {
-  if (
-    !it.result ||
-    it.construction_blueprint ||
-    !data.byIdMaybe("item", it.result)
-  )
-    continue;
+  if (!it.result || !data.byIdMaybe("item", it.result)) continue;
   const { qualities } = data.normalizeRequirements(it);
   for (const qs of qualities) {
     for (const { id, level = 1 } of qs) {

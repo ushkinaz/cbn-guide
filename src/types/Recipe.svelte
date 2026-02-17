@@ -143,14 +143,6 @@ function activityLevelName(level: number) {
     {/if}
     <dt>{t("Time to Complete")}</dt>
     <dd>{recipe.time ?? "0 m"}</dd>
-    <dt>{t("Activity Level", { _context })}</dt>
-    <dd>
-      {t(
-        activityLevelName(
-          activityLevels[recipe.activity_level ?? "MODERATE_EXERCISE"],
-        ),
-      )}
-    </dd>
     <dt>{t("Batch Time Savings", { _context })}</dt>
     <dd>
       {#if recipe.batch_time_factors}
