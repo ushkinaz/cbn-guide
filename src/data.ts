@@ -22,7 +22,6 @@ import type {
   DamageUnit,
   InlineItemGroup,
   Item,
-  ItemBasicInfo,
   ItemGroup,
   ItemGroupData,
   ItemGroupEntry,
@@ -2029,21 +2028,6 @@ export class CBNData {
         (i) => "bionic_id" in i && i.id && i.bionic_id === bionic.id,
       ) ?? this.byIdMaybe("item", bionic.id)
     );
-  }
-
-  #compatibleItemsFlagIndex = new ReverseIndex(this, "item", (item) => {
-    //TODO: find compatible mags, ammo
-    const ret: string[] = [];
-    return ret;
-  });
-  compatibleItems(item: ItemBasicInfo): Item[] {
-    const byFlag = item.flags
-      ? [item.flags]
-          .flat()
-          .flatMap((f) => this.#compatibleItemsFlagIndex.lookup(f))
-      : [];
-
-    return [...new Set([...byFlag])];
   }
 
   #grownFromIndex = new ReverseIndex(this, "item", (item) => {
