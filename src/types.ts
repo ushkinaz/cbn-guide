@@ -1518,6 +1518,7 @@ export type Monster = {
   type: "MONSTER";
   color: string; // default "white"
   symbol: string;
+  looks_like?: string;
   material?: string[];
   description?: Translation;
   categories?: string[];
