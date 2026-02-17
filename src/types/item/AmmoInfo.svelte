@@ -66,8 +66,6 @@ function computeLoudness(item: AmmoSlot): number {
         {t("Loudness")}
       </dt>
       <dd>{computeLoudness(item).toFixed(0)}</dd>
-      <dt>{t("Critical Multiplier")}</dt>
-      <dd>{item.critical_multiplier ?? 2}</dd>
       {#if item.casing}
         <dt>{t("Casing")}</dt>
         <dd><ItemLink id={item.casing} type="item" showIcon={false} /></dd>

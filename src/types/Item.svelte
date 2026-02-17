@@ -363,23 +363,6 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
             </ul>
           </dd>
         {/if}
-
-        {#if item.nanofab_template_group}
-          {@const items = data.flattenTopLevelItemGroup(
-            data.byId("item_group", item.nanofab_template_group),
-          )}
-          <dt>{t("Possible Recipes", { _context })}</dt>
-          <dd>
-            <ul>
-              {#each items as { id, prob }}
-                <li>
-                  <ItemLink type="item" {id} />
-                  ({(prob * 100).toFixed(1)}%)
-                </li>
-              {/each}
-            </ul>
-          </dd>
-        {/if}
       </dl>
       {#if item.description}
         <p
@@ -437,7 +420,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         <ul class="comma-separated">
           {#each [item.seed_data.fruit]
             .concat(item.seed_data.byproducts ?? [])
-            .concat((item.seed_data.seeds ?? true) ? [item.id] : [])
+            .concat([item.id])
             .filter((x) => x !== "null") as id}
             <li><ItemLink type="item" {id} showIcon={false} /></li>
           {/each}

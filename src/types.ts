@@ -317,7 +317,6 @@ export type AmmoSlot = {
   ammo_type: string; // ammunition_type_id
   casing?: string; // item_id
   drop?: string; // item_id
-  drop_chance?: number; // float, default: 1
   drop_active?: boolean; // default: true
   damage?: DamageInstance;
   range?: number; // int
@@ -327,7 +326,6 @@ export type AmmoSlot = {
   stack_size?: number; // defaults to count
   loudness?: number; // int, default derived
   effects?: string[];
-  critical_multiplier?: number; // float, default: 2
   show_stats?: boolean;
 };
 
@@ -691,14 +689,7 @@ export type ItemBasicInfo = {
 
   min_strength?: number;
   techniques?: string[];
-  to_hit?:
-    | number
-    | {
-        grip?: "bad" | "none" | "solid" | "weapon";
-        length?: "hand" | "short" | "long";
-        surface?: "point" | "line" | "any" | "every";
-        balance?: "clumsy" | "uneven" | "neutral" | "good";
-      };
+  to_hit?: number;
   seed_data?: {
     grow?: string; // duration, default 1 day
     plant_name: Translation;
@@ -721,8 +712,6 @@ export type ItemBasicInfo = {
     into?: string; // item_id
     conversion_rate?: number; // float, default 0
   };
-  nanofab_template_group?: string; // item_group_id
-  /* Cataclysm BN */
   unseals_into?: string;
 };
 
