@@ -47,6 +47,8 @@ import type {
 import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
 import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
+import { HttpError, isNotFoundError } from "./utils/http-errors";
+import { retry } from "./utils/retry";
 
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
@@ -2598,20 +2600,6 @@ export function normalizeUseAction(action: Item["use_action"]): UseFunction[] {
   }
 }
 
-function createHttpStatusError(
-  status: number,
-  url: string,
-  statusText?: string,
-): Error & { status: number } {
-  const prefix = status === 404 ? "404" : `HTTP ${status}`;
-  const suffix = statusText ? ` ${statusText}` : "";
-  const error = new Error(`${prefix}${suffix}: ${url}`) as Error & {
-    status: number;
-  };
-  error.status = status;
-  return error;
-}
-
 const fetchJsonWithProgress = (
   url: string,
   progress: (receivedBytes: number, totalBytes: number) => void,
@@ -2623,8 +2611,12 @@ const fetchJsonWithProgress = (
   if (isTesting) {
     progress(100, 100);
     return fetch(url).then((r) => {
-      if (!r.ok && r.status === 404) {
-        throw createHttpStatusError(404, url, r.statusText);
+      if (!r.ok) {
+        throw new HttpError(
+          `HTTP ${r.status} (${r.statusText}) fetching ${url}`,
+          r.status,
+          url,
+        );
       }
       return r.json();
     });
@@ -2637,7 +2629,7 @@ const fetchJsonWithProgress = (
       // If status is 0, it often means a CORS error, network error,
       // or a request aborted by the browser/extensions.
       if (status === 404) {
-        reject(createHttpStatusError(404, url, xhr.statusText));
+        reject(new HttpError(`404: ${url}`, 404, url));
         return;
       }
       if (status === 0) {
@@ -2653,7 +2645,7 @@ const fetchJsonWithProgress = (
 
     xhr.onload = (e) => {
       if (xhr.status === 404) {
-        reject(createHttpStatusError(404, url, xhr.statusText));
+        reject(new HttpError(`404: ${url}`, 404, url));
       } else if (xhr.status >= 200 && xhr.status < 300) {
         if (xhr.response) resolve(xhr.response);
         else reject(new Error(`Empty/invalid JSON response from ${url}`));
@@ -2675,10 +2667,16 @@ const fetchJsonWithProgress = (
 async function fetchGzippedJsonForGoogleBot(url: string): Promise<any> {
   const gzUrl = url.replace(/latest/, "latest.gz");
   const res = await fetch(gzUrl, { mode: "cors" });
-  if (!res.ok)
-    throw new Error(`Error ${res.status} (${res.statusText}) fetching ${url}`);
-  if (!res.body)
+  if (!res.ok) {
+    throw new HttpError(
+      `HTTP ${res.status} (${res.statusText}) fetching ${url}`,
+      res.status,
+      url,
+    );
+  }
+  if (!res.body) {
     throw new Error(`No body in response from ${url} (status ${res.status})`);
+  }
 
   // Use DecompressionStream to decompress the gzipped response
   const decompressionStream = new (globalThis as any).DecompressionStream(
@@ -2811,35 +2809,6 @@ function mergeDataWithActiveMods(
   return mergedData;
 }
 
-/**
- * Checks if an error corresponds to a 404 Not Found response.
- * Handles both Error objects with messages and raw strings.
- *
- * @param error The error to check
- */
-function is404Error(error: unknown): boolean {
-  const message =
-    error instanceof Error
-      ? error.message.trim()
-      : typeof error === "string"
-        ? error.trim()
-        : "";
-  if (/^(?:HTTP\s+)?404\b/i.test(message)) {
-    return true;
-  }
-
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    (error as { status?: unknown }).status === 404
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
 const fetchModsJson = async (
   version: string,
   progress: (receivedBytes: number, totalBytes: number) => void,
@@ -2862,10 +2831,13 @@ async function loadParsedModsJson(
   progress: (receivedBytes: number, totalBytes: number) => void,
 ): Promise<ParsedModsJson | null> {
   try {
-    const modsJson = await retry(() => fetchModsJson(version, progress));
+    const modsJson = await retry(() => fetchModsJson(version, progress), {
+      finalErrorMessage:
+        "Failed to load data after 3 attempts. Please check your internet connection and try refreshing the page.",
+    });
     return parseModsJson(modsJson);
   } catch (e) {
-    if (is404Error(e)) {
+    if (isNotFoundError(e)) {
       return null;
     }
     throw e;
@@ -2880,44 +2852,6 @@ function applyLoadedModsMetadata(
   targetData.active_mods = targetData.active_mods ?? [];
   targetData.raw_mods_json = parsedMods?.raw ?? {};
   targetData._clearModProvenanceCaches();
-}
-
-/**
- * Retry a promise-generating function with exponential backoff.
- * Max 3 attempts with increasing delays: 2s, 4s, 8s.
- * @throws Error with user-friendly message if all attempts fail
- */
-async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
-  const MAX_RETRIES = 3;
-  const BASE_DELAY_MS = 2000;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      return await promiseGenerator();
-    } catch (e) {
-      if (is404Error(e)) {
-        // Fast-fail for missing files (including CORS-blocked 404s)
-        throw e;
-      }
-      console.error(`Attempt ${attempt}/${MAX_RETRIES} failed:`, e);
-
-      if (attempt === MAX_RETRIES) {
-        // Final attempt failed - show user-friendly error
-        throw new Error(
-          `Failed to load data after ${MAX_RETRIES} attempts. ` +
-            `Please check your internet connection and try refreshing the page.`,
-        );
-      }
-
-      // Exponential backoff: 2s, 4s, 8s
-      const delayMs = BASE_DELAY_MS * Math.pow(2, attempt - 1);
-      console.warn(`Retrying in ${delayMs / 1000}s...`);
-      await new Promise((r) => setTimeout(r, delayMs));
-    }
-  }
-
-  // TypeScript flow analysis - should never reach here
-  throw new Error("Unexpected: retry loop exhausted");
 }
 
 const loadProgressStore = writable<[number, number] | null>(null);
@@ -2948,12 +2882,17 @@ export const data = {
     };
     updateProgress();
     const urlVersion = versionSlug ?? version;
-    const dataJson = await retry(() =>
-      fetchJson(urlVersion, (receivedBytes, totalBytes) => {
-        totals[0] = totalBytes;
-        receiveds[0] = receivedBytes;
-        updateProgress();
-      }),
+    const dataJson = await retry(
+      () =>
+        fetchJson(urlVersion, (receivedBytes, totalBytes) => {
+          totals[0] = totalBytes;
+          receiveds[0] = receivedBytes;
+          updateProgress();
+        }),
+      {
+        finalErrorMessage:
+          "Failed to load data after 3 attempts. Please check your internet connection and try refreshing the page.",
+      },
     );
 
     let localeJson: any = null;
@@ -2962,12 +2901,17 @@ export const data = {
 
     if (locale && locale !== "en") {
       const loadLocale = async (loc: string, index: number) => {
-        return retry(() =>
-          fetchLocaleJson(version, loc, (receivedBytes, totalBytes) => {
-            totals[index] = totalBytes;
-            receiveds[index] = receivedBytes;
-            updateProgress();
-          }),
+        return retry(
+          () =>
+            fetchLocaleJson(version, loc, (receivedBytes, totalBytes) => {
+              totals[index] = totalBytes;
+              receiveds[index] = receivedBytes;
+              updateProgress();
+            }),
+          {
+            finalErrorMessage:
+              "Failed to load locale after 3 attempts. Please check your internet connection and try refreshing the page.",
+          },
         );
       };
 

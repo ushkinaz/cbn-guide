@@ -1,7 +1,8 @@
 import { writable } from "svelte/store";
-import * as Sentry from "@sentry/browser";
 import type { CBNData } from "./data";
 import { CBN_DATA_BASE_URL } from "./constants";
+import { HttpError, isHttpError } from "./utils/http-errors";
+import { retry } from "./utils/retry";
 
 type TileInfoMeta = { width: number; height: number; pixelscale: number };
 
@@ -190,41 +191,20 @@ function normalizeTileInfo(raw: RawTilesetConfig): TileInfoMeta[] {
   ];
 }
 
-/**
- * Retry a promise-generating function with exponential backoff.
- * Max 3 attempts with increasing delays: 2s, 4s, 8s.
- */
-async function retry<T>(promiseGenerator: () => Promise<T>): Promise<T> {
-  const MAX_RETRIES = 3;
-  const BASE_DELAY_MS = 2000;
-
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      return await promiseGenerator();
-    } catch (e) {
-      console.error(`Attempt ${attempt}/${MAX_RETRIES} failed:`, e);
-
-      if (attempt === MAX_RETRIES) {
-        throw e;
-      }
-
-      // Exponential backoff: 2s, 4s, 8s
-      const delayMs = BASE_DELAY_MS * Math.pow(2, attempt - 1);
-      console.warn(`Retrying in ${delayMs / 1000}s...`);
-      await new Promise((r) => setTimeout(r, delayMs));
-    }
-  }
-
-  // TypeScript flow analysis should never reach here
-  throw new Error("Unexpected: retry loop exhausted");
-}
-
 async function readImageDimensions(
   fileUrl: string,
 ): Promise<{ width: number; height: number }> {
-  const blob = await retry(() =>
-    fetch(fileUrl, { mode: "cors", credentials: "omit" }).then((b) => b.blob()),
-  );
+  const blob = await retry(async () => {
+    const res = await fetch(fileUrl, { mode: "cors", credentials: "omit" });
+    if (!res.ok) {
+      throw new HttpError(
+        `HTTP ${res.status} (${res.statusText}) fetching ${fileUrl}`,
+        res.status,
+        fileUrl,
+      );
+    }
+    return res.blob();
+  });
   const blobUrl = URL.createObjectURL(blob);
   const img = new Image();
   img.src = blobUrl;
@@ -270,8 +250,10 @@ async function fetchBaseTileset(
   const res = await retry(async () => {
     const response = await fetch(`${url}/tile_config.json`, { mode: "cors" });
     if (!response.ok) {
-      throw new Error(
-        `Error ${response.status} (${response.statusText}) fetching tile data`,
+      throw new HttpError(
+        `HTTP ${response.status} (${response.statusText}) fetching ${url}/tile_config.json`,
+        response.status,
+        `${url}/tile_config.json`,
       );
     }
     return response;
@@ -279,28 +261,45 @@ async function fetchBaseTileset(
 
   const raw = (await res.json()) as RawTilesetConfig;
   const tile_info = normalizeTileInfo(raw);
-  const chunkPromises = raw["tiles-new"].map(async (chunk) => {
-    const filename = normalizeTileFilename(chunk.file);
-    const fileUrl = resolvePath(url, filename);
-    try {
-      return await hydrateChunk(
-        chunk,
-        tile_info[0],
-        fileUrl,
-        ensureTrailingSlash(url),
-      );
-    } catch (err) {
-      Sentry.captureException(err, {
-        extra: {
+
+  let hadTransientFailure = false;
+  const results: Array<TileChunk | null> = await Promise.all(
+    raw["tiles-new"].map(async (chunk) => {
+      const filename = normalizeTileFilename(chunk.file);
+      const fileUrl = resolvePath(url, filename);
+      try {
+        return await hydrateChunk(
+          chunk,
+          tile_info[0],
+          fileUrl,
+          ensureTrailingSlash(url),
+        );
+      } catch (err) {
+        if (isHttpError(err) && err.isPermanent) {
+          console.warn("Missing base tileset chunk (404), skipping", {
+            url,
+            filename,
+          });
+          return null;
+        }
+
+        console.warn("Failed to load base tileset chunk", {
           url,
           filename,
-        },
-      });
-      throw err;
-    }
-  });
+          error: err,
+        });
+        hadTransientFailure = true;
+        return null;
+      }
+    }),
+  );
 
-  const chunks = await Promise.all(chunkPromises);
+  const chunks = results.filter((chunk): chunk is TileChunk => chunk !== null);
+
+  if (hadTransientFailure) {
+    throw new Error(`Transient failure loading base tileset: ${url}`);
+  }
+
   return {
     tile_info,
     "tiles-new": chunks,
@@ -476,17 +475,8 @@ export async function loadMergedTileset(
                 getChunkSourceBase(resolvedUrl),
               );
             } catch (err) {
-              console.warn("Failed to load tileset contribution chunk", {
-                source: contribution.source,
-                modId:
-                  contribution.source === "mod"
-                    ? contribution.modId
-                    : undefined,
-                chunkFile: chunk.file,
-                resolvedUrl,
-              });
-              Sentry.captureException(err, {
-                extra: {
+              if (isHttpError(err) && err.isPermanent) {
+                console.warn("Missing contribution chunk (404), skipping", {
                   source: contribution.source,
                   modId:
                     contribution.source === "mod"
@@ -494,8 +484,19 @@ export async function loadMergedTileset(
                       : undefined,
                   chunkFile: chunk.file,
                   resolvedUrl,
-                },
-              });
+                });
+              } else {
+                console.warn("Failed to load tileset contribution chunk", {
+                  source: contribution.source,
+                  modId:
+                    contribution.source === "mod"
+                      ? contribution.modId
+                      : undefined,
+                  chunkFile: chunk.file,
+                  resolvedUrl,
+                  error: err,
+                });
+              }
               return null;
             }
           }),
@@ -607,14 +608,12 @@ export const tileData = {
         })
         .catch((err) => {
           if (token !== requestToken) return;
-          console.error("Error fetching tiles", err);
-          Sentry.captureException(err, {
-            extra: {
-              tileset: tileset.name,
-              version,
-              active_mods: data.active_mods ?? [],
-            },
-          });
+          const extra = {
+            tileset: tileset.name,
+            version,
+            active_mods: data.active_mods ?? [],
+          };
+          console.warn("Error fetching tiles", { ...extra, error: err });
         });
       return;
     }

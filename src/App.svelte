@@ -193,7 +193,6 @@ initializeRouting()
         );
       })
       .catch((e) => {
-        Sentry.captureException(e);
         console.error(e);
         notify(
           t(
@@ -377,7 +376,6 @@ async function openModSelector(): Promise<void> {
     await data.ensureModsLoaded();
   } catch (e) {
     console.error(e);
-    Sentry.captureException(e);
     modSelectorError = t("Failed to load mods. Please try again.");
   } finally {
     isModSelectorLoading = false;
