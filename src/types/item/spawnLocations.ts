@@ -1006,14 +1006,61 @@ export function parseItemGroup(
   ammo?: number,
   magazine?: number,
 ): Loot {
-  const g =
-    typeof group === "string"
-      ? data.convertTopLevelItemGroup(
-          data.byIdMaybe("item_group", group) ?? { id: group, items: [] },
-        )
-      : Array.isArray(group)
-        ? { subtype: "collection" as "collection", entries: group }
-        : group;
+  if (typeof group === "string") {
+    const itemGroup = data.byIdMaybe("item_group", group);
+    if (itemGroup) {
+      const g = data.convertTopLevelItemGroup(itemGroup);
+      const flat = data.flattenItemGroup(g);
+      return applyAmmoAndMagazine(
+        new Map(
+          flat.map((x) => [
+            x.id,
+            repeatItemChance(
+              scaleItemChance(x, chance),
+              normalizeMinMax(repeat),
+            ),
+          ]),
+        ),
+        ammo,
+        magazine,
+      );
+    }
+
+    // Some mapgen/palette fields accept an item id where an item group id is
+    // expected. Treat this as a single-item group as a best-effort fallback.
+    if (data.byIdMaybe("item", group)) {
+      return applyAmmoAndMagazine(
+        new Map([
+          [
+            group,
+            repeatItemChance(
+              { prob: chance, expected: chance },
+              normalizeMinMax(repeat),
+            ),
+          ],
+        ]),
+        ammo,
+        magazine,
+      );
+    }
+
+    const g = data.convertTopLevelItemGroup({ id: group, items: [] });
+    const flat = data.flattenItemGroup(g);
+    return applyAmmoAndMagazine(
+      new Map(
+        flat.map((x) => [
+          x.id,
+          repeatItemChance(scaleItemChance(x, chance), normalizeMinMax(repeat)),
+        ]),
+      ),
+      ammo,
+      magazine,
+    );
+  }
+
+  const g = Array.isArray(group)
+    ? { subtype: "collection" as "collection", entries: group }
+    : group;
   const flat = data.flattenItemGroup(g);
   return applyAmmoAndMagazine(
     new Map(

@@ -487,6 +487,24 @@ describe("repeatChance()", () => {
 });
 
 describe("loot", () => {
+  it("place_items accepts direct item ids", async () => {
+    const data = new CBNData([
+      {
+        type: "mapgen",
+        method: "json",
+        om_terrain: "test_ter",
+        object: {
+          rows: [],
+          place_items: [{ item: "direct_item", x: 0, y: 0, chance: 100 }],
+        },
+      } as Mapgen,
+      { type: "item", id: "direct_item" } as any,
+    ]);
+
+    const loot = getLootForMapgen(data, data.byType("mapgen")[0]);
+    expect(loot.get("direct_item")).toStrictEqual({ prob: 1, expected: 1 });
+  });
+
   it("place_loot", async () => {
     const data = new CBNData([
       {
