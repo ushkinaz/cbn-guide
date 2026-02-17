@@ -1526,8 +1526,8 @@ export type Monster = {
   size?: string;
   weight?: string;
   mountable_weight_ratio?: number;
-  scent_tracked?: string[];
-  scent_ignored?: string[];
+  scents_tracked?: string[];
+  scents_ignored?: string[];
   flags?: string[];
   harvest?: string; // harvest_id
   bodytype?: string;
