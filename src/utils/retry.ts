@@ -1,4 +1,4 @@
-import { isHttpError } from "./http-errors";
+import { isHttpError, isNotFoundError } from "./http-errors";
 
 export interface RetryOptions {
   maxRetries?: number;
@@ -12,7 +12,7 @@ const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_BASE_DELAY_MS = 2000;
 
 function defaultShouldRetry(error: unknown): boolean {
-  return !(isHttpError(error) && error.isPermanent);
+  return !(isNotFoundError(error) || (isHttpError(error) && error.isPermanent));
 }
 
 export async function retry<T>(
