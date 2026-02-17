@@ -2399,22 +2399,6 @@ export function cloneQualities(q: any[]): any[] {
   return q.map((x) => (Array.isArray(x) ? [...x] : { ...x }));
 }
 
-export function normalizeAddictionTypes(
-  comestible: ComestibleSlot,
-): { addiction: string; potential: number }[] {
-  const addictionType = comestible.addiction_type;
-  if (typeof addictionType === "string") {
-    return [
-      {
-        addiction: addictionType,
-        potential: comestible.addiction_potential ?? 0,
-      },
-    ];
-  } else {
-    return [];
-  }
-}
-
 const vpartVariants = [
   "cover_left",
   "cover_right",

@@ -27,6 +27,10 @@ const data = getContext<CBNData>("data");
     <dd>{item.spoils_in ?? "never"}</dd>
     <dt>{t("Health")}</dt>
     <dd>{item.healthy ?? 0}</dd>
+    {#if item.addiction_type}
+      <dt>{t("Addiction")}</dt>
+      <dd>{item.addiction_type ?? 0} {item.addiction_potential ?? 0}%</dd>
+    {/if}
     {#if item.smoking_result}
       <dt>{t("Smoking Result")}</dt>
       <dd>

@@ -357,7 +357,21 @@ export type ComestibleSlot = {
     probability: number /* int */;
   }[];
   primary_material?: string; // material_id
-  addiction_type?: string;
+  addiction_type?:
+    | "nicotine"
+    | "caffeine"
+    | "alcohol"
+    | "sleeping pill"
+    | "opiate"
+    | "amphetamine"
+    | "cocaine"
+    | "crack"
+    | "mutagen"
+    | "diazepam"
+    | "marloss_r"
+    | "marloss_b"
+    | "marloss_y"
+    | "none";
   addiction_potential?: integer; // default 0
   calories?: integer;
   vitamins?: [string, integer][];
