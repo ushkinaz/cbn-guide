@@ -2,22 +2,36 @@
 import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import { byName, CBNData } from "../../data";
-import type { GunSlot, ItemBasicInfo } from "../../types";
+import type { GunSlot, Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import LimitedList from "../../LimitedList.svelte"; // Assuming we want symbols in lists
 import CompatibleItems from "./CompatibleItems.svelte";
 
-export let item: GunSlot & ItemBasicInfo;
+export let item: Item;
 
 const data = getContext<CBNData>("data");
 
-let ammo_types: string[] = Array.isArray(item.ammo)
-  ? item.ammo
-  : [item.ammo ?? []].flat();
+function getGunProperties(i: Item): GunSlot {
+  if (i.gun_data) {
+    const base = i.gun_data;
+    const overlay = i as unknown as Partial<GunSlot>;
+    return {
+      ...base,
+      ...overlay,
+    } as GunSlot;
+  }
+  return i as GunSlot;
+}
+
+const gunProps = getGunProperties(item);
+
+let ammo_types: string[] = Array.isArray(gunProps.ammo)
+  ? gunProps.ammo
+  : [gunProps.ammo ?? []].flat();
 
 let magazinesByAmmo = new Map<string, string[]>();
-if ("magazines" in item && item.magazines) {
-  for (const [ammoType, mags] of item.magazines) {
+if ("magazines" in gunProps && gunProps.magazines) {
+  for (const [ammoType, mags] of gunProps.magazines) {
     if (mags) magazinesByAmmo.set(ammoType, mags);
   }
 }
@@ -38,9 +52,9 @@ const ammoData = ammo_types.map((ammo_type) => {
     <section>
       <h2>{t("Ammunition")}</h2>
       <dl>
-        {#if "clip_size" in item && item.clip_size}
+        {#if "clip_size" in gunProps && gunProps.clip_size}
           <dt>{t("Capacity")}</dt>
-          <dd>{item.clip_size}</dd>
+          <dd>{gunProps.clip_size}</dd>
         {/if}
 
         <dt>{t("Ammo Type")}</dt>

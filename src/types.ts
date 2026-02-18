@@ -727,6 +727,8 @@ export type ItemBasicInfo = {
     conversion_rate?: number; // float, default 0
   };
   unseals_into?: string;
+
+  gun_data?: GunSlot;
 };
 
 export type Item =
