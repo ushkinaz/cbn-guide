@@ -46,6 +46,7 @@ import { syncSearch, searchResults, flushSearch } from "./search";
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
+import Spinner from "./Spinner.svelte";
 import { fade } from "svelte/transition";
 import { RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
@@ -566,11 +567,27 @@ $: canonicalUrl = buildUrl(
         type="button"
         on:click={openModSelector}
         disabled={!$data}
+        aria-busy={isModSelectorLoading || !$data}
         aria-label={t("Mods ({count} active)", {
           count: $page.route.mods.length,
         })}>
-        <span class="mods-label">{t("Mods")}</span>
-        <span class="mods-count">[{String($page.route.mods.length)}]</span>
+        <span class="mods-button-inner">
+          <span
+            class="mods-button-normal"
+            class:loading-hidden={isModSelectorLoading || !$data}>
+            <span class="mods-label">{t("Mods")}</span>
+            <span class="mods-count">[{String($page.route.mods.length)}]</span>
+          </span>
+          <span
+            class="mods-button-loading"
+            class:active={isModSelectorLoading || !$data}
+            aria-hidden={!(isModSelectorLoading || !$data)}>
+            <Spinner size={18} position="center" bounce={3} />
+            <span class="mods-loading-label">
+              {t("MODS", { _context: "Mods button" })}
+            </span>
+          </span>
+        </span>
       </button>
     </div>
   </nav>
@@ -947,6 +964,7 @@ nav > .search {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  position: relative;
   min-height: 2.5rem;
   padding: 0.4rem 0.6rem;
   font-size: 0.82rem;
@@ -980,6 +998,41 @@ nav > .search {
 
 .mods-button:hover:not(:disabled) .mods-count {
   color: var(--cata-color-gray);
+}
+
+.mods-button-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mods-loading-label {
+  line-height: 1;
+}
+
+.mods-button-normal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.mods-button-normal.loading-hidden {
+  visibility: hidden;
+}
+
+.mods-button-loading {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mods-button-loading.active {
+  opacity: 1;
 }
 
 kbd {

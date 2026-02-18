@@ -8,6 +8,7 @@ import type {
   Translation,
 } from "./types";
 import { mapType, resolveSelectionWithDependencies } from "./data";
+import Spinner from "./Spinner.svelte";
 import { cleanText } from "./utils/format";
 
 const MOD_SELECTOR_CONTEXT = "Mod selector";
@@ -274,9 +275,12 @@ onDestroy(() => {
       </header>
 
       {#if loading}
-        <p class="mods-state">
-          {t("Loading available mods…", { _context: MOD_SELECTOR_CONTEXT })}
-        </p>
+        <div class="mods-loading" role="status" aria-live="polite">
+          <Spinner size={22} position="center" bounce={4} />
+          <p class="mods-state">
+            {t("Loading available mods…", { _context: MOD_SELECTOR_CONTEXT })}
+          </p>
+        </div>
       {:else if errorMessage}
         <p class="mods-state error">{errorMessage}</p>
       {:else if groupedCategories.length === 0}
@@ -567,6 +571,17 @@ onDestroy(() => {
   margin: 0;
   padding: 1rem;
   color: var(--cata-color-gray);
+}
+
+.mods-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.mods-loading .mods-state {
+  padding: 0;
 }
 
 .mods-state.error {
