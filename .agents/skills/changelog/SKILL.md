@@ -1,6 +1,6 @@
 ---
 name: changelog
-description: This agent generates a CHANGELOG.md for the cbn-guide application by analyzing git history from the last month. It maps conventional commit types to preferred user-friendly prefixes and enriches entries with GitHub issue descriptions if referenced.
+description: This agent generates a CHANGELOG.md for the cbn-guide application by analyzing git history.
 ---
 
 # Parameters
@@ -44,7 +44,14 @@ Map conventional commit types (extracted from `git log`) to these prefixes:
 ## Formatting (Markdown)
 
 - Entries should be grouped by month.
-- Each entry is a markdown bullet: `- [PREFIX] Description`.
+- Each month section must use this structure:
+  - `## <Month YYYY>`
+  - `### Highlights`
+  - `### Changes`
+- `Highlights` must contain **1-3 bullets max** and only the most important end-user outcomes for that month.
+- `Changes` contains the fuller grouped list of user-facing bullets.
+- Each change entry is a markdown bullet: `- [PREFIX] Description`.
+- Highlight bullets are plain bullets without prefixes unless explicitly requested.
 - No PR numbers, links, or usernames in the bullet text itself.
 
 # Examples
@@ -83,6 +90,25 @@ Map conventional commit types (extracted from `git log`) to these prefixes:
 
 - `[FEATURE] Translations moved to Transifex project`
 
+## Example 4: Month Section Format
+
+**Output:**
+
+```md
+## February 2026
+
+### Highlights
+
+- Full mod support landed with dependency-aware selection and shareable URLs.
+- Data and mapgen parsing became more accurate for real BN content.
+
+### Changes
+
+- [FEATURE] Mod loading now respects order and provenance.
+- [FEATURE] Mod selector UX was improved with better defaults and sorting.
+- [FIX] Data normalization fixes improved correctness for BN edge cases.
+```
+
 # Execution Plan
 
 1. Run `git log --since="{window}" --pretty=format:"%h %ad %s" --date=short`.
@@ -90,5 +116,6 @@ Map conventional commit types (extracted from `git log`) to these prefixes:
 3. For each group/commit:
    - Identify the type and user benefit.
    - Fetch issue details if unclear.
-4. Generate the markdown list using the specific prefixes.
-5. Prepend the new entries to `{output_file}`.
+4. For each month, pick **1-3** headline `Highlights` (most important to end users).
+5. Generate `### Changes` bullets using the specific prefixes.
+6. Insert/update month sections in `{output_file}` using the required structure.
