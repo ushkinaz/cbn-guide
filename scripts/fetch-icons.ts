@@ -130,7 +130,7 @@ async function loadTileset(): Promise<LoadedTileset> {
   const idMap = new Map<string, TileInfo>();
 
   await runWithConcurrency(config["tiles-new"], concurrency, async (chunk) => {
-    // ARCHITECTURE: Tileset WebP Migration (see docs/adr/001-tileset-webp-format.md)
+    // ARCHITECTURE: Tileset WebP Migration (see ADR-001)
     // The tile_config.json metadata references .png files, but the server now serves .webp.
     chunk.file = chunk.file.replace(/\.png$/, ".webp");
     const chunkPath = path.join(cacheDir, chunk.file);

@@ -8,13 +8,13 @@ An Architecture Decision Record captures an important architectural decision mad
 
 ## Creating a New ADR
 
-1. Use the [create-adr workflow](../../.agents/skills/create-adr/SKILL.md): `/create-adr`
-2. Or manually copy [000-template.md](000-template.md) and follow the structure
+1. Use the [create-adr skill](../../.agents/skills/create-adr/SKILL.md)
+2. Or manually copy [000-template.md](ADR-000_template.md) and follow the structure
 
 ## Index
 
-- [ADR-001](001-tileset-webp-format.md) - Tileset WebP Format Migration
-- [ADR-002](002-mod-architecture-and-reload-strategy.md) - Mod Architecture and Reload Strategy
-- [ADR-003](003-mod-resolution-path.md) - Mod Resolution Path
-- [ADR-004](004-mod-provenance-and-data-origin-tracking.md) - Mod Provenance and Data Origin Tracking
-- [ADR-005](005-robust-inheritance-migrations-and-self-copy-handling.md) - Robust Inheritance: Migrations and Self-Copy Handling
+- [ADR-001](ADR-001_tileset_webp_format.md) - Tileset WebP Format Migration
+- [ADR-002](ADR-002_mod_architecture_and_reload.md) - Mod Architecture and Reload Strategy
+- [ADR-003](ADR-003_mod_resolution_path.md) - Mod Resolution Path
+- [ADR-004](ADR-004_mod_provenance.md) - Mod Provenance and Data Origin Tracking
+- [ADR-005](ADR-005_data_inheritance.md) - Robust Inheritance: Migrations and Self-Copy Handling

@@ -36,5 +36,5 @@ Date: YYYY-MM-DD
 ## References
 
 - Implementation: [file.ts](file:///path/to/implementation)
-- Related ADRs: [ADR-XXX](XXX-title.md)
+- Related ADRs: [ADR-XXX](XXX_title.md)
 - Related Issues/PRs: #123

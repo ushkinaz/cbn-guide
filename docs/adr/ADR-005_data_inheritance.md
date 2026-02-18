@@ -51,4 +51,4 @@ Migration mapping is guaranteed inside object lookup and parent traversal logic.
 ## References
 
 - `src/data.ts`
-- Related: [ADR-003](003-mod-resolution-path.md), [ADR-004](004-mod-provenance-and-data-origin-tracking.md)
+- Related: [ADR-003](ADR-003_mod_resolution_path.md), [ADR-004](ADR-004_mod_provenance.md)

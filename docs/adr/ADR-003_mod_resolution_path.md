@@ -25,7 +25,7 @@ We use a **lazy inheritance resolution model**.
 ### Scope Boundary
 
 This ADR covers object resolution for rendered data.
-Origin/provenance reporting is a separate concern (see ADR-004), even though both follow the same mod order and inheritance semantics.
+Origin/provenance reporting is a separate concern (see [ADR-004](ADR-004_mod_provenance.md)), even though both follow the same mod order and inheritance semantics.
 
 ### Safety Behavior
 
@@ -48,4 +48,4 @@ The resolver is defensive against malformed inheritance (for example cycles or m
 ## References
 
 - `src/data.ts`
-- Related: [ADR-002](002-mod-architecture-and-reload-strategy.md), [ADR-004](004-mod-provenance-and-data-origin-tracking.md), [ADR-005](005-robust-inheritance-migrations-and-self-copy-handling.md)
+- Related: [ADR-002](ADR-002_mod_architecture_and_reload.md), [ADR-004](ADR-004_mod_provenance.md), [ADR-005](ADR-005_data_inheritance.md)

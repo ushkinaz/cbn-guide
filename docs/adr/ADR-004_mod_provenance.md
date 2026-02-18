@@ -9,7 +9,7 @@ Accepted
 ## Context
 
 Users need to understand _which mods contributed_ to a final object, not only the final flattened value.
-Because object resolution is lazy (ADR-003), provenance must also be lazy to avoid large upfront indexing costs.
+Because object resolution is lazy [ADR-003](ADR-003_mod_resolution_path.md), provenance must also be lazy to avoid large upfront indexing costs.
 
 ## Decision
 
@@ -46,4 +46,4 @@ This ADR tracks _which mods participated_, not _which exact field each mod chang
 ## References
 
 - `src/data.ts`
-- Related: [ADR-003](003-mod-resolution-path.md), [ADR-005](005-robust-inheritance-migrations-and-self-copy-handling.md)
+- Related: [ADR-003](ADR-003_mod_resolution_path.md), [ADR-005](ADR-005_data_inheritance.md)

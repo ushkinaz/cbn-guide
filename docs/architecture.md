@@ -280,7 +280,7 @@ cbn-guide/
 │   ├── App.svelte          # Main application component
 │   ├── data.ts             # CBNData class & utilities
 │   ├── routing.ts          # URL routing logic
-│   ├── tile-data.ts        # Tileset sprite management (ADR-001)
+│   ├── tile-data.ts        # Tileset sprite management
 │   ├── assets/             # Static assets
 │   └── ...
 ├── public/
