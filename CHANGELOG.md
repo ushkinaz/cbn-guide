@@ -1,6 +1,6 @@
 # Changelog
 
-This is a monthly changelog for The Hitchhiker's [Guide](https://cataclysmbn-guide.com/) for Cataclysm: Bright Nights. Ideally, it's updated every month.
+This is a monthly changelog for The Hitchhiker's [Guide](https://cataclysmbn-guide.com/) for Cataclysm: Bright Nights. It tries to be as user-centric as possible, with little to no technical details. For full technical details, see commit messages.
 
 ## February 2026
 
@@ -107,7 +107,6 @@ Restarted development by ushkinaz at https://github.com/ushkinaz/cbn-guide
 - [FEATURE] Added Technique page support.
 - [FIX] Numerous type/schema mismatches were corrected for BN-specific fields, reducing broken or misleading values.
 - [FIX] Search and routing behavior improved with better query encoding and URL state preservation while navigating.
-
 
 ## June 2023
 
