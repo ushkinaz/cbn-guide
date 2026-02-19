@@ -707,7 +707,6 @@ for (const group of sortedGroups) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  filter: contrast(1.1);
 }
 
 .monster-description {
