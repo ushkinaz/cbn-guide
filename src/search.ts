@@ -77,26 +77,27 @@ export function searchableName(data: CBNData, item: SupportedTypeMapped) {
 
 export function buildSearchIndex(data: CBNData): SearchTarget[] {
   const start = nowTimeStamp();
-  const targets = [...(data?.all() ?? [])]
-    .filter(
-      (x) =>
-        "id" in x &&
-        typeof x.id === "string" &&
-        SEARCHABLE_TYPES.has(mapType(x.type)),
+  const raw = data?.all() ?? [];
+  const targets: SearchTarget[] = [];
+  for (const x of raw) {
+    if (!("id" in x) || typeof x.id !== "string") continue;
+    const mappedType = mapType(x.type);
+    if (!SEARCHABLE_TYPES.has(mappedType)) continue;
+
+    if (x.type === "mutation" && /Fake\d$/.test(x.id as string)) continue;
+
+    if (
+      x.type === "MONSTER" &&
+      !data.isMonsterVisible((x as { id: string }).id)
     )
-    .filter((x) => (x.type === "mutation" ? !/Fake\d$/.test(x.id) : true))
-    .filter((x) =>
-      x.type === "MONSTER"
-        ? data.isMonsterVisible((x as { id: string }).id)
-        : true,
-    )
-    .flatMap((x) => [
-      {
-        id: (x as any).id,
-        name: searchableName(data, x),
-        type: mapType(x.type),
-      },
-    ]);
+      continue;
+
+    targets.push({
+      id: (x as any).id,
+      name: searchableName(data, x),
+      type: mappedType,
+    });
+  }
   metrics.distribution(
     "search.index.calc_duration_ms",
     nowTimeStamp() - start,
