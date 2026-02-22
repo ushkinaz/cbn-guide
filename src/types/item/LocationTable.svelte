@@ -36,11 +36,13 @@ function filterLocations(
       spawnLocations.push({ overmap_special: oms, ids, chance });
     }
   }
-  spawnLocations.sort((a, b) =>
-    formatFixed2(b.chance.prob * 100) === formatFixed2(a.chance.prob * 100)
+  spawnLocations.sort((a, b) => {
+    const pA = Math.round(a.chance.prob * 10000);
+    const pB = Math.round(b.chance.prob * 10000);
+    return pA === pB
       ? b.chance.expected - a.chance.expected
-      : b.chance.prob - a.chance.prob,
-  );
+      : b.chance.prob - a.chance.prob;
+  });
   return spawnLocations;
 }
 </script>
