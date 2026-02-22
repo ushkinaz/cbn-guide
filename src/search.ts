@@ -29,10 +29,8 @@ export type SearchTarget = {
 };
 
 export type SearchResult = {
-  item: SupportedTypeMapped & {
-    id: string;
-    type: keyof SupportedTypesWithMapped;
-  } & { __filename?: string };
+  id: string;
+  type: keyof SupportedTypesWithMapped;
 };
 
 const OVERMAP_DIRECTION_SUFFIX = /_(north|south|east|west)$/;
@@ -138,8 +136,7 @@ export function performSearch(
     if (seen.has(key)) continue;
     seen.add(key);
 
-    const obj = data.byId(mappedType, item.id) as SearchResult["item"];
-    list.push({ item: obj });
+    list.push({ id: item.id, type: mappedType });
   }
   return byType;
 }
