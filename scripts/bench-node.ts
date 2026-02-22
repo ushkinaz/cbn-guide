@@ -2,7 +2,7 @@ import "./bench-env.js";
 import fs from "fs";
 import path from "path";
 import { performance } from "perf_hooks";
-import { CBNData, omsName } from "../src/data.js";
+import { CBNData, omsName, singularName } from "../src/data.js";
 import { buildSearchIndex, performSearch } from "../src/search.js";
 import {
   getGitSha,
@@ -70,25 +70,6 @@ registerScenario("bash-from-terrain", (cbnData) => {
   cbnData.bashFromTerrain("t_pavement_y_bg_dp").length;
 });
 
-registerScenario("search", (cbnData) => {
-  performance.mark("index-build-start");
-  const target = buildSearchIndex(cbnData);
-  performance.measure("search:index-build", "index-build-start");
-
-  const queries = [
-    "zombie", // Medium hits
-    "a", // Heavy hits (previously O(N^2) killer)
-    "9mm", // Specific
-    "nonexistent_thing_xyz", // No hits
-  ];
-
-  for (const q of queries) {
-    performance.mark(`search:${q}-start`);
-    performSearch(q, target, cbnData);
-    performance.measure(`search:query-${q}`, `search:${q}-start`);
-  }
-});
-
 registerScenario("oms-name", (cbnData) => {
   const oms = cbnData.byId("overmap_special", "Isherwood Farms");
   // Run it multiple times to get a measurable duration
@@ -117,6 +98,24 @@ registerScenario("search", (cbnData) => {
     performSearch(q, target, cbnData);
     performance.measure(`search:query-${q}`, `search:${q}-start`);
   }
+});
+
+registerScenario("singular-name", (cbnData) => {
+  const items = cbnData.byType("item").slice(0, 1000); // Get 1000 items
+
+  performance.mark("singular-name-start");
+  for (const item of items) {
+    singularName(item);
+  }
+  performance.measure("singular-name", "singular-name-start");
+
+  // Also benchmark repeated calls on the same object
+  const item = items[0];
+  performance.mark("singular-name-repeated-start");
+  for (let i = 0; i < 10000; i++) {
+    singularName(item);
+  }
+  performance.measure("singular-name-repeated", "singular-name-repeated-start");
 });
 
 // ============================================================================

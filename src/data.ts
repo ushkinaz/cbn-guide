@@ -138,8 +138,32 @@ export const singular = (name: Translation): string =>
 export const plural = (name: Translation, n: number = 2): string =>
   translate(name, true, n);
 
-export const singularName = (obj: any, domain?: string): string =>
-  pluralName(obj, 1, domain);
+const singularNameCache = new WeakMap<any, string>();
+const singularNameDomainCache = new WeakMap<any, Map<string, string>>();
+
+export const singularName = (obj: any, domain?: string): string => {
+  if (!obj || typeof obj !== "object") return pluralName(obj, 1, domain);
+
+  if (domain === undefined) {
+    let cached = singularNameCache.get(obj);
+    if (cached !== undefined) return cached;
+    cached = pluralName(obj, 1, undefined);
+    singularNameCache.set(obj, cached);
+    return cached;
+  }
+
+  let domainCache = singularNameDomainCache.get(obj);
+  if (!domainCache) {
+    domainCache = new Map();
+    singularNameDomainCache.set(obj, domainCache);
+  }
+  let cached = domainCache.get(domain);
+  if (cached !== undefined) return cached;
+
+  cached = pluralName(obj, 1, domain);
+  domainCache.set(domain, cached);
+  return cached;
+};
 
 export const pluralName = (
   obj: any,
