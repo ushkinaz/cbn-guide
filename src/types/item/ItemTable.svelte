@@ -30,11 +30,13 @@ let showData = isTesting;
     </section>
   {:then loot}
     {#if loot.size}
-      {@const sortedLoot = [...loot.entries()].sort((a, b) =>
-        formatFixed2(b[1].prob * 100) === formatFixed2(a[1].prob * 100)
+      {@const sortedLoot = [...loot.entries()].sort((a, b) => {
+        const pA = Math.round(a[1].prob * 10000);
+        const pB = Math.round(b[1].prob * 10000);
+        return pA === pB
           ? b[1].expected - a[1].expected
-          : b[1].prob - a[1].prob,
-      )}
+          : b[1].prob - a[1].prob;
+      })}
       <section>
         <LimitedTableList items={sortedLoot}>
           <tr slot="header">
