@@ -6,6 +6,7 @@ import type { GunSlot, Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import LimitedList from "../../LimitedList.svelte"; // Assuming we want symbols in lists
 import CompatibleItems from "./CompatibleItems.svelte";
+import { asArray } from "../../utils/collections";
 
 export let item: Item;
 
@@ -25,9 +26,7 @@ function getGunProperties(i: Item): GunSlot {
 
 const gunProps = getGunProperties(item);
 
-let ammo_types: string[] = Array.isArray(gunProps.ammo)
-  ? gunProps.ammo
-  : [gunProps.ammo ?? []].flat();
+let ammo_types: string[] = asArray(gunProps.ammo);
 
 let magazinesByAmmo = new Map<string, string[]>();
 if ("magazines" in gunProps && gunProps.magazines) {

@@ -33,3 +33,12 @@ export function uniq<T>(things: T[], id: (a: T) => any = (a) => a): T[] {
   }
   return result;
 }
+export function asArray<T>(value: T | T[] | undefined | null): T[] {
+  if (value == null) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return [value];
+}

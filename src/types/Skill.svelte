@@ -2,6 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
+import { asArray } from "../utils/collections";
 
 import { byName, CBNData, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
@@ -41,7 +42,7 @@ itemsUsingSkill.sort(byName);
 
 const itemsTrainingSkill = data.byType("item").filter((i) => {
   if (!i.use_action) return false;
-  const actions = Array.isArray(i.use_action) ? i.use_action : [i.use_action];
+  const actions = asArray(i.use_action);
   if (!i.id) return false; //Abstract entity
   return actions.some((a) => {
     if (typeof a !== "object" || Array.isArray(a)) return false;
@@ -56,7 +57,7 @@ const itemsTrainingSkill = data.byType("item").filter((i) => {
 const itemsTrainingSkillByLevel = new Map<number, typeof itemsTrainingSkill>();
 for (const i of itemsTrainingSkill) {
   let maxLevel = 0;
-  const actions = Array.isArray(i.use_action) ? i.use_action : [i.use_action];
+  const actions = asArray(i.use_action);
   for (const a of actions) {
     if (
       typeof a === "object" &&

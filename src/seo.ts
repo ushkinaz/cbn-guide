@@ -11,6 +11,7 @@ import type {
 } from "./types";
 import { get } from "svelte/store";
 import { cleanText, formatDisplayValue, formatNumeric } from "./utils/format";
+import { asArray } from "./utils/collections";
 
 const MAX_DESCRIPTION_LENGTH = 160;
 const TRIM_DESCRIPTION_LENGTH = 155;
@@ -28,13 +29,8 @@ const formatStatList = (stats: string[]): string => {
   return `${stats.slice(0, -1).join(", ")} & ${stats[stats.length - 1]}`;
 };
 
-const toArray = (value?: string | string[] | null): string[] => {
-  if (!value) return [];
-  return Array.isArray(value) ? value : [value];
-};
-
 const formatFlags = (flags?: string | string[]): string | null => {
-  const values = toArray(flags).filter(Boolean);
+  const values = asArray(flags).filter(Boolean);
   if (values.length === 0) return null;
   return values.slice(0, 3).join(":");
 };
@@ -82,7 +78,7 @@ const typeLabelForItem = (item: SupportedTypeMapped): string => {
 
 const statsForMonster = (item: SupportedTypes["MONSTER"]): string[] => {
   const stats: string[] = [];
-  const species = toArray(item.species as string | string[] | null);
+  const species = asArray(item.species as string | string[] | null);
   if (species.length > 0) stats.push(toTitleCase(species.join(" ")));
   if (item.hp != null) stats.push(formatStat("HP", item.hp));
   if (item.speed != null) stats.push(formatStat("Speed", item.speed));
@@ -109,7 +105,7 @@ const statsForMagazine = (item: SupportedTypes["MAGAZINE"]): string[] => {
   const stats: string[] = [];
   const ammo_type = get(data)?.byIdMaybe(
     "ammunition_type",
-    toArray(item.ammo_type)[0],
+    asArray(item.ammo_type)[0],
   );
   if (ammo_type?.name) stats.push(singular(ammo_type.name));
   if (item.capacity) stats.push(formatStat("cap", item.capacity));

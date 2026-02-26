@@ -2,6 +2,7 @@
 import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
 import { getContext } from "svelte";
+import { asArray } from "../utils/collections";
 
 import {
   asKilograms,
@@ -56,16 +57,7 @@ import GunInfo from "./item/GunInfo.svelte";
 export let item: Item;
 let data: CBNData = getContext("data");
 
-const rawWeaponCategories = item.weapon_category as
-  | string[]
-  | string
-  | undefined;
-const weaponCategories =
-  rawWeaponCategories == null
-    ? []
-    : Array.isArray(rawWeaponCategories)
-      ? rawWeaponCategories
-      : [rawWeaponCategories];
+const weaponCategories = asArray(item.weapon_category);
 
 const _context = "Item Basic Info";
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { MartialArt, MartialArtBuff } from "../types";
 import { getContext } from "svelte";
+import { asArray } from "../utils/collections";
 import { CBNData, i18n, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import ItemLink from "./ItemLink.svelte";
@@ -26,16 +27,7 @@ function learnDifficultyAsText(difficulty: number): string {
 }
 
 export let item: MartialArt;
-const rawWeaponCategories = item.weapon_category as
-  | string[]
-  | string
-  | undefined;
-const weaponCategories =
-  rawWeaponCategories == null
-    ? []
-    : Array.isArray(rawWeaponCategories)
-      ? rawWeaponCategories
-      : [rawWeaponCategories];
+const weaponCategories = asArray(item.weapon_category);
 const _context = "Martial Art";
 
 const books = data

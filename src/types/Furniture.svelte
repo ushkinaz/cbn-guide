@@ -2,6 +2,7 @@
 import { CBNData, formatPercent, singular, singularName } from "../data";
 import type { Furniture } from "../types";
 import { getContext } from "svelte";
+import { asArray } from "../utils/collections";
 import Construction from "./Construction.svelte";
 import ItemLink from "./ItemLink.svelte";
 import { t } from "@transifex/native";
@@ -43,11 +44,7 @@ const bashedFrom = data
   .byType("furniture")
   .filter((f) => f.id && f.bash?.furn_set === item.id);
 
-const pseudo_items: string[] = item.crafting_pseudo_item
-  ? Array.isArray(item.crafting_pseudo_item)
-    ? item.crafting_pseudo_item
-    : [item.crafting_pseudo_item]
-  : [];
+const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
 </script>
 
 <h1><ItemLink type="furniture" id={item.id} link={false} /></h1>

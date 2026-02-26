@@ -1,6 +1,6 @@
 import type { CBNData } from "../../data";
 import type * as raw from "../../types";
-import { multimap } from "../../utils/collections";
+import { multimap, asArray } from "../../utils/collections";
 import { isTesting } from "../../utils/env";
 
 // Map generation constants
@@ -1100,7 +1100,7 @@ function processMapping<T>(
   return new Map(
     Object.entries(mapping ?? {}).map(([sym, val]) => {
       // Normalize to array of [value, weight]
-      const entries = (Array.isArray(val) ? val : [val]).map((x) =>
+      const entries = asArray(val as unknown).map((x) =>
         Array.isArray(x) && typeof x[1] === "number"
           ? (x as [T, number])
           : ([x, 1] as [T, number]),
@@ -1157,11 +1157,7 @@ function parseMappingItems(
 ): Map<string, Loot> {
   const entries = Object.entries(mapping ?? {}).flatMap(([sym, val]) => {
     const loots: Loot[] = [];
-    const items = Array.isArray(val.items)
-      ? val.items
-      : val.items
-        ? [val.items]
-        : [];
+    const items = asArray(val.items);
     for (const itemsEntry of items) {
       loots.push(
         parseItemGroup(
@@ -1174,11 +1170,7 @@ function parseMappingItems(
         ),
       );
     }
-    const itemEntries = Array.isArray(val.item)
-      ? val.item
-      : val.item
-        ? [val.item]
-        : [];
+    const itemEntries = asArray(val.item);
     for (const itemEntry of itemEntries) {
       const itemNormalized = getMapgenValue(itemEntry.item, parameters);
       if (!itemNormalized) continue;

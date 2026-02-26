@@ -4,16 +4,13 @@ import { getContext } from "svelte";
 import { topologicalSortComponentsByRank } from "../utils/toposort";
 import type { Mutation } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { asArray } from "../utils/collections";
 
 let data = getContext<CBNData>("data");
 
 export let mutations: Mutation[];
-const normalizeToArray = (val: string | string[] | undefined): string[] =>
-  val === undefined ? [] : Array.isArray(val) ? val : [val];
 const allPrereqs = (m: Mutation) =>
-  normalizeToArray(m.prereqs)
-    .concat(normalizeToArray(m.prereqs2))
-    .concat(normalizeToArray(m.threshreq));
+  asArray(m.prereqs).concat(asArray(m.prereqs2)).concat(asArray(m.threshreq));
 let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>
   allPrereqs(m).map((x) => data.byId("mutation", x)),
 ).sort((a, b) => singularName(a[0][0]).localeCompare(singularName(b[0][0])));

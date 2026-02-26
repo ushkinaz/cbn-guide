@@ -48,6 +48,7 @@ import { getDataJsonUrl } from "./constants";
 import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
 import { HttpError, isNotFoundError } from "./utils/http-errors";
 import { retry } from "./utils/retry";
+import { asArray } from "./utils/collections";
 
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
@@ -602,20 +603,8 @@ export class CBNData {
     }
 
     for (const monster of monsters) {
-      const monsterCategories = new Set(
-        Array.isArray(monster.categories)
-          ? monster.categories
-          : typeof monster.categories === "string"
-            ? [monster.categories]
-            : [],
-      );
-      const monsterSpecies = new Set(
-        Array.isArray(monster.species)
-          ? monster.species
-          : typeof monster.species === "string"
-            ? [monster.species]
-            : [],
-      );
+      const monsterCategories = new Set(asArray(monster.categories));
+      const monsterSpecies = new Set(asArray(monster.species));
 
       const isWhitelisted =
         explicitWhitelisted.has(monster.id) ||
@@ -1791,7 +1780,7 @@ export class CBNData {
       }).map((x) => x.map((x) => [x.id, x.count * count] as [string, number])),
     );
     const qualities = requirements.flatMap(([req, _count]) =>
-      (req.qualities ?? []).map((x) => (Array.isArray(x) ? x : [x])),
+      (req.qualities ?? []).map((x) => asArray(x)),
     );
     const components = requirements.flatMap(([req, count]) =>
       this.flattenRequirement(
