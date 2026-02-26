@@ -64,7 +64,7 @@ const hiddenBy = item.hidden_by
     {/if}
     <dt>{t("Requirements", { _context })}</dt>
     <dd>
-      <ul>
+      <ul class="no-bullets">
         {#each item.requirements as req}
           <li>
             {#if req.description}

@@ -86,7 +86,7 @@ if (construction.pre_flags)
     {#if components.length}
       <dt>{t("Components", { _context: "Requirement" })}</dt>
       <dd>
-        <ul>
+        <ul class="no-bullets">
           {#each components as componentChoices}
             <li>
               {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}

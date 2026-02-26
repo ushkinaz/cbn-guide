@@ -37,7 +37,7 @@ harvestBySeasonList.sort(
       {#each harvestBySeasonList as [season, harvests]}
         <dt>{i18n.__(season.replace(/^(.)/, (x) => x.toUpperCase()))}</dt>
         <dd>
-          <ul>
+          <ul class="no-bullets">
             {#each harvests as harvestId}
               <li>
                 <ItemLink type="item" id={harvestId} />

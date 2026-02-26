@@ -225,7 +225,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         {#if flags.length}
           <dt>{t("Flags")}</dt>
           <dd>
-            <ul>
+            <ul class="no-bullets">
               {#each flags as f}
                 <li>
                   {#if "info" in f && f.info}
