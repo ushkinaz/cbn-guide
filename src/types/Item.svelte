@@ -56,6 +56,17 @@ import GunInfo from "./item/GunInfo.svelte";
 export let item: Item;
 let data: CBNData = getContext("data");
 
+const rawWeaponCategories = item.weapon_category as
+  | string[]
+  | string
+  | undefined;
+const weaponCategories =
+  rawWeaponCategories == null
+    ? []
+    : Array.isArray(rawWeaponCategories)
+      ? rawWeaponCategories
+      : [rawWeaponCategories];
+
 const _context = "Item Basic Info";
 
 let qualities = (item.qualities ?? []).map(([id, level]) => ({
@@ -198,7 +209,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
         <dt>{t("Weight")}</dt>
         <dd>{asKilograms(item.weight ?? 0)}</dd>
 
-        {#if item.weapon_category?.length}
+        {#if weaponCategories.length}
           <dt>
             {t("Category", {
               _context,
@@ -207,7 +218,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           </dt>
           <dd>
             <ul class="comma-separated">
-              {#each item.weapon_category as category_id}
+              {#each weaponCategories as category_id}
                 <li>
                   <ItemLink
                     type="weapon_category"

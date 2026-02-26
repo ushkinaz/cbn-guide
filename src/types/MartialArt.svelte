@@ -26,6 +26,16 @@ function learnDifficultyAsText(difficulty: number): string {
 }
 
 export let item: MartialArt;
+const rawWeaponCategories = item.weapon_category as
+  | string[]
+  | string
+  | undefined;
+const weaponCategories =
+  rawWeaponCategories == null
+    ? []
+    : Array.isArray(rawWeaponCategories)
+      ? rawWeaponCategories
+      : [rawWeaponCategories];
 const _context = "Martial Art";
 
 const books = data
@@ -91,11 +101,11 @@ const buffMap = new Map(
           </ul>
         </dd>
       {/if}
-      {#if item.weapon_category}
+      {#if weaponCategories.length}
         <dt>{t("Weapon Category", { _context })}</dt>
         <dd>
           <ul class="comma-separated">
-            {#each item.weapon_category as category_id}
+            {#each weaponCategories as category_id}
               <li>
                 <ItemLink
                   type="weapon_category"

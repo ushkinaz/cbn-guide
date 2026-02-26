@@ -11,16 +11,28 @@ export let item: WeaponCategory;
 
 const data = getContext<CBNData>("data");
 
+function normalizedWeaponCategories(raw: unknown): string[] {
+  if (Array.isArray(raw))
+    return raw.filter((value): value is string => typeof value === "string");
+  return typeof raw === "string" ? [raw] : [];
+}
+
+function usesWeaponCategory(obj: { weapon_category?: unknown }): boolean {
+  return normalizedWeaponCategories(obj.weapon_category).some(
+    (c) => c === item.id,
+  );
+}
+
 const itemsInCategory = data
   .byType("item")
   .filter((i) => i.id)
-  .filter((i) => (i.weapon_category ?? []).some((c) => c === item.id));
+  .filter(usesWeaponCategory);
 itemsInCategory.sort(byName);
 
 const martialArts = data
   .byType("martial_art")
   .filter((ma) => ma.id)
-  .filter((ma) => ma.weapon_category?.some((c) => c === item.id));
+  .filter(usesWeaponCategory);
 martialArts.sort(byName);
 </script>
 
