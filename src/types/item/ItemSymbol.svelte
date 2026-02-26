@@ -1,5 +1,11 @@
 <script lang="ts">
-import { resolveTileLayerUrl, tileData } from "../../tile-data";
+import {
+  resolveTileLayerUrl,
+  tileData,
+  findTileOrLooksLike,
+  type TileInfo,
+  type TilePosition,
+} from "../../tile-data";
 import { colorForName } from "../../colors";
 import { CBNData, mapType } from "../../data";
 import { getContext } from "svelte";
@@ -20,7 +26,7 @@ let data: CBNData = getContext("data");
 
 $: tile_info = $tileData?.tile_info[0];
 $: tile = typeHasTile(item)
-  ? (findTileOrLooksLike($tileData, item) ??
+  ? (findTileOrLooksLike(data, $tileData, item) ??
     fallbackTile($tileData, item.symbol, item.color ?? "white"))
   : null;
 
@@ -54,112 +60,8 @@ function colorFromBgcolor(
   return typeof color === "string" ? `i_${color}` : colorFromBgcolor(color[0]);
 }
 
-function findTileOrLooksLike(
-  tileData: any,
-  item: any,
-  jumps: number = 10,
-): TileInfo | undefined {
-  function resolveId(id: string): string {
-    return item.type === "vehicle_part" ? `vp_${id}` : id;
-  }
-  const idTile = findTile(tileData, resolveId(item.id ?? item.abstract));
-  if (idTile) return idTile;
-  const looksLikeId = item.looks_like ?? item["copy-from"];
-  if (!looksLikeId) return;
-  const looksLikeTile = findTile(tileData, resolveId(looksLikeId));
-  if (looksLikeTile) return looksLikeTile;
-  if (jumps > 0) {
-    const parent =
-      data.byIdMaybe(mapType(item.type), looksLikeId) ??
-      data.abstractById(mapType(item.type), looksLikeId);
-    if (parent) return findTileOrLooksLike(tileData, parent, jumps - 1);
-  }
-}
-
-type TilePosition = {
-  file: string;
-  file_url?: string;
-  source_base_url?: string;
-  tx: number;
-  ty: number;
-  width: number;
-  height: number;
-  offx: number;
-  offy: number;
-};
-type TileInfo = {
-  fg?: TilePosition;
-  bg?: TilePosition;
-};
-
 function layerUrl(tile: TilePosition | undefined): string {
   return resolveTileLayerUrl($tileData, tile) ?? "";
-}
-
-function findTile(tileData: any, id: string): TileInfo | undefined {
-  if (!tileData || !id) return;
-  let offset = 0;
-  const ranges: { from: number; to: number; chunk: any }[] = [];
-  for (const chunk of tileData["tiles-new"]) {
-    ranges.push({
-      from: offset,
-      to: offset + chunk.nx * chunk.ny,
-      chunk,
-    });
-    offset += chunk.nx * chunk.ny;
-  }
-  function findRange(id: number) {
-    for (const range of ranges)
-      if (id >= range.from && id < range.to) return range;
-  }
-  function tileInfoForId(id: number | undefined): TilePosition | undefined {
-    if (id == null) return;
-    const range = findRange(id);
-    if (!range) return;
-    const offsetInFile = id - range.from;
-    const fgTx = offsetInFile % range.chunk.nx;
-    const fgTy = (offsetInFile / range.chunk.nx) | 0;
-    return {
-      file: range.chunk.file,
-      file_url: range.chunk.file_url,
-      source_base_url: range.chunk.source_base_url,
-      width: range.chunk.sprite_width ?? tileData.tile_info[0].width,
-      height: range.chunk.sprite_height ?? tileData.tile_info[0].height,
-      offx: range.chunk.sprite_offset_x ?? 0,
-      offy: range.chunk.sprite_offset_y ?? 0,
-      tx: fgTx,
-      ty: fgTy,
-    };
-  }
-  const idMatches = (testId: string) =>
-    testId &&
-    (testId === id ||
-      (testId.startsWith(id) &&
-        /^_season_(autumn|spring|summer|winter)$/.test(
-          testId.substring(id.length),
-        )));
-  for (
-    let chunkIdx = tileData["tiles-new"].length - 1;
-    chunkIdx >= 0;
-    chunkIdx--
-  ) {
-    const chunk = tileData["tiles-new"][chunkIdx];
-    for (const info of chunk.tiles) {
-      if (
-        Array.isArray(info.id) ? info.id.some(idMatches) : idMatches(info.id)
-      ) {
-        let fg = Array.isArray(info.fg) ? info.fg[0] : info.fg;
-        let bg = Array.isArray(info.bg) ? info.bg[0] : info.bg;
-        if (fg && typeof fg === "object") fg = fg.sprite;
-        if (bg && typeof bg === "object") bg = bg.sprite;
-        return {
-          fg: tileInfoForId(fg),
-          bg: tileInfoForId(bg),
-        };
-      }
-    }
-    offset += chunk.nx * chunk.ny;
-  }
 }
 
 function fallbackTile(

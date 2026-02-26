@@ -10,6 +10,7 @@ import {
   resolveTileLayerUrl,
   tileData,
   type TilesetData,
+  findTileOrLooksLike,
   type TileInfo,
   type TilePosition,
 } from "../tile-data";
@@ -99,109 +100,6 @@ for (let x = maxX; x >= minX; x--) {
 
 $: tile_info = $tileData?.tile_info[0];
 
-function findTile(
-  tileData: TilesetData | null,
-  id: string,
-): TileInfo | undefined {
-  if (!tileData || !id) return;
-  //TODO: Cache tiles-new ranges and tile lookups per tileset to avoid per-cell scans.
-  let offset = 0;
-  const ranges: { from: number; to: number; chunk: any }[] = [];
-  for (const chunk of tileData["tiles-new"]) {
-    ranges.push({
-      from: offset,
-      to: offset + chunk.nx * chunk.ny,
-      chunk,
-    });
-    offset += chunk.nx * chunk.ny;
-  }
-  function findRange(id: number) {
-    for (const range of ranges)
-      if (id >= range.from && id < range.to) return range;
-  }
-  function tileInfoForId(id: number | undefined): TilePosition | undefined {
-    if (id == null) return;
-    const range = findRange(id);
-    if (!range) return;
-    const offsetInFile = id - range.from;
-    const fgTx = offsetInFile % range.chunk.nx;
-    const fgTy = (offsetInFile / range.chunk.nx) | 0;
-    return {
-      file: range.chunk.file,
-      file_url: range.chunk.file_url,
-      source_base_url: range.chunk.source_base_url,
-      // Safe to use ! because we check tileData at function entry
-      width: range.chunk.sprite_width ?? tileData!.tile_info[0].width,
-      height: range.chunk.sprite_height ?? tileData!.tile_info[0].height,
-      offx: range.chunk.sprite_offset_x ?? 0,
-      offy: range.chunk.sprite_offset_y ?? 0,
-      tx: fgTx,
-      ty: fgTy,
-    };
-  }
-  const idMatches = (testId: string) =>
-    testId &&
-    (testId === id ||
-      (testId.startsWith(id) &&
-        /^_season_(autumn|spring|summer|winter)$/.test(
-          testId.substring(id.length),
-        )));
-  for (
-    let chunkIdx = tileData["tiles-new"].length - 1;
-    chunkIdx >= 0;
-    chunkIdx--
-  ) {
-    const chunk = tileData["tiles-new"][chunkIdx];
-    for (const info of chunk.tiles) {
-      if (
-        Array.isArray(info.id) ? info.id.some(idMatches) : idMatches(info.id)
-      ) {
-        let fg = Array.isArray(info.fg) ? info.fg[0] : info.fg;
-        let bg = Array.isArray(info.bg) ? info.bg[0] : info.bg;
-        if (fg && typeof fg === "object") fg = fg.sprite;
-        if (bg && typeof bg === "object") bg = bg.sprite;
-        return {
-          fg: tileInfoForId(fg),
-          bg: tileInfoForId(bg),
-        };
-      }
-    }
-  }
-}
-export const MAX_INHERITANCE_DEPTH = 10;
-
-function findTileOrLooksLike(
-  tileData: TilesetData | null,
-  partId: string,
-  jumps: number = MAX_INHERITANCE_DEPTH,
-): TileInfo | undefined {
-  const id = `vp_${partId}`;
-  const idTile = findTile(tileData, id);
-  if (idTile) return idTile;
-
-  const vehiclePart = data.byIdMaybe("vehicle_part", partId);
-  if (!vehiclePart) return;
-
-  const looksLikeId = vehiclePart.looks_like ?? vehiclePart["copy-from"];
-  if (!looksLikeId) return;
-
-  const looksLikeTile = findTile(tileData, `vp_${looksLikeId}`);
-  if (looksLikeTile) return looksLikeTile;
-
-  if (jumps > 0) {
-    const parent = (data.byIdMaybe("vehicle_part", looksLikeId) ??
-      data.abstractById("vehicle_part", looksLikeId)) as
-      | VehiclePart
-      | undefined;
-    if (parent)
-      return findTileOrLooksLike(
-        tileData,
-        parent.id ?? parent.abstract,
-        jumps - 1,
-      );
-  }
-}
-
 const standardSymbols = {
   cover: "^",
   cross: "c",
@@ -273,7 +171,10 @@ function getFallback(partId: string, variant: string) {
         <div class="cell">
           {#if part}
             {@const tile = $tileData
-              ? findTileOrLooksLike($tileData, part.partId)
+              ? findTileOrLooksLike(data, $tileData, {
+                  type: "vehicle_part",
+                  id: part.partId,
+                })
               : null}
             {#if tile && tile_info}
               <div
