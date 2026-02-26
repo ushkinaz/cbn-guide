@@ -8,7 +8,7 @@ import {
   singularName,
   omsName,
 } from "./data";
-import type { GunSlot, ItemBasicInfo, OvermapSpecial } from "./types";
+import type { OvermapSpecial } from "./types";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([
@@ -54,6 +54,29 @@ test("flattened item group includes container item for collection", () => {
     { id: "contained_thing", count: [1, 1], prob: "0.05", expected: 0.05 },
     { id: "other_thing", count: [1, 1], prob: "0.10", expected: 0.1 },
   ]);
+});
+
+test("byType returns canonical override entries without duplicate ids", () => {
+  const base = {
+    type: "GENERIC",
+    id: "test_item",
+    name: "Base item",
+    weight: "1 kg",
+  };
+  const modOverride = {
+    type: "GENERIC",
+    id: "test_item",
+    "copy-from": "test_item",
+    name: "Modded item",
+    relative: { weight: 100 },
+  };
+
+  const data = new CBNData([base, modOverride]);
+  const items = data.byType("item").filter((item) => item.id === "test_item");
+
+  expect(items).toHaveLength(1);
+  expect(items[0].weight).toBe(1100);
+  expect(singularName(items[0])).toBe("Modded item");
 });
 
 test("includes container item specified in item", () => {

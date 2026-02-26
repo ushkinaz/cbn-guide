@@ -715,6 +715,8 @@ export class CBNData {
 
   /**
    * Retrieves all objects of a given type.
+   * For keyed object families, mod overrides are collapsed so each canonical key
+   * appears once (later entries win, stable order preserved).
    *
    * @param type The type of objects to retrieve.
    * @returns An array of flattened objects.
@@ -722,8 +724,30 @@ export class CBNData {
   byType<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
   ): SupportedTypesWithMapped[TypeName][] {
-    const flattened =
-      this._byType.get(type)?.map((x) => this._flatten(x)) ?? [];
+    const raws = this._byType.get(type) ?? [];
+    const canonicalRaws: unknown[] = [];
+    const keyedIndex = new Map<string, number>();
+
+    for (const raw of raws) {
+      const key = this._provenanceKeyForObject(type, raw);
+      if (key == null) {
+        canonicalRaws.push(raw);
+        continue;
+      }
+
+      const existingIndex = keyedIndex.get(key);
+      if (existingIndex == null) {
+        keyedIndex.set(key, canonicalRaws.length);
+        canonicalRaws.push(raw);
+      } else {
+        // Keep stable order but replace earlier entry with later override.
+        canonicalRaws[existingIndex] = raw;
+      }
+    }
+
+    const flattened = canonicalRaws.map((x) =>
+      this._flatten(x),
+    ) as SupportedTypesWithMapped[TypeName][];
     if (type !== "monster") return flattened;
     return flattened.filter(
       (monster) =>
