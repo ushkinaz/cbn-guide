@@ -54,7 +54,7 @@ martialArts.sort(byName);
   <h2>{t("Martial Arts")}</h2>
   {#if martialArts.length}
     <LimitedList items={martialArts} let:item>
-      <ItemLink type="martial_art" id={item.id} />
+      <ItemLink type="martial_art" id={item.id} showIcon={false} />
     </LimitedList>
   {:else}
     <p style="color: var(--cata-color-gray)">
