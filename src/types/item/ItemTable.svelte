@@ -17,7 +17,7 @@ export let heading: string =
       ? t("Terrain", { _context: "Loot Table" })
       : t("Loot", { _context: "Loot Table" });
 // By default, data is not shown but can be loaded on demand
-export let showData = isTesting;
+export let showData = true;
 </script>
 
 {#if showData}
