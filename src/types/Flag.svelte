@@ -80,7 +80,7 @@ const bionicWithFlag = data
   <section>
     <h2>{t("Bionics")}</h2>
     <LimitedList items={bionicWithFlag.sort(byName)} let:item>
-      <ItemLink type="bionic" id={item.id} />
+      <ItemLink type="bionic" id={item.id} showIcon={false} />
     </LimitedList>
   </section>
 {/if}
