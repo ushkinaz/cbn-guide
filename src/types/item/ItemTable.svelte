@@ -6,7 +6,6 @@ import type { Loot } from "./spawnLocations";
 import { formatFixed2, formatPercent } from "../../utils/format";
 import { t } from "@transifex/native";
 import type { SupportedTypesWithMapped } from "src/types";
-import { isTesting } from "../../utils/env";
 
 export let loot: Loot | Promise<Loot> | (() => Loot | Promise<Loot>);
 export let type: keyof SupportedTypesWithMapped = "item";

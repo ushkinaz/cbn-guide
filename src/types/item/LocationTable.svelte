@@ -16,7 +16,7 @@ export let loots:
   | (() => Promise<Map<string, { loot: Loot; ids: string[] }>>);
 export let heading: string;
 
-let showData = isTesting;
+export let showData = true;
 
 const data = getContext<CBNData>("data");
 
