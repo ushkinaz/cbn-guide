@@ -1,10 +1,11 @@
 {
-  "name": "cbn-bn",
+  "name": "cbn-guide",
   "version": "1.6.0",
   "private": true,
   "repository": {
     "url": "https://github.com/ushkinaz/cbn-guide"
   },
+  "homepage": "https://cataclysmbn-guide.com/",
   "author": {
     "name": "nornagon",
     "url": "https://github.com/nornagon"
