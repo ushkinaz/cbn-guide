@@ -82,7 +82,7 @@ const groupFilter = ({
   {:else}
     <section>
       {#if groupName}
-        <h1>{groupName}</h1>
+        <h2>{groupName}</h2>
       {/if}
       <LimitedList
         items={group.filter(groupFilter)}
