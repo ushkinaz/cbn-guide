@@ -170,8 +170,12 @@ function getFallback(partId: string, variant: string) {
       {#each row as part}
         <div class="cell">
           {#if part}
+            {@const vehiclePart =
+              data.byIdMaybe("vehicle_part", part.partId) ??
+              data.abstractById("vehicle_part", part.partId)}
             {@const tile = $tileData
               ? findTileOrLooksLike(data, $tileData, {
+                  ...vehiclePart,
                   type: "vehicle_part",
                   id: part.partId,
                 })
