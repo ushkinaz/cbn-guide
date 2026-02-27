@@ -2722,6 +2722,29 @@ export const loadProgress = { subscribe: loadProgressStore.subscribe };
 let _hasSetVersion = false;
 let _currentData: CBNData | null = null;
 let _ensureModsLoadedPromise: Promise<void> | null = null;
+const prewarmedDerivedCaches = new WeakSet<CBNData>();
+
+export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
+  if (isTesting || prewarmedDerivedCaches.has(targetData)) return;
+  try {
+    const {
+      lootByOMSAppearance,
+      furnitureByOMSAppearance,
+      terrainByOMSAppearance,
+    } = await import("./types/item/spawnLocations");
+
+    await Promise.all([
+      lootByOMSAppearance(targetData),
+      furnitureByOMSAppearance(targetData),
+      terrainByOMSAppearance(targetData),
+    ]);
+    prewarmedDerivedCaches.add(targetData);
+  } catch (error) {
+    // Keep prewarm best-effort: failures should not prevent future retries.
+    console.error("Failed to prewarm derived caches", error);
+  }
+}
+
 const { subscribe, set } = writable<CBNData | null>(null);
 export const data = {
   subscribe,

@@ -1,7 +1,13 @@
 <script lang="ts">
 import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
-import { data, mapType, singularName } from "./data";
+import {
+  type CBNData,
+  data,
+  mapType,
+  prewarmDerivedCaches,
+  singularName,
+} from "./data";
 import {
   DEFAULT_TILESET,
   isValidTileset,
@@ -48,7 +54,7 @@ import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
 import Spinner from "./Spinner.svelte";
 import { fade } from "svelte/transition";
-import { RUNNING_MODE } from "./utils/env";
+import { isTesting, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 
@@ -62,6 +68,35 @@ const PAGE_DESCRIPTION_CONTEXT = "Page description";
 const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
 const URL_MODS_CONTEXT = "URL mods";
+const PREWARM_IDLE_TIMEOUT_MS = 8000;
+const PREWARM_FALLBACK_DELAY_MS = 250;
+
+function schedulePrewarm(cbnData: CBNData): void {
+  if (isTesting || typeof window === "undefined") return;
+
+  const runPrewarm = () => {
+    const prewarmStart = nowTimeStamp();
+    void prewarmDerivedCaches(cbnData)
+      .then(() => {
+        const durationMs = nowTimeStamp() - prewarmStart;
+        metrics.distribution("data.loot.prewarm_duration_ms", durationMs, {
+          unit: "millisecond",
+        });
+      })
+      .catch((error: unknown) => {
+        Sentry.captureException(error);
+        console.error("Failed to prewarm derived caches", error);
+      });
+  };
+
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(runPrewarm, {
+      timeout: PREWARM_IDLE_TIMEOUT_MS,
+    });
+  } else {
+    setTimeout(runPrewarm, PREWARM_FALLBACK_DELAY_MS);
+  }
+}
 
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -122,6 +157,7 @@ const isBranchAlias =
 
 let latestStableBuild: BuildInfo | undefined;
 let latestNightlyBuild: BuildInfo | undefined;
+let prewarmScheduledFor: CBNData | null = null;
 
 // Initialize routing and fetch builds
 const appStart = nowTimeStamp();
@@ -327,6 +363,11 @@ $: {
 
 $: if ($data) {
   syncSearch(search, $data);
+}
+
+$: if ($data && $data !== prewarmScheduledFor) {
+  prewarmScheduledFor = $data;
+  schedulePrewarm($data);
 }
 
 const handleSearchInput = () => {
