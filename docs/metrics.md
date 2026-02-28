@@ -18,7 +18,8 @@ Metrics should answer **product questions**, not measure every function call:
 
 ## Naming Convention
 
-We use a strict **Controlled Vocabulary** for metric names to ensure discoverability and consistency.
+We use a **Controlled Vocabulary** for metric names to ensure discoverability and consistency.
+Treat it as the canonical baseline and extend sparingly when semantics require it.
 
 👉 **See [docs/metrics_naming.md](./metrics_naming.md) for the full naming specification.**
 
@@ -140,13 +141,29 @@ To avoid skewing metrics during development: `localStorage.setItem('cbn-guide:me
 ## Testing
 
 ```typescript
+import { beforeEach, expect, it, vi } from "vitest";
 import { metrics } from "./metrics";
+import * as Sentry from "@sentry/browser";
 
-beforeEach(() => metrics.resetCounters());
+vi.mock("@sentry/browser", () => ({
+  metrics: {
+    count: vi.fn(),
+    gauge: vi.fn(),
+    distribution: vi.fn(),
+  },
+}));
 
-test("tracks feature usage", () => {
-  useFeature();
-  expect(metrics.getCounter("feature.calculator.use")).toBe(1);
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+it("tracks feature usage", () => {
+  metrics.count("feature.calculator.use", 1);
+  expect(Sentry.metrics.count).toHaveBeenCalledWith(
+    "feature.calculator.use",
+    1,
+    expect.any(Object),
+  );
 });
 ```
 

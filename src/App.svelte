@@ -384,7 +384,7 @@ const executeSearchAction = () => {
     const firstGroup = results.values().next().value;
     if (firstGroup && firstGroup.length > 0) {
       const firstResult = firstGroup[0].item;
-      metrics.count("search.enter_navigation");
+      metrics.count("search.result.open", 1, { method: "enter_key" });
       navigateTo(
         getCurrentVersionSlug(),
         { type: mapType(firstResult.type), id: firstResult.id },
@@ -407,7 +407,7 @@ let modSelectorError: string | null = null;
 
 async function openModSelector(): Promise<void> {
   if (!$data) return;
-  metrics.count("ui.mod_selector.click");
+  metrics.count("ui.modal.open", 1, { widget_id: "mod_selector" });
 
   modSelectorError = null;
   isModSelectorOpen = true;
@@ -432,7 +432,7 @@ function applyMods(event: CustomEvent<string[]>): void {
   // Changing mods triggers a full page reload to ensure data consistency.
   isModSelectorOpen = false;
   const selectedMods = event.detail;
-  metrics.gauge("data.mods.load", selectedMods.length);
+  metrics.gauge("data.mods.count", selectedMods.length);
   updateQueryParam(
     "mods",
     selectedMods.length > 0 ? selectedMods.join(",") : null,

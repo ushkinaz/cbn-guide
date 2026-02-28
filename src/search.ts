@@ -100,7 +100,7 @@ export function buildSearchIndex(data: CBNData): SearchTarget[] {
   }
   metrics.distribution(
     "search.index.calc_duration_ms",
-    nowTimeStamp() - start,
+    Math.round(nowTimeStamp() - start),
     {
       unit: "millisecond",
     },

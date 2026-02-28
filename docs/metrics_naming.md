@@ -28,6 +28,9 @@
 
 ### 2. Actions
 
+The action list is a **canonical baseline**, not a hard whitelist.
+Prefer reusing existing actions; if an event has different semantics, introduce a concise action and document why.
+
 | Action    | Usage                                                |
 | --------- | ---------------------------------------------------- |
 | `change`  | State transition (often with `from`/`to` attributes) |
@@ -45,6 +48,9 @@ Use consistent verbs for similar actions.
 - `load`: Data being fetched/prepared
 - `change`: State transitions (with `from`/`to` attributes)
 - `submit`: Form submissions
+- `open`: UI element becomes visible (modal, panel, expandable section)
+
+When introducing a new action, keep it short, semantically clear, and reusable across features.
 
 ### ✅ Context via Attributes (Not Names)
 
@@ -62,6 +68,16 @@ metrics.count("ui.button.click", 1, { widget_id: "profile_save" });
 // Bad
 metrics.count("ui.settings.save_button.click");
 metrics.count("ui.profile.save_button.click");
+```
+
+### ✅ Semantic UI Events
+
+Prefer naming what the user intends to do over how a specific component is implemented.
+
+```typescript
+// Good: semantic intent with contextual attributes
+metrics.count("ui.modal.open", 1, { widget_id: "mod_selector" });
+metrics.count("search.result.open", 1, { method: "enter_key" });
 ```
 
 ### ✅ Fact vs. Wish
