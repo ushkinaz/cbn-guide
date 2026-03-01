@@ -28,6 +28,26 @@ export default defineConfig({
   build: {
     sourcemap: process.env.VITE_SOURCEMAP === "true",
     chunkSizeWarningLimit: 1000, //I'm so sorry, Chuck
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("node_modules")) {
+            if (id.includes("svelte")) {
+              return "vendor-svelte";
+            }
+            if (id.includes("@sentry")) {
+              return "vendor-sentry";
+            }
+            if (id.includes("@transifex") || id.includes("gettext.js")) {
+              return "vendor-i18n";
+            }
+            if (id.includes("fuzzysort")) {
+              return "vendor-fuzzysort";
+            }
+          }
+        },
+      },
+    },
   },
   server: {
     port: 3000,
