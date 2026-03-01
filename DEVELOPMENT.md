@@ -83,15 +83,28 @@ This project uses `vitest` for testing. The tests cover a range of functionality
 
 ### Running Tests
 
-- **Run all tests**: `pnpm test`
-  - Runs formatting checks (`pnpm verify:format`), type validation (`pnpm verify:types`), and unit tests.
-  - Takes long time to run.
+- **Static checks (required before commit)**: `pnpm verify`
+  - Runs formatting checks (`pnpm verify:format`) and type validation (`pnpm verify:types`).
+- **Changed-related tests**: `pnpm test:changed`
+  - Runs tests related to changed files.
+- **Fast local suite**: `pnpm test:fast`
+  - Runs all tests except expensive render-regression suites (`src/all.*.test.ts`, `src/all-mods.*.test.ts`).
+- **CPU-friendly local suite**: `pnpm test:local`
+  - Same scope as `test:fast` but capped to `--maxWorkers=50%`.
+- **Full regression suite**: `pnpm test:full` (or `pnpm test`)
+  - Runs static checks and the full Vitest suite, including render-regression tests.
 - **Run tests with latest nightly data**: `pnpm test:nightly`
-  - Fetches latest fixtures (`pnpm fetch:fixtures:nightly`) and runs tests.
+  - Fetches latest fixtures (`pnpm fetch:fixtures:nightly`) and runs the full suite.
 - **Watch mode**: `pnpm test:watch`
   - Fetches fixtures, runs type checks, and starts Vitest in watch mode.
 - **Type Checking**: `pnpm verify:types`
   - Runs `svelte-check` and `tsc` to ensure type safety.
+
+Suggested command matrix:
+
+- Tiny/localized change: `pnpm verify && pnpm test:changed`
+- Normal feature/bugfix: `pnpm verify && pnpm test:fast`
+- Cross-cutting/data-model/routing change: `pnpm test:full`
 
 ### Project Scripts
 
@@ -103,6 +116,16 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 - `pnpm verify:format`: Check code formatting.
 - `pnpm verify:types`: Run type checking.
 - `pnpm fix:format`: Auto-fix formatting issues.
+
+#### Testing
+
+- `pnpm test`: Alias for `pnpm test:full`.
+- `pnpm test:full`: Full regression suite (includes expensive render-regression tests).
+- `pnpm test:fast`: Excludes `src/all.*.test.ts` and `src/all-mods.*.test.ts`.
+- `pnpm test:local`: `test:fast` with `--maxWorkers=50%` to reduce CPU pressure.
+- `pnpm test:changed`: Runs tests related to changed files.
+- `pnpm test:nightly`: Full suite against nightly fixtures.
+- `pnpm test:watch`: Watch mode for iterative test development.
 
 #### Data & Assets
 

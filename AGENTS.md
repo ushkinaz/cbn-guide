@@ -37,10 +37,17 @@
 
 Prefer targeted tests first; run full suite only for cross-cutting changes.
 
-- `pnpm test --bail 1` - Full test suite
-- `pnpm verify:types` for TypeScript/Svelte correctness
+- `pnpm verify` - Required before commit
+- `pnpm test:changed` - Tests related to changed files
+- `pnpm test:fast` - All non-render-regression tests
+- `pnpm verify:types` - TypeScript/Svelte correctness
 - `pnpm vitest run <path/to/test.ts>` - Run single test
-- `pnpm test:nightly` - Test with the latest nightly data
+
+Test matrix:
+
+- Tiny/localized change: `pnpm verify && pnpm test:changed`
+- Normal feature/bugfix: `pnpm verify && pnpm test:fast`
+- Cross-cutting/data-model/routing change: `pnpm test:full`
 
 #### Key Test Files
 
@@ -147,5 +154,5 @@ Prefer targeted tests first; run full suite only for cross-cutting changes.
 ## Critical Anti-Patterns
 
 Never add prop-watching `$:` inside `{#key}` blocks  
-Never run `pnpm test` by default for tiny/localized changes  
+Never run `pnpm test:full` by default for tiny/localized changes  
 Never commit without running `pnpm verify`
