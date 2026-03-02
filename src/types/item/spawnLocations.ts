@@ -1,16 +1,12 @@
 import type { CBNData } from "../../data";
 import type * as raw from "../../types";
 import { multimap, asArray } from "../../utils/collections";
-import { isTesting } from "../../utils/env";
+import { yieldUntilIdle } from "../../utils/idle";
 
 // Map generation constants
 const DEFAULT_CHANCE_PERCENTAGE = 100;
 const DEFAULT_MAPGEN_WEIGHT = 1000;
 const OMAP_TILE_SIZE = 24;
-
-// Performance/scheduling constants
-const IDLE_YIELD_TIMEOUT_MS = 1;
-const MIN_TIME_REMAINING_MS = 0;
 
 /** 0.0 <= chance <= 1.0 */
 type chance = number;
@@ -322,32 +318,6 @@ function offsetMapgen(
         min(p.y) < my + OMAP_TILE_SIZE,
     );
   return { ...mapgen, object };
-}
-
-const requestIdleCallback: typeof window.requestIdleCallback =
-  typeof window !== "undefined" && "requestIdleCallback" in window
-    ? window.requestIdleCallback
-    : function (cb: (deadline: IdleDeadline) => void): number {
-        const start = Date.now();
-        return setTimeout(function () {
-          cb({
-            didTimeout: false,
-            timeRemaining: function () {
-              return Math.max(0, 50 - (Date.now() - start));
-            },
-          });
-        }, 0) as unknown as number;
-      };
-
-function yieldUntilIdle(): Promise<IdleDeadline> {
-  if (isTesting)
-    return Promise.resolve({
-      didTimeout: false,
-      timeRemaining: () => 100,
-    });
-  return new Promise<IdleDeadline>((resolve) => {
-    requestIdleCallback(resolve, { timeout: IDLE_YIELD_TIMEOUT_MS });
-  });
 }
 
 const canInputPending =

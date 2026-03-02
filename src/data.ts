@@ -43,6 +43,7 @@ import type { Loot } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
 import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
 import { HttpError, isNotFoundError } from "./utils/http-errors";
+import { yieldUntilIdle } from "./utils/idle";
 import { retry } from "./utils/retry";
 import { asArray } from "./utils/collections";
 
@@ -2733,11 +2734,11 @@ export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
       terrainByOMSAppearance,
     } = await import("./types/item/spawnLocations");
 
-    await Promise.all([
-      lootByOMSAppearance(targetData),
-      furnitureByOMSAppearance(targetData),
-      terrainByOMSAppearance(targetData),
-    ]);
+    await lootByOMSAppearance(targetData);
+    await yieldUntilIdle();
+    await furnitureByOMSAppearance(targetData);
+    await yieldUntilIdle();
+    await terrainByOMSAppearance(targetData);
     prewarmedDerivedCaches.add(targetData);
   } catch (error) {
     // Keep prewarm best-effort: failures should not prevent future retries.
