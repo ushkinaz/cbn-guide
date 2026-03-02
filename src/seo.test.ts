@@ -90,6 +90,73 @@ test("weapon description uses damage, dispersion, and clip size", () => {
   );
 });
 
+test("weapon description handles numeric ranged_damage without crashing", () => {
+  const gun: Named<SupportedTypes["GUN"]> = {
+    type: "GUN",
+    id: "revolver_test",
+    name: "Test Revolver",
+    skill: "pistol",
+    ranged_damage: 1 as any,
+    dispersion: 120,
+    clip_size: 6,
+  };
+
+  const desc = buildMetaDescription(gun);
+
+  expect(desc).toContain("Gun:");
+  expect(desc).toContain("dmg 1");
+});
+
+test("ammo description handles numeric damage without crashing", () => {
+  const ammo: Named<SupportedTypes["AMMO"]> = {
+    type: "AMMO",
+    id: "ammo_numeric",
+    name: "Numeric Ammo",
+    ammo_type: "9mm",
+    damage: 3 as any,
+    range: 10,
+  };
+
+  const desc = buildMetaDescription(ammo);
+
+  expect(desc).toContain("Ammo:");
+  expect(desc).toContain("dmg 3");
+});
+
+test("weapon description preserves explicit zero numeric ranged_damage", () => {
+  const gun: Named<SupportedTypes["GUN"]> = {
+    type: "GUN",
+    id: "zero_damage_test",
+    name: "Zero Damage Test",
+    skill: "pistol",
+    ranged_damage: 0 as any,
+  };
+
+  const desc = buildMetaDescription(gun);
+
+  expect(desc).toContain("Gun:");
+  expect(desc).toContain("dmg 0");
+});
+
+test("ammo description accepts object damage without damage_type", () => {
+  const ammo: Named<SupportedTypes["AMMO"]> = {
+    type: "AMMO",
+    id: "ammo_object_no_type",
+    name: "Object Damage Ammo",
+    ammo_type: "9mm",
+    damage: {
+      amount: 7,
+      armor_penetration: 2,
+    } as any,
+  };
+
+  const desc = buildMetaDescription(ammo);
+
+  expect(desc).toContain("Ammo:");
+  expect(desc).toContain("dmg 7");
+  expect(desc).toContain("ap 2");
+});
+
 test("armor description includes protection values before mobility", () => {
   const armor: Named<SupportedTypes["ARMOR"]> = {
     type: "ARMOR",

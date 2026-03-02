@@ -53,11 +53,26 @@ const formatQualities = (qualities?: [string, number][]): string | null => {
   return formatted.length > 0 ? formatted.join(", ") : null;
 };
 
-const primaryDamageUnit = (damage?: DamageInstance): DamageUnit | null => {
-  if (!damage) return null;
+const primaryDamageUnit = (
+  damage?: DamageInstance | number,
+): DamageUnit | null => {
+  if (damage == null) return null;
+  if (typeof damage === "number") {
+    return {
+      damage_type: "bullet",
+      amount: damage,
+      armor_penetration: 0,
+    };
+  }
   if (Array.isArray(damage)) return damage[0] ?? null;
-  if ("values" in damage) return damage.values[0] ?? null;
-  return damage;
+  if (
+    typeof damage === "object" &&
+    "values" in damage &&
+    Array.isArray(damage.values)
+  )
+    return damage.values[0] ?? null;
+  if (typeof damage === "object") return damage as DamageUnit;
+  return null;
 };
 
 /**
@@ -222,7 +237,7 @@ const buildKeyStats = (item: SupportedTypeMapped): string[] => {
 
 /**
  * Generates a concise meta-description for a game entity.
- * Synchronized with a document. Title and optimized for SEO.
+ * Synchronized with a document title and optimized for SEO.
  */
 export const buildMetaDescription = (item: SupportedTypeMapped): string => {
   const typeLabel = singular(typeLabelForItem(item));

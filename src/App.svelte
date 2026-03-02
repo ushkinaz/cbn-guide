@@ -325,34 +325,41 @@ const defaultMetaDescription = t(
 let metaDescription = defaultMetaDescription;
 
 $: {
-  if (
-    item &&
-    item.id &&
-    $data &&
-    isSupportedType(item.type) &&
-    $data.byIdMaybe(item.type, item.id)
-  ) {
-    const it = $data.byId(item.type, item.id);
-    document.title = formatTitle(singularName(it));
-    metaDescription = buildMetaDescription(it);
-  } else if (item && !item.id && item.type) {
-    document.title = formatTitle(item.type);
-    metaDescription = t("{type} catalog in {guide}.", {
-      type: item.type,
-      guide: UI_GUIDE_NAME,
-      _context: PAGE_DESCRIPTION_CONTEXT,
-    });
-  } else if ($page.route.search) {
-    const searchQuery = $page.route.search;
-    document.title = formatTitle(
-      `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${searchQuery}`,
-    );
-    metaDescription = t("Search {guide} for {query}.", {
-      guide: UI_GUIDE_NAME,
-      query: searchQuery,
-      _context: PAGE_DESCRIPTION_CONTEXT,
-    });
-  } else {
+  try {
+    if (
+      item &&
+      item.id &&
+      $data &&
+      isSupportedType(item.type) &&
+      $data.byIdMaybe(item.type, item.id)
+    ) {
+      const it = $data.byId(item.type, item.id);
+      document.title = formatTitle(singularName(it));
+      metaDescription = buildMetaDescription(it);
+    } else if (item && !item.id && item.type) {
+      document.title = formatTitle(item.type);
+      metaDescription = t("{type} catalog in {guide}.", {
+        type: item.type,
+        guide: UI_GUIDE_NAME,
+        _context: PAGE_DESCRIPTION_CONTEXT,
+      });
+    } else if ($page.route.search) {
+      const searchQuery = $page.route.search;
+      document.title = formatTitle(
+        `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${searchQuery}`,
+      );
+      metaDescription = t("Search {guide} for {query}.", {
+        guide: UI_GUIDE_NAME,
+        query: searchQuery,
+        _context: PAGE_DESCRIPTION_CONTEXT,
+      });
+    } else {
+      document.title = formatTitle();
+      metaDescription = defaultMetaDescription;
+    }
+  } catch (error: unknown) {
+    Sentry.captureException(error);
+    console.error("Failed to build page metadata", error);
     document.title = formatTitle();
     metaDescription = defaultMetaDescription;
   }

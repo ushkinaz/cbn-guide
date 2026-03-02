@@ -37,10 +37,19 @@ function extractRangedDamage(): DamageUnit {
     return gunProps.ranged_damage[0];
   }
 
+  if (typeof gunProps.ranged_damage === "number") {
+    return {
+      amount: gunProps.ranged_damage,
+      damage_type: "bullet",
+      armor_penetration: 0,
+    };
+  }
+
   if (
     gunProps.ranged_damage &&
     typeof gunProps.ranged_damage === "object" &&
-    "values" in gunProps.ranged_damage
+    "values" in gunProps.ranged_damage &&
+    Array.isArray(gunProps.ranged_damage.values)
   ) {
     return gunProps.ranged_damage.values[0];
   }
