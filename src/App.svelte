@@ -69,12 +69,14 @@ const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
 const URL_MODS_CONTEXT = "URL mods";
 const PREWARM_IDLE_TIMEOUT_MS = 8000;
-const PREWARM_FALLBACK_DELAY_MS = 250;
 
 function schedulePrewarm(cbnData: CBNData): void {
   if (isTesting || typeof window === "undefined") return;
+  if (typeof window.requestIdleCallback !== "function") return;
+  if (document.visibilityState !== "visible") return;
 
   const runPrewarm = () => {
+    if (document.visibilityState !== "visible") return;
     const prewarmStart = nowTimeStamp();
     void prewarmDerivedCaches(cbnData)
       .then(() => {
@@ -89,13 +91,9 @@ function schedulePrewarm(cbnData: CBNData): void {
       });
   };
 
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(runPrewarm, {
-      timeout: PREWARM_IDLE_TIMEOUT_MS,
-    });
-  } else {
-    setTimeout(runPrewarm, PREWARM_FALLBACK_DELAY_MS);
-  }
+  window.requestIdleCallback(runPrewarm, {
+    timeout: PREWARM_IDLE_TIMEOUT_MS,
+  });
 }
 
 function arraysEqual(a: string[], b: string[]): boolean {
