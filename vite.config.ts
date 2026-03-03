@@ -101,7 +101,7 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html}", "**/*.{png,svg,woff2,webp}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
         navigateFallback: "index.html",
-
+        navigateFallbackDenylist: [/^\/srv/],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
