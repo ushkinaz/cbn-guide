@@ -10,8 +10,8 @@
  * # For a specific version
  * GAME_VERSION=v0.9.1 npx tsx scripts/gen-sitemap.ts
  *
- * # Using npm script
- * npm run gen:sitemap
+ * # Using pnpm script
+ * pnpm run gen:sitemap
  * ```
  */
 
