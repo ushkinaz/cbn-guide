@@ -1,37 +1,40 @@
-<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (item to item_1) making the component unusable -->
 <script lang="ts">
+import { run } from "svelte/legacy";
+
 import { t } from "@transifex/native";
 import { isTesting } from "./utils/env";
 import { metrics } from "./metrics";
 
-export let items: any[];
+interface Props {
+  items: any[];
+  limit?: number;
+  grace?: number;
+  header?: import("svelte").Snippet;
+  item?: import("svelte").Snippet<[any]>;
+}
 
-export let limit = 10;
-
-export let grace = 4;
+let { items, limit = 10, grace = 4, header, item }: Props = $props();
 
 // In test mode, always render the expanded list to catch any render bugs that
 // only show up when the full list is shown.
-$: initialLimit = isTesting
-  ? Infinity
-  : items.length <= limit + grace
-    ? limit + grace
-    : limit;
+let initialLimit = $derived(
+  isTesting ? Infinity : items.length <= limit + grace ? limit + grace : limit,
+);
 
-let expanded = false;
-$: {
+let expanded = $state(false);
+run(() => {
   items;
   expanded = false;
-}
-$: realLimit = expanded ? Infinity : initialLimit;
+});
+let realLimit = $derived(expanded ? Infinity : initialLimit);
 </script>
 
 <div class="table-container">
   <table class="data-table">
-    <slot name="header" />
+    {@render header?.()}
     <tbody>
-      {#each items.slice(0, realLimit) as item}
-        <slot name="item" {item} />
+      {#each items.slice(0, realLimit) as row}
+        {@render item?.({ item: row })}
       {/each}
     </tbody>
   </table>
@@ -40,7 +43,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
   <button
     class="disclosure"
     aria-expanded={expanded}
-    on:click={(e) => {
+    onclick={(e) => {
       e.preventDefault();
       expanded = !expanded;
       if (expanded) {

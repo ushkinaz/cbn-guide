@@ -45,12 +45,12 @@ let { tools, qualities } =
                 )
                 .replace(/\$./g, "")}
               slot0="tool_quality">
-              <!-- @migration-task: migrate this slot by hand, `0` is an invalid identifier -->
-              <ItemLink
-                type="tool_quality"
-                id={quality.id}
-                slot="0"
-                showIcon={false} />
+              {#snippet _0()}
+                <ItemLink
+                  type="tool_quality"
+                  id={quality.id}
+                  showIcon={false} />
+              {/snippet}
             </InterpolatedTranslation>{/each}
         </li>
       {/each}
@@ -82,8 +82,7 @@ let { tools, qualities } =
                   )
                   .replace(/\$./g, "")}
                 slot0="item">
-                <!-- @migration-task: migrate this slot by hand, `0` is an invalid identifier -->
-                <svelte:fragment slot="0">
+                {#snippet _0()}
                   {#if data.craftingPseudoItem(toolId)}
                     <a
                       href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
@@ -93,7 +92,7 @@ let { tools, qualities } =
                   {:else}
                     <ItemLink type="item" id={toolId} showIcon={false} />
                   {/if}
-                </svelte:fragment>
+                {/snippet}
               </InterpolatedTranslation>
             {/if}
           {/each}

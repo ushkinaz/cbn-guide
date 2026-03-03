@@ -65,7 +65,12 @@ let {
               </th>
             </tr>
           {/snippet}
-          {#snippet item({ item: [item_id, chance] })}
+          {#snippet item({
+            item,
+          }: {
+            item: [string, { expected: number; prob: number }];
+          })}
+            {@const [item_id, chance] = item}
             <tr>
               <td style="padding-left: 5px;">
                 <ItemLink {type} id={item_id} showIcon={true} />

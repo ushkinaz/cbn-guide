@@ -23,7 +23,7 @@ let minX = $state(Infinity),
   minY = $state(Infinity);
 let maxX = $state(-Infinity),
   maxY = $state(-Infinity);
-let overmapsByPoint: Map<string, (typeof overmaps)[0]> = $state();
+let overmapsByPoint = $state<Map<string, (typeof overmaps)[0]>>(new Map());
 
 run(() => {
   minX = Infinity;
