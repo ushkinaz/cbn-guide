@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 import { writable } from "svelte/store";
 
 export type NotificationType = "info" | "warn" | "error";
@@ -71,7 +71,7 @@ import { quintOut } from "svelte/easing";
 
       <button
         class="dismiss-btn"
-        on:click={() => dismiss(notification.id)}
+        onclick={() => dismiss(notification.id)}
         aria-label="Dismiss notification"
         title="Dismiss notification">
         ✕

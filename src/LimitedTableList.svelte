@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: This migration would change the name of a slot (item to item_1) making the component unusable -->
 <script lang="ts">
 import { t } from "@transifex/native";
 import { isTesting } from "./utils/env";

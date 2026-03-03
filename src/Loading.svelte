@@ -2,8 +2,12 @@
 import { loadProgress } from "./data";
 import Spinner from "./Spinner.svelte";
 
-export let text: string;
-export let fullScreen: boolean = false;
+interface Props {
+  text: string;
+  fullScreen?: boolean;
+}
+
+let { text, fullScreen = false }: Props = $props();
 </script>
 
 <div class="loading-container" class:full-screen={fullScreen}>

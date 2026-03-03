@@ -3,7 +3,11 @@ import { t } from "@transifex/native";
 import type { ContainerSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item: ContainerSlot;
+interface Props {
+  item: ContainerSlot;
+}
+
+let { item }: Props = $props();
 </script>
 
 <section>

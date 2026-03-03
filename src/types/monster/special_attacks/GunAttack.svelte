@@ -2,7 +2,11 @@
 import type { GunAttack } from "../../../types";
 import ItemLink from "../../ItemLink.svelte";
 
-export let attack: GunAttack & { cooldown?: number };
+interface Props {
+  attack: GunAttack & { cooldown?: number };
+}
+
+let { attack }: Props = $props();
 </script>
 
 <ItemLink

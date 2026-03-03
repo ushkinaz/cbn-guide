@@ -181,7 +181,7 @@ async function openRandomPage(event: MouseEvent) {
   <a
     href={`${getVersionedBasePath()}${location.search}`}
     class="category-card random"
-    on:click={openRandomPage}>
+    onclick={openRandomPage}>
     <div class="icon-wrapper">
       <img
         src={randomIcon}

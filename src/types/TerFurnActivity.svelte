@@ -5,8 +5,12 @@ import type { ActivityDataCommon } from "src/types";
 import { getContext } from "svelte";
 import ItemLink from "./ItemLink.svelte";
 
-export let act: ActivityDataCommon & { result?: string };
-export let resultType: "terrain" | "furniture";
+interface Props {
+  act: ActivityDataCommon & { result?: string };
+  resultType: "terrain" | "furniture";
+}
+
+let { act, resultType }: Props = $props();
 
 const data = getContext<CBNData>("data");
 

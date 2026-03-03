@@ -14,7 +14,11 @@ import HarvestedTo from "./item/HarvestedTo.svelte";
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
 
-export let item: Furniture;
+interface Props {
+  item: Furniture;
+}
+
+let { item }: Props = $props();
 
 const deconstruct = item.deconstruct?.items
   ? data.flattenItemGroup({
@@ -174,8 +178,10 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
 {#if bashedFrom.length}
   <section>
     <h2>{t("Bashed From", { _context })}</h2>
-    <LimitedList items={bashedFrom} let:item>
-      <ItemLink type="furniture" id={item.id} />
+    <LimitedList items={bashedFrom}>
+      {#snippet children({ item })}
+        <ItemLink type="furniture" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

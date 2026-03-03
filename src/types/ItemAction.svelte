@@ -11,7 +11,11 @@ import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: ItemAction;
+interface Props {
+  item: ItemAction;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -39,8 +43,10 @@ const providerQualities = data
 {#if providers.length}
   <section>
     <h2>{t("Provided By", { _context: "Use action" })}</h2>
-    <LimitedList items={providers} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={providers}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
@@ -48,8 +54,10 @@ const providerQualities = data
 {#if providerQualities.length}
   <section>
     <h2>{t("Provided By Quality", { _context: "Use action" })}</h2>
-    <LimitedList items={providerQualities} let:item>
-      <ItemLink type={item.type} id={item.id} />
+    <LimitedList items={providerQualities}>
+      {#snippet children({ item })}
+        <ItemLink type={item.type} id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

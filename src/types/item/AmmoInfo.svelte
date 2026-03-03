@@ -6,7 +6,11 @@ import ItemLink from "../ItemLink.svelte";
 import { getContext } from "svelte";
 import CompatibleItems from "./CompatibleItems.svelte";
 
-export let item: AmmoSlot;
+interface Props {
+  item: AmmoSlot;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 

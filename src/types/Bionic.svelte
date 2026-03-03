@@ -8,7 +8,11 @@ import type { Bionic } from "../types";
 import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: Bionic;
+interface Props {
+  item: Bionic;
+}
+
+let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Bionic";
 

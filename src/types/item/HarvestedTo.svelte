@@ -5,10 +5,14 @@ import ItemLink from "../ItemLink.svelte";
 import type { MapDataCommon } from "../../types";
 import { t } from "@transifex/native";
 
-/**
- * The source from which resources are harvested.
- */
-export let item: MapDataCommon;
+interface Props {
+  /**
+   * The source from which resources are harvested.
+   */
+  item: MapDataCommon;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";

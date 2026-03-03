@@ -6,6 +6,7 @@ import "./assets/fonts.css";
 import App from "./App.svelte";
 import { RUNNING_MODE } from "./utils/env";
 import { tx } from "@transifex/native";
+import { mount } from "svelte";
 
 tx.init({
   token: process.env.TRANSIFEX_TOKEN,
@@ -138,7 +139,7 @@ if (locale) {
   start();
 }
 function start() {
-  new App({
+  mount(App, {
     target: document.body,
   });
 }

@@ -7,7 +7,11 @@ import LimitedList from "../LimitedList.svelte";
 import type { WeaponCategory } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: WeaponCategory;
+interface Props {
+  item: WeaponCategory;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -40,8 +44,10 @@ martialArts.sort(byName);
 <section>
   <h2>{t("Weapons", { _context: "Martial Art" })}</h2>
   {#if itemsInCategory.length}
-    <LimitedList items={itemsInCategory} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={itemsInCategory}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   {:else}
     <p style="color: var(--cata-color-gray)">
@@ -53,8 +59,10 @@ martialArts.sort(byName);
 <section>
   <h2>{t("Martial Arts")}</h2>
   {#if martialArts.length}
-    <LimitedList items={martialArts} let:item>
-      <ItemLink type="martial_art" id={item.id} showIcon={false} />
+    <LimitedList items={martialArts}>
+      {#snippet children({ item })}
+        <ItemLink type="martial_art" id={item.id} showIcon={false} />
+      {/snippet}
     </LimitedList>
   {:else}
     <p style="color: var(--cata-color-gray)">

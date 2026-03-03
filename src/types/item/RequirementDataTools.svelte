@@ -9,8 +9,12 @@ import { getVersionedBasePath } from "../../routing";
 import type { Recipe, RequirementData } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let requirement: RequirementData & { using?: Recipe["using"] };
-export let direction: "uncraft" | "craft" = "craft";
+interface Props {
+  requirement: RequirementData & { using?: Recipe["using"] };
+  direction?: "uncraft" | "craft";
+}
+
+let { requirement, direction = "craft" }: Props = $props();
 
 const _context = "Requirement";
 const data = getContext<CBNData>("data");
@@ -41,6 +45,7 @@ let { tools, qualities } =
                 )
                 .replace(/\$./g, "")}
               slot0="tool_quality">
+              <!-- @migration-task: migrate this slot by hand, `0` is an invalid identifier -->
               <ItemLink
                 type="tool_quality"
                 id={quality.id}
@@ -77,6 +82,7 @@ let { tools, qualities } =
                   )
                   .replace(/\$./g, "")}
                 slot0="item">
+                <!-- @migration-task: migrate this slot by hand, `0` is an invalid identifier -->
                 <svelte:fragment slot="0">
                   {#if data.craftingPseudoItem(toolId)}
                     <a

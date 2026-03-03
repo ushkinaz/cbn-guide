@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 import type { Recipe as RecipeType } from "../../types";
 import { singularName } from "../../data";
 // Lazily compute the recipe index.
@@ -55,7 +55,11 @@ import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import Recipe from "../Recipe.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
@@ -78,8 +82,10 @@ const byproducts = getByproductsIndex(data)[item_id] ?? [];
 {#if byproducts.length}
   <section>
     <h2>{t("Byproduct when crafting", { _context: "Obtaining" })}</h2>
-    <LimitedList items={byproducts} let:item>
-      <ItemLink type="item" id={item.result} />
+    <LimitedList items={byproducts}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.result} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

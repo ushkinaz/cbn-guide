@@ -8,7 +8,11 @@ import LimitedList from "../../LimitedList.svelte"; // Assuming we want symbols 
 import CompatibleItems from "./CompatibleItems.svelte";
 import { asArray } from "../../utils/collections";
 
-export let item: Item;
+interface Props {
+  item: Item;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -64,8 +68,10 @@ const ammoData = ammo_types.map((ammo_type) => {
         <dt>{t("Magazine")}</dt>
         <dd>
           {#if magazines.length}
-            <LimitedList items={magazines} let:item limit={7} grace={2}>
-              <ItemLink type="item" id={item.id} />
+            <LimitedList items={magazines} limit={7} grace={2}>
+              {#snippet children({ item })}
+                <ItemLink type="item" id={item.id} />
+              {/snippet}
             </LimitedList>
           {:else}
             {t("None")}

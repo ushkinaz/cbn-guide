@@ -7,7 +7,11 @@ import { CBNData, singularName } from "../../data";
 import { getContext } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
 
-export let item: Item;
+interface Props {
+  item: Item;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 

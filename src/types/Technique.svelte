@@ -9,9 +9,13 @@ import BonusContainer from "./BonusContainer.svelte";
 import ItemLink from "./ItemLink.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
 
-export let item: Technique;
-export let buffMap: Map<string, MartialArtBuff> = new Map();
-export let standalone: boolean = true;
+interface Props {
+  item: Technique;
+  buffMap?: Map<string, MartialArtBuff>;
+  standalone?: boolean;
+}
+
+let { item, buffMap = new Map(), standalone = true }: Props = $props();
 
 const data = getContext<CBNData>("data");
 const _context = "Martial Art";
@@ -123,8 +127,10 @@ if (item.stunned_target)
 {#if weapons.length}
   <section>
     <h2>{t("Weapons", { _context })}</h2>
-    <LimitedList items={weapons} let:item limit={20}>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={weapons} limit={20}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

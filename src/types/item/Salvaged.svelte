@@ -7,7 +7,11 @@ import LimitedList from "../../LimitedList.svelte";
 import type { Item, Material } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
@@ -37,8 +41,10 @@ const salvagedFromMaterials = data
 {#if salvagedFromMaterials.length}
   <section>
     <h2>{t("Salvage", { _context: "Obtaining" })}</h2>
-    <LimitedList items={salvagedFromMaterials} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={salvagedFromMaterials}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

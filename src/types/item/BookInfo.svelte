@@ -6,7 +6,11 @@ import type { CBNData } from "../../data";
 import type { BookSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item: BookSlot & { id: string; type: "BOOK" };
+interface Props {
+  item: BookSlot & { id: string; type: "BOOK" };
+}
+
+let { item }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
