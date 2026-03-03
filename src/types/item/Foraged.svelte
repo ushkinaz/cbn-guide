@@ -5,7 +5,11 @@ import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 const forageGroups = {
@@ -33,13 +37,15 @@ const forageSources = data
 {#if forageable.length}
   <section>
     <h2>{t("Forage", { _context: "Obtaining" })}</h2>
-    <LimitedList items={forageSources} let:item>
-      <ItemLink type="terrain" id={item.id} /> in
-      <ul class="comma-separated or">
-        {#each forageable as [season, _prob]}
-          <li>{season}</li>
-        {/each}
-      </ul>
+    <LimitedList items={forageSources}>
+      {#snippet children({ item })}
+        <ItemLink type="terrain" id={item.id} /> in
+        <ul class="comma-separated or">
+          {#each forageable as [season, _prob]}
+            <li>{season}</li>
+          {/each}
+        </ul>
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

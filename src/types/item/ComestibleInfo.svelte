@@ -7,7 +7,11 @@ import { formatFixed2 } from "../../utils/format";
 import type { ComestibleSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item: ComestibleSlot;
+interface Props {
+  item: ComestibleSlot;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 </script>

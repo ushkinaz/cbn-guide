@@ -7,7 +7,11 @@ import { CBNData, plural, singular, singularName } from "../data";
 import type { Achievement } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: Achievement;
+interface Props {
+  item: Achievement;
+}
+
+let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Achievement";
 

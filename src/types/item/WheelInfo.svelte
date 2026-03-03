@@ -3,7 +3,11 @@ import { t } from "@transifex/native";
 
 import type { WheelSlot } from "../../types";
 
-export let item: WheelSlot;
+interface Props {
+  item: WheelSlot;
+}
+
+let { item }: Props = $props();
 </script>
 
 <section>

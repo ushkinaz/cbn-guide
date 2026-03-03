@@ -13,7 +13,11 @@ import type { Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
 let data = getContext<CBNData>("data");
-export let item: Item;
+interface Props {
+  item: Item;
+}
+
+let { item }: Props = $props();
 
 let techniques = (item.techniques ?? []).map((t) => data.byId("technique", t));
 

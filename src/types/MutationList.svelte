@@ -8,7 +8,11 @@ import { asArray } from "../utils/collections";
 
 let data = getContext<CBNData>("data");
 
-export let mutations: Mutation[];
+interface Props {
+  mutations: Mutation[];
+}
+
+let { mutations }: Props = $props();
 const allPrereqs = (m: Mutation) =>
   asArray(m.prereqs).concat(asArray(m.prereqs2)).concat(asArray(m.threshreq));
 let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>

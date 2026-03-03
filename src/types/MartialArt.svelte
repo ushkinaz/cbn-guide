@@ -26,7 +26,11 @@ function learnDifficultyAsText(difficulty: number): string {
   }
 }
 
-export let item: MartialArt;
+interface Props {
+  item: MartialArt;
+}
+
+let { item }: Props = $props();
 const weaponCategories = asArray(item.weapon_category);
 const _context = "Martial Art";
 
@@ -141,9 +145,10 @@ const buffMap = new Map(
         singularName(data.byId("item", a)).localeCompare(
           singularName(data.byId("item", b)),
         ),
-      )}
-      let:item>
-      <ItemLink id={item} type="item" showIcon={false} />
+      )}>
+      {#snippet children({ item })}
+        <ItemLink id={item} type="item" showIcon={false} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

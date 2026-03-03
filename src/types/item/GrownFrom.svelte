@@ -6,7 +6,11 @@ import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
@@ -16,8 +20,10 @@ const sources = data.grownFrom(item_id);
 {#if sources.length}
   <section>
     <h2>{t("Grown From", { _context: "Obtaining" })}</h2>
-    <LimitedList items={sources} let:item>
-      <ItemLink id={item.id} type="item" /> ({item.seed_data.grow ?? "1 day"})
+    <LimitedList items={sources}>
+      {#snippet children({ item })}
+        <ItemLink id={item.id} type="item" /> ({item.seed_data.grow ?? "1 day"})
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

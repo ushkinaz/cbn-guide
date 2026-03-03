@@ -10,7 +10,11 @@ import RequirementDataTools from "./item/RequirementDataTools.svelte";
 const data = getContext<CBNData>("data");
 const _context = "Fault";
 
-export let item: Fault;
+interface Props {
+  item: Fault;
+}
+
+let { item }: Props = $props();
 
 const mendingMethods = (item.mending_methods ?? []).map((mm) => {
   const requirements: [RequirementData, number][] =

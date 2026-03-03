@@ -10,7 +10,11 @@ import type {
   ItemBasicInfo,
 } from "../../types";
 
-export let item: ItemBasicInfo & ArmorSlot;
+interface Props {
+  item: ItemBasicInfo & ArmorSlot;
+}
+
+let { item }: Props = $props();
 let data = getContext<CBNData>("data");
 const _context = "Armor";
 

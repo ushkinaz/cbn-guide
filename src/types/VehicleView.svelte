@@ -16,7 +16,11 @@ import {
 } from "../tile-data";
 import { t } from "@transifex/native";
 
-export let item: Vehicle;
+interface Props {
+  item: Vehicle;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 const _context = "Vehicle View";
@@ -24,8 +28,8 @@ const _context = "Vehicle View";
 
 let minX = Infinity;
 let maxX = -Infinity;
-let minY = Infinity;
-let maxY = -Infinity;
+let minY = $state(Infinity);
+let maxY = $state(-Infinity);
 //https://github.com/cataclysmbn/Cataclysm-BN/blob/1f1f5abf1e5135933fb2bbdbd74194d0e2dc75a8/src/veh_type.cpp#L552
 const zOrder: Record<NonNullable<VehiclePart["location"]>, number> = {
   on_roof: 9,
@@ -98,7 +102,7 @@ for (let x = maxX; x >= minX; x--) {
   finalGrid.push(row);
 }
 
-$: tile_info = $tileData?.tile_info[0];
+let tile_info = $derived($tileData?.tile_info[0]);
 
 const standardSymbols = {
   cover: "^",
@@ -202,7 +206,8 @@ function getFallback(partId: string, variant: string) {
                       {-tile.bg.ty * tile.bg.height}px;
                     transform: scale({tile_info.pixelscale})
                     translate({tile.bg.offx}px, {tile.bg.offy}px);
-                  " />
+                  ">
+                  </div>
                 {/if}
                 {#if tile.fg != null}
                   <div
@@ -218,7 +223,8 @@ function getFallback(partId: string, variant: string) {
                       .fg.ty * tile.fg.height}px;
                     transform: scale({tile_info.pixelscale}) translate({tile.fg
                       .offx}px, {tile.fg.offy}px);
-                  " />
+                  ">
+                  </div>
                 {/if}
               </div>
             {:else}

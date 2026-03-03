@@ -6,7 +6,11 @@ import ItemLink from "../ItemLink.svelte";
 import type { Furniture, Terrain } from "../../types";
 import { t } from "@transifex/native";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -41,8 +45,10 @@ harvestedFrom.sort(byName);
 {#if harvestedFrom.length}
   <section>
     <h2>{t("Harvest", { _context: "Obtaining" })}</h2>
-    <LimitedList items={harvestedFrom} let:item>
-      <ItemLink type={item.type} id={item.id} />
+    <LimitedList items={harvestedFrom}>
+      {#snippet children({ item })}
+        <ItemLink type={item.type} id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

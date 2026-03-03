@@ -4,7 +4,11 @@ import { t } from "@transifex/native";
 import type { ToolSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item: ToolSlot;
+interface Props {
+  item: ToolSlot;
+}
+
+let { item }: Props = $props();
 </script>
 
 {#if item.charges_per_use || item.sub || item.power_draw || item.turns_per_charge}

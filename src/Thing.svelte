@@ -37,11 +37,14 @@ import { metrics } from "./metrics";
 import { nowTimeStamp } from "./utils/perf";
 import { isTesting } from "./utils/env";
 
-export let item: { id: string; type: string };
+interface Props {
+  item: { id: string; type: string };
+  data: CBNData;
+}
 
-export let data: CBNData;
+let { item, data }: Props = $props();
 setContext("data", data);
-let error: Error | null = null;
+let error: Error | null = $state(null);
 
 function onError(e: Error) {
   error = e;
@@ -148,13 +151,15 @@ const display = (obj && displays[obj.type]) ?? Unknown;
       </details>
     </section>
   {:else if isTesting}
-    <svelte:component this={display} item={obj} />
+    {@const SvelteComponent_1 = display}
+    <SvelteComponent_1 item={obj} />
   {:else}
     <ErrorBoundary {onError}>
       {#if /obsolet/.test(obj.__filename)}
         <ObsoletionWarning item={obj} />
       {/if}
-      <svelte:component this={display} item={obj} />
+      {@const SvelteComponent_2 = display}
+      <SvelteComponent_2 item={obj} />
     </ErrorBoundary>
   {/if}
 

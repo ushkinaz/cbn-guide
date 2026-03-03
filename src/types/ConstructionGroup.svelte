@@ -4,7 +4,11 @@ import { CBNData, singularName } from "../data";
 import type { ConstructionGroup } from "../types";
 import Construction from "./Construction.svelte";
 
-export let item: ConstructionGroup;
+interface Props {
+  item: ConstructionGroup;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 

@@ -7,7 +7,11 @@ import LimitedList from "../LimitedList.svelte";
 import type { JsonFlag } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: JsonFlag;
+interface Props {
+  item: JsonFlag;
+}
+
+let { item }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
@@ -47,40 +51,50 @@ const bionicWithFlag = data
 {#if itemsWithFlag.length}
   <section>
     <h2>{t("Items", { _comment: "Section heading" })}</h2>
-    <LimitedList items={itemsWithFlag.sort(byName)} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={itemsWithFlag.sort(byName)}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
 {#if vpartsWithFlag.length}
   <section>
     <h2>{t("Vehicle Parts")}</h2>
-    <LimitedList items={vpartsWithFlag.sort(byName)} let:item>
-      <ItemLink type="vehicle_part" id={item.id} />
+    <LimitedList items={vpartsWithFlag.sort(byName)}>
+      {#snippet children({ item })}
+        <ItemLink type="vehicle_part" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
 {#if terrainWithFlag.length}
   <section>
     <h2>{t("Terrain")}</h2>
-    <LimitedList items={terrainWithFlag.sort(byName)} let:item>
-      <ItemLink type="terrain" id={item.id} />
+    <LimitedList items={terrainWithFlag.sort(byName)}>
+      {#snippet children({ item })}
+        <ItemLink type="terrain" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
 {#if furnitureWithFlag.length}
   <section>
     <h2>{t("Furniture")}</h2>
-    <LimitedList items={furnitureWithFlag.sort(byName)} let:item>
-      <ItemLink type="furniture" id={item.id} />
+    <LimitedList items={furnitureWithFlag.sort(byName)}>
+      {#snippet children({ item })}
+        <ItemLink type="furniture" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
 {#if bionicWithFlag.length}
   <section>
     <h2>{t("Bionics")}</h2>
-    <LimitedList items={bionicWithFlag.sort(byName)} let:item>
-      <ItemLink type="bionic" id={item.id} showIcon={false} />
+    <LimitedList items={bionicWithFlag.sort(byName)}>
+      {#snippet children({ item })}
+        <ItemLink type="bionic" id={item.id} showIcon={false} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

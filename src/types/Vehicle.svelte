@@ -18,7 +18,11 @@ import ItemLink from "./ItemLink.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 import VehicleView from "./VehicleView.svelte";
 
-export let item: Vehicle;
+interface Props {
+  item: Vehicle;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 const _context = "Vehicle";
@@ -64,8 +68,10 @@ partsCounted.sort((a, b) => {
 {#if partsCounted.length}
   <section>
     <h2>{t("Parts", { _context })}</h2>
-    <LimitedList items={partsCounted} let:item={{ id, count }}>
-      <ItemLink {id} type="vehicle_part" showIcon={false} /> ({count})
+    <LimitedList items={partsCounted}>
+      {#snippet children({ item: { id, count } })}
+        <ItemLink {id} type="vehicle_part" showIcon={false} /> ({count})
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

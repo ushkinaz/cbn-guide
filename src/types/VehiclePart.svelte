@@ -22,7 +22,11 @@ import ItemLink from "./ItemLink.svelte";
 
 const _context = "Vehicle Part";
 
-export let item: VehiclePart;
+interface Props {
+  item: VehiclePart;
+}
+
+let { item }: Props = $props();
 
 function bonusLabel(item: VehiclePart) {
   const light_flags = [
@@ -318,8 +322,10 @@ vehiclesContainingPart.sort((a, b) =>
           "Heading for list of vehicles which contain this vehicle part",
       })}
     </h2>
-    <LimitedList items={vehiclesContainingPart} let:item>
-      <ItemLink type="vehicle" id={item.id} showIcon={false} />
+    <LimitedList items={vehiclesContainingPart}>
+      {#snippet children({ item })}
+        <ItemLink type="vehicle" id={item.id} showIcon={false} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

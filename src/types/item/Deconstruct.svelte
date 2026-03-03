@@ -7,7 +7,11 @@ import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import type { Furniture, Terrain, VehiclePart } from "src/types";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -22,8 +26,10 @@ let deconstructibleFrom = (
 {#if deconstructibleFrom.length}
   <section>
     <h2>{t("Deconstruct", { _context: "Obtaining" })}</h2>
-    <LimitedList items={deconstructibleFrom} let:item={f}>
-      <ItemLink id={f.id} type={f.type} />
+    <LimitedList items={deconstructibleFrom}>
+      {#snippet children({ item: f })}
+        <ItemLink id={f.id} type={f.type} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

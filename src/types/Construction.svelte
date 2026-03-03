@@ -11,8 +11,12 @@ import RequirementDataTools from "./item/RequirementDataTools.svelte";
 const data = getContext<CBNData>("data");
 const _context = "Construction";
 
-export let construction: Construction;
-export let includeTitle: boolean = false;
+interface Props {
+  construction: Construction;
+  includeTitle?: boolean;
+}
+
+let { construction, includeTitle = false }: Props = $props();
 
 const using =
   typeof construction.using === "string"

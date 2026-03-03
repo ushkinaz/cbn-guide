@@ -20,7 +20,11 @@ import ItemTable from "./item/ItemTable.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 
 const _context = "Monster";
-export let item: Monster;
+interface Props {
+  item: Monster;
+}
+
+let { item }: Props = $props();
 
 let data = getContext<CBNData>("data");
 

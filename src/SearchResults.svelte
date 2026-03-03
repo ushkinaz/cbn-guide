@@ -1,4 +1,6 @@
 <script lang="ts">
+import { run } from "svelte/legacy";
+
 import { type CBNData, loadProgress, mapType, plural } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial } from "./types";
@@ -12,12 +14,13 @@ import {
 import { type SearchResult, searchResults } from "./search";
 import Loading from "./Loading.svelte";
 
-export let data: CBNData;
-$: setContext("data", data);
+interface Props {
+  data: CBNData;
+  search: string;
+}
 
-export let search: string;
+let { data, search }: Props = $props();
 
-$: matchingObjectsList = $searchResults ? [...$searchResults.entries()] : null;
 //TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(...)) section heading below with literal branches.
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
@@ -38,6 +41,12 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   }
   return ret;
 }
+run(() => {
+  setContext("data", data);
+});
+let matchingObjectsList = $derived(
+  $searchResults ? [...$searchResults.entries()] : null,
+);
 </script>
 
 {#if matchingObjectsList}
@@ -46,13 +55,17 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
       {#if type === "overmap_special"}
         {@const grouped = groupByAppearance(results)}
         <h2>{t("Locations", { _context: "Search Results" })}</h2>
-        <LimitedList items={grouped} let:item={result} limit={25}>
-          <ItemLink type="overmap_special" id={result[0].id} />
+        <LimitedList items={grouped} limit={25}>
+          {#snippet children({ item: result })}
+            <ItemLink type="overmap_special" id={result[0].id} />
+          {/snippet}
         </LimitedList>
       {:else}
         <h2>{t(plural(type.replace(/_/g, " ")))}</h2>
-        <LimitedList items={results} let:item={result} limit={25}>
-          <ItemLink type={mapType(result.item.type)} id={result.item.id} />
+        <LimitedList items={results} limit={25}>
+          {#snippet children({ item: result })}
+            <ItemLink type={mapType(result.item.type)} id={result.item.id} />
+          {/snippet}
         </LimitedList>
       {/if}
     </section>

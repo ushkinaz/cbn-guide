@@ -5,7 +5,11 @@ import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -21,8 +25,10 @@ sources.sort(byName);
 {#if sources.length}
   <section>
     <h2>{t("Smoke", { _context: "Obtaining" })}</h2>
-    <LimitedList items={sources} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={sources}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

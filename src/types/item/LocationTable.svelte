@@ -10,13 +10,16 @@ import { isTesting } from "../../utils/env";
 import { metrics } from "../../metrics";
 import ItemLink from "../ItemLink.svelte";
 
-export let id: string;
-export let loots:
-  | Promise<Map<string, { loot: Loot; ids: string[] }>>
-  | (() => Promise<Map<string, { loot: Loot; ids: string[] }>>);
-export let heading: string;
+interface Props {
+  id: string;
+  loots:
+    | Promise<Map<string, { loot: Loot; ids: string[] }>>
+    | (() => Promise<Map<string, { loot: Loot; ids: string[] }>>);
+  heading: string;
+  showData?: boolean;
+}
 
-export let showData = true;
+let { id, loots, heading, showData = $bindable(true) }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -60,22 +63,26 @@ function filterLocations(
     {#if spawnLocations.length}
       <section>
         <LimitedTableList items={spawnLocations}>
-          <tr slot="header">
-            <th>{heading}</th>
-            <th style="text-align: right; padding-left: 1em;"
-              >{t("Avg. Count", { _context: "Obtaining" })}</th>
-            <th style="text-align: right; padding-left: 1em;"
-              >{t("Chance", { _context: "Obtaining" })}</th>
-          </tr>
-          <tr class="middle" slot="item" let:item={loc}>
-            <td>
-              <ItemLink type="overmap_special" id={loc.ids[0]} />
-            </td>
-            <td style="text-align: right; padding-left: 1em;"
-              >{formatFixed2(loc.chance.expected)}</td>
-            <td style="text-align: right; padding-left: 1em;"
-              >{formatPercent(loc.chance.prob)}</td>
-          </tr>
+          {#snippet header()}
+            <tr>
+              <th>{heading}</th>
+              <th style="text-align: right; padding-left: 1em;"
+                >{t("Avg. Count", { _context: "Obtaining" })}</th>
+              <th style="text-align: right; padding-left: 1em;"
+                >{t("Chance", { _context: "Obtaining" })}</th>
+            </tr>
+          {/snippet}
+          {#snippet item({ item: loc })}
+            <tr class="middle">
+              <td>
+                <ItemLink type="overmap_special" id={loc.ids[0]} />
+              </td>
+              <td style="text-align: right; padding-left: 1em;"
+                >{formatFixed2(loc.chance.expected)}</td>
+              <td style="text-align: right; padding-left: 1em;"
+                >{formatPercent(loc.chance.prob)}</td>
+            </tr>
+          {/snippet}
         </LimitedTableList>
       </section>
     {/if}
@@ -83,7 +90,7 @@ function filterLocations(
 {:else}
   <section>
     <button
-      on:click={() => {
+      onclick={() => {
         showData = true;
         metrics.count("data.obtaining_table.load", 1, { id, heading });
       }}

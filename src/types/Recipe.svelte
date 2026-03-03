@@ -8,8 +8,12 @@ import type { Recipe } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
 import ItemLink from "./ItemLink.svelte";
 
-export let recipe: Recipe;
-export let showResult: boolean = false;
+interface Props {
+  recipe: Recipe;
+  showResult?: boolean;
+}
+
+let { recipe, showResult = false }: Props = $props();
 
 const data = getContext<CBNData>("data");
 const _context = "Recipe";

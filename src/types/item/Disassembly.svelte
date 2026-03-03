@@ -6,7 +6,11 @@ import LimitedList from "../../LimitedList.svelte";
 import type { Recipe } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
@@ -34,8 +38,10 @@ const uncraftableFrom = [...uncraftableFromSet].sort((a, b) =>
 {#if uncraftableFrom.length}
   <section>
     <h2>{t("Disassemble", { _context: "Obtaining" })}</h2>
-    <LimitedList items={uncraftableFrom} let:item={id}>
-      <ItemLink type="item" {id} />
+    <LimitedList items={uncraftableFrom}>
+      {#snippet children({ item: id })}
+        <ItemLink type="item" {id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

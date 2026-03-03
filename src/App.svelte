@@ -1,4 +1,7 @@
 <script lang="ts">
+import { run, createBubbler, preventDefault } from "svelte/legacy";
+
+const bubble = createBubbler();
 import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
 import {
@@ -58,7 +61,7 @@ import { isTesting, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 
-let scrollY = 0;
+let scrollY = $state(0);
 
 const SEARCH_UI_CONTEXT = "Search UI";
 const PWA_INSTALL_CONTEXT = "PWA Install";
@@ -108,54 +111,58 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-let item: { type: string; id: string } | null = null;
-let search: string = "";
-$: item = $page.route.item;
+let item: { type: string; id: string } | null = $state(null);
+let search: string = $state("");
+run(() => {
+  item = $page.route.item;
+});
 
 // Track URL changes for navigation detection
-let previousUrl: string | undefined = undefined;
-let previousPathname: string | undefined = undefined;
-let previousRouteSearch: string | undefined = undefined;
+let previousUrl: string | undefined = $state(undefined);
+let previousPathname: string | undefined = $state(undefined);
+let previousRouteSearch: string | undefined = $state(undefined);
 
 // Sync search and scroll on URL changes (navigation).
 // IMPORTANT: Only update 'search' if it differs from page store to preserve user input
 // while typing. This prevents the reactive statement from overwriting partial queries.
-$: if ($page.url.href !== previousUrl) {
-  const currentPathname = $page.url.pathname;
-  const currentRouteSearch = $page.route.search;
+run(() => {
+  if ($page.url.href !== previousUrl) {
+    const currentPathname = $page.url.pathname;
+    const currentRouteSearch = $page.route.search;
 
-  // On initial load OR URL changed - sync search (only if different)
-  if (
-    currentRouteSearch !== previousRouteSearch &&
-    search !== currentRouteSearch
-  ) {
-    search = currentRouteSearch;
+    // On initial load OR URL changed - sync search (only if different)
+    if (
+      currentRouteSearch !== previousRouteSearch &&
+      search !== currentRouteSearch
+    ) {
+      search = currentRouteSearch;
+    }
+
+    if (
+      previousUrl !== undefined &&
+      (currentPathname !== previousPathname ||
+        currentRouteSearch !== previousRouteSearch)
+    ) {
+      // This is a navigation event (not initial load), scroll to top
+      window.scrollTo(0, 0);
+    }
+
+    previousUrl = $page.url.href;
+    previousPathname = currentPathname;
+    previousRouteSearch = currentRouteSearch;
   }
+});
 
-  if (
-    previousUrl !== undefined &&
-    (currentPathname !== previousPathname ||
-      currentRouteSearch !== previousRouteSearch)
-  ) {
-    // This is a navigation event (not initial load), scroll to top
-    window.scrollTo(0, 0);
-  }
-
-  previousUrl = $page.url.href;
-  previousPathname = currentPathname;
-  previousRouteSearch = currentRouteSearch;
-}
-
-let builds: BuildInfo[] | null = null;
+let builds: BuildInfo[] | null = $state(null);
 
 const requestedVersion = $page.route.version;
-let resolvedVersion: string;
+let resolvedVersion: string = $state();
 const isBranchAlias =
   requestedVersion === STABLE_VERSION || requestedVersion === NIGHTLY_VERSION;
 
-let latestStableBuild: BuildInfo | undefined;
-let latestNightlyBuild: BuildInfo | undefined;
-let prewarmScheduledFor: CBNData | null = null;
+let latestStableBuild: BuildInfo | undefined = $state();
+let latestNightlyBuild: BuildInfo | undefined = $state();
+let prewarmScheduledFor: CBNData | null = $state(null);
 
 // Initialize routing and fetch builds
 const appStart = nowTimeStamp();
@@ -300,11 +307,14 @@ function setOgTitle(value: string) {
   document.head.appendChild(created);
 }
 
-let tileset: string =
-  (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
+let tileset: string = $state(
+  (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset(),
+);
 
 // React to tileset changes
-$: tileData.setTileset($data, tileset);
+run(() => {
+  tileData.setTileset($data, tileset);
+});
 
 function formatTitle(pageTitle: string | null = null): string {
   if (RUNNING_MODE !== "browser") {
@@ -320,9 +330,9 @@ const defaultMetaDescription = t(
   },
 );
 
-let metaDescription = defaultMetaDescription;
+let metaDescription = $state(defaultMetaDescription);
 
-$: {
+run(() => {
   try {
     if (
       item &&
@@ -364,16 +374,20 @@ $: {
 
   setOgTitle(document.title);
   if (metaDescription) setMetaDescription(metaDescription);
-}
+});
 
-$: if ($data) {
-  syncSearch(search, $data);
-}
+run(() => {
+  if ($data) {
+    syncSearch(search, $data);
+  }
+});
 
-$: if ($data && $data !== prewarmScheduledFor) {
-  prewarmScheduledFor = $data;
-  schedulePrewarm($data);
-}
+run(() => {
+  if ($data && $data !== prewarmScheduledFor) {
+    prewarmScheduledFor = $data;
+    schedulePrewarm($data);
+  }
+});
 
 const handleSearchInput = () => {
   updateSearchRoute(search, $page.route.item);
@@ -406,9 +420,9 @@ const handleSearchKeydown = (e: KeyboardEvent) => {
   }
 };
 
-let isModSelectorOpen = false;
-let isModSelectorLoading = false;
-let modSelectorError: string | null = null;
+let isModSelectorOpen = $state(false);
+let isModSelectorLoading = $state(false);
+let modSelectorError: string | null = $state(null);
 
 async function openModSelector(): Promise<void> {
   if (!$data) return;
@@ -458,7 +472,7 @@ function handleNavigation(event: MouseEvent) {
   handleInternalNavigation(event);
 }
 
-let deferredPrompt: any;
+let deferredPrompt: any = $state();
 window.addEventListener("beforeinstallprompt", (e) => {
   deferredPrompt = e;
 });
@@ -494,20 +508,22 @@ function getLanguageName(code: string) {
   return code;
 }
 
-$: canonicalUrl = buildUrl(
-  STABLE_VERSION,
-  $page.route.item,
-  $page.route.search,
-  localeParam,
-  null,
-  $page.route.mods,
+let canonicalUrl = $derived(
+  buildUrl(
+    STABLE_VERSION,
+    $page.route.item,
+    $page.route.search,
+    localeParam,
+    null,
+    $page.route.mods,
+  ),
 );
 </script>
 
 <svelte:window
-  on:click={handleNavigation}
-  on:keydown={maybeFocusSearch}
-  on:appinstalled={() => metrics.count("app.pwa.install")}
+  onclick={handleNavigation}
+  onkeydown={maybeFocusSearch}
+  onappinstalled={() => metrics.count("app.pwa.install")}
   bind:scrollY />
 
 <svelte:head>
@@ -545,7 +561,7 @@ $: canonicalUrl = buildUrl(
       <a
         href={getVersionedBasePath() + location.search}
         class="brand-link"
-        on:click={() => (search = "")}
+        onclick={() => (search = "")}
         ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow">HHG</span
         ></a>
     </div>
@@ -562,8 +578,8 @@ $: canonicalUrl = buildUrl(
             type="search"
             enterkeyhint="go"
             bind:value={search}
-            on:input={handleSearchInput}
-            on:keydown={handleSearchKeydown}
+            oninput={handleSearchInput}
+            onkeydown={handleSearchKeydown}
             id="search" />
 
           <div class="search-controls">
@@ -579,7 +595,7 @@ $: canonicalUrl = buildUrl(
                 class="search-control-btn search-clear-button"
                 tabindex="-1"
                 aria-label={t("Clear search", { _context: SEARCH_UI_CONTEXT })}
-                on:click={() => {
+                onclick={() => {
                   search = "";
                   handleSearchInput();
                   document.getElementById("search")?.focus();
@@ -595,8 +611,8 @@ $: canonicalUrl = buildUrl(
                   aria-label={t("Go to first result", {
                     _context: SEARCH_UI_CONTEXT,
                   })}
-                  on:mousedown|preventDefault
-                  on:click={executeSearchAction}>
+                  onmousedown={preventDefault(bubble("mousedown"))}
+                  onclick={executeSearchAction}>
                   <span class="structure" aria-hidden="true">[</span>
                   <kbd class="key" aria-hidden="true">⏎</kbd>
                   <span class="structure" aria-hidden="true">]</span>
@@ -611,7 +627,7 @@ $: canonicalUrl = buildUrl(
       <button
         class="mods-button"
         type="button"
-        on:click={openModSelector}
+        onclick={openModSelector}
         disabled={!$data}
         aria-busy={isModSelectorLoading || !$data}
         aria-label={t("Mods ({count} active)", {
@@ -719,7 +735,7 @@ $: canonicalUrl = buildUrl(
               <button
                 class="install-button"
                 aria-label={t("install", { _context: PWA_INSTALL_CONTEXT })}
-                on:click={(e) => {
+                onclick={(e) => {
                   e.preventDefault();
                   deferredPrompt.prompt();
                 }}>
@@ -766,7 +782,7 @@ $: canonicalUrl = buildUrl(
   {/if}
   {#if scrollY > 300}
     <button
-      on:click={scrollToTop}
+      onclick={scrollToTop}
       transition:fade={{ duration: 200 }}
       aria-label={t("Scroll to top")}
       class="scroll-to-top">
@@ -786,12 +802,12 @@ $: canonicalUrl = buildUrl(
     <div class="select-group">
       {#if $data || builds}
         {#if builds}
-          <!-- svelte-ignore a11y-no-onchange -->
+          <!-- svelte-ignore a11y_no_onchange -->
           <select
             id="version_select"
             aria-label={t("Version", { _context: VERSION_SELECTOR_CONTEXT })}
             value={requestedVersion}
-            on:change={(e) => {
+            onchange={(e) => {
               const v = e.currentTarget.value;
               metrics.count("ui.version.change", 1, { v });
               changeVersion(v);
@@ -828,12 +844,12 @@ $: canonicalUrl = buildUrl(
       {/if}
     </div>
     <div class="select-group">
-      <!-- svelte-ignore a11y-no-onchange -->
+      <!-- svelte-ignore a11y_no_onchange -->
       <select
         id="tileset_select"
         aria-label={t("Tileset")}
         value={tileset}
-        on:change={(e) => {
+        onchange={(e) => {
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
           updateQueryParamNoReload("t", tileset);
@@ -851,7 +867,7 @@ $: canonicalUrl = buildUrl(
           id="language_select"
           aria-label={t("Language", { _context: LANGUAGE_SELECTOR_CONTEXT })}
           value={$data?.effective_locale || localeParam || "en"}
-          on:change={(e) => {
+          onchange={(e) => {
             const lang = e.currentTarget.value;
             updateQueryParam("lang", lang === "en" ? null : lang);
           }}>

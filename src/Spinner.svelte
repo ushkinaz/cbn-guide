@@ -1,9 +1,13 @@
 <script lang="ts">
 import spinnerIcon from "./assets/spinner.png";
 
-export let size: number = 32;
-export let position: "bottom" | "center" = "bottom";
-export let bounce: number = 5;
+interface Props {
+  size?: number;
+  position?: "bottom" | "center";
+  bounce?: number;
+}
+
+let { size = 32, position = "bottom", bounce = 5 }: Props = $props();
 </script>
 
 <div

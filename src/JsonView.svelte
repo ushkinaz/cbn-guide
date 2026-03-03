@@ -3,12 +3,16 @@ import { t } from "@transifex/native";
 import { GAME_REPO_URL } from "./constants";
 import { metrics } from "./metrics";
 
-export let obj: any;
-export let buildNumber: string | undefined;
+interface Props {
+  obj: any;
+  buildNumber: string | undefined;
+}
+
+let { obj, buildNumber }: Props = $props();
 
 const _context = "View/Edit on GitHub";
 
-let expanded = false;
+let expanded = $state(false);
 
 function toggle() {
   expanded = !expanded;
@@ -22,7 +26,7 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
 
 <section class="json-view">
   <div class="json-header">
-    <button class="toggle-button" on:click={toggle}>
+    <button class="toggle-button" onclick={toggle}>
       <span>{t("Raw JSON")}</span>
       <span class="icon">{expanded ? "▼" : "▶"}</span>
     </button>

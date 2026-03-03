@@ -54,7 +54,11 @@ import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
 
-export let item: Item;
+interface Props {
+  item: Item;
+}
+
+let { item }: Props = $props();
 let data: CBNData = getContext("data");
 
 const weaponCategories = asArray(item.weapon_category);
@@ -270,7 +274,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                       .replace(/\$[ds]|<\/?color[^>]*>/g, "")}
                     slot0="level"
                     slot1="quality">
+                    <!-- @migration-task: migrate this slot by hand, `0` is an invalid identifier -->
                     <strong slot="0">{level}</strong>
+                    <!-- @migration-task: migrate this slot by hand, `1` is an invalid identifier -->
                     <ItemLink
                       slot="1"
                       type="tool_quality"
@@ -445,16 +451,20 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {#if fuelForItems.length}
   <section>
     <h2>{t("Fuel For", { _context })}</h2>
-    <LimitedList items={fuelForItems} let:item>
-      <ItemLink type={item.type} id={item.id} />
+    <LimitedList items={fuelForItems}>
+      {#snippet children({ item })}
+        <ItemLink type={item.type} id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
 {#if usedToRepair.length}
   <section>
     <h2>{t("Used to Repair", { _context })}</h2>
-    <LimitedList items={usedToRepair} let:item>
-      <ItemLink type="fault" id={item.id} showIcon={false} />
+    <LimitedList items={usedToRepair}>
+      {#snippet children({ item })}
+        <ItemLink type="fault" id={item.id} showIcon={false} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

@@ -9,7 +9,11 @@ import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: Skill;
+interface Props {
+  item: Skill;
+}
+
+let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -128,8 +132,10 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
 {#if itemsUsingSkill.length}
   <section>
     <h2>{t("Used By", { _context: "Skill" })}</h2>
-    <LimitedList items={itemsUsingSkill} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={itemsUsingSkill}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

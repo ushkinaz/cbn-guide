@@ -11,8 +11,12 @@ import ItemLink from "./ItemLink.svelte";
 let data = getContext<CBNData>("data");
 const _context = "Mutation";
 
-export let item: MutationCategory;
-export let inCatalog: boolean = false;
+interface Props {
+  item: MutationCategory;
+  inCatalog?: boolean;
+}
+
+let { item, inCatalog = false }: Props = $props();
 
 const mutationsInCategory = data
   .byType("mutation")

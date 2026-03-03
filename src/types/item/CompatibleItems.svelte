@@ -6,8 +6,12 @@ import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import type { SupportedTypes } from "../../types";
 
-export let ammo_type: string;
-export let type: keyof Pick<SupportedTypes, "AMMO" | "GUN" | "MAGAZINE">;
+interface Props {
+  ammo_type: string;
+  type: keyof Pick<SupportedTypes, "AMMO" | "GUN" | "MAGAZINE">;
+}
+
+let { ammo_type, type }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -45,8 +49,10 @@ const items = data
 {#if items.length}
   <section>
     <h2>{config.title}</h2>
-    <LimitedList {items} let:item limit={5} grace={2}>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList {items} limit={5} grace={2}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
