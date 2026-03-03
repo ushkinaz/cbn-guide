@@ -274,14 +274,15 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                       .replace(/\$[ds]|<\/?color[^>]*>/g, "")}
                     slot0="level"
                     slot1="quality">
-                    <!-- @migration-task: migrate this slot by hand, `0` is an invalid identifier -->
-                    <strong slot="0">{level}</strong>
-                    <!-- @migration-task: migrate this slot by hand, `1` is an invalid identifier -->
-                    <ItemLink
-                      slot="1"
-                      type="tool_quality"
-                      id={quality.id}
-                      showIcon={false} />
+                    {#snippet _0()}
+                      <strong>{level}</strong>
+                    {/snippet}
+                    {#snippet _1()}
+                      <ItemLink
+                        type="tool_quality"
+                        id={quality.id}
+                        showIcon={false} />
+                    {/snippet}
                   </InterpolatedTranslation>
                 </li>
               {/each}

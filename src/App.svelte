@@ -1,7 +1,5 @@
 <script lang="ts">
-import { run, createBubbler, preventDefault } from "svelte/legacy";
-
-const bubble = createBubbler();
+import { run } from "svelte/legacy";
 import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
 import {
@@ -157,7 +155,7 @@ run(() => {
 let builds: BuildInfo[] | null = $state(null);
 
 const requestedVersion = $page.route.version;
-let resolvedVersion: string = $state();
+let resolvedVersion = $state(STABLE_VERSION);
 const isBranchAlias =
   requestedVersion === STABLE_VERSION || requestedVersion === NIGHTLY_VERSION;
 
@@ -448,10 +446,9 @@ function closeModSelector(): void {
   isModSelectorOpen = false;
 }
 
-function applyMods(event: CustomEvent<string[]>): void {
+function applyMods(selectedMods: string[]): void {
   // Changing mods triggers a full page reload to ensure data consistency.
   isModSelectorOpen = false;
-  const selectedMods = event.detail;
   metrics.gauge("data.mods.count", selectedMods.length);
   updateQueryParam(
     "mods",
@@ -492,7 +489,6 @@ onMount(() => {
     window.removeEventListener("appinstalled", handleAppInstalled);
   };
 });
-
 function maybeFocusSearch(e: KeyboardEvent) {
   if (e.key === "/" && document.activeElement?.id !== "search") {
     document.getElementById("search")?.focus();
@@ -539,7 +535,6 @@ let canonicalUrl = $derived(
 <svelte:window
   onclick={handleNavigation}
   onkeydown={maybeFocusSearch}
-  onappinstalled={() => metrics.count("app.pwa.install")}
   bind:scrollY />
 
 <svelte:head>
@@ -627,7 +622,7 @@ let canonicalUrl = $derived(
                   aria-label={t("Go to first result", {
                     _context: SEARCH_UI_CONTEXT,
                   })}
-                  onmousedown={preventDefault(bubble("mousedown"))}
+                  onmousedown={(e) => e.preventDefault()}
                   onclick={executeSearchAction}>
                   <span class="structure" aria-hidden="true">[</span>
                   <kbd class="key" aria-hidden="true">⏎</kbd>
@@ -678,8 +673,8 @@ let canonicalUrl = $derived(
   selectedModIds={$page.route.mods}
   loading={isModSelectorLoading}
   errorMessage={modSelectorError}
-  on:close={closeModSelector}
-  on:apply={applyMods} />
+  onclose={closeModSelector}
+  onapply={(mods) => applyMods(mods)} />
 
 <main>
   {#if item}

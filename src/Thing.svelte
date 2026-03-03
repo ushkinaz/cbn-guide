@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { onMount, setContext, SvelteComponent } from "svelte";
+import { onMount, setContext, type Component } from "svelte";
 
 import type { CBNData } from "./data";
 import Monster from "./types/Monster.svelte";
@@ -84,7 +84,7 @@ let obj =
   data.byIdMaybe(item.type as keyof SupportedTypes, item.id) ??
   defaultItem(item.id, item.type);
 
-const displays: Record<string, typeof SvelteComponent<any>> = {
+const displays: Record<string, Component<any>> = {
   MONSTER: Monster,
   AMMO: Item,
   GUN: Item,

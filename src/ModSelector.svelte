@@ -2,7 +2,7 @@
 import { run } from "svelte/legacy";
 
 import { t } from "@transifex/native";
-import { createEventDispatcher, onDestroy } from "svelte";
+import { onDestroy } from "svelte";
 import type {
   ModData,
   ModInfo,
@@ -39,6 +39,8 @@ interface Props {
   selectedModIds?: string[];
   loading?: boolean;
   errorMessage?: string | null;
+  onclose?: () => void;
+  onapply?: (selectedModIds: string[]) => void;
 }
 
 let {
@@ -48,12 +50,9 @@ let {
   selectedModIds = [],
   loading = false,
   errorMessage = null,
+  onclose = () => {},
+  onapply = () => {},
 }: Props = $props();
-
-const dispatch = createEventDispatcher<{
-  close: void;
-  apply: string[];
-}>();
 
 let draftSelectedModIds: string[] = $state([]);
 let wasOpen = $state(false);
@@ -163,11 +162,11 @@ function toVisibleStats(counts: ModContentCounts): ModContentStat[] {
 }
 
 function close(): void {
-  dispatch("close");
+  onclose();
 }
 
 function apply(): void {
-  dispatch("apply", draftSelectedModIds);
+  onapply(draftSelectedModIds);
 }
 
 function reset(): void {
