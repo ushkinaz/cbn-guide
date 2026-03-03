@@ -28,3 +28,42 @@ if (typeof window !== "undefined" && !window.matchMedia) {
     })),
   });
 }
+
+if (typeof Element !== "undefined" && !Element.prototype.animate) {
+  Object.defineProperty(Element.prototype, "animate", {
+    writable: true,
+    value: vi.fn().mockImplementation(() => {
+      const animation = {
+        currentTime: 0,
+        effect: null,
+        onfinish: null as Animation["onfinish"],
+        playState: "running" as AnimationPlayState,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(() => true),
+        cancel: vi.fn(() => {
+          animation.playState = "idle";
+        }),
+        finish: vi.fn(() => {
+          if (animation.playState === "finished") return;
+          animation.playState = "finished";
+          animation.onfinish?.call(
+            animation as unknown as Animation,
+            new Event("finish") as AnimationPlaybackEvent,
+          );
+        }),
+        pause: vi.fn(() => {
+          animation.playState = "paused";
+        }),
+        play: vi.fn(() => {
+          animation.playState = "running";
+          queueMicrotask(() => animation.finish());
+        }),
+        reverse: vi.fn(),
+      };
+
+      queueMicrotask(() => animation.finish());
+      return animation as unknown as Animation;
+    }),
+  });
+}

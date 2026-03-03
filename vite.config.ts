@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { svelteTesting } from "@testing-library/svelte/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import EnvironmentPlugin from "vite-plugin-environment";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
@@ -69,6 +70,7 @@ export default defineConfig({
       TRANSIFEX_TOKEN: "1/2e39db44e1e5ba8d2c455d407b183aca31facc52",
     }),
     svelte(),
+    svelteTesting(),
     VitePWA({
       devOptions: {
         enabled: true,

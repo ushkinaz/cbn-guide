@@ -7,6 +7,14 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import ModSelector from "./ModSelector.svelte";
 import type { ModInfo } from "./types";
 
+type LegacyComponentEvents = {
+  $on<T>(type: string, callback: (event: CustomEvent<T>) => void): () => void;
+};
+
+function asLegacyComponentEvents(component: unknown): LegacyComponentEvents {
+  return component as LegacyComponentEvents;
+}
+
 const testMods: ModInfo[] = [
   {
     type: "MOD_INFO",
@@ -94,8 +102,9 @@ describe("ModSelector", () => {
 
     const onClose = vi.fn();
     let applied: string[] | null = null;
-    component.$on("close", onClose);
-    component.$on("apply", (event) => {
+    const events = asLegacyComponentEvents(component);
+    events.$on("close", onClose);
+    events.$on("apply", (event: CustomEvent<string[]>) => {
       applied = event.detail;
     });
 
@@ -117,7 +126,8 @@ describe("ModSelector", () => {
     });
 
     let applied: string[] | null = null;
-    component.$on("apply", (event) => {
+    const events = asLegacyComponentEvents(component);
+    events.$on("apply", (event: CustomEvent<string[]>) => {
       applied = event.detail;
     });
 
@@ -147,7 +157,8 @@ describe("ModSelector", () => {
     });
 
     let applied: string[] | null = null;
-    component.$on("apply", (event) => {
+    const events = asLegacyComponentEvents(component);
+    events.$on("apply", (event: CustomEvent<string[]>) => {
       applied = event.detail;
     });
 
@@ -174,7 +185,8 @@ describe("ModSelector", () => {
     });
 
     let applied: string[] | null = null;
-    component.$on("apply", (event) => {
+    const events = asLegacyComponentEvents(component);
+    events.$on("apply", (event: CustomEvent<string[]>) => {
       applied = event.detail;
     });
 
@@ -194,7 +206,8 @@ describe("ModSelector", () => {
     });
 
     let applied: string[] | null = null;
-    component.$on("apply", (event) => {
+    const events = asLegacyComponentEvents(component);
+    events.$on("apply", (event: CustomEvent<string[]>) => {
       applied = event.detail;
     });
 
