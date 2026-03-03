@@ -47,7 +47,7 @@ Test matrix:
 
 - Tiny/localized change: `pnpm verify && pnpm test:changed`
 - Normal feature/bugfix: `pnpm verify && pnpm test:fast`
-- Cross-cutting/data-model/routing change: `pnpm test:full`
+- Cross-cutting/data-model/routing change: `pnpm test:full --maxWorkers=50% --bail 1`
 
 #### Key Test Files
 
