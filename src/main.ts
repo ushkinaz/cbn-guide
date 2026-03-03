@@ -1,9 +1,6 @@
 import { zaraz } from "zaraz-ts";
 import * as Sentry from "@sentry/browser";
-import {
-  browserTracingIntegration,
-  eventFiltersIntegration,
-} from "@sentry/browser";
+import { eventFiltersIntegration } from "@sentry/browser";
 import { registerSW } from "virtual:pwa-register";
 import "./assets/fonts.css";
 import App from "./App.svelte";
@@ -34,7 +31,7 @@ if (import.meta.env.PROD) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     enableMetrics: !metricsDisabled,
-    integrations: [browserTracingIntegration, eventFiltersIntegration],
+    integrations: [eventFiltersIntegration],
     tracesSampleRate: 1,
     //Custom Zaraz endpoints, we ignore any error happening in Zaraz
     denyUrls: [/srv\/z\/s\.js/i, /srv\/z\/t/i],

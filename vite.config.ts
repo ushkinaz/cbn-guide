@@ -237,6 +237,7 @@ export default defineConfig({
         excludeReplayShadowDom: true,
         excludeReplayIframe: true,
         excludeReplayWorker: true,
+        excludeTracing: true,
       },
     }),
   ],
