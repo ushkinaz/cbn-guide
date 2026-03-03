@@ -27,41 +27,41 @@ function getGunProperties(i: Item): GunSlot {
   return i as GunSlot;
 }
 
-const gunProps = getGunProperties(item);
+let gunProps = $derived(getGunProperties(item));
 
 // TODO: handle multiple ranged_damage type
-function extractRangedDamage(): DamageUnit {
+function extractRangedDamage(gp: GunSlot): DamageUnit {
   const defaultDamage: DamageUnit = {
     amount: 0,
     damage_type: "bullet",
     armor_penetration: 0,
   };
 
-  if (Array.isArray(gunProps.ranged_damage)) {
-    return gunProps.ranged_damage[0];
+  if (Array.isArray(gp.ranged_damage)) {
+    return gp.ranged_damage[0];
   }
 
-  if (typeof gunProps.ranged_damage === "number") {
+  if (typeof gp.ranged_damage === "number") {
     return {
-      amount: gunProps.ranged_damage,
+      amount: gp.ranged_damage,
       damage_type: "bullet",
       armor_penetration: 0,
     };
   }
 
   if (
-    gunProps.ranged_damage &&
-    typeof gunProps.ranged_damage === "object" &&
-    "values" in gunProps.ranged_damage &&
-    Array.isArray(gunProps.ranged_damage.values)
+    gp.ranged_damage &&
+    typeof gp.ranged_damage === "object" &&
+    "values" in gp.ranged_damage &&
+    Array.isArray(gp.ranged_damage.values)
   ) {
-    return gunProps.ranged_damage.values[0];
+    return gp.ranged_damage.values[0];
   }
 
-  return (gunProps.ranged_damage as DamageUnit) ?? defaultDamage;
+  return (gp.ranged_damage as DamageUnit) ?? defaultDamage;
 }
 
-const ranged_damage = extractRangedDamage();
+let ranged_damage = $derived(extractRangedDamage(gunProps));
 </script>
 
 <section>

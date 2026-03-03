@@ -17,7 +17,12 @@ let { requirement }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
-let { tools, qualities, components } = data.normalizeRequirements(requirement);
+let normalizedRequirementData = $derived(
+  data.normalizeRequirements(requirement),
+);
+let tools = $derived(normalizedRequirementData.tools);
+let qualities = $derived(normalizedRequirementData.qualities);
+let components = $derived(normalizedRequirementData.components);
 </script>
 
 {#if qualities?.length || tools?.length}

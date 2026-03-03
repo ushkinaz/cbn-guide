@@ -16,10 +16,12 @@ let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Bionic";
 
-const correspondingItem = data.itemForBionic(item);
-const containingBionics = data
-  .byType("bionic")
-  .filter((x) => x.id && x.included_bionics?.includes(item.id));
+let correspondingItem = $derived.by(() => data.itemForBionic(item));
+let containingBionics = $derived.by(() =>
+  data
+    .byType("bionic")
+    .filter((x) => x.id && x.included_bionics?.includes(item.id)),
+);
 </script>
 
 <h1>{t("Bionic")}: {singularName(item)}</h1>

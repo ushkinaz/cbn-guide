@@ -14,10 +14,11 @@ interface Props {
 
 let { item, buffMap = new Map() }: Props = $props();
 
-const requiredBuffs =
+let requiredBuffs = $derived.by(() =>
   typeof item.req_buffs === "string"
     ? [item.req_buffs]
-    : (item.req_buffs ?? []);
+    : (item.req_buffs ?? []),
+);
 </script>
 
 <dt>{t("Required Skills")}</dt>

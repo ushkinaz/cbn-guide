@@ -1,5 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
 import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
 import {
@@ -109,11 +108,8 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-let item: { type: string; id: string } | null = $state(null);
+let item: { type: string; id: string } | null = $derived($page.route.item);
 let search: string = $state("");
-run(() => {
-  item = $page.route.item;
-});
 
 // Track URL changes for navigation detection
 let previousUrl: string | undefined = $state(undefined);
@@ -123,7 +119,7 @@ let previousRouteSearch: string | undefined = $state(undefined);
 // Sync search and scroll on URL changes (navigation).
 // IMPORTANT: Only update 'search' if it differs from page store to preserve user input
 // while typing. This prevents the reactive statement from overwriting partial queries.
-run(() => {
+$effect(() => {
   if ($page.url.href !== previousUrl) {
     const currentPathname = $page.url.pathname;
     const currentRouteSearch = $page.route.search;
@@ -310,7 +306,7 @@ let tileset: string = $state(
 );
 
 // React to tileset changes
-run(() => {
+$effect(() => {
   tileData.setTileset($data, tileset);
 });
 
@@ -330,7 +326,10 @@ const defaultMetaDescription = t(
 
 let metaDescription = $state(defaultMetaDescription);
 
-run(() => {
+$effect(() => {
+  let nextTitle = formatTitle();
+  let nextMetaDescription = defaultMetaDescription;
+
   try {
     if (
       item &&
@@ -340,47 +339,46 @@ run(() => {
       $data.byIdMaybe(item.type, item.id)
     ) {
       const it = $data.byId(item.type, item.id);
-      document.title = formatTitle(singularName(it));
-      metaDescription = buildMetaDescription(it);
+      nextTitle = formatTitle(singularName(it));
+      nextMetaDescription = buildMetaDescription(it);
     } else if (item && !item.id && item.type) {
-      document.title = formatTitle(item.type);
-      metaDescription = t("{type} catalog in {guide}.", {
+      nextTitle = formatTitle(item.type);
+      nextMetaDescription = t("{type} catalog in {guide}.", {
         type: item.type,
         guide: UI_GUIDE_NAME,
         _context: PAGE_DESCRIPTION_CONTEXT,
       });
     } else if ($page.route.search) {
       const searchQuery = $page.route.search;
-      document.title = formatTitle(
+      nextTitle = formatTitle(
         `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${searchQuery}`,
       );
-      metaDescription = t("Search {guide} for {query}.", {
+      nextMetaDescription = t("Search {guide} for {query}.", {
         guide: UI_GUIDE_NAME,
         query: searchQuery,
         _context: PAGE_DESCRIPTION_CONTEXT,
       });
-    } else {
-      document.title = formatTitle();
-      metaDescription = defaultMetaDescription;
     }
   } catch (error: unknown) {
     Sentry.captureException(error);
     console.error("Failed to build page metadata", error);
-    document.title = formatTitle();
-    metaDescription = defaultMetaDescription;
+    nextTitle = formatTitle();
+    nextMetaDescription = defaultMetaDescription;
   }
 
-  setOgTitle(document.title);
-  if (metaDescription) setMetaDescription(metaDescription);
+  document.title = nextTitle;
+  metaDescription = nextMetaDescription;
+  setOgTitle(nextTitle);
+  if (nextMetaDescription) setMetaDescription(nextMetaDescription);
 });
 
-run(() => {
+$effect(() => {
   if ($data) {
     syncSearch(search, $data);
   }
 });
 
-run(() => {
+$effect(() => {
   if ($data && $data !== prewarmScheduledFor) {
     prewarmScheduledFor = $data;
     schedulePrewarm($data);
@@ -456,8 +454,14 @@ function applyMods(selectedMods: string[]): void {
 }
 
 function handleNavigation(event: MouseEvent) {
-  const target = event.target as HTMLElement;
-  const link = target.closest("a");
+  const target = event.target;
+  const targetElement =
+    target instanceof Element
+      ? target
+      : target instanceof Node
+        ? target.parentElement
+        : null;
+  const link = targetElement?.closest("a");
   if (link && link.hostname !== window.location.hostname) {
     metrics.count("ui.link.click", 1, {
       domain: link.hostname,
@@ -666,7 +670,7 @@ let canonicalUrl = $derived(
 <main>
   {#if item}
     {#if $data}
-      {#key item}
+      {#key `${$data.build_number}:${item.type}:${item.id ?? ""}`}
         {#if item.id}
           <Thing {item} data={$data} />
         {:else}
@@ -682,7 +686,9 @@ let canonicalUrl = $derived(
     {/if}
   {:else if search}
     {#if $data}
-      <SearchResults data={$data} {search} />
+      {#key $data.build_number}
+        <SearchResults data={$data} {search} />
+      {/key}
     {:else}
       <Loading
         fullScreen={true}
@@ -800,7 +806,6 @@ let canonicalUrl = $derived(
     <div class="select-group">
       {#if $data || builds}
         {#if builds}
-          <!-- svelte-ignore a11y_no_onchange -->
           <select
             id="version_select"
             aria-label={t("Version", { _context: VERSION_SELECTOR_CONTEXT })}
@@ -842,7 +847,6 @@ let canonicalUrl = $derived(
       {/if}
     </div>
     <div class="select-group">
-      <!-- svelte-ignore a11y_no_onchange -->
       <select
         id="tileset_select"
         aria-label={t("Tileset")}

@@ -306,6 +306,45 @@ describe("Routing E2E Tests", () => {
       expect(mockEvent.preventDefault).not.toHaveBeenCalled();
     });
 
+    test("handles internal navigation when click target is a text node", async () => {
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+
+      const { handleInternalNavigation } = await import("./routing");
+
+      const anchor = document.createElement("a");
+      anchor.href = "http://localhost:3000/stable/item/rock";
+      Object.defineProperty(anchor, "origin", {
+        value: "http://localhost:3000",
+      });
+      Object.defineProperty(anchor, "pathname", {
+        value: "/stable/item/rock",
+      });
+      const textNode = document.createTextNode("rock");
+      anchor.appendChild(textNode);
+      const pushStateSpy = vi.spyOn(window.history, "pushState");
+
+      const mockEvent = {
+        target: textNode,
+        preventDefault: vi.fn(),
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        button: 0,
+        defaultPrevented: false,
+      } as unknown as MouseEvent;
+
+      const handled = handleInternalNavigation(mockEvent);
+
+      expect(handled).toBe(true);
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+      expect(pushStateSpy).toHaveBeenCalled();
+    });
+
     test("preserves query parameters during navigation", async () => {
       // Set up with a query parameter
       updateLocation("stable/", "?lang=ru_RU");
@@ -897,6 +936,40 @@ describe("Routing E2E Tests", () => {
         ""
       ).toLowerCase();
       expect(text).toContain("rock");
+    });
+
+    test("navigates from catalog via real item link click", async () => {
+      updateLocation("stable/item");
+
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+
+      const itemLink = document.querySelector(
+        'main a.item-link[href*="/stable/item/"]',
+      ) as HTMLAnchorElement | null;
+      expect(itemLink).toBeTruthy();
+      expect(itemLink?.getAttribute("href")).toMatch(/\/stable\/item\/.+/);
+      const pushStateSpy = vi
+        .spyOn(window.history, "pushState")
+        .mockImplementation((_state, _title, url) => {
+          if (!url) return;
+          const nextUrl = new URL(url.toString(), window.location.origin);
+          window.location.pathname = nextUrl.pathname;
+          window.location.search = nextUrl.search;
+          window.location.href = nextUrl.href;
+        });
+
+      await fireEvent.click(itemLink!, { button: 0 });
+      await waitForNavigation();
+
+      expect(pushStateSpy).toHaveBeenCalled();
+      expect(window.location.pathname).toContain("/stable/item/");
+      expect(window.location.pathname).not.toBe(
+        `${import.meta.env.BASE_URL}stable/item`,
+      );
     });
   });
 

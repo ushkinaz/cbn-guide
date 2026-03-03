@@ -22,7 +22,7 @@ interface Props {
 let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
-const transformedFrom = data.transformedFrom(item_id);
+let transformedFrom = $derived(data.transformedFrom(item_id));
 const getTransformAction = (item: Item) =>
   normalizeUseAction(item.use_action).find(
     (a) => "target" in a && a.target === item_id,

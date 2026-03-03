@@ -16,100 +16,109 @@ let { item }: Props = $props();
 let data = getContext<CBNData>("data");
 const _context = "Tool Quality";
 
-let toolsWithQualityByLevel = new Map<number, Item[]>();
-for (const it of data.byType("item")) {
-  if (!it.id) continue;
-  const q = (it.qualities ?? []).find(([id, _level]) => id === item.id);
-  if (q) {
-    const [, level] = q;
-    if (!toolsWithQualityByLevel.has(level))
-      toolsWithQualityByLevel.set(level, []);
-    toolsWithQualityByLevel.get(level)!.push(it);
-  } else {
-    if (it.type === "GUN" && !it.flags?.includes("PRIMITIVE_RANGED_WEAPON")) {
-      if (it.skill.toUpperCase() === item.id) {
-        if (!toolsWithQualityByLevel.has(1)) toolsWithQualityByLevel.set(1, []);
-        toolsWithQualityByLevel.get(1)!.push(it);
+let toolsWithQualityByLevelList = $derived.by(() => {
+  const toolsWithQualityByLevel = new Map<number, Item[]>();
+  for (const it of data.byType("item")) {
+    if (!it.id) continue;
+    const q = (it.qualities ?? []).find(([id, _level]) => id === item.id);
+    if (q) {
+      const [, level] = q;
+      if (!toolsWithQualityByLevel.has(level))
+        toolsWithQualityByLevel.set(level, []);
+      toolsWithQualityByLevel.get(level)!.push(it);
+    } else {
+      if (it.type === "GUN" && !it.flags?.includes("PRIMITIVE_RANGED_WEAPON")) {
+        if (it.skill.toUpperCase() === item.id) {
+          if (!toolsWithQualityByLevel.has(1))
+            toolsWithQualityByLevel.set(1, []);
+          toolsWithQualityByLevel.get(1)!.push(it);
+        }
       }
     }
   }
-}
-const toolsWithQualityByLevelList = [...toolsWithQualityByLevel.entries()].sort(
-  (a, b) => a[0] - b[0],
-);
-toolsWithQualityByLevelList.forEach(([, tools]) => {
-  tools.sort(byName);
+  const toolsWithQualityByLevelListValue = [
+    ...toolsWithQualityByLevel.entries(),
+  ].sort((a, b) => a[0] - b[0]);
+  toolsWithQualityByLevelListValue.forEach(([, tools]) => {
+    tools.sort(byName);
+  });
+  return toolsWithQualityByLevelListValue;
 });
 
-const vpartsWithQualityByLevel = new Map<number, VehiclePart[]>();
-for (const it of data.byType("vehicle_part")) {
-  if (!it.id) continue;
-  const q = (it.qualities ?? []).find(([id, _level]) => id === item.id);
-  if (q) {
-    const [, level] = q;
-    if (!vpartsWithQualityByLevel.has(level))
-      vpartsWithQualityByLevel.set(level, []);
-    vpartsWithQualityByLevel.get(level)!.push(it);
+let vpartsWithQualityByLevelList = $derived.by(() => {
+  const vpartsWithQualityByLevel = new Map<number, VehiclePart[]>();
+  for (const it of data.byType("vehicle_part")) {
+    if (!it.id) continue;
+    const q = (it.qualities ?? []).find(([id, _level]) => id === item.id);
+    if (q) {
+      const [, level] = q;
+      if (!vpartsWithQualityByLevel.has(level))
+        vpartsWithQualityByLevel.set(level, []);
+      vpartsWithQualityByLevel.get(level)!.push(it);
+    }
   }
-}
-const vpartsWithQualityByLevelList = [
-  ...vpartsWithQualityByLevel.entries(),
-].sort((a, b) => a[0] - b[0]);
-vpartsWithQualityByLevelList.forEach(([, vparts]) => {
-  vparts.sort(byName);
+  const vpartsWithQualityByLevelListValue = [
+    ...vpartsWithQualityByLevel.entries(),
+  ].sort((a, b) => a[0] - b[0]);
+  vpartsWithQualityByLevelListValue.forEach(([, vparts]) => {
+    vparts.sort(byName);
+  });
+  return vpartsWithQualityByLevelListValue;
 });
 
-const recipesUsingQualitySet = new Map<number, Set<string>>();
-for (const it of data.byType("recipe")) {
-  if (!it.result || !data.byIdMaybe("item", it.result)) continue;
-  const { qualities } = data.normalizeRequirements(it);
-  for (const qs of qualities) {
-    for (const { id, level = 1 } of qs) {
-      if (id === item.id) {
-        if (!recipesUsingQualitySet.has(level))
-          recipesUsingQualitySet.set(level, new Set());
-        recipesUsingQualitySet.get(level)!.add(it.result);
+let recipesUsingQualityList = $derived.by(() => {
+  const recipesUsingQualitySet = new Map<number, Set<string>>();
+  for (const it of data.byType("recipe")) {
+    if (!it.result || !data.byIdMaybe("item", it.result)) continue;
+    const { qualities } = data.normalizeRequirements(it);
+    for (const qs of qualities) {
+      for (const { id, level = 1 } of qs) {
+        if (id === item.id) {
+          if (!recipesUsingQualitySet.has(level))
+            recipesUsingQualitySet.set(level, new Set());
+          recipesUsingQualitySet.get(level)!.add(it.result);
+        }
       }
     }
   }
-}
-const recipesUsingQuality = new Map<number, string[]>();
-for (const [level, set] of recipesUsingQualitySet)
-  recipesUsingQuality.set(
-    level,
-    [...set].sort((a, b) =>
-      singularName(data.byId("item", a)).localeCompare(
-        singularName(data.byId("item", b)),
+  const recipesUsingQuality = new Map<number, string[]>();
+  for (const [level, set] of recipesUsingQualitySet)
+    recipesUsingQuality.set(
+      level,
+      [...set].sort((a, b) =>
+        singularName(data.byId("item", a)).localeCompare(
+          singularName(data.byId("item", b)),
+        ),
       ),
-    ),
-  );
+    );
+  return [...recipesUsingQuality.entries()].sort((a, b) => a[0] - b[0]);
+});
 
-const recipesUsingQualityList = [...recipesUsingQuality.entries()].sort(
-  (a, b) => a[0] - b[0],
-);
-
-const constructionsUsingQualityByLevel = new Map<number, Construction[]>();
-for (const construction of data.byType("construction")) {
-  const { qualities } = data.normalizeRequirements(construction);
-  for (const qs of qualities) {
-    for (const { id, level = 1 } of qs) {
-      if (id === item.id) {
-        if (!constructionsUsingQualityByLevel.has(level))
-          constructionsUsingQualityByLevel.set(level, []);
-        constructionsUsingQualityByLevel.get(level)!.push(construction);
+let constructionsUsingQualityByLevelList = $derived.by(() => {
+  const constructionsUsingQualityByLevel = new Map<number, Construction[]>();
+  for (const construction of data.byType("construction")) {
+    const { qualities } = data.normalizeRequirements(construction);
+    for (const qs of qualities) {
+      for (const { id, level = 1 } of qs) {
+        if (id === item.id) {
+          if (!constructionsUsingQualityByLevel.has(level))
+            constructionsUsingQualityByLevel.set(level, []);
+          constructionsUsingQualityByLevel.get(level)!.push(construction);
+        }
       }
     }
   }
-}
-const constructionsUsingQualityByLevelList = [
-  ...constructionsUsingQualityByLevel.entries(),
-].sort((a, b) => a[0] - b[0]);
-constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
-  constructions.sort((a, b) =>
-    singularName(data.byId("construction_group", a.group)).localeCompare(
-      singularName(data.byId("construction_group", b.group)),
-    ),
-  );
+  const constructionsUsingQualityByLevelListValue = [
+    ...constructionsUsingQualityByLevel.entries(),
+  ].sort((a, b) => a[0] - b[0]);
+  constructionsUsingQualityByLevelListValue.forEach(([, constructions]) => {
+    constructions.sort((a, b) =>
+      singularName(data.byId("construction_group", a.group)).localeCompare(
+        singularName(data.byId("construction_group", b.group)),
+      ),
+    );
+  });
+  return constructionsUsingQualityByLevelListValue;
 });
 </script>
 

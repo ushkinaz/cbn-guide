@@ -20,42 +20,50 @@ let { item, buffMap = new Map(), standalone = true }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Martial Art";
 
-const weapons = data
-  .byType("item")
-  .filter((it) => {
-    return it.id && (it.techniques ?? []).includes(item.id);
-  })
-  .sort(byName);
+let weapons = $derived.by(() =>
+  data
+    .byType("item")
+    .filter((it) => {
+      return it.id && (it.techniques ?? []).includes(item.id);
+    })
+    .sort(byName),
+);
 
-const type = i18n.__(
-  item.block_counter
-    ? "Block Counter"
-    : item.dodge_counter
-      ? "Dodge Counter"
-      : item.miss_recovery
-        ? "Miss Recovery"
-        : item.grab_break
-          ? "Grab Break"
-          : item.defensive
-            ? "Defensive"
-            : "Offensive",
+let type = $derived.by(() =>
+  i18n.__(
+    item.block_counter
+      ? "Block Counter"
+      : item.dodge_counter
+        ? "Dodge Counter"
+        : item.miss_recovery
+          ? "Miss Recovery"
+          : item.grab_break
+            ? "Grab Break"
+            : item.defensive
+              ? "Defensive"
+              : "Offensive",
+  ),
 );
 
 const extractInfo = (s: string): string =>
   /<info>(.+?)<\/info>/.exec(s)?.[1] ?? s;
-const targetRequirements: string[] = [];
-if (item.human_target)
-  targetRequirements.push(
-    extractInfo(i18n.__("* Only works on a <info>humanoid</info> target")),
-  );
-if (item.downed_target)
-  targetRequirements.push(
-    extractInfo(i18n.__("* Only works on a <info>downed</info> target")),
-  );
-if (item.stunned_target)
-  targetRequirements.push(
-    extractInfo(i18n.__("* Only works on a <info>stunned</info> target")),
-  );
+
+let targetRequirements = $derived.by(() => {
+  const targetRequirementsValue: string[] = [];
+  if (item.human_target)
+    targetRequirementsValue.push(
+      extractInfo(i18n.__("* Only works on a <info>humanoid</info> target")),
+    );
+  if (item.downed_target)
+    targetRequirementsValue.push(
+      extractInfo(i18n.__("* Only works on a <info>downed</info> target")),
+    );
+  if (item.stunned_target)
+    targetRequirementsValue.push(
+      extractInfo(i18n.__("* Only works on a <info>stunned</info> target")),
+    );
+  return targetRequirementsValue;
+});
 </script>
 
 {#if standalone}

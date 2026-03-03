@@ -16,45 +16,55 @@ const data = getContext<CBNData>("data");
 
 const itemComponents = data.getItemComponents();
 
-const recipes: Set<string> =
-  itemComponents.byComponent.get(item_id) ?? new Set();
-const toolRecipes: Set<string> =
-  itemComponents.byTool.get(item_id) ?? new Set();
+let recipes: Set<string> = $derived(
+  itemComponents.byComponent.get(item_id) ?? new Set(),
+);
+let toolRecipes: Set<string> = $derived(
+  itemComponents.byTool.get(item_id) ?? new Set(),
+);
 
 const constructionComponents = data.getConstructionComponents();
-const constructions = [
-  ...(constructionComponents.byComponent.get(item_id) ?? new Set()),
-]
-  .map((id) => data.byId("construction", id))
-  .sort((a, b) =>
-    singularName(data.byId("construction_group", a.group)).localeCompare(
-      singularName(data.byId("construction_group", b.group)),
+let constructions = $derived.by(() =>
+  [...(constructionComponents.byComponent.get(item_id) ?? new Set())]
+    .map((id) => data.byId("construction", id))
+    .sort((a, b) =>
+      singularName(data.byId("construction_group", a.group)).localeCompare(
+        singularName(data.byId("construction_group", b.group)),
+      ),
     ),
-  );
-const toolConstructions = [
-  ...(constructionComponents.byTool.get(item_id) ?? new Set()),
-]
-  .map((id) => data.byId("construction", id))
-  .sort((a, b) =>
-    singularName(data.byId("construction_group", a.group)).localeCompare(
-      singularName(data.byId("construction_group", b.group)),
+);
+let toolConstructions = $derived.by(() =>
+  [...(constructionComponents.byTool.get(item_id) ?? new Set())]
+    .map((id) => data.byId("construction", id))
+    .sort((a, b) =>
+      singularName(data.byId("construction_group", a.group)).localeCompare(
+        singularName(data.byId("construction_group", b.group)),
+      ),
     ),
-  );
+);
 
-const providedByVparts = data
-  .byType("vehicle_part")
-  .filter((vp) => vp.id && vp.pseudo_tools?.some((t) => t.id === item_id));
-const providedByFurniture = data
-  .byType("furniture")
-  .filter((f) => f.id && f.crafting_pseudo_item === item_id);
-const results = [...recipes].sort((a, b) =>
-  singularName(data.byId("item", a)).localeCompare(
-    singularName(data.byId("item", b)),
+let providedByVparts = $derived.by(() =>
+  data
+    .byType("vehicle_part")
+    .filter((vp) => vp.id && vp.pseudo_tools?.some((t) => t.id === item_id)),
+);
+let providedByFurniture = $derived.by(() =>
+  data
+    .byType("furniture")
+    .filter((f) => f.id && f.crafting_pseudo_item === item_id),
+);
+let results = $derived.by(() =>
+  [...recipes].sort((a, b) =>
+    singularName(data.byId("item", a)).localeCompare(
+      singularName(data.byId("item", b)),
+    ),
   ),
 );
-const toolResults = [...toolRecipes].sort((a, b) =>
-  singularName(data.byId("item", a)).localeCompare(
-    singularName(data.byId("item", b)),
+let toolResults = $derived.by(() =>
+  [...toolRecipes].sort((a, b) =>
+    singularName(data.byId("item", a)).localeCompare(
+      singularName(data.byId("item", b)),
+    ),
   ),
 );
 </script>

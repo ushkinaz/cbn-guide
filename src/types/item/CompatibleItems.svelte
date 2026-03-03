@@ -15,35 +15,40 @@ let { ammo_type, type }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
-const config = {
-  GUN: {
-    title: t("Weapons"),
-    filter: (i: any) =>
-      i.type === "GUN" &&
-      i.ammo &&
-      (Array.isArray(i.ammo)
-        ? i.ammo.includes(ammo_type)
-        : i.ammo === ammo_type),
-  },
-  MAGAZINE: {
-    title: t("Magazines"),
-    filter: (i: any) =>
-      i.type === "MAGAZINE" &&
-      i.ammo_type &&
-      (Array.isArray(i.ammo_type)
-        ? i.ammo_type.includes(ammo_type)
-        : i.ammo_type === ammo_type),
-  },
-  AMMO: {
-    title: t("Ammo"),
-    filter: (i: any) => i.type === "AMMO" && i.ammo_type === ammo_type,
-  },
-}[type];
+let config = $derived.by(
+  () =>
+    ({
+      GUN: {
+        title: t("Weapons"),
+        filter: (i: any) =>
+          i.type === "GUN" &&
+          i.ammo &&
+          (Array.isArray(i.ammo)
+            ? i.ammo.includes(ammo_type)
+            : i.ammo === ammo_type),
+      },
+      MAGAZINE: {
+        title: t("Magazines"),
+        filter: (i: any) =>
+          i.type === "MAGAZINE" &&
+          i.ammo_type &&
+          (Array.isArray(i.ammo_type)
+            ? i.ammo_type.includes(ammo_type)
+            : i.ammo_type === ammo_type),
+      },
+      AMMO: {
+        title: t("Ammo"),
+        filter: (i: any) => i.type === "AMMO" && i.ammo_type === ammo_type,
+      },
+    })[type],
+);
 
-const items = data
-  .byType("item")
-  .filter((i) => i.id && config.filter(i))
-  .sort(byName);
+let items = $derived.by(() =>
+  data
+    .byType("item")
+    .filter((i) => i.id && config.filter(i))
+    .sort(byName),
+);
 </script>
 
 {#if items.length}

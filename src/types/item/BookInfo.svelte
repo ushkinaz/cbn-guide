@@ -14,28 +14,37 @@ let { item }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
-const bookRecipes = new Map<string, { recipe_name: string; level: number }>();
-function add(recipe_id: string, recipe_name: string, level: number) {
-  let recipe_data = bookRecipes.get(recipe_id) ?? { recipe_name, level };
-  bookRecipes.set(recipe_id, {
-    recipe_name,
-    level: Math.min(level, recipe_data.level ?? Infinity),
-  });
-}
+function findBookRecipes(
+  bookId: string,
+): Map<string, { recipe_name: string; level: number }> {
+  const recipesById = new Map<string, { recipe_name: string; level: number }>();
 
-for (const recipe of data.byType("recipe")) {
-  if (!recipe.result || !Array.isArray(recipe.book_learn)) continue;
+  function add(recipe_id: string, recipe_name: string, level: number) {
+    const recipe_data = recipesById.get(recipe_id) ?? { recipe_name, level };
+    recipesById.set(recipe_id, {
+      recipe_name,
+      level: Math.min(level, recipe_data.level ?? Infinity),
+    });
+  }
 
-  for (const [
-    id,
-    level = 0,
-    recipe_name = recipe.result,
-  ] of recipe.book_learn) {
-    if (id === item.id) {
-      add(recipe.result, recipe_name, level);
+  for (const recipe of data.byType("recipe")) {
+    if (!recipe.result || !Array.isArray(recipe.book_learn)) continue;
+
+    for (const [
+      id,
+      level = 0,
+      recipe_name = recipe.result,
+    ] of recipe.book_learn) {
+      if (id === bookId) {
+        add(recipe.result, recipe_name, level);
+      }
     }
   }
+
+  return recipesById;
 }
+
+let bookRecipes = $derived.by(() => findBookRecipes(item.id));
 </script>
 
 <section>

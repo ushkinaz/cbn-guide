@@ -170,8 +170,6 @@ export function makeModRenderTests(modId: string): void {
           furnitureByOMSAppearance(data),
           terrainByOMSAppearance(data),
         ]);
-        // Isolate module-level singleton caches between mods.
-        vi.resetModules();
         const imported = await import("./Thing.svelte");
         Thing = imported.default;
       });

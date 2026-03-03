@@ -17,21 +17,22 @@ let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
 
-const harvestBySeason: Map<string, string[]> = new Map();
-for (const harvestDef of item.harvest_by_season ?? []) {
-  for (const season of harvestDef.seasons) {
-    for (const h of harvestDef.entries) {
-      const dropsBySeason = harvestBySeason.get(season) ?? [];
-      dropsBySeason.push(h.drop);
-      harvestBySeason.set(season, dropsBySeason);
+const seasonOrder = ["winter", "spring", "summer", "autumn"];
+let harvestBySeasonList = $derived.by(() => {
+  const harvestBySeason: Map<string, string[]> = new Map();
+  for (const harvestDef of item.harvest_by_season ?? []) {
+    for (const season of harvestDef.seasons) {
+      for (const h of harvestDef.entries) {
+        const dropsBySeason = harvestBySeason.get(season) ?? [];
+        dropsBySeason.push(h.drop);
+        harvestBySeason.set(season, dropsBySeason);
+      }
     }
   }
-}
-const seasonOrder = ["winter", "spring", "summer", "autumn"];
-const harvestBySeasonList = [...harvestBySeason.entries()];
-harvestBySeasonList.sort(
-  (a, b) => seasonOrder.indexOf(a[0]) - seasonOrder.indexOf(b[0]),
-);
+  return [...harvestBySeason.entries()].sort(
+    (a, b) => seasonOrder.indexOf(a[0]) - seasonOrder.indexOf(b[0]),
+  );
+});
 </script>
 
 {#if harvestBySeasonList.length}

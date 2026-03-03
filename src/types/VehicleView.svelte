@@ -26,10 +26,6 @@ const data = getContext<CBNData>("data");
 const _context = "Vehicle View";
 //TODO: HitButton_iso uses isometric perspective, support that
 
-let minX = Infinity;
-let maxX = -Infinity;
-let minY = $state(Infinity);
-let maxY = $state(-Infinity);
 //https://github.com/cataclysmbn/Cataclysm-BN/blob/1f1f5abf1e5135933fb2bbdbd74194d0e2dc75a8/src/veh_type.cpp#L552
 const zOrder: Record<NonNullable<VehiclePart["location"]>, number> = {
   on_roof: 9,
@@ -61,46 +57,64 @@ type NormalizedPartList = {
   parts: NormalizedPart[];
 };
 
-const normalizedParts: NormalizedPartList[] = normalizeVehicleMountedParts(
-  item,
-).map((part) => {
-  if (part.x < minX) minX = part.x;
-  if (part.x > maxX) maxX = part.x;
-  if (part.y < minY) minY = part.y;
-  if (part.y > maxY) maxY = part.y;
+let vehicleLayout = $derived.by(() => {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  const normalizedParts: NormalizedPartList[] = normalizeVehicleMountedParts(
+    item,
+  ).map((part) => {
+    if (part.x < minX) minX = part.x;
+    if (part.x > maxX) maxX = part.x;
+    if (part.y < minY) minY = part.y;
+    if (part.y > maxY) maxY = part.y;
 
-  const parts =
-    part.parts?.map(({ part, fuel }) => {
-      const [partId, variant] = getVehiclePartIdAndVariant(data, part);
-      return { partId, variant, fuel };
-    }) ?? [];
-  return { x: part.x, y: part.y, parts };
-});
+    const parts =
+      part.parts?.map(({ part, fuel }) => {
+        const [partId, variant] = getVehiclePartIdAndVariant(data, part);
+        return { partId, variant, fuel };
+      }) ?? [];
+    return { x: part.x, y: part.y, parts };
+  });
 
-const finalGrid: (NormalizedPart | undefined)[][] = [];
-for (let x = maxX; x >= minX; x--) {
-  const row: (NormalizedPart | undefined)[] = [];
-  for (let y = minY; y <= maxY; y++) {
-    const cellParts = normalizedParts
-      .filter((p) => p.x === x && p.y === y)
-      .flatMap((p) => p.parts);
-    if (!cellParts.length) {
-      row.push(undefined);
-      continue;
-    }
-    let topPart = cellParts[0];
-    let topZ = zForPart(topPart.partId);
-    for (const part of cellParts) {
-      const z = zForPart(part.partId);
-      if (z >= 0 && z > topZ) {
-        topZ = z;
-        topPart = part;
+  const finalGrid: (NormalizedPart | undefined)[][] = [];
+  if (
+    Number.isFinite(minX) &&
+    Number.isFinite(maxX) &&
+    Number.isFinite(minY) &&
+    Number.isFinite(maxY)
+  ) {
+    for (let x = maxX; x >= minX; x--) {
+      const row: (NormalizedPart | undefined)[] = [];
+      for (let y = minY; y <= maxY; y++) {
+        const cellParts = normalizedParts
+          .filter((p) => p.x === x && p.y === y)
+          .flatMap((p) => p.parts);
+        if (!cellParts.length) {
+          row.push(undefined);
+          continue;
+        }
+        let topPart = cellParts[0];
+        let topZ = zForPart(topPart.partId);
+        for (const part of cellParts) {
+          const z = zForPart(part.partId);
+          if (z >= 0 && z > topZ) {
+            topZ = z;
+            topPart = part;
+          }
+        }
+        row.push(topPart);
       }
+      finalGrid.push(row);
     }
-    row.push(topPart);
   }
-  finalGrid.push(row);
-}
+  return {
+    columnCount:
+      Number.isFinite(minY) && Number.isFinite(maxY) ? maxY - minY + 1 : 0,
+    finalGrid,
+  };
+});
 
 let tile_info = $derived($tileData?.tile_info[0]);
 
@@ -169,8 +183,8 @@ function getFallback(partId: string, variant: string) {
   <h2>{t("Render", { _context })}</h2>
   <div
     class="vehicle-view"
-    style="grid-template-columns: repeat({maxY - minY + 1}, auto)">
-    {#each finalGrid as row}
+    style="grid-template-columns: repeat({vehicleLayout.columnCount}, auto)">
+    {#each vehicleLayout.finalGrid as row}
       {#each row as part}
         <div class="cell">
           {#if part}

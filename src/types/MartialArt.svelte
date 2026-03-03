@@ -31,14 +31,16 @@ interface Props {
 }
 
 let { item }: Props = $props();
-const weaponCategories = asArray(item.weapon_category);
+let weaponCategories = $derived(asArray(item.weapon_category));
 const _context = "Martial Art";
 
-const books = data
-  .byType("item")
-  .filter((b) => b.type === "BOOK" && b.martial_art === item.id);
+let books = $derived.by(() =>
+  data
+    .byType("item")
+    .filter((b) => b.type === "BOOK" && b.martial_art === item.id),
+);
 
-const buffss: [string, MartialArtBuff[]][] = [
+let buffss: [string, MartialArtBuff[]][] = $derived.by(() => [
   ["Passive", item.static_buffs ?? []],
   ["Move", item.onmove_buffs ?? []],
   ["Pause", item.onpause_buffs ?? []],
@@ -50,10 +52,13 @@ const buffss: [string, MartialArtBuff[]][] = [
   ["Dodge", item.ondodge_buffs ?? []],
   ["Block", item.onblock_buffs ?? []],
   ["Get hit", item.ongethit_buffs ?? []],
-];
+]);
 
-const buffMap = new Map(
-  buffss.flatMap((x) => x[1]).map((buff) => [buff.id, buff]),
+let buffMap = $derived.by(
+  () =>
+    new Map<string, MartialArtBuff>(
+      buffss.flatMap((x) => x[1]).map((buff) => [buff.id, buff]),
+    ),
 );
 </script>
 

@@ -563,7 +563,14 @@ export function navigateTo(
  * @returns true if navigation was handled, false if default should proceed
  */
 export function handleInternalNavigation(event: MouseEvent): boolean {
-  const anchor = (event.target as Element).closest("a");
+  const target = event.target;
+  const targetElement =
+    target instanceof Element
+      ? target
+      : target instanceof Node
+        ? target.parentElement
+        : null;
+  const anchor = targetElement?.closest("a");
 
   // Ignore modified clicks (new tab, etc.)
   if (

@@ -28,26 +28,31 @@ function getGunProperties(i: Item): GunSlot {
   return i as GunSlot;
 }
 
-const gunProps = getGunProperties(item);
+let gunProps = $derived(getGunProperties(item));
 
-let ammo_types: string[] = asArray(gunProps.ammo);
+let ammo_types: string[] = $derived(asArray(gunProps.ammo));
 
-let magazinesByAmmo = new Map<string, string[]>();
-if ("magazines" in gunProps && gunProps.magazines) {
-  for (const [ammoType, mags] of gunProps.magazines) {
-    if (mags) magazinesByAmmo.set(ammoType, mags);
+let magazinesByAmmo = $derived.by(() => {
+  const groupedMagazines = new Map<string, string[]>();
+  if ("magazines" in gunProps && gunProps.magazines) {
+    for (const [ammoType, mags] of gunProps.magazines) {
+      if (mags) groupedMagazines.set(ammoType, mags);
+    }
   }
-}
-
-const ammoData = ammo_types.map((ammo_type) => {
-  const magazines = (magazinesByAmmo.get(ammo_type) ?? [])
-    .map((id) => data.byId("item", id))
-    .sort(byName);
-  return {
-    id: ammo_type,
-    magazines,
-  };
+  return groupedMagazines;
 });
+
+let ammoData = $derived.by(() =>
+  ammo_types.map((ammo_type) => {
+    const magazines = (magazinesByAmmo.get(ammo_type) ?? [])
+      .map((id) => data.byId("item", id))
+      .sort(byName);
+    return {
+      id: ammo_type,
+      magazines,
+    };
+  }),
+);
 </script>
 
 {#each ammoData as { id: ammoTypeId, magazines }}

@@ -1,6 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
-
 import { t } from "@transifex/native";
 import { onDestroy } from "svelte";
 import type {
@@ -56,7 +54,13 @@ let {
 
 let draftSelectedModIds: string[] = $state([]);
 let wasOpen = $state(false);
-let availableDefaultModIds: string[] = $state([]);
+let availableDefaultModIds: string[] = $derived(
+  DEFAULT_MOD_IDS.filter((modId, idx, all) => {
+    if (modId === "bn") return false;
+    if (all.indexOf(modId) !== idx) return false;
+    return mods.some((mod) => mod.id === modId);
+  }),
+);
 
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -194,7 +198,7 @@ function syncBodyClass(enabled: boolean): void {
   document.body.classList.toggle("mods-selector-open", enabled);
 }
 
-run(() => {
+$effect(() => {
   if (open && !wasOpen) {
     draftSelectedModIds = [...selectedModIds];
   }
@@ -223,14 +227,6 @@ let groupedCategories = $derived(
     ]),
 );
 
-run(() => {
-  availableDefaultModIds = DEFAULT_MOD_IDS.filter((modId, idx, all) => {
-    if (modId === "bn") return false;
-    if (all.indexOf(modId) !== idx) return false;
-    return mods.some((mod) => mod.id === modId);
-  });
-});
-
 let modContentStatsById = $derived(
   mods.reduce((acc, mod) => {
     const rawData = rawModsJson[mod.id]?.data ?? [];
@@ -246,7 +242,7 @@ let modsById = $derived(
   }, new Map<string, ModInfo>()),
 );
 
-run(() => {
+$effect(() => {
   if (modsById.size > 0) {
     // Keep URL-selected ids intact while mod metadata is still loading.
     // Otherwise, resolving against an empty map clears valid selections.
@@ -260,7 +256,7 @@ run(() => {
   }
 });
 
-run(() => {
+$effect(() => {
   syncBodyClass(open);
 });
 

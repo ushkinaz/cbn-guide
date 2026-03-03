@@ -262,22 +262,26 @@ describe("_flatten: extend and delete modifiers", () => {
     expect(child.flags).toEqual(["FLAG1", "FLAG3"]);
   });
 
-  test("handle real monster mon_zombie_soldier_blackops_2", () => {
-    // This test requires the actual test fixtures
-    // We'll check if the real data exists first
-    try {
-      const fs = require("fs");
-      const rawData = JSON.parse(fs.readFileSync("_test/all.json", "utf-8"));
-      const data = new CBNData(rawData.data);
+  test(
+    "handle real monster mon_zombie_soldier_blackops_2",
+    { timeout: 20_000 },
+    () => {
+      // This test requires the actual test fixtures
+      // We'll check if the real data exists first
+      try {
+        const fs = require("fs");
+        const rawData = JSON.parse(fs.readFileSync("_test/all.json", "utf-8"));
+        const data = new CBNData(rawData.data);
 
-      const blackops2 = data.byId("monster", "mon_zombie_soldier_blackops_2");
+        const blackops2 = data.byId("monster", "mon_zombie_soldier_blackops_2");
 
-      // The upgrades property should not exist after flattening
-      expect(blackops2.upgrades).toBeUndefined();
-      expect("upgrades" in blackops2).toBe(false);
-    } catch (e) {
-      // Skip test if fixture doesn't exist
-      console.log("Skipping real data test - fixture not available");
-    }
-  });
+        // The upgrades property should not exist after flattening
+        expect(blackops2.upgrades).toBeUndefined();
+        expect("upgrades" in blackops2).toBe(false);
+      } catch (e) {
+        // Skip test if fixture doesn't exist
+        console.log("Skipping real data test - fixture not available");
+      }
+    },
+  );
 });

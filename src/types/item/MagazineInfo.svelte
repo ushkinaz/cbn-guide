@@ -14,19 +14,21 @@ interface Props {
 let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 
-let ammo_types = [item.ammo_type].flat();
+let ammo_types = $derived([item.ammo_type].flat());
 
-const compatibleGuns = data
-  .byType("item")
-  .filter(
-    (gun) =>
-      gun.id &&
-      gun.type === "GUN" &&
-      gun.ammo &&
-      gun.magazines?.some(([, magList]) => magList.includes(item.id)),
-  )
-  .map((gun) => data.byId("item", gun.id))
-  .sort(byName);
+let compatibleGuns = $derived.by(() =>
+  data
+    .byType("item")
+    .filter(
+      (gun) =>
+        gun.id &&
+        gun.type === "GUN" &&
+        gun.ammo &&
+        gun.magazines?.some(([, magList]) => magList.includes(item.id)),
+    )
+    .map((gun) => data.byId("item", gun.id))
+    .sort(byName),
+);
 </script>
 
 <section>

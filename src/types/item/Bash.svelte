@@ -15,9 +15,11 @@ let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
-let bashFrom = (
-  data.bashFromFurniture(item_id) as (Furniture | Terrain | VehiclePart)[]
-).concat(data.bashFromTerrain(item_id), data.bashFromVehiclePart(item_id));
+let bashFrom = $derived.by(() =>
+  (
+    data.bashFromFurniture(item_id) as (Furniture | Terrain | VehiclePart)[]
+  ).concat(data.bashFromTerrain(item_id), data.bashFromVehiclePart(item_id)),
+);
 </script>
 
 {#if bashFrom.length}

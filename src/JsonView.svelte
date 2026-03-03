@@ -21,7 +21,9 @@ function toggle() {
   }
 }
 
-const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`;
+let githubUrl = $derived(
+  `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`,
+);
 </script>
 
 <section class="json-view">

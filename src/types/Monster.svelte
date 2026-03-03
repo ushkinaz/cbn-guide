@@ -273,11 +273,11 @@ const trigger_descriptions: Record<string, string> = {
   STALK: "Increases when following the player",
 }
 
-let materials = item.material ?? [];
+let materials = $derived(item.material ?? []);
 
-let harvest: Harvest | undefined = item.harvest
-  ? data.byId("harvest", item.harvest)
-  : undefined;
+let harvest: Harvest | undefined = $derived(
+  item.harvest ? data.byId("harvest", item.harvest) : undefined,
+);
 
 const flattenedGroupCache = new Map<string, string[]>();
 const flattenedGroupSetCache = new Map<string, Set<string>>();
@@ -316,7 +316,7 @@ function flattenedGroupSet(groupId: string): Set<string> {
   return ids;
 }
 
-let upgrades =
+let upgrades = $derived.by(() =>
   item.upgrades && (item.upgrades.into || item.upgrades.into_group)
     ? {
         ...item.upgrades,
@@ -332,7 +332,8 @@ let upgrades =
           .sort(byName)
           .map((m) => m.id),
       }
-    : null;
+    : null,
+);
 
 type TimingType = "age_grow" | "half_life" | "no_timing";
 
@@ -348,46 +349,50 @@ const TIMING_PRIORITY: Record<TimingType, number> = {
   no_timing: 2,
 };
 
-const upgradesFromGrouped = new Map<string, UpgradeGroup>();
+let sortedGroups = $derived.by(() => {
+  const upgradesFromGrouped = new Map<string, UpgradeGroup>();
 
-// TODO: This iterates over all monsters (~900 items), see if we can/need optimize
-for (const monster of data.byType("monster")) {
-  const { upgrades } = monster;
-  if (!upgrades || monster.id === item.id) continue;
+  // TODO: This iterates over all monsters (~900 items), see if we can/need optimize
+  for (const monster of data.byType("monster")) {
+    const { upgrades } = monster;
+    if (!upgrades || monster.id === item.id) continue;
 
-  const matches =
-    upgrades.into === item.id ||
-    (upgrades.into_group &&
-      flattenedGroupSet(upgrades.into_group).has(item.id));
+    const matches =
+      upgrades.into === item.id ||
+      (upgrades.into_group &&
+        flattenedGroupSet(upgrades.into_group).has(item.id));
 
-  if (!matches) continue;
+    if (!matches) continue;
 
-  const [type, value]: [TimingType, number] = upgrades.age_grow
-    ? ["age_grow", upgrades.age_grow]
-    : upgrades.half_life
-      ? ["half_life", upgrades.half_life]
-      : ["no_timing", 0];
-  const key = `${type}:${value}`;
-  let group = upgradesFromGrouped.get(key);
-  if (!group) {
-    group = { type, value, monsters: [] };
-    upgradesFromGrouped.set(key, group);
+    const [type, value]: [TimingType, number] = upgrades.age_grow
+      ? ["age_grow", upgrades.age_grow]
+      : upgrades.half_life
+        ? ["half_life", upgrades.half_life]
+        : ["no_timing", 0];
+    const key = `${type}:${value}`;
+    let group = upgradesFromGrouped.get(key);
+    if (!group) {
+      group = { type, value, monsters: [] };
+      upgradesFromGrouped.set(key, group);
+    }
+    group.monsters.push(monster.id);
   }
-  group.monsters.push(monster.id);
-}
 
-const sortedGroups = Array.from(upgradesFromGrouped.values()).sort((a, b) => {
-  if (a.type !== b.type) {
-    return TIMING_PRIORITY[a.type] - TIMING_PRIORITY[b.type];
+  const grouped = Array.from(upgradesFromGrouped.values()).sort((a, b) => {
+    if (a.type !== b.type) {
+      return TIMING_PRIORITY[a.type] - TIMING_PRIORITY[b.type];
+    }
+    return a.value - b.value;
+  });
+
+  for (const group of grouped) {
+    group.monsters.sort((a, b) =>
+      byName(data.byIdMaybe("monster", a), data.byIdMaybe("monster", b)),
+    );
   }
-  return a.value - b.value;
+
+  return grouped;
 });
-
-for (const group of sortedGroups) {
-  group.monsters.sort((a, b) =>
-    byName(data.byIdMaybe("monster", a), data.byIdMaybe("monster", b)),
-  );
-}
 </script>
 
 <h1 class="capitalize">

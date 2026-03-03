@@ -13,14 +13,17 @@ interface Props {
 
 let { usage }: Props = $props();
 
-let action =
+let action = $derived.by(() =>
   usage.type === "__item_action__"
     ? data.byId("item_action", usage.id)
-    : data.byId("item_action", usage.type);
-let description =
-  ("menu_text" in usage ? usage.menu_text : null) ??
-  ("name" in usage && usage.name ? singular(usage.name) : null) ??
-  singularName(action);
+    : data.byId("item_action", usage.type),
+);
+let description = $derived.by(
+  () =>
+    ("menu_text" in usage ? usage.menu_text : null) ??
+    ("name" in usage && usage.name ? singular(usage.name) : null) ??
+    singularName(action),
+);
 </script>
 
 <ItemLink

@@ -20,35 +20,41 @@ interface Props {
 
 let { item }: Props = $props();
 
-const deconstruct = item.deconstruct?.items
-  ? data.flattenItemGroup({
-      subtype: "collection",
-      entries:
-        typeof item.deconstruct.items === "string"
-          ? [{ group: item.deconstruct.items }]
-          : item.deconstruct.items,
-    })
-  : [];
+let deconstruct = $derived.by(() =>
+  item.deconstruct?.items
+    ? data.flattenItemGroup({
+        subtype: "collection",
+        entries:
+          typeof item.deconstruct.items === "string"
+            ? [{ group: item.deconstruct.items }]
+            : item.deconstruct.items,
+      })
+    : [],
+);
 
-const bash = item.bash?.items
-  ? data.flattenItemGroup({
-      subtype: "collection",
-      entries:
-        typeof item.bash.items === "string"
-          ? [{ group: item.bash.items }]
-          : item.bash.items,
-    })
-  : [];
+let bash = $derived.by(() =>
+  item.bash?.items
+    ? data.flattenItemGroup({
+        subtype: "collection",
+        entries:
+          typeof item.bash.items === "string"
+            ? [{ group: item.bash.items }]
+            : item.bash.items,
+      })
+    : [],
+);
 
-const constructions = data
-  .byType("construction")
-  .filter((c) => c.post_terrain === item.id);
+let constructions = $derived.by(() =>
+  data.byType("construction").filter((c) => c.post_terrain === item.id),
+);
 
-const bashedFrom = data
-  .byType("furniture")
-  .filter((f) => f.id && f.bash?.furn_set === item.id);
+let bashedFrom = $derived.by(() =>
+  data.byType("furniture").filter((f) => f.id && f.bash?.furn_set === item.id),
+);
 
-const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
+let pseudo_items = $derived.by((): string[] =>
+  asArray(item.crafting_pseudo_item),
+);
 </script>
 
 <h1><ItemLink type="furniture" id={item.id} link={false} /></h1>

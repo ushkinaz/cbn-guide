@@ -18,35 +18,45 @@ interface Props {
 
 let { construction, includeTitle = false }: Props = $props();
 
-const using =
+let using = $derived.by(() =>
   typeof construction.using === "string"
     ? [[construction.using, 1] as [string, number]]
-    : (construction.using ?? []);
-
-const requirements = using
-  .map(
-    ([id, count]) =>
-      [data.byId("requirement", id) as RequirementData, count] as const,
-  )
-  .concat([[construction, 1]]);
-
-const components = requirements.flatMap(([req, count]) => {
-  return data
-    .flattenRequirement(req.components ?? [], (x) => x.components)
-    .map((x) => x.map((x) => ({ ...x, count: x.count * count })));
-});
-
-const byproducts = data.flattenItemGroup(
-  data.normalizeItemGroup(construction.byproducts, "collection"),
+    : (construction.using ?? []),
 );
 
-const preFlags: { flag: string; force_terrain?: boolean }[] = [];
-if (construction.pre_flags)
-  for (const flag of [construction.pre_flags].flat()) {
-    if (typeof flag === "string") {
-      preFlags.push({ flag });
-    } else preFlags.push(flag);
-  }
+let requirements = $derived.by(() =>
+  using
+    .map(
+      ([id, count]) =>
+        [data.byId("requirement", id) as RequirementData, count] as const,
+    )
+    .concat([[construction, 1] as const]),
+);
+
+let components = $derived.by(() =>
+  requirements.flatMap(([req, count]) => {
+    return data
+      .flattenRequirement(req.components ?? [], (x) => x.components)
+      .map((x) => x.map((x) => ({ ...x, count: x.count * count })));
+  }),
+);
+
+let byproducts = $derived.by(() =>
+  data.flattenItemGroup(
+    data.normalizeItemGroup(construction.byproducts, "collection"),
+  ),
+);
+
+let preFlags = $derived.by((): { flag: string; force_terrain?: boolean }[] => {
+  const preFlagsValue: { flag: string; force_terrain?: boolean }[] = [];
+  if (construction.pre_flags)
+    for (const flag of [construction.pre_flags].flat()) {
+      if (typeof flag === "string") {
+        preFlagsValue.push({ flag });
+      } else preFlagsValue.push(flag);
+    }
+  return preFlagsValue;
+});
 </script>
 
 <section>

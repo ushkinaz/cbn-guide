@@ -27,37 +27,40 @@ let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Vehicle";
 
-const normalizedParts = normalizeVehicleMountedParts(item).map((part) => {
-  const parts =
-    part.parts?.map(({ part, fuel }) => {
-      const [partId, variant] = getVehiclePartIdAndVariant(data, part);
-      return {
-        partId,
-        variant,
-        fuel,
-      };
-    }) ?? [];
-  return {
-    x: part.x,
-    y: part.y,
-    parts,
-  };
-});
+let partsCounted = $derived.by(() => {
+  const normalizedParts = normalizeVehicleMountedParts(item).map((part) => {
+    const parts =
+      part.parts?.map(({ part, fuel }) => {
+        const [partId, variant] = getVehiclePartIdAndVariant(data, part);
+        return {
+          partId,
+          variant,
+          fuel,
+        };
+      }) ?? [];
+    return {
+      x: part.x,
+      y: part.y,
+      parts,
+    };
+  });
 
-const parts = normalizedParts
-  .flatMap((np) => np.parts)
-  .filter((x) => data.byIdMaybe("vehicle_part", x.partId)); // TODO: turrets?
-const partsGrouped = groupBy(parts, (p) => [p.partId]);
-const partsCounted = [...partsGrouped.entries()].map(([id, list]) => ({
-  id,
-  count: list.length,
-}));
-partsCounted.sort((a, b) => {
-  if (a.count === b.count)
-    return singularName(data.byId("vehicle_part", a.id)).localeCompare(
-      singularName(data.byId("vehicle_part", b.id)),
-    );
-  else return b.count - a.count;
+  const parts = normalizedParts
+    .flatMap((np) => np.parts)
+    .filter((x) => data.byIdMaybe("vehicle_part", x.partId)); // TODO: turrets?
+  const partsGrouped = groupBy(parts, (p) => [p.partId]);
+  const partsCountedValue = [...partsGrouped.entries()].map(([id, list]) => ({
+    id,
+    count: list.length,
+  }));
+  partsCountedValue.sort((a, b) => {
+    if (a.count === b.count)
+      return singularName(data.byId("vehicle_part", a.id)).localeCompare(
+        singularName(data.byId("vehicle_part", b.id)),
+      );
+    else return b.count - a.count;
+  });
+  return partsCountedValue;
 });
 </script>
 

@@ -14,7 +14,7 @@ let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
-const sources = data.brewedFrom(item_id);
+let sources = $derived(data.brewedFrom(item_id));
 </script>
 
 {#if sources.length}

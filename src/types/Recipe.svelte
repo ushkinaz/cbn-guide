@@ -62,14 +62,19 @@ function normalizeSkillsRequired(
   return [];
 }
 
-let skillsRequired = normalizeSkillsRequired(recipe.skills_required);
+let skillsRequired = $derived.by(() =>
+  normalizeSkillsRequired(recipe.skills_required),
+);
 
-const writtenIn = Array.isArray(recipe.book_learn)
-  ? [...recipe.book_learn]
-  : [...Object.entries((recipe.book_learn ?? {}) as Record<string, any>)].map(
-      ([k, v]) => [k, v.skill_level],
-    );
-writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
+let writtenIn = $derived.by(() => {
+  const entries = Array.isArray(recipe.book_learn)
+    ? [...recipe.book_learn]
+    : [...Object.entries((recipe.book_learn ?? {}) as Record<string, any>)].map(
+        ([k, v]) => [k, v.skill_level],
+      );
+  entries.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
+  return entries;
+});
 
 const activityLevels = {
   SLEEP_EXERCISE: 0.85,
@@ -107,20 +112,18 @@ function activityLevelName(level: number) {
         _comment: "Section heading",
       })}{:else}{t("Craft", { _context, _comment: "Section heading" })}{/if}
   </h2>
-  <p>
-    {#if recipe.never_learn}
-      <section class="warning">
-        ⚠️ {t(
-          "This recipe is not learnable. It may be used by NPCs or for debugging purposes.",
-          {
-            _context,
-            _comment:
-              "This is a basecamp recipe or other utility recipe that isn't directly usable by the player.",
-          },
-        )}
-      </section>
-    {/if}
-  </p>
+  {#if recipe.never_learn}
+    <section class="warning">
+      ⚠️ {t(
+        "This recipe is not learnable. It may be used by NPCs or for debugging purposes.",
+        {
+          _context,
+          _comment:
+            "This is a basecamp recipe or other utility recipe that isn't directly usable by the player.",
+        },
+      )}
+    </section>
+  {/if}
   <dl>
     {#if showResult && recipe.result}
       <dt>{t("Result", { _context })}</dt>

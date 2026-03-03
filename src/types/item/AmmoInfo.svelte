@@ -35,7 +35,7 @@ function normalizeDamageUnits(damage: AmmoSlot["damage"]): DamageUnit[] {
 }
 
 // TODO: handle multiple damage type
-const damage = normalizeDamageUnits(item.damage)[0] ?? DEFAULT_DAMAGE;
+let damage = $derived(normalizeDamageUnits(item.damage)[0] ?? DEFAULT_DAMAGE);
 
 function computeLoudness(item: AmmoSlot): number {
   // https://github.com/cataclysmbnteam/Cataclysm-BN/blob/1d32ac54067ac6dd004189d95aa5039f9ab1fc54/src/item_factory.cpp#L290

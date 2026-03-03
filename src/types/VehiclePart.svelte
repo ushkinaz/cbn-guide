@@ -52,31 +52,34 @@ function bonusLabel(item: VehiclePart) {
 
 const data = getContext<CBNData>("data");
 
-const breaksIntoGroup: ItemGroupData | null =
+let breaksIntoGroup = $derived.by((): ItemGroupData | null =>
   typeof item.breaks_into === "string"
     ? data.convertTopLevelItemGroup(data.byId("item_group", item.breaks_into))
     : Array.isArray(item.breaks_into)
       ? { subtype: "collection", entries: item.breaks_into }
       : item.breaks_into
         ? item.breaks_into
-        : null;
-const breaksIntoGroupFlattened =
-  breaksIntoGroup && data.flattenItemGroup(breaksIntoGroup);
-
-const vehiclesContainingPart = data
-  .byType("vehicle")
-  .filter(
-    (v) =>
-      v.id &&
-      normalizeVehicleMountedParts(v).some((mountedPart) =>
-        mountedPart.parts.some(
-          (p) => getVehiclePartIdAndVariant(data, p.part)[0] === item.id,
-        ),
-      ),
-  );
-vehiclesContainingPart.sort((a, b) =>
-  singularName(a).localeCompare(singularName(b)),
+        : null,
 );
+let breaksIntoGroupFlattened = $derived.by(
+  () => breaksIntoGroup && data.flattenItemGroup(breaksIntoGroup),
+);
+
+let vehiclesContainingPart = $derived.by(() => {
+  const vehicles = data
+    .byType("vehicle")
+    .filter(
+      (v) =>
+        v.id &&
+        normalizeVehicleMountedParts(v).some((mountedPart) =>
+          mountedPart.parts.some(
+            (p) => getVehiclePartIdAndVariant(data, p.part)[0] === item.id,
+          ),
+        ),
+    );
+  vehicles.sort((a, b) => singularName(a).localeCompare(singularName(b)));
+  return vehicles;
+});
 </script>
 
 <h1><ItemLink type="vehicle_part" id={item.id} link={false} /></h1>

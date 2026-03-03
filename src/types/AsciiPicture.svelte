@@ -7,38 +7,45 @@ interface Props {
 
 let { picture }: Props = $props();
 
-let color = ["white"];
-const parsed: { string: string; color: string }[][] = [];
-for (const line of picture.picture) {
-  const spans: { string: string; color: string }[] = [];
-  let remaining = line;
-  while (true) {
-    const nextColorTag = remaining.match(/<\/?color([^>]*?)>/);
-    if (nextColorTag && nextColorTag.index != null) {
-      if (nextColorTag.index > 0)
-        spans.push({
-          string: remaining.substring(0, nextColorTag.index),
-          color: color[0],
-        });
-      if (nextColorTag[0][1] === "/" && color.length > 1) {
-        color.shift();
-      } else {
-        color.unshift(nextColorTag[1].substring(1));
-      }
-      remaining = remaining.substring(
-        nextColorTag.index + nextColorTag[0].length,
-      );
-    } else break;
+function parseAsciiPicture(
+  source: AsciiArt,
+): { string: string; color: string }[][] {
+  const color = ["white"];
+  const parsed: { string: string; color: string }[][] = [];
+  for (const line of source.picture) {
+    const spans: { string: string; color: string }[] = [];
+    let remaining = line;
+    while (true) {
+      const nextColorTag = remaining.match(/<\/?color([^>]*?)>/);
+      if (nextColorTag && nextColorTag.index != null) {
+        if (nextColorTag.index > 0)
+          spans.push({
+            string: remaining.substring(0, nextColorTag.index),
+            color: color[0],
+          });
+        if (nextColorTag[0][1] === "/" && color.length > 1) {
+          color.shift();
+        } else {
+          color.unshift(nextColorTag[1].substring(1));
+        }
+        remaining = remaining.substring(
+          nextColorTag.index + nextColorTag[0].length,
+        );
+      } else break;
+    }
+    if (remaining.length) {
+      spans.push({ string: remaining, color: color[0] });
+    }
+    const remainingWidth = 41 - spans.reduce((m, s) => m + s.string.length, 0);
+    if (remainingWidth > 0) {
+      spans.push({ string: " ".repeat(remainingWidth), color: color[0] });
+    }
+    parsed.push(spans);
   }
-  if (remaining.length) {
-    spans.push({ string: remaining, color: color[0] });
-  }
-  const remainingWidth = 41 - spans.reduce((m, s) => m + s.string.length, 0);
-  if (remainingWidth > 0) {
-    spans.push({ string: " ".repeat(remainingWidth), color: color[0] });
-  }
-  parsed.push(spans);
+  return parsed;
 }
+
+let parsed = $derived(parseAsciiPicture(picture));
 </script>
 
 <pre style="font-family: UnifontSubset, monospace; line-height: 1">

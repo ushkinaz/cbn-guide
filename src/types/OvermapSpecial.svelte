@@ -22,20 +22,24 @@ interface Props {
 }
 
 let { item }: Props = $props();
-const mevels =
-  item.subtype === "mutable"
-    ? [0]
-    : (item.overmaps?.map((om) => om.point[2]) ?? [0]);
-const minLevel = Math.min(...mevels);
-const maxLevel = Math.max(...mevels);
-const levels = Array.from(
-  { length: maxLevel - minLevel + 1 },
-  (_, i) => i + minLevel,
-);
+let levels = $derived.by(() => {
+  const mevels =
+    item.subtype === "mutable"
+      ? [0]
+      : (item.overmaps?.map((om) => om.point[2]) ?? [0]);
+  const minLevel = Math.min(...mevels);
+  const maxLevel = Math.max(...mevels);
+  return Array.from(
+    { length: maxLevel - minLevel + 1 },
+    (_, i) => i + minLevel,
+  );
+});
 
-const lookalikeIds = (
-  getOMSByAppearance(data).get(overmapAppearance(data, item)) ?? []
-).sort((a, b) => a.localeCompare(b));
+let lookalikeIds = $derived.by(() =>
+  [...(getOMSByAppearance(data).get(overmapAppearance(data, item)) ?? [])].sort(
+    (a, b) => a.localeCompare(b),
+  ),
+);
 
 const _context = "Overmap Special";
 

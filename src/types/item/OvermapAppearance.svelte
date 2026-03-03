@@ -1,6 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
-
 import { getContext } from "svelte";
 import { CBNData, singular } from "../../data";
 import type { OvermapSpecial } from "../../types";
@@ -19,18 +17,14 @@ let overmaps = $derived([
     ? (overmapSpecial.overmaps ?? [])
     : []),
 ]);
-let minX = $state(Infinity),
-  minY = $state(Infinity);
-let maxX = $state(-Infinity),
-  maxY = $state(-Infinity);
-let overmapsByPoint = $state<Map<string, (typeof overmaps)[0]>>(new Map());
+type OvermapEntry = (typeof overmaps)[number];
 
-run(() => {
-  minX = Infinity;
-  minY = Infinity;
-  maxX = -Infinity;
-  maxY = -Infinity;
-  overmapsByPoint = new Map();
+let overmapLayout = $derived.by(() => {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let overmapsByPoint = new Map<string, OvermapEntry>();
 
   for (const om of overmaps) {
     const [x, y, z] = om.point;
@@ -42,9 +36,12 @@ run(() => {
       overmapsByPoint.set(`${x}|${y}|${z}`, om);
     }
   }
+
+  return { minX, minY, maxX, maxY, overmapsByPoint };
 });
 
 function makeAppearanceGrid(z: number) {
+  const { minX, minY, maxX, maxY, overmapsByPoint } = overmapLayout;
   const appearanceGrid: { sym?: string; color: string; name: string }[][] = [];
   for (let y = minY; y <= maxY; y++) {
     const appearanceRow: { sym?: string; color: string; name: string }[] = [];

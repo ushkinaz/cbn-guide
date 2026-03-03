@@ -19,7 +19,9 @@ interface Props {
 
 let { item }: Props = $props();
 
-let techniques = (item.techniques ?? []).map((t) => data.byId("technique", t));
+let techniques = $derived(
+  (item.techniques ?? []).map((t) => data.byId("technique", t)),
+);
 
 const gripVal = { bad: 0, none: 1, solid: 2, weapon: 3 };
 const lengthVal = { hand: 0, short: 1, long: 2 };
@@ -54,10 +56,11 @@ const computeToHit = ({
   return acc_offset + g + l + s + b;
 };
 
-const to_hit: number =
+let to_hit: number = $derived(
   typeof item.to_hit === "object"
     ? computeToHit(item.to_hit)
-    : (item.to_hit ?? 0);
+    : (item.to_hit ?? 0),
+);
 
 function attackTime(item: Item) {
   return Math.floor(
@@ -67,8 +70,9 @@ function attackTime(item: Item) {
   );
 }
 
-const piercing =
-  (item.flags ?? []).includes("SPEAR") || (item.flags ?? []).includes("STAB");
+let piercing = $derived(
+  (item.flags ?? []).includes("SPEAR") || (item.flags ?? []).includes("STAB"),
+);
 </script>
 
 {#if item.bashing || item.cutting}

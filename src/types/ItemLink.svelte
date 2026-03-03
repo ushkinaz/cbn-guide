@@ -1,6 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
-
 import { getContext } from "svelte";
 import {
   CBNData,
@@ -85,11 +83,11 @@ function isSymbolItem(value: any): value is ItemSymbolItem {
 const data = getContext<CBNData>("data");
 
 let item = $derived(data.byIdMaybe(type, id));
-let linkItem: typeof item = $state();
-run(() => {
-  linkItem = item;
-  if (linkItem?.type === "vehicle_part" && !linkItem.name && linkItem.item)
-    linkItem = data.byId("item", linkItem.item);
+let linkItem = $derived.by(() => {
+  if (item?.type === "vehicle_part" && !item.name && item.item) {
+    return data.byId("item", item.item);
+  }
+  return item;
 });
 
 // For overmap_special, use the roadmap item's icon instead of the overmap_special's own symbol

@@ -22,31 +22,33 @@ function isStrings<T>(array: string[] | T[]): array is string[] {
   return typeof array[0] === "string";
 }
 
-const normalizedMaterial =
+let normalizedMaterial = $derived.by(() =>
   item.material == null
     ? []
     : typeof item.material === "string"
       ? [{ type: item.material, portion: 1 }]
       : isStrings(item.material)
         ? item.material.map((s) => ({ type: s, portion: 1 }))
-        : item.material;
+        : item.material,
+);
 
-let materials = normalizedMaterial.map((m) => ({
-  material: data.byId("material", m.type),
-  portion: m.portion,
-}));
-const totalMaterialPortion = materials.reduce(
-  (m, o) => m + (o.portion ?? 1),
-  0,
+let materials = $derived.by(() =>
+  normalizedMaterial.map((m) => ({
+    material: data.byId("material", m.type),
+    portion: m.portion,
+  })),
+);
+let totalMaterialPortion = $derived(
+  materials.reduce((m, o) => m + (o.portion ?? 1), 0),
 );
 
 /**
  * Contains all armor parts from all sources
  */
-const armor: ArmorPortionData[] = [
+let armor: ArmorPortionData[] = $derived.by(() => [
   ...(item.armor_portion_data ?? []),
   ...(Array.isArray(item.covers) ? [item] : []),
-];
+]);
 
 /**
  * Needed for correct mapping.
@@ -76,14 +78,17 @@ const bodyPartsMapping: Map<CoveredPart, Coverage> = new Map([
   ["legs", { alias: "legs", either: false, parts: ["leg_l", "leg_r"] }],
 ]);
 
-const { expandedCoverage, allParts } = calculateMergedCoverage();
+let mergedCoverage = $derived.by(() => calculateMergedCoverage(armor));
+let expandedCoverage = $derived(mergedCoverage.expandedCoverage);
+let allParts = $derived(mergedCoverage.allParts);
 
 function covers(bodyPart: CoveredPart): boolean {
   return allParts.has(bodyPart);
 }
 
-let covers_anything =
-  (item.covers ?? []).length || (item.armor_portion_data ?? []).length;
+let covers_anything = $derived(
+  (item.covers ?? []).length || (item.armor_portion_data ?? []).length,
+);
 
 type Coverage = {
   /**
@@ -97,14 +102,14 @@ type Coverage = {
   parts: CoveredPart[];
 };
 
-function calculateMergedCoverage(): {
+function calculateMergedCoverage(armorPortions: ArmorPortionData[]): {
   expandedCoverage: Coverage[];
   allParts: Set<CoveredPart>;
 } {
   const coversExpanded: Coverage[] = [];
   let coversMerged = new Set<CoveredPart>();
 
-  for (const armorPortion of armor) {
+  for (const armorPortion of armorPortions) {
     for (const coveredPart of armorPortion.covers ?? []) {
       const { expandedCoverage: parts, allParts: mergedParts } =
         expandCoverage(coveredPart);

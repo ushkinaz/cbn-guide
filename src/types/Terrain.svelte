@@ -20,34 +20,41 @@ interface Props {
 
 let { item }: Props = $props();
 
-const deconstruct = item.deconstruct?.items
-  ? data.flattenItemGroup({
-      subtype: "collection",
-      entries:
-        typeof item.deconstruct.items === "string"
-          ? [{ group: item.deconstruct.items }]
-          : item.deconstruct.items,
-    })
-  : [];
+let deconstruct = $derived.by(() =>
+  item.deconstruct?.items
+    ? data.flattenItemGroup({
+        subtype: "collection",
+        entries:
+          typeof item.deconstruct.items === "string"
+            ? [{ group: item.deconstruct.items }]
+            : item.deconstruct.items,
+      })
+    : [],
+);
 
-const bash = item.bash?.items
-  ? data.flattenItemGroup({
-      subtype: "collection",
-      entries:
-        typeof item.bash.items === "string"
-          ? [{ group: item.bash.items }]
-          : item.bash.items,
-    })
-  : [];
+let bash = $derived.by(() =>
+  item.bash?.items
+    ? data.flattenItemGroup({
+        subtype: "collection",
+        entries:
+          typeof item.bash.items === "string"
+            ? [{ group: item.bash.items }]
+            : item.bash.items,
+      })
+    : [],
+);
 
-const bits = [
-  [t("Deconstruct", { _context }), deconstruct],
-  [t("Bash", { _context }), bash],
-] as const;
+let bits = $derived.by(
+  () =>
+    [
+      [t("Deconstruct", { _context }), deconstruct],
+      [t("Bash", { _context }), bash],
+    ] as const,
+);
 
-const constructions = data
-  .byType("construction")
-  .filter((c) => c.post_terrain === item.id);
+let constructions = $derived.by(() =>
+  data.byType("construction").filter((c) => c.post_terrain === item.id),
+);
 </script>
 
 <h1><ItemLink type="terrain" id={item.id} link={false} /></h1>

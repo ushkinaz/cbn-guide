@@ -1,6 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
-
 import { type CBNData, loadProgress, mapType, plural } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial } from "./types";
@@ -13,13 +11,18 @@ import {
 } from "./types/item/spawnLocations";
 import { type SearchResult, searchResults } from "./search";
 import Loading from "./Loading.svelte";
+import { createLiveContextProxy } from "./contextProxy";
 
 interface Props {
   data: CBNData;
   search: string;
 }
 
-let { data, search }: Props = $props();
+let { data: dataProp, search: searchProp }: Props = $props();
+let data = $derived(dataProp);
+let search = $derived(searchProp);
+const dataContext = createLiveContextProxy(() => dataProp);
+setContext("data", dataContext);
 
 //TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(...)) section heading below with literal branches.
 
@@ -41,9 +44,6 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   }
   return ret;
 }
-run(() => {
-  setContext("data", data);
-});
 let matchingObjectsList = $derived(
   $searchResults ? [...$searchResults.entries()] : null,
 );

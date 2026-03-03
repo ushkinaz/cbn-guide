@@ -15,16 +15,18 @@ let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Achievement";
 
-const unlocks = data
-  .byType("achievement")
-  .filter(
-    (x) => x.id !== item.id && [x.hidden_by ?? []].flat().includes(item.id),
-  );
+let unlocks = $derived.by(() =>
+  data
+    .byType("achievement")
+    .filter(
+      (x) => x.id !== item.id && [x.hidden_by ?? []].flat().includes(item.id),
+    ),
+);
 
 //Some achievements are hidden by themselves
-const hiddenBy = item.hidden_by
-  ? [item.hidden_by].flat().filter((x) => x !== item.id)
-  : [];
+let hiddenBy = $derived.by(() =>
+  item.hidden_by ? [item.hidden_by].flat().filter((x) => x !== item.id) : [],
+);
 </script>
 
 <h1>

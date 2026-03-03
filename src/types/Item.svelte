@@ -61,107 +61,133 @@ interface Props {
 let { item }: Props = $props();
 let data: CBNData = getContext("data");
 
-const weaponCategories = asArray(item.weapon_category);
+let weaponCategories = $derived(asArray(item.weapon_category));
 
 const _context = "Item Basic Info";
 
-let qualities = (item.qualities ?? []).map(([id, level]) => ({
-  quality: data.byId("tool_quality", id),
-  level,
-}));
+let qualities = $derived.by(() =>
+  (item.qualities ?? []).map(([id, level]) => ({
+    quality: data.byId("tool_quality", id),
+    level,
+  })),
+);
 
 function isStrings<T>(array: string[] | T[]): array is string[] {
   return typeof array[0] === "string";
 }
-const materials =
+let materials = $derived.by(() =>
   item.material == null
     ? []
     : typeof item.material === "string"
       ? [{ type: item.material, portion: 1 }]
       : isStrings(item.material)
         ? item.material.map((s) => ({ type: s, portion: 1 }))
-        : item.material.map((s) => ({ type: s.type, portion: s.portion ?? 1 }));
-const totalMaterialPortion = materials.reduce((m, o) => m + o.portion, 0);
-const primaryMaterial = materials.reduce(
-  (m, o) => (!m || o.portion > m.portion ? o : m),
-  null as { type: string; portion: number } | null,
+        : item.material.map((s) => ({ type: s.type, portion: s.portion ?? 1 })),
 );
-let flags = [item.flags ?? []]
-  .flat()
-  .map((id) => data.byIdMaybe("json_flag", id) ?? { id });
-let faults = (item.faults ?? []).map((f) => data.byId("fault", f));
+let totalMaterialPortion = $derived(
+  materials.reduce((m, o) => m + o.portion, 0),
+);
+let primaryMaterial = $derived(
+  materials.reduce(
+    (m, o) => (!m || o.portion > m.portion ? o : m),
+    null as { type: string; portion: number } | null,
+  ),
+);
+let flags = $derived.by(() =>
+  [item.flags ?? []]
+    .flat()
+    .map((id) => data.byIdMaybe("json_flag", id) ?? { id }),
+);
+let faults = $derived.by(() =>
+  (item.faults ?? []).map((f) => data.byId("fault", f)),
+);
 
-const uncraftRecipe = data.uncraftRecipe(item.id);
-const uncraft = uncraftRecipe
-  ? (() => {
-      const { components, qualities, tools } =
-        data.normalizeRequirementsForDisassembly(uncraftRecipe);
-      const defaultComponents = components.map((c) => c[0]);
-      return { components: defaultComponents, qualities, tools };
-    })()
-  : undefined;
-
-const vparts = data
-  .byType("vehicle_part")
-  .filter((vp) => vp.id && vp.item === item.id);
-
-const usage: UseFunction[] = normalizeUseAction(item.use_action).map((s) => {
-  if (s.type === "repair_item") {
-    return { type: (s as any).item_action_type };
+let uncraftRecipe = $derived(data.uncraftRecipe(item.id));
+let uncraft = $derived.by(() => {
+  if (!uncraftRecipe) {
+    return undefined;
   }
-  return s;
+  const { components, qualities, tools } =
+    data.normalizeRequirementsForDisassembly(uncraftRecipe);
+  const defaultComponents = components.map((c) => c[0]);
+  return { components: defaultComponents, qualities, tools };
 });
 
-const ascii_picture =
-  item.ascii_picture && data.byIdMaybe("ascii_art", item.ascii_picture);
+let vparts = $derived.by(() =>
+  data.byType("vehicle_part").filter((vp) => vp.id && vp.item === item.id),
+);
+
+let usage: UseFunction[] = $derived.by(() =>
+  normalizeUseAction(item.use_action).map((s) => {
+    if (s.type === "repair_item") {
+      return { type: (s as any).item_action_type };
+    }
+    return s;
+  }),
+);
+
+let ascii_picture = $derived(
+  item.ascii_picture && data.byIdMaybe("ascii_art", item.ascii_picture),
+);
 
 const byName = (a: any, b: any) =>
   singularName(a).localeCompare(singularName(b));
 // TODO: eventually vehicle_parts will probably switch to using materials for fuel_options
-const fuelForVPs = data
-  .byType("vehicle_part")
-  .filter(
-    (vp) =>
-      vp.id && (vp.fuel_options?.includes(item.id) || vp.fuel_type === item.id),
-  );
-const fuelForBionics = primaryMaterial?.type
-  ? data
-      .byType("bionic")
-      .filter((b) => b.id && b.fuel_options?.includes(primaryMaterial?.type))
-  : [];
-const fuelForItems = (fuelForVPs.sort(byName) as SupportedTypeMapped[]).concat(
-  fuelForBionics.sort(byName),
+let fuelForVPs = $derived.by(() =>
+  data
+    .byType("vehicle_part")
+    .filter(
+      (vp) =>
+        vp.id &&
+        (vp.fuel_options?.includes(item.id) || vp.fuel_type === item.id),
+    ),
+);
+let fuelForBionics = $derived.by(() =>
+  primaryMaterial?.type
+    ? data
+        .byType("bionic")
+        .filter((b) => b.id && b.fuel_options?.includes(primaryMaterial?.type))
+    : [],
+);
+let fuelForItems = $derived.by(() =>
+  (fuelForVPs.slice().sort(byName) as SupportedTypeMapped[]).concat(
+    fuelForBionics.slice().sort(byName),
+  ),
 );
 
-const usedToRepair = data.byType("fault").filter((f) => {
-  const mendingMethods = (f.mending_methods ?? []).map((mm) => {
-    const requirements: [RequirementData, number][] =
-      typeof mm.requirements === "string"
-        ? [[data.byId("requirement", mm.requirements), 1]]
-        : Array.isArray(mm.requirements)
-          ? mm.requirements.map(
-              ([id, num]) =>
-                [data.byId("requirement", id), num] as [
-                  RequirementData,
-                  number,
-                ],
-            )
-          : [[mm.requirements, 1]];
-    const requirement = data.normalizeRequirementUsing(requirements);
-    const components = data.flattenRequirement(
-      requirement.components,
-      (r) => r.components,
+let usedToRepair = $derived.by(() =>
+  data.byType("fault").filter((f) => {
+    const mendingMethods = (f.mending_methods ?? []).map((mm) => {
+      const requirements: [RequirementData, number][] =
+        typeof mm.requirements === "string"
+          ? [[data.byId("requirement", mm.requirements), 1]]
+          : Array.isArray(mm.requirements)
+            ? mm.requirements.map(
+                ([id, num]) =>
+                  [data.byId("requirement", id), num] as [
+                    RequirementData,
+                    number,
+                  ],
+              )
+            : [[mm.requirements, 1]];
+      const requirement = data.normalizeRequirementUsing(requirements);
+      const components = data.flattenRequirement(
+        requirement.components,
+        (r) => r.components,
+      );
+      return { mending_method: mm, components, requirement };
+    });
+    return mendingMethods.some((mm) =>
+      mm.components.some((c) => c.some((i) => i.id === item.id)),
     );
-    return { mending_method: mm, components, requirement };
-  });
-  return mendingMethods.some((mm) =>
-    mm.components.some((c) => c.some((i) => i.id === item.id)),
-  );
-});
+  }),
+);
 
-const grantedByMutation = data
-  .byType("mutation")
-  .filter((m) => m.id && m.integrated_armor?.some((x) => x === item.id));
+let grantedByMutation = $derived.by(() =>
+  data
+    .byType("mutation")
+    .filter((m) => m.id && m.integrated_armor?.some((x) => x === item.id)),
+);
 
 function normalizeStackVolume(item: Item): (string | number) | undefined {
   if (item.type === "AMMO" && item.ammo_type !== "components") {

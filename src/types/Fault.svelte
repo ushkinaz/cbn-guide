@@ -16,23 +16,28 @@ interface Props {
 
 let { item }: Props = $props();
 
-const mendingMethods = (item.mending_methods ?? []).map((mm) => {
-  const requirements: [RequirementData, number][] =
-    typeof mm.requirements === "string"
-      ? [[data.byId("requirement", mm.requirements), 1]]
-      : Array.isArray(mm.requirements)
-        ? mm.requirements.map(
-            ([id, num]) =>
-              [data.byId("requirement", id), num] as [RequirementData, number],
-          )
-        : [[mm.requirements, 1]];
-  const requirement = data.normalizeRequirementUsing(requirements);
-  const components = data.flattenRequirement(
-    requirement.components,
-    (r) => r.components,
-  );
-  return { mending_method: mm, components, requirement };
-});
+let mendingMethods = $derived.by(() =>
+  (item.mending_methods ?? []).map((mm) => {
+    const requirements: [RequirementData, number][] =
+      typeof mm.requirements === "string"
+        ? [[data.byId("requirement", mm.requirements), 1]]
+        : Array.isArray(mm.requirements)
+          ? mm.requirements.map(
+              ([id, num]) =>
+                [data.byId("requirement", id), num] as [
+                  RequirementData,
+                  number,
+                ],
+            )
+          : [[mm.requirements, 1]];
+    const requirement = data.normalizeRequirementUsing(requirements);
+    const components = data.flattenRequirement(
+      requirement.components,
+      (r) => r.components,
+    );
+    return { mending_method: mm, components, requirement };
+  }),
+);
 </script>
 
 <h1>{t("Fault")}: {singularName(item)}</h1>

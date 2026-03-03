@@ -8,7 +8,7 @@ interface Props {
 
 let { mutation, children }: Props = $props();
 
-let displayColor =
+let displayColor = $derived(
   mutation.threshold || mutation.profession
     ? "white"
     : mutation.mixed_effect
@@ -17,7 +17,8 @@ let displayColor =
         ? "light_green"
         : (mutation.points ?? 0) < 0
           ? "light_red"
-          : "yellow";
+          : "yellow",
+);
 </script>
 
 <span style={`color: var(--cata-color-${displayColor})`}

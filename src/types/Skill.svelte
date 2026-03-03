@@ -17,74 +17,88 @@ let { item }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
-const booksWithSkill = data
-  .byType("item")
-  .filter((t) => t.id && t.type === "BOOK" && t.skill === item.id)
-  .sort((a, b) =>
-    singularName(a).localeCompare(singularName(b)),
-  ) as SupportedTypesWithMapped["BOOK"][];
-
-const booksByLevel = new Map<number, SupportedTypesWithMapped["BOOK"][]>();
-for (const book of booksWithSkill) {
-  if (!booksByLevel.has(book.max_level ?? 0))
-    booksByLevel.set(book.max_level ?? 0, []);
-  booksByLevel.get(book.max_level ?? 0)!.push(book);
-}
-const booksByLevelList = [...booksByLevel.entries()].sort(
-  (a, b) => a[0] - b[0],
+let booksWithSkill = $derived.by(
+  () =>
+    data
+      .byType("item")
+      .filter((t) => t.id && t.type === "BOOK" && t.skill === item.id)
+      .sort((a, b) =>
+        singularName(a).localeCompare(singularName(b)),
+      ) as SupportedTypesWithMapped["BOOK"][],
 );
-booksByLevelList.forEach(([, books]) => {
-  books.sort((a, b) => (a.required_level ?? 0) - (b.required_level ?? 0));
-});
 
-const itemsUsingSkill = data
-  .byType("item")
-  .filter(
-    (i) => i.id && i.type === "GUN" && i.skill === item.id,
-  ) as SupportedTypesWithMapped["GUN"][];
-itemsUsingSkill.sort(byName);
-
-const itemsTrainingSkill = data.byType("item").filter((i) => {
-  if (!i.use_action) return false;
-  const actions = asArray(i.use_action);
-  if (!i.id) return false; //Abstract entity
-  return actions.some((a) => {
-    if (typeof a !== "object" || Array.isArray(a)) return false;
-    return (
-      a.type === "train_skill" &&
-      a.training_skill === item.id &&
-      (a.training_skill_max_level ?? 0) > 0
-    );
+let booksByLevelList = $derived.by(() => {
+  const booksByLevel = new Map<number, SupportedTypesWithMapped["BOOK"][]>();
+  for (const book of booksWithSkill) {
+    if (!booksByLevel.has(book.max_level ?? 0))
+      booksByLevel.set(book.max_level ?? 0, []);
+    booksByLevel.get(book.max_level ?? 0)!.push(book);
+  }
+  const booksByLevelListValue = [...booksByLevel.entries()].sort(
+    (a, b) => a[0] - b[0],
+  );
+  booksByLevelListValue.forEach(([, books]) => {
+    books.sort((a, b) => (a.required_level ?? 0) - (b.required_level ?? 0));
   });
+  return booksByLevelListValue;
 });
 
-const itemsTrainingSkillByLevel = new Map<number, typeof itemsTrainingSkill>();
-for (const i of itemsTrainingSkill) {
-  let maxLevel = 0;
-  const actions = asArray(i.use_action);
-  for (const a of actions) {
-    if (
-      typeof a === "object" &&
-      !Array.isArray(a) &&
-      a.type === "train_skill" &&
-      a.training_skill === item.id
-    ) {
-      maxLevel = Math.max(maxLevel, a.training_skill_max_level ?? 0);
+let itemsUsingSkill = $derived.by(
+  () =>
+    data
+      .byType("item")
+      .filter((i) => i.id && i.type === "GUN" && i.skill === item.id)
+      .sort(byName) as SupportedTypesWithMapped["GUN"][],
+);
+
+let itemsTrainingSkillByLevelList = $derived.by(() => {
+  const itemsTrainingSkill = data.byType("item").filter((i) => {
+    if (!i.use_action) return false;
+    const actions = asArray(i.use_action);
+    if (!i.id) return false; //Abstract entity
+    return actions.some((a) => {
+      if (typeof a !== "object" || Array.isArray(a)) return false;
+      return (
+        a.type === "train_skill" &&
+        a.training_skill === item.id &&
+        (a.training_skill_max_level ?? 0) > 0
+      );
+    });
+  });
+
+  const itemsTrainingSkillByLevel = new Map<
+    number,
+    typeof itemsTrainingSkill
+  >();
+  for (const i of itemsTrainingSkill) {
+    let maxLevel = 0;
+    const actions = asArray(i.use_action);
+    for (const a of actions) {
+      if (
+        typeof a === "object" &&
+        !Array.isArray(a) &&
+        a.type === "train_skill" &&
+        a.training_skill === item.id
+      ) {
+        maxLevel = Math.max(maxLevel, a.training_skill_max_level ?? 0);
+      }
     }
+
+    if (!itemsTrainingSkillByLevel.has(maxLevel)) {
+      itemsTrainingSkillByLevel.set(maxLevel, []);
+    }
+    itemsTrainingSkillByLevel.get(maxLevel)!.push(i);
   }
 
-  if (!itemsTrainingSkillByLevel.has(maxLevel)) {
-    itemsTrainingSkillByLevel.set(maxLevel, []);
-  }
-  itemsTrainingSkillByLevel.get(maxLevel)!.push(i);
-}
+  const itemsTrainingSkillByLevelListValue = [
+    ...itemsTrainingSkillByLevel.entries(),
+  ].sort((a, b) => a[0] - b[0]);
 
-const itemsTrainingSkillByLevelList = [
-  ...itemsTrainingSkillByLevel.entries(),
-].sort((a, b) => a[0] - b[0]);
+  itemsTrainingSkillByLevelListValue.forEach(([, items]) => {
+    items.sort(byName);
+  });
 
-itemsTrainingSkillByLevelList.forEach(([, items]) => {
-  items.sort(byName);
+  return itemsTrainingSkillByLevelListValue;
 });
 </script>
 

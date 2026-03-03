@@ -20,37 +20,47 @@ let { item }: Props = $props();
 let data = getContext<CBNData>("data");
 const _context = "Mutation";
 
-const changesTo = asArray(item.changes_to);
-const cancels = asArray(item.cancels);
+let changesTo = $derived.by(() => asArray(item.changes_to));
+let cancels = $derived.by(() => asArray(item.cancels));
 
-const postThresholdMutations = data
-  .byType("mutation")
-  .filter((m) => asArray(m.threshreq).includes(item.id))
-  .sort(byName);
+let postThresholdMutations = $derived.by(() =>
+  data
+    .byType("mutation")
+    .filter((m) => asArray(m.threshreq).includes(item.id))
+    .sort(byName),
+);
 
-const requiredBy = data
-  .byType("mutation")
-  .filter(
-    (m) =>
-      asArray(m.prereqs).includes(item.id) ||
-      asArray(m.prereqs2).includes(item.id),
-  )
-  .sort(byName);
+let requiredBy = $derived.by(() =>
+  data
+    .byType("mutation")
+    .filter(
+      (m) =>
+        asArray(m.prereqs).includes(item.id) ||
+        asArray(m.prereqs2).includes(item.id),
+    )
+    .sort(byName),
+);
 
-const canceledByMutations = data
-  .byType("mutation")
-  .filter((m) => asArray(m.cancels).includes(item.id))
-  .sort(byName);
+let canceledByMutations = $derived.by(() =>
+  data
+    .byType("mutation")
+    .filter((m) => asArray(m.cancels).includes(item.id))
+    .sort(byName),
+);
 
-const canceledByBionics = data
-  .byType("bionic")
-  .filter((b) => (b.canceled_mutations ?? []).includes(item.id))
-  .sort(byName);
+let canceledByBionics = $derived.by(() =>
+  data
+    .byType("bionic")
+    .filter((b) => (b.canceled_mutations ?? []).includes(item.id))
+    .sort(byName),
+);
 
-const conflictsWithBionics = data
-  .byType("bionic")
-  .filter((b) => (b.mutation_conflicts ?? []).includes(item.id))
-  .sort(byName);
+let conflictsWithBionics = $derived.by(() =>
+  data
+    .byType("bionic")
+    .filter((b) => (b.mutation_conflicts ?? []).includes(item.id))
+    .sort(byName),
+);
 </script>
 
 <h1>

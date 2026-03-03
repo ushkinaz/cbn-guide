@@ -15,7 +15,7 @@ let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
-const item = data.byId("item", item_id);
+let item = $derived(data.byId("item", item_id));
 
 function itemsWithOnlyMaterial(soughtMat: Material): Item[] {
   return data
@@ -28,14 +28,16 @@ function itemsWithOnlyMaterial(soughtMat: Material): Item[] {
     });
 }
 
-const salvagedFromMaterials = data
-  .byType("material")
-  .filter((m) => m.id)
-  .filter((mat) => mat.salvaged_into === item_id)
-  .flatMap((mat) => itemsWithOnlyMaterial(mat))
-  .filter((it) => !(it.flags ?? []).includes("NO_SALVAGE"))
-  .filter((it) => parseMass(it.weight ?? 0) >= parseMass(item.weight ?? 0))
-  .sort(byName);
+let salvagedFromMaterials = $derived.by(() =>
+  data
+    .byType("material")
+    .filter((m) => m.id)
+    .filter((mat) => mat.salvaged_into === item_id)
+    .flatMap((mat) => itemsWithOnlyMaterial(mat))
+    .filter((it) => !(it.flags ?? []).includes("NO_SALVAGE"))
+    .filter((it) => parseMass(it.weight ?? 0) >= parseMass(item.weight ?? 0))
+    .sort(byName),
+);
 </script>
 
 {#if salvagedFromMaterials.length}

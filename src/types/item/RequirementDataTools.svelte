@@ -19,10 +19,13 @@ let { requirement, direction = "craft" }: Props = $props();
 const _context = "Requirement";
 const data = getContext<CBNData>("data");
 
-let { tools, qualities } =
+let normalizedRequirementData = $derived.by(() =>
   direction === "craft"
     ? data.normalizeRequirements(requirement)
-    : data.normalizeRequirementsForDisassembly(requirement);
+    : data.normalizeRequirementsForDisassembly(requirement),
+);
+let tools = $derived(normalizedRequirementData.tools);
+let qualities = $derived(normalizedRequirementData.qualities);
 </script>
 
 {#if qualities?.length || tools.length}

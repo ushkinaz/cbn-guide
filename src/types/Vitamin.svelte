@@ -28,53 +28,56 @@ let { item }: Props = $props();
 const data = getContext<CBNData>("data");
 const _context = "Vitamin";
 
-const containingComestibles = data
-  .byType("item")
-  .filter(
-    (t) =>
-      t.type === "COMESTIBLE" &&
-      t.id &&
-      (t.vitamins ?? []).some((v) => v[0] === item.id),
-  )
-  .map((c) => {
-    const comestible = c as SupportedTypes["COMESTIBLE"];
-    return {
-      comestible: c as Item,
-      pct: comestible.vitamins!.find((v) => v[0] === item.id)![1],
-    };
-  });
-const containingDrugs = data
-  .byType("item")
-  .filter((t) =>
-    normalizeUseAction(t.use_action).some(
-      (u) =>
-        u.type === "consume_drug" &&
-        (u.vitamins ?? []).some((v) => v[0] === item.id),
-    ),
-  )
-  .map((c) => {
-    return {
-      comestible: c as Item,
-      pct: normalizeUseAction(c.use_action)
-        .filter((u) => u.type === "consume_drug")
-        .map((u) => (u as ConsumeDrugUseFunction).vitamins ?? [])
-        .flat()
-        .find((v) => v[0] === item.id)![1],
-    };
-  });
-const containing = containingComestibles.concat(containingDrugs);
-containing.sort((a, b) =>
-  b.pct - a.pct === 0
-    ? singularName(a.comestible).localeCompare(singularName(b.comestible))
-    : b.pct - a.pct,
-);
+let containing = $derived.by(() => {
+  const containingComestibles = data
+    .byType("item")
+    .filter(
+      (t) =>
+        t.type === "COMESTIBLE" &&
+        t.id &&
+        (t.vitamins ?? []).some((v) => v[0] === item.id),
+    )
+    .map((c) => {
+      const comestible = c as SupportedTypes["COMESTIBLE"];
+      return {
+        comestible: c as Item,
+        pct: comestible.vitamins!.find((v) => v[0] === item.id)![1],
+      };
+    });
+  const containingDrugs = data
+    .byType("item")
+    .filter((t) =>
+      normalizeUseAction(t.use_action).some(
+        (u) =>
+          u.type === "consume_drug" &&
+          (u.vitamins ?? []).some((v) => v[0] === item.id),
+      ),
+    )
+    .map((c) => {
+      return {
+        comestible: c as Item,
+        pct: normalizeUseAction(c.use_action)
+          .filter((u) => u.type === "consume_drug")
+          .map((u) => (u as ConsumeDrugUseFunction).vitamins ?? [])
+          .flat()
+          .find((v) => v[0] === item.id)![1],
+      };
+    });
+  const containingValue = containingComestibles.concat(containingDrugs);
+  containingValue.sort((a, b) =>
+    b.pct - a.pct === 0
+      ? singularName(a.comestible).localeCompare(singularName(b.comestible))
+      : b.pct - a.pct,
+  );
+  return containingValue;
+});
 
-const excessNames = item.excess
-  ? (data.byId("effect_type", item.excess).name ?? [])
-  : [];
-const deficiencyNames = item.deficiency
-  ? (data.byId("effect_type", item.deficiency).name ?? [])
-  : [];
+let excessNames = $derived.by(() =>
+  item.excess ? (data.byId("effect_type", item.excess).name ?? []) : [],
+);
+let deficiencyNames = $derived.by(() =>
+  item.deficiency ? (data.byId("effect_type", item.deficiency).name ?? []) : [],
+);
 </script>
 
 <h1>{t("Vitamin")}: {singularName(item)}</h1>

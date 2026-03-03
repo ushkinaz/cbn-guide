@@ -63,14 +63,15 @@ let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 
-const recipes = getRecipeIndex(data)[item_id] ?? [];
-recipes.sort(
-  (a, b) =>
-    ((a.never_learn ?? false) as unknown as number) -
-    ((b.never_learn ?? false) as unknown as number),
+let recipes = $derived.by(() =>
+  [...(getRecipeIndex(data)[item_id] ?? [])].sort(
+    (a, b) =>
+      ((a.never_learn ?? false) as unknown as number) -
+      ((b.never_learn ?? false) as unknown as number),
+  ),
 );
 
-const byproducts = getByproductsIndex(data)[item_id] ?? [];
+let byproducts = $derived(getByproductsIndex(data)[item_id] ?? []);
 </script>
 
 {#if recipes.length}

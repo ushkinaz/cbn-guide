@@ -16,7 +16,6 @@ import Fault from "./types/Fault.svelte";
 import Vitamin from "./types/Vitamin.svelte";
 import VehiclePart from "./types/VehiclePart.svelte";
 import MartialArt from "./types/MartialArt.svelte";
-import ErrorBoundary from "./ErrorBoundary.mjs";
 import Mutation from "./types/Mutation.svelte";
 import MutationCategory from "./types/MutationCategory.svelte";
 import MutationType from "./types/MutationType.svelte";
@@ -36,17 +35,25 @@ import Technique from "./types/Technique.svelte";
 import { metrics } from "./metrics";
 import { nowTimeStamp } from "./utils/perf";
 import { isTesting } from "./utils/env";
+import { createLiveContextProxy } from "./contextProxy";
 
 interface Props {
   item: { id: string; type: string };
   data: CBNData;
 }
 
-let { item, data }: Props = $props();
-setContext("data", data);
+let { item: itemProp, data: dataProp }: Props = $props();
+let item = $derived(itemProp);
+let data = $derived(dataProp);
+const dataContext = createLiveContextProxy(() => dataProp);
+setContext("data", dataContext);
 let error: Error | null = $state(null);
 
-function onError(e: Error) {
+function onError(unknownError: unknown) {
+  const e =
+    unknownError instanceof Error
+      ? unknownError
+      : new Error(String(unknownError));
   error = e;
   metrics.count("app.error.catch", 1, { type: item.type, id: item.id });
   Sentry.captureException(e, {
@@ -80,9 +87,10 @@ onMount(() => {
   );
 });
 
-let obj =
+let obj = $derived(
   data.byIdMaybe(item.type as keyof SupportedTypes, item.id) ??
-  defaultItem(item.id, item.type);
+    defaultItem(item.id, item.type),
+);
 
 const displays: Record<string, Component<any>> = {
   MONSTER: Monster,
@@ -128,7 +136,7 @@ const displays: Record<string, Component<any>> = {
   technique: Technique,
 };
 
-const display = (obj && displays[obj.type]) ?? Unknown;
+let display = $derived((obj && displays[obj.type]) ?? Unknown);
 </script>
 
 {#if !obj}
@@ -154,13 +162,13 @@ const display = (obj && displays[obj.type]) ?? Unknown;
     {@const SvelteComponent_1 = display}
     <SvelteComponent_1 item={obj} />
   {:else}
-    <ErrorBoundary {onError}>
+    <svelte:boundary onerror={onError}>
       {#if /obsolet/.test(obj.__filename)}
         <ObsoletionWarning item={obj} />
       {/if}
       {@const SvelteComponent_2 = display}
       <SvelteComponent_2 item={obj} />
-    </ErrorBoundary>
+    </svelte:boundary>
   {/if}
 
   <JsonView {obj} buildNumber={data.build_number} />
