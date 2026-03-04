@@ -83,27 +83,21 @@ This project uses `vitest` for testing. The tests cover a range of functionality
 
 ### Running Tests
 
-- **Static checks (required before commit)**: `pnpm verify`
-  - Runs formatting checks (`pnpm verify:format`) and type validation (`pnpm verify:types`).
+- **Static checks (required before commit)**: `pnpm lint` and `pnpm check`
+  - Runs formatting checks (`pnpm lint:format`) and type validation (`pnpm check:types`).
 - **Changed-related tests**: `pnpm test:changed`
   - Runs tests related to changed files.
 - **Fast local suite**: `pnpm test:fast`
-  - Runs all tests except expensive render-regression suites (`src/all.*.test.ts`, `src/all-mods.*.test.ts`).
-- **CPU-friendly local suite**: `pnpm test:local`
-  - Same scope as `test:fast` but capped to `--maxWorkers=50%`.
+  - Runs all tests except expensive render-regression suites.
 - **Full regression suite**: `pnpm test:full` (or `pnpm test`)
   - Runs static checks and the full Vitest suite, including render-regression tests.
-- **Run tests with latest nightly data**: `pnpm test:nightly`
-  - Fetches latest fixtures (`pnpm fetch:fixtures:nightly`) and runs the full suite.
-- **Watch mode**: `pnpm test:watch`
-  - Fetches fixtures, runs type checks, and starts Vitest in watch mode.
-- **Type Checking**: `pnpm verify:types`
+- **Type Checking**: `pnpm check:types`
   - Runs `svelte-check` and `tsc` to ensure type safety.
 
 Suggested command matrix:
 
-- Tiny/localized change: `pnpm verify && pnpm test:changed`
-- Normal feature/bugfix: `pnpm verify && pnpm test:fast`
+- Tiny/localized change: `pnpm lint && pnpm test:changed`
+- Normal feature/bugfix: `pnpm lint && pnpm check && pnpm test:fast`
 - Cross-cutting/data-model/routing change: `pnpm test:full`
 
 ### Project Scripts
@@ -112,20 +106,19 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 #### Code Quality
 
-- `pnpm verify`: Run all static checks (formatting & types).
-- `pnpm verify:format`: Check code formatting.
-- `pnpm verify:types`: Run type checking.
-- `pnpm fix:format`: Auto-fix formatting issues.
+- `pnpm lint`: Check code formatting.
+- `pnpm check`: Run type checking.
+- `pnpm lint:format`: Check code formatting.
+- `pnpm check:types`: Run type checking.
+- `pnpm lint:fix`: Auto-fix formatting issues.
 
 #### Testing
 
 - `pnpm test`: Alias for `pnpm test:full`.
 - `pnpm test:full`: Full regression suite (includes expensive render-regression tests).
-- `pnpm test:fast`: Excludes `src/all.*.test.ts` and `src/all-mods.*.test.ts`.
-- `pnpm test:local`: `test:fast` with `--maxWorkers=50%` to reduce CPU pressure.
+- `pnpm test:fast`: Excludes `src/all.*.test.ts` and `src/__mod_tests__/**`.
 - `pnpm test:changed`: Runs tests related to changed files.
-- `pnpm test:nightly`: Full suite against nightly fixtures.
-- `pnpm test:watch`: Watch mode for iterative test development.
+- `pnpm gen:mod-tests`: Generates isolated Vitest files per mod to prevent Out-Of-Memory (OOM) errors during render tests.
 
 #### Data & Assets
 
@@ -166,6 +159,11 @@ Useful options:
   - These are comprehensive integration tests that attempt to render _every_ item of supported types in the game data.
   - They are split into chunks (using `src/testRender.ts`) to parallelize the workload and prevent timeouts.
   - They check for runtime errors during component mounting and look for common data binding issues (like `undefined`, `NaN`, `[object Object]` in the output).
+
+- **`src/__mod_tests__/mod.*.test.ts` (Generated)**
+  - Dynamically generated test files created by `pnpm gen:mod-tests`, representing one file per mod found in `_test/all_mods.json`.
+  - **Why generation is needed:** Game data rendering tests require substantial memory.
+  - **How it works:** By creating individual files (e.g., `mod.aftershock.test.ts`), Vitest is forced to run each mod in an isolated worker process. This strictly caps memory usage as data instances are garbage collected when the isolated worker terminates. These files are gitignored and automatically regenerated whenever `pnpm test:full` runs.
 
 #### Core Data Logic
 

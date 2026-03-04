@@ -1,4 +1,4 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# This workflow will do a clean installation of Node dependencies, build the source code and run tests across different versions of Node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Run Tests
@@ -36,17 +36,21 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
 
-      - name: Fetch Dependencies
+      - name: Install dependencies
         run: pnpm install
 
-      - name: Test
-        #        Run scheduled tests on a latest version of the game, on push - on commited in all.meta.json
+      # Run scheduled tests on the latest version of the game, on push - on commited in all.meta.json
+      - name: Fetch fixtures
         run: |
-          if [ "$GITHUB_EVENT_NAME" != "push" ]; then
-            pnpm test:nightly
+          pnpm fetch:builds
+          if [ "$GITHUB_EVENT_NAME" == "schedule" ]; then
+            pnpm fetch:fixtures:nightly
           else
-            pnpm fetch:fixtures && pnpm fetch:builds && pnpm test
+            pnpm fetch:fixtures
           fi
+
+      - name: Verify & Test
+        run: pnpm test
 
       - name: Build
         env:
