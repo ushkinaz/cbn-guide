@@ -36,7 +36,7 @@ async function main(): Promise<void> {
   const modsJson = JSON.parse(raw) as Record<string, unknown>;
 
   const modIds = Object.keys(modsJson).filter(
-    (id) =>
+    (id: string): boolean =>
       modsJson[id] != null &&
       typeof modsJson[id] === "object" &&
       Array.isArray((modsJson[id] as Record<string, unknown>).data),
@@ -48,12 +48,12 @@ async function main(): Promise<void> {
   const existing = await fs.readdir(outDir);
   await Promise.all(
     existing
-      .filter((f) => f.endsWith(".test.ts"))
-      .map((f) => fs.unlink(path.join(outDir, f))),
+      .filter((f: string): boolean => f.endsWith(".test.ts"))
+      .map((f: string): Promise<void> => fs.unlink(path.join(outDir, f))),
   );
 
   await Promise.all(
-    modIds.map((modId) => {
+    modIds.map((modId: string): Promise<void> => {
       // Escape the modId for safe embedding in a string literal.
       // Mod IDs in CBN are simple ASCII identifiers, but be safe.
       const escaped = JSON.stringify(modId);
@@ -76,7 +76,7 @@ async function main(): Promise<void> {
   );
 }
 
-main().catch((err) => {
+main().catch((err: unknown): void => {
   console.error("gen-mod-tests failed:", err);
   process.exit(1);
 });
