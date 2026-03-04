@@ -83,7 +83,14 @@ function resolveDependencyChain(
   return chain;
 }
 
-export function makeModRenderTests(chunkIdx: number, numChunks: number) {
+/**
+ * Registers render tests for game mods.
+ *
+ * @param modId A mod ID string used by generated per-mod test files in
+ *     `src/__mod_tests__/`. Each file runs in its own Vitest worker so only
+ *     one `CBNData` instance is live at a time, preventing OOM errors.
+ */
+export function makeModRenderTests(modId: string): void {
   vi.setConfig({
     hookTimeout: MOD_HOOK_TIMEOUT_MS,
     testTimeout: MOD_RENDER_TIMEOUT_MS,
@@ -99,7 +106,8 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
   const modEntries = Object.entries(modsJson).filter(
     ([, value]) => value && Array.isArray(value.data),
   );
-  const modSubset = modEntries.filter((_, idx) => idx % numChunks === chunkIdx);
+
+  const modSubset = modEntries.filter(([id]) => id === modId);
 
   const createDataForMod = (modId: string): CBNData => {
     const mergedData = [...(coreJson.data ?? [])];
@@ -152,7 +160,7 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
     const modData = mod.data ?? [];
     const tuples = renderCaseTuplesByMod.get(modId) ?? [];
     let Thing: any;
-    let data: CBNData;
+    let data: CBNData | undefined;
 
     describe(`mod=${modId}`, () => {
       beforeAll(async () => {
@@ -169,6 +177,7 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
       });
       afterAll(() => {
         Thing = undefined;
+        data = undefined;
         // Allow singleton modules to be released before the next mod block.
         vi.resetModules();
       });
@@ -187,14 +196,14 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
 
             try {
               if (typeof typed.id === "string" && typed.id.length > 0) {
-                (data.byIdMaybe as any)(mappedType, typed.id);
+                (data!.byIdMaybe as any)(mappedType, typed.id);
                 continue;
               }
               if (
                 typeof typed.abstract === "string" &&
                 typed.abstract.length > 0
               ) {
-                (data.abstractById as any)(mappedType, typed.abstract);
+                (data!.abstractById as any)(mappedType, typed.abstract);
                 continue;
               }
               if (
@@ -202,7 +211,7 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
                 typeof typed.result === "string" &&
                 typed.result.length > 0
               ) {
-                (data.byIdMaybe as any)(mappedType, typed.result);
+                (data!.byIdMaybe as any)(mappedType, typed.result);
               }
             } catch (error) {
               failures.push(`${index}:${rawType}:${String(error)}`);
@@ -219,7 +228,7 @@ export function makeModRenderTests(chunkIdx: number, numChunks: number) {
           (globalThis as any).__isTesting__ = true;
           const { container } = render(Thing, {
             item: { type: mapType(type as any), id },
-            data,
+            data: data!,
           });
           await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
           expect(screen.queryByTestId("loading-indicator")).toBe(null);

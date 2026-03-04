@@ -30,23 +30,24 @@
 
 ### Code Quality
 
-- `pnpm verify` - Run all checks
-- `pnpm fix:format` - Auto-fix formatting issues
+- `pnpm lint` - Run linters
+- `pnpm check` - Run checks
+- `pnpm lint:fix` - Auto-fix linter issues
 
 ### Testing
 
 Prefer targeted tests first; run full suite only for cross-cutting changes.
 
-- `pnpm verify` - Required before commit
+- `pnpm lint` and `pnpm check` - Required before commit
 - `pnpm test:changed` - Tests related to changed files
 - `pnpm test:fast` - All non-render-regression tests
-- `pnpm verify:types` - TypeScript/Svelte correctness
+- `pnpm check` - TypeScript/Svelte correctness
 - `pnpm vitest run <path/to/test.ts>` - Run single test
 
 Test matrix:
 
-- Tiny/localized change: `pnpm verify && pnpm test:changed`
-- Normal feature/bugfix: `pnpm verify && pnpm test:fast`
+- Tiny/localized change: `pnpm lint && pnpm test:changed`
+- Normal feature/bugfix: `pnpm lint && pnpm check && pnpm test:fast`
 - Cross-cutting/data-model/routing change: `pnpm test:full --maxWorkers=50% --bail 1`
 
 #### Key Test Files
@@ -59,7 +60,7 @@ Test matrix:
 - `pnpm fetch:fixtures:nightly` - Download nightly test data required for tests
 - `pnpm fetch:builds` - Download builds.json index
 
-## Core Architecture104
+## Core Architecture
 
 - Route-Driven Remounting: main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#key}` blocks and destroyed/recreated on every navigation. Do not use `$:` reactive statements for prop changes inside keyed components. 99% of other components are mounted inside keyed patents
 - Global Data: `data` store from `src/data.ts` - write-once per page load
@@ -97,7 +98,7 @@ Test matrix:
 ### Formatting and Commit
 
 - Imports ordering: external packages, internal modules, type-only imports, alphabetically
-- Always auto-format before commit via `pnpm fix:format`
+- Always auto-format before commit via `pnpm lint:fix`
 - Always use "Conventional Commits" format: `<type>(<optional scope>): <description>`. Scopes: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`.
 
 ## Project-Specific Rules
@@ -139,8 +140,8 @@ Test matrix:
 
 1. Review relevant docs/patterns before coding
 2. Implement with tests (or add tests immediately after)
-3. Run targeted checks first; reserve full suite for cross-cutting work
-4. Format (`pnpm fix:format`), verify (`pnpm verify`), then manually check UI changes
+3. Run targeted checks first; reserve a full suite for cross-cutting work
+4. Format (`pnpm lint:fix`), check types (`pnpm check`), then manually check UI changes
 
 ### Debugging Game Data Issues
 
@@ -149,10 +150,10 @@ Test matrix:
 
 ### Fixing Type Errors
 
-1. Run `pnpm verify:types`; fix with type guards/`unknown` (never `any`)
+1. Run `pnpm check:types`; fix with type guards/`unknown` (never `any`)
 
 ## Critical Anti-Patterns
 
 Never add prop-watching `$:` inside `{#key}` blocks  
 Never run `pnpm test:full` by default for tiny/localized changes  
-Never commit without running `pnpm verify`
+Never commit without running `pnpm check` and `pnpm lint`
