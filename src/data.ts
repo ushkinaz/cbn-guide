@@ -680,6 +680,25 @@ export class CBNData {
     }
   }
 
+  hasById<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+    id: string,
+  ): boolean {
+    if (typeof id !== "string") return false;
+    return this._byTypeById.get(type)?.has(id) ?? false;
+  }
+
+  resolveOneById<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+    id: string,
+    key: string,
+  ): unknown {
+    if (typeof id !== "string") return undefined;
+    const obj = this._byTypeById.get(type)?.get(id);
+    if (!obj) return undefined;
+    return this.resolveOne(obj, key);
+  }
+
   /**
    * Retrieves an object by type and ID, resolving inheritance.
    * Throws an error if the object is not found.

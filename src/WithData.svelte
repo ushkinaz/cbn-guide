@@ -1,6 +1,5 @@
 <script lang="ts">
-import { setContext } from "svelte";
-import { createLiveContextProxy } from "./contextProxy";
+import { setContext, untrack } from "svelte";
 
 interface Props {
   Component: any;
@@ -9,7 +8,7 @@ interface Props {
 }
 
 let { Component, data, ...rest }: Props = $props();
-const dataContext = createLiveContextProxy(() => data);
+const dataContext = untrack(() => data);
 
 setContext("data", dataContext);
 </script>

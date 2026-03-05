@@ -46,6 +46,7 @@ const _context = "Overmap Special";
 const layerElements: HTMLElement[] = $state([]);
 
 onMount(() => {
+  const observers: ResizeObserver[] = [];
   layerElements.forEach((el) => {
     // Capture the transformed element's size and adjust its wrapper element to fully contain it.
     // Surely there's a better way to do this.
@@ -59,9 +60,17 @@ onMount(() => {
       el.parentElement!.style.top = `${p.y - y}px`;
     }
     // Resize observer needed to handle font changes during loading.
-    new ResizeObserver(makeFitTight).observe(el);
+    const observer = new ResizeObserver(makeFitTight);
+    observer.observe(el);
+    observers.push(observer);
     makeFitTight();
   });
+
+  return () => {
+    for (const observer of observers) {
+      observer.disconnect();
+    }
+  };
 });
 </script>
 

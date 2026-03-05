@@ -154,11 +154,28 @@ export function makeModRenderTests(modId: string): void {
     renderCaseTuplesByMod.get(modId)!.push([type, id]);
   }
 
+  const renderPriority = (rawType: string): number => {
+    const mappedType = mapType(rawType as any);
+    if (mappedType === "overmap_special") return 0;
+    if (mappedType === "item") return 2;
+    return 1;
+  };
+
   afterEach(cleanup);
 
   for (const [modId, mod] of modSubset) {
     const modData = mod.data ?? [];
-    const tuples = renderCaseTuplesByMod.get(modId) ?? [];
+    const tuples = [...(renderCaseTuplesByMod.get(modId) ?? [])].sort(
+      ([typeA, idA], [typeB, idB]) => {
+        const p = renderPriority(typeA) - renderPriority(typeB);
+        if (p !== 0) return p;
+        const typeCmp = mapType(typeA as any).localeCompare(
+          mapType(typeB as any),
+        );
+        if (typeCmp !== 0) return typeCmp;
+        return idA.localeCompare(idB);
+      },
+    );
     let Thing: any;
     let data: CBNData | undefined;
 
@@ -224,18 +241,21 @@ export function makeModRenderTests(modId: string): void {
         { timeout: MOD_RENDER_TIMEOUT_MS },
         async (type, id) => {
           (globalThis as any).__isTesting__ = true;
-          const { container } = render(Thing, {
+          const { container, unmount } = render(Thing, {
             item: { type: mapType(type as any), id },
             data: data!,
           });
           await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
           expect(screen.queryByTestId("loading-indicator")).toBe(null);
           if (type !== "technique") {
-            expect(
-              container.textContent,
-              `Rendered output for ${modId}:${type}:${id} contains invalid placeholder text.`,
-            ).not.toMatch(/undefined|NaN|object Object/);
+            const renderedText = container.textContent ?? "";
+            if (/undefined|NaN|object Object/.test(renderedText)) {
+              throw new Error(
+                `Rendered output for ${modId}:${type}:${id} contains invalid placeholder text.`,
+              );
+            }
           }
+          unmount();
         },
       );
     });

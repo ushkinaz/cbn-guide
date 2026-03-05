@@ -2,7 +2,7 @@
 import { type CBNData, loadProgress, mapType, plural } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial } from "./types";
-import { setContext } from "svelte";
+import { setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 import LimitedList from "./LimitedList.svelte";
 import {
@@ -11,7 +11,6 @@ import {
 } from "./types/item/spawnLocations";
 import { type SearchResult, searchResults } from "./search";
 import Loading from "./Loading.svelte";
-import { createLiveContextProxy } from "./contextProxy";
 
 interface Props {
   data: CBNData;
@@ -21,7 +20,7 @@ interface Props {
 let { data: dataProp, search: searchProp }: Props = $props();
 let data = $derived(dataProp);
 let search = $derived(searchProp);
-const dataContext = createLiveContextProxy(() => dataProp);
+const dataContext: CBNData = untrack(() => dataProp);
 setContext("data", dataContext);
 
 //TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(...)) section heading below with literal branches.

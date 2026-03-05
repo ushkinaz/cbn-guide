@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { onMount, setContext, type Component } from "svelte";
+import { onMount, setContext, untrack, type Component } from "svelte";
 
 import type { CBNData } from "./data";
 import Monster from "./types/Monster.svelte";
@@ -35,7 +35,6 @@ import Technique from "./types/Technique.svelte";
 import { metrics } from "./metrics";
 import { nowTimeStamp } from "./utils/perf";
 import { isTesting } from "./utils/env";
-import { createLiveContextProxy } from "./contextProxy";
 
 interface Props {
   item: { id: string; type: string };
@@ -45,7 +44,8 @@ interface Props {
 let { item: itemProp, data: dataProp }: Props = $props();
 let item = $derived(itemProp);
 let data = $derived(dataProp);
-const dataContext = createLiveContextProxy(() => dataProp);
+// Route-keyed mounts mean `data` is fixed for this component instance.
+const dataContext: CBNData = untrack(() => dataProp);
 setContext("data", dataContext);
 let error: Error | null = $state(null);
 

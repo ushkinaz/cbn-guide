@@ -92,14 +92,21 @@ function omtAppearance(
   sym: string;
   name: string;
 } {
-  const omt = data.byIdMaybe("overmap_terrain", omt_id);
-  return omt
-    ? {
-        color: omt.color ?? "black",
-        sym: rotateSymbol(omt.sym ?? "\u00a0" /* LINE_XOXO_C */, dir),
-        name: singular(omt.name),
-      }
-    : { color: "black", sym: " ", name: "" };
+  if (!data.hasById("overmap_terrain", omt_id))
+    return { color: "black", sym: " ", name: "" };
+
+  const color = data.resolveOneById("overmap_terrain", omt_id, "color");
+  const sym = data.resolveOneById("overmap_terrain", omt_id, "sym");
+  const name = data.resolveOneById("overmap_terrain", omt_id, "name");
+
+  return {
+    color: typeof color === "string" ? color : "black",
+    sym: rotateSymbol(
+      typeof sym === "string" ? sym : "\u00a0" /* LINE_XOXO_C */,
+      dir,
+    ),
+    name: name ? singular(name as any) : "",
+  };
 }
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { setContext } from "svelte";
+import { setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 
 import { byName, CBNData, singularName, pluralName, plural } from "./data";
@@ -16,7 +16,6 @@ import MutationCategory from "./types/MutationCategory.svelte";
 import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./utils/collections";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
-import { createLiveContextProxy } from "./contextProxy";
 
 interface Props {
   // TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(type)) heading with literal branches.
@@ -28,7 +27,7 @@ let { type: typeProp, data: dataProp }: Props = $props();
 let type = $derived(typeProp);
 let data = $derived(dataProp);
 let typeWithCorrectType = $derived(type as keyof SupportedTypesWithMapped);
-const dataContext = createLiveContextProxy(() => dataProp);
+const dataContext: CBNData = untrack(() => dataProp);
 setContext("data", dataContext);
 
 let things = $derived.by(() =>

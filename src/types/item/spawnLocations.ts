@@ -452,7 +452,7 @@ export function overmapAppearance(
   for (const om of overmaps) {
     if (!om.overmap) continue;
     const omt_id = om.overmap.replace(/_(north|south|east|west)$/, "");
-    if (!data.byIdMaybe("overmap_terrain", omt_id)) continue;
+    if (!data.hasById("overmap_terrain", omt_id)) continue;
     const [x, y, z] = om.point;
     if (z !== 0) continue;
     if (x < minX) minX = x;
@@ -479,10 +479,11 @@ export function overmapAppearance(
   return appearanceComponents.join("\0");
 
   function omtAppearanceString(omt_id: string): string {
-    const omt = data.byId("overmap_terrain", omt_id);
-    return omt
-      ? `${omt.sym}\u0001${omt.color ?? "black"}\u0001${omt.name}`
-      : `appearance_unk`;
+    if (!data.hasById("overmap_terrain", omt_id)) return "appearance_unk";
+    const sym = data.resolveOneById("overmap_terrain", omt_id, "sym");
+    const color = data.resolveOneById("overmap_terrain", omt_id, "color");
+    const name = data.resolveOneById("overmap_terrain", omt_id, "name");
+    return `${String(sym ?? "")}\u0001${String(color ?? "black")}\u0001${String(name ?? "")}`;
   }
 }
 
