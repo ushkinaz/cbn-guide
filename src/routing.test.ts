@@ -10,14 +10,24 @@ import {
   waitFor,
 } from "@testing-library/svelte";
 import { get } from "svelte/store";
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
+import * as fs from "fs";
+import App from "./App.svelte";
+import { dismiss, notifications } from "./Notification.svelte";
+
 vi.hoisted(() => {
   (globalThis as any).__isTesting__ = true;
 });
-import * as fs from "fs";
 
-import App from "./App.svelte";
-import { dismiss, notifications } from "./Notification.svelte";
 // Load test data
 const testData = JSON.parse(
   fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
@@ -77,30 +87,11 @@ const testModsData = {
 describe("Routing E2E Tests", () => {
   vi.setConfig({ testTimeout: 120_000 });
   let originalFetch: typeof global.fetch;
+  let defaultFetchMock: typeof fetch;
   let container: HTMLElement;
 
-  beforeEach(() => {
-    // Mock window.scrollTo for DOM test environments
-    window.scrollTo = vi.fn();
-
-    // Reset DOM location
-    const baseUrl = import.meta.env.BASE_URL || "/";
-    Object.defineProperty(window, "location", {
-      writable: true,
-      value: {
-        href: `http://localhost:3000${baseUrl}stable/`,
-        origin: "http://localhost:3000",
-        pathname: `${baseUrl}stable/`,
-        search: "",
-        toString() {
-          return this.href;
-        },
-      },
-    });
-
-    // Mock fetch
-    originalFetch = global.fetch;
-    global.fetch = vi.fn((input: string | URL | Request) => {
+  function createFetchMock(): typeof fetch {
+    return vi.fn((input: string | URL | Request) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url.includes("builds.json")) {
         return Promise.resolve({
@@ -146,6 +137,34 @@ describe("Routing E2E Tests", () => {
       }
       return Promise.reject(new Error(`Unmocked fetch: ${url}`));
     }) as typeof fetch;
+  }
+
+  beforeAll(() => {
+    originalFetch = global.fetch;
+    defaultFetchMock = createFetchMock();
+    global.fetch = defaultFetchMock;
+  });
+
+  beforeEach(() => {
+    // Mock window.scrollTo for DOM test environments
+    window.scrollTo = vi.fn();
+
+    // Reset DOM location
+    const baseUrl = import.meta.env.BASE_URL || "/";
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: {
+        href: `http://localhost:3000${baseUrl}stable/`,
+        origin: "http://localhost:3000",
+        pathname: `${baseUrl}stable/`,
+        search: "",
+        toString() {
+          return this.href;
+        },
+      },
+    });
+
+    global.fetch = defaultFetchMock;
 
     // Create a container for rendering
     container = document.createElement("div");
@@ -161,8 +180,12 @@ describe("Routing E2E Tests", () => {
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
-    global.fetch = originalFetch;
+    global.fetch = defaultFetchMock;
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    global.fetch = originalFetch;
   });
 
   async function waitForDataLoad(expectedText?: string | RegExp) {
