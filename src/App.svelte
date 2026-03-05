@@ -57,6 +57,7 @@ import { fade } from "svelte/transition";
 import { isTesting, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
+import { onMount } from "svelte";
 
 let scrollY = 0;
 
@@ -459,8 +460,23 @@ function handleNavigation(event: MouseEvent) {
 }
 
 let deferredPrompt: any;
-window.addEventListener("beforeinstallprompt", (e) => {
+const handleAppInstalled = () => metrics.count("app.pwa.install");
+function handleBeforeInstallPrompt(e: Event) {
   deferredPrompt = e;
+}
+onMount(() => {
+  window.addEventListener(
+    "beforeinstallprompt",
+    handleBeforeInstallPrompt as EventListener,
+  );
+  window.addEventListener("appinstalled", handleAppInstalled);
+  return () => {
+    window.removeEventListener(
+      "beforeinstallprompt",
+      handleBeforeInstallPrompt as EventListener,
+    );
+    window.removeEventListener("appinstalled", handleAppInstalled);
+  };
 });
 
 function maybeFocusSearch(e: KeyboardEvent) {
