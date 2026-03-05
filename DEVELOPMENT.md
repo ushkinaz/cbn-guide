@@ -138,6 +138,12 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
   - `t(variableOrExpression)` is not extracted (for example: `t(cat.label)` or `t(plural(type))`).
   - Dynamic keys can still translate at runtime only if that key was extracted elsewhere before.
 
+#### CI / Local Testing
+
+- `scripts/gh-local.sh`: Runs the GitHub Actions CI pipeline locally using [act](https://github.com/nektos/act).
+  - **Purpose**: Simulates the CI environment locally. This helps test workflows before pushing to GitHub, which is especially useful for debugging complex CI issues (like Out-Of-Memory errors).
+  - **Prerequisites**: Requires [Docker](https://www.docker.com/) installed and running, and the [`act` CLI](https://nektosact.com/) installed (e.g., `brew install act` on macOS).
+
 ### Transifex API Workflow (Download -> AI Translate -> Update)
 
 1. Download current translations for a resource: `TRANSIFEX_API_TOKEN='1/...' pnpm i18n:download --out='./tmp/transifex-download`
