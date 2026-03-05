@@ -2414,7 +2414,7 @@ export const normalizeVehicleMountedParts = (
   return ret;
 };
 
-const _itemGroupFromVehicleCache = new Map<Vehicle, ItemGroupData>();
+const _itemGroupFromVehicleCache = new WeakMap<Vehicle, ItemGroupData>();
 export function itemGroupFromVehicle(vehicle: Vehicle): ItemGroupData {
   if (_itemGroupFromVehicleCache.has(vehicle))
     return _itemGroupFromVehicleCache.get(vehicle)!;
