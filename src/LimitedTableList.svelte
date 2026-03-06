@@ -20,10 +20,6 @@ let initialLimit = $derived(
 );
 
 let expanded = $state(false);
-$effect.pre(() => {
-  items;
-  expanded = false;
-});
 let realLimit = $derived(expanded ? Infinity : initialLimit);
 </script>
 
