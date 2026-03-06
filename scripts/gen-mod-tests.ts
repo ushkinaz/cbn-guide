@@ -37,6 +37,7 @@ async function main(): Promise<void> {
 
   const modIds = Object.keys(modsJson).filter(
     (id: string): boolean =>
+      id !== "bn" &&
       modsJson[id] != null &&
       typeof modsJson[id] === "object" &&
       Array.isArray((modsJson[id] as Record<string, unknown>).data),
