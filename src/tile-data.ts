@@ -207,11 +207,33 @@ async function readImageDimensions(
   });
   const blobUrl = URL.createObjectURL(blob);
   const img = new Image();
-  img.src = blobUrl;
   try {
     await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = reject;
+      let settled = false;
+      const timeout = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        img.onload = null;
+        img.onerror = null;
+        reject(new Error(`Timed out decoding tile image: ${fileUrl}`));
+      }, 10_000);
+      img.onload = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        img.onload = null;
+        img.onerror = null;
+        resolve();
+      };
+      img.onerror = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        img.onload = null;
+        img.onerror = null;
+        reject(new Error(`Failed to decode tile image: ${fileUrl}`));
+      };
+      img.src = blobUrl;
     });
     return { width: img.width, height: img.height };
   } finally {
@@ -690,7 +712,8 @@ let requestToken = 0;
 
 export const tileData = {
   subscribe,
-  _setNull() {
+  reset() {
+    requestToken = 0;
     set(null);
   },
   setTileset(data: CBNData | null, tilesetName: string) {
@@ -705,6 +728,7 @@ export const tileData = {
         .then((loaded) => {
           if (token !== requestToken) return;
           set(loaded);
+          return loaded;
         })
         .catch((err) => {
           if (token !== requestToken) return;
@@ -714,6 +738,7 @@ export const tileData = {
             active_mods: data.active_mods ?? [],
           };
           console.warn("Error fetching tiles", { ...extra, error: err });
+          throw err; // Re-throw to propagate the error to the promise chain
         });
       return;
     }
@@ -726,7 +751,7 @@ export const tileData = {
       return;
     }
 
-    this._setNull();
+    tileData.reset();
   },
 };
 

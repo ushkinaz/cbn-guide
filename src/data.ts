@@ -2897,6 +2897,13 @@ export const data = {
     _currentData = instance;
     set(instance);
   },
+  // Test helper: reset singleton store state between app mounts in routing tests.
+  _reset() {
+    _hasSetVersion = false;
+    _currentData = null;
+    _ensureModsLoadedPromise = null;
+    set(null);
+  },
   async ensureModsLoaded() {
     const startData = _currentData;
     if (!startData || startData.mods !== null) return;

@@ -63,6 +63,12 @@ export type UrlConfig = {
 export type InitialAppState = {
   builds: BuildInfo[];
   resolvedVersion: string;
+  /**
+   * True when initializeRouting already triggered location.replace().
+   * App startup must stop in this case to avoid kicking off redundant data loads
+   * while the browser is navigating to the corrected URL.
+   */
+  redirected: boolean;
   latestStableBuild?: BuildInfo;
   latestNightlyBuild?: BuildInfo;
 };
@@ -709,6 +715,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
     return {
       builds,
       resolvedVersion,
+      redirected: true,
       latestStableBuild,
       latestNightlyBuild,
     };
@@ -726,6 +733,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
   return {
     builds,
     resolvedVersion,
+    redirected: false,
     latestStableBuild,
     latestNightlyBuild,
   };

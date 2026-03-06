@@ -162,91 +162,92 @@ let prewarmScheduledFor: CBNData | null = null;
 // Initialize routing and fetch builds
 const appStart = nowTimeStamp();
 const p = mark("app-routing-start");
-initializeRouting()
-  .then((result: InitialAppState) => {
+void initializeRouting()
+  .then(async (result: InitialAppState) => {
     builds = result.builds;
     resolvedVersion = result.resolvedVersion;
     latestStableBuild = result.latestStableBuild;
     latestNightlyBuild = result.latestNightlyBuild;
+    if (result.redirected) {
+      // initializeRouting already called location.replace() for an invalid URL.
+      // Stop startup here so we don't start data loading right before navigation.
+      return;
+    }
     const requestedModsFromUrl = [...$page.route.mods];
 
-    data
-      .setVersion(
+    try {
+      await data.setVersion(
         resolvedVersion,
         localeParam,
         isBranchAlias ? requestedVersion : undefined,
         builds.find((b) => b.build_number === resolvedVersion)?.langs,
         requestedModsFromUrl,
-      )
-      .then(() => {
-        if ($data) {
-          const resolvedMods = $data.active_mods ?? [];
-          if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
-            const removedMods = requestedModsFromUrl.filter(
-              (modId) => !resolvedMods.includes(modId),
-            );
-            updateQueryParamNoReload(
-              "mods",
-              resolvedMods.length > 0 ? resolvedMods.join(",") : null,
-            );
-            if (removedMods.length > 0) {
-              notify(
-                t("Ignored unknown mods from URL: {mods}.", {
-                  mods: removedMods.join(", "),
-                  _context: URL_MODS_CONTEXT,
-                }),
-                "warn",
-              );
-            }
-          }
-        }
+      );
+    } catch (e) {
+      console.error(e);
+      notify(
+        t(
+          "Failed to load data for {version}. Please select a different version from the footer.",
+          { version: resolvedVersion },
+        ),
+        "error",
+      );
+      return;
+    }
 
-        if (
-          $data &&
-          $data.requested_locale !== $data.effective_locale &&
-          $data.requested_locale !== "en"
-        ) {
-          const build_number = $data.build_number;
-          const from = getLanguageName($data.requested_locale);
-          const to = getLanguageName($data.effective_locale);
+    if ($data) {
+      const resolvedMods = $data.active_mods ?? [];
+      if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
+        const removedMods = requestedModsFromUrl.filter(
+          (modId) => !resolvedMods.includes(modId),
+        );
+        updateQueryParamNoReload(
+          "mods",
+          resolvedMods.length > 0 ? resolvedMods.join(",") : null,
+        );
+        if (removedMods.length > 0) {
           notify(
-            t(
-              "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
-              {
-                build_number: build_number,
-                requested_lang: from,
-                resolved_lang: to,
-              },
-            ),
+            t("Ignored unknown mods from URL: {mods}.", {
+              mods: removedMods.join(", "),
+              _context: URL_MODS_CONTEXT,
+            }),
             "warn",
           );
         }
-        metrics.distribution(
-          "data.load.duration_ms",
-          nowTimeStamp() - appStart,
+      }
+    }
+
+    if (
+      $data &&
+      $data.requested_locale !== $data.effective_locale &&
+      $data.requested_locale !== "en"
+    ) {
+      const build_number = $data.build_number;
+      const from = getLanguageName($data.requested_locale);
+      const to = getLanguageName($data.effective_locale);
+      notify(
+        t(
+          "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
           {
-            unit: "millisecond",
+            build_number: build_number,
+            requested_lang: from,
+            resolved_lang: to,
           },
-        );
-      })
-      .catch((e) => {
-        console.error(e);
-        notify(
-          t(
-            "Failed to load data for {version}. Please select a different version from the footer.",
-            { version: resolvedVersion },
-          ),
-          "error",
-        );
-      })
-      .finally(() => {
-        p.finish();
-      });
+        ),
+        "warn",
+      );
+    }
+    metrics.distribution("data.load.duration_ms", nowTimeStamp() - appStart, {
+      unit: "millisecond",
+    });
   })
   .catch((e) => {
     Sentry.captureException(e);
     console.error(e);
     //TODO: Notify user, we failed to load our app.
+  })
+  .finally(() => {
+    p.finish();
   });
 
 const urlConfig = getUrlConfig();
