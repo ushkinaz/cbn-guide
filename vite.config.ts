@@ -247,6 +247,6 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     setupFiles: ["src/test-setup.ts"],
-    execArgv: ["--max-old-space-size=4096"],
+    execArgv: ["--max-old-space-size=3072"],
   },
 });
