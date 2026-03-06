@@ -23,8 +23,6 @@ function toggle() {
     metrics.count("ui.json_view.open", 1, { type: obj.type, id: obj.id });
   }
 }
-
-const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`;
 </script>
 
 <section class="json-view">
@@ -35,7 +33,8 @@ const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__file
     </button>
 
     <div class="actions">
-      {#if obj.__filename}
+      {#if obj?.__filename}
+        {@const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber}/${obj.__filename}`}
         <a href={githubUrl} target="_blank" class="github-link"
           >{t("GitHub", { _context })}</a>
       {/if}
