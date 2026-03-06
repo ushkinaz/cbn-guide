@@ -16,7 +16,6 @@ import Fault from "./types/Fault.svelte";
 import Vitamin from "./types/Vitamin.svelte";
 import VehiclePart from "./types/VehiclePart.svelte";
 import MartialArt from "./types/MartialArt.svelte";
-import ErrorBoundary from "./ErrorBoundary.mjs";
 import Mutation from "./types/Mutation.svelte";
 import MutationCategory from "./types/MutationCategory.svelte";
 import MutationType from "./types/MutationType.svelte";
@@ -154,13 +153,20 @@ const display = (obj && displays[obj.type]) ?? Unknown;
     {@const SvelteComponent_1 = display}
     <SvelteComponent_1 item={obj} />
   {:else}
-    <ErrorBoundary {onError}>
+    <svelte:boundary
+      onerror={(boundaryError: unknown) => {
+        onError(
+          boundaryError instanceof Error
+            ? boundaryError
+            : new Error(String(boundaryError)),
+        );
+      }}>
       {#if /obsolet/.test(obj.__filename)}
         <ObsoletionWarning item={obj} />
       {/if}
       {@const SvelteComponent_2 = display}
       <SvelteComponent_2 item={obj} />
-    </ErrorBoundary>
+    </svelte:boundary>
   {/if}
 
   <JsonView {obj} buildNumber={data.build_number} />

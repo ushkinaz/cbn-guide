@@ -1,5 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
 import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
 import {
@@ -110,21 +109,18 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-let item: { type: string; id: string } | null = $state(null);
+let item: { type: string; id: string } | null = $derived($page.route.item);
 let search: string = $state("");
-run(() => {
-  item = $page.route.item;
-});
 
 // Track URL changes for navigation detection
-let previousUrl: string | undefined = $state(undefined);
-let previousPathname: string | undefined = $state(undefined);
-let previousRouteSearch: string | undefined = $state(undefined);
+let previousUrl: string | undefined = undefined;
+let previousPathname: string | undefined = undefined;
+let previousRouteSearch: string | undefined = undefined;
 
 // Sync search and scroll on URL changes (navigation).
 // IMPORTANT: Only update 'search' if it differs from page store to preserve user input
 // while typing. This prevents the reactive statement from overwriting partial queries.
-run(() => {
+$effect(() => {
   if ($page.url.href !== previousUrl) {
     const currentPathname = $page.url.pathname;
     const currentRouteSearch = $page.route.search;
@@ -161,7 +157,7 @@ const isBranchAlias =
 
 let latestStableBuild: BuildInfo | undefined = $state();
 let latestNightlyBuild: BuildInfo | undefined = $state();
-let prewarmScheduledFor: CBNData | null = $state(null);
+let prewarmScheduledFor: CBNData | null = null;
 
 // Initialize routing and fetch builds
 const appStart = nowTimeStamp();
@@ -311,7 +307,7 @@ let tileset: string = $state(
 );
 
 // React to tileset changes
-run(() => {
+$effect(() => {
   tileData.setTileset($data, tileset);
 });
 
@@ -331,7 +327,7 @@ const defaultMetaDescription = t(
 
 let metaDescription = $state(defaultMetaDescription);
 
-run(() => {
+$effect(() => {
   try {
     if (
       item &&
@@ -375,13 +371,13 @@ run(() => {
   if (metaDescription) setMetaDescription(metaDescription);
 });
 
-run(() => {
+$effect(() => {
   if ($data) {
     syncSearch(search, $data);
   }
 });
 
-run(() => {
+$effect(() => {
   if ($data && $data !== prewarmScheduledFor) {
     prewarmScheduledFor = $data;
     schedulePrewarm($data);

@@ -1,10 +1,8 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
-
 import { type CBNData, loadProgress, mapType, plural } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial } from "./types";
-import { setContext } from "svelte";
+import { setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 import LimitedList from "./LimitedList.svelte";
 import {
@@ -41,9 +39,8 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   }
   return ret;
 }
-run(() => {
-  setContext("data", data);
-});
+const contextData = untrack(() => data);
+setContext("data", contextData);
 let matchingObjectsList = $derived(
   $searchResults ? [...$searchResults.entries()] : null,
 );

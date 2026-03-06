@@ -1,6 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
-
 import { t } from "@transifex/native";
 import { isTesting } from "./utils/env";
 import { metrics } from "./metrics";
@@ -21,7 +19,7 @@ let initialLimit = $derived(
 );
 
 let expanded = $state(false);
-run(() => {
+$effect.pre(() => {
   items;
   expanded = false;
 });

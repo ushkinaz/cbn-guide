@@ -1,6 +1,4 @@
 <script lang="ts">
-import { run } from "svelte/legacy";
-
 import type { Writable } from "svelte/store";
 
 interface Props {
@@ -12,7 +10,7 @@ interface Props {
 let { error, onError = null, children }: Props = $props();
 let ENV = typeof process !== "undefined" && process.env && process.env.NODE_ENV;
 let DEV = ENV !== "production";
-run(() => {
+$effect(() => {
   if ($error && onError) onError($error);
 });
 </script>
