@@ -13,7 +13,7 @@ import * as fs from "fs";
 
 import { CBNData, mapType } from "./data";
 import type { ModInfo } from "./types";
-
+import Thing from "./Thing.svelte";
 import {
   furnitureByOMSAppearance,
   lootByOMSAppearance,
@@ -159,7 +159,6 @@ export function makeModRenderTests(modId: string): void {
   for (const [modId, mod] of modSubset) {
     const modData = mod.data ?? [];
     const tuples = renderCaseTuplesByMod.get(modId) ?? [];
-    let Thing: any;
     let data: CBNData | undefined;
 
     describe(`mod=${modId}`, () => {
@@ -170,16 +169,9 @@ export function makeModRenderTests(modId: string): void {
           furnitureByOMSAppearance(data),
           terrainByOMSAppearance(data),
         ]);
-        // Isolate module-level singleton caches between mods.
-        vi.resetModules();
-        const imported = await import("./Thing.svelte");
-        Thing = imported.default;
       });
       afterAll(() => {
-        Thing = undefined;
         data = undefined;
-        // Allow singleton modules to be released before the next mod block.
-        vi.resetModules();
       });
 
       test(
