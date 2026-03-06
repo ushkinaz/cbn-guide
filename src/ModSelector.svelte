@@ -262,7 +262,7 @@ $effect(() => {
 });
 
 onDestroy(() => {
-  syncBodyClass(false);
+  if (open) syncBodyClass(false);
 });
 </script>
 
