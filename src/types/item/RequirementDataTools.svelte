@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n, singularName } from "../../data";
 import { getVersionedBasePath } from "../../routing";
 
@@ -14,7 +14,12 @@ interface Props {
   direction?: "uncraft" | "craft";
 }
 
-let { requirement, direction = "craft" }: Props = $props();
+let {
+  requirement: sourceRequirement,
+  direction: sourceDirection = "craft",
+}: Props = $props();
+const requirement = untrack(() => sourceRequirement);
+const direction = untrack(() => sourceDirection);
 
 const _context = "Requirement";
 const data = getContext<CBNData>("data");

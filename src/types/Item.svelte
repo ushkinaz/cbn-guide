@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 
 import {
@@ -58,7 +58,8 @@ interface Props {
   item: Item;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 let data: CBNData = getContext("data");
 
 const weaponCategories = asArray(item.weapon_category);

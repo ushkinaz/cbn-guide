@@ -1,6 +1,6 @@
 <script lang="ts">
 import LimitedList from "../../LimitedList.svelte";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { byName, CBNData } from "../../data";
 import type { ItemBasicInfo, MagazineSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
@@ -11,7 +11,8 @@ interface Props {
   item: ItemBasicInfo & MagazineSlot;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 const data = getContext<CBNData>("data");
 
 let ammo_types = [item.ammo_type].flat();

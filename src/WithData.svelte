@@ -1,5 +1,5 @@
 <script lang="ts">
-import { setContext } from "svelte";
+import { setContext, untrack } from "svelte";
 
 interface Props {
   Component: any;
@@ -7,7 +7,8 @@ interface Props {
   [key: string]: any;
 }
 
-let { Component, data, ...rest }: Props = $props();
+let { Component, data: sourceData, ...rest }: Props = $props();
+const data = untrack(() => sourceData);
 
 setContext("data", data);
 </script>

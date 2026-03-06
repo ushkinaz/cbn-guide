@@ -4,14 +4,15 @@ import { t } from "@transifex/native";
 import type { DamageUnit, GunSlot, Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import { CBNData, singularName } from "../../data";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
 
 interface Props {
   item: Item;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const data = getContext<CBNData>("data");
 

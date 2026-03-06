@@ -809,7 +809,6 @@ let canonicalUrl = $derived(
     <div class="select-group">
       {#if $data || builds}
         {#if builds}
-          <!-- svelte-ignore a11y_no_onchange -->
           <select
             id="version_select"
             aria-label={t("Version", { _context: VERSION_SELECTOR_CONTEXT })}
@@ -851,7 +850,6 @@ let canonicalUrl = $derived(
       {/if}
     </div>
     <div class="select-group">
-      <!-- svelte-ignore a11y_no_onchange -->
       <select
         id="tileset_select"
         aria-label={t("Tileset")}

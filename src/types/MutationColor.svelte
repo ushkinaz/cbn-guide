@@ -1,4 +1,5 @@
 <script lang="ts">
+import { untrack } from "svelte";
 import type { Mutation } from "src/types";
 
 interface Props {
@@ -6,7 +7,8 @@ interface Props {
   children?: import("svelte").Snippet;
 }
 
-let { mutation, children }: Props = $props();
+let { mutation: sourceMutation, children }: Props = $props();
+const mutation = untrack(() => sourceMutation);
 
 let displayColor =
   mutation.threshold || mutation.profession

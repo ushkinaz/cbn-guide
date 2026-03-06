@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Furniture, Terrain, VehiclePart } from "../../types";
@@ -11,7 +11,8 @@ interface Props {
   item_id: string;
 }
 
-let { item_id }: Props = $props();
+let { item_id: sourceItemId }: Props = $props();
+const item_id = untrack(() => sourceItemId);
 
 const data = getContext<CBNData>("data");
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 
 import { CBNData, singular, singularName } from "../data";
 import type { Bionic } from "../types";
@@ -12,7 +12,8 @@ interface Props {
   item: Bionic;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 const data = getContext<CBNData>("data");
 const _context = "Bionic";
 

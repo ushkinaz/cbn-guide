@@ -6,7 +6,7 @@ import type {
   TransformUseFunction,
 } from "../../types";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import {
   asHumanReadableDuration,
   CBNData,
@@ -19,7 +19,8 @@ interface Props {
   item_id: string;
 }
 
-let { item_id }: Props = $props();
+let { item_id: sourceItemId }: Props = $props();
+const item_id = untrack(() => sourceItemId);
 
 const data = getContext<CBNData>("data");
 const transformedFrom = data.transformedFrom(item_id);

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n } from "../../data";
 import ItemLink from "../ItemLink.svelte";
 import type { MapDataCommon } from "../../types";
@@ -12,7 +12,8 @@ interface Props {
   item: MapDataCommon;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";

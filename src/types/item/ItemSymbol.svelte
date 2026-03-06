@@ -8,7 +8,7 @@ import {
 } from "../../tile-data";
 import { colorForName } from "../../colors";
 import { CBNData, mapType } from "../../data";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 
 interface Props {
   item: {
@@ -25,11 +25,12 @@ interface Props {
 }
 
 let {
-  item,
+  item: sourceItem,
   width = undefined,
   height = undefined,
   centered = false,
 }: Props = $props();
+const item = untrack(() => sourceItem);
 
 let data: CBNData = getContext("data");
 

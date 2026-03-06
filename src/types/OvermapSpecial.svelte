@@ -1,7 +1,7 @@
 <script lang="ts">
 import { type CBNData, singularName } from "../data";
 import type { OvermapSpecial } from "../types";
-import { getContext, onMount } from "svelte";
+import { getContext, onMount, untrack } from "svelte";
 import {
   getFurnitureForMapgen,
   getLootForMapgen,
@@ -21,7 +21,8 @@ interface Props {
   item: OvermapSpecial;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 const mevels =
   item.subtype === "mutable"
     ? [0]

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { onMount, setContext, type Component } from "svelte";
+import { onMount, setContext, type Component, untrack } from "svelte";
 
 import type { CBNData } from "./data";
 import Monster from "./types/Monster.svelte";
@@ -41,7 +41,9 @@ interface Props {
   data: CBNData;
 }
 
-let { item, data }: Props = $props();
+let { item: sourceItem, data: sourceData }: Props = $props();
+const item = untrack(() => sourceItem);
+const data = untrack(() => sourceData);
 setContext("data", data);
 let error: Error | null = $state(null);
 

@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n, singular, singularName } from "../data";
 import type { Construction, RequirementData } from "../types";
 import ItemLink from "./ItemLink.svelte";
@@ -16,7 +16,9 @@ interface Props {
   includeTitle?: boolean;
 }
 
-let { construction, includeTitle = false }: Props = $props();
+let { construction: sourceConstruction, includeTitle = false }: Props =
+  $props();
+const construction = untrack(() => sourceConstruction);
 
 const using =
   typeof construction.using === "string"

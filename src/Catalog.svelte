@@ -1,5 +1,5 @@
 <script lang="ts">
-import { setContext } from "svelte";
+import { setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 
 import { byName, CBNData, singularName, pluralName, plural } from "./data";
@@ -23,7 +23,9 @@ interface Props {
   data: CBNData;
 }
 
-let { type, data }: Props = $props();
+let { type: sourceType, data: sourceData }: Props = $props();
+const type = untrack(() => sourceType);
+const data = untrack(() => sourceData);
 let typeWithCorrectType = type as keyof SupportedTypesWithMapped;
 setContext("data", data);
 

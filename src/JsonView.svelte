@@ -1,4 +1,5 @@
 <script lang="ts">
+import { untrack } from "svelte";
 import { t } from "@transifex/native";
 import { GAME_REPO_URL } from "./constants";
 import { metrics } from "./metrics";
@@ -8,7 +9,9 @@ interface Props {
   buildNumber: string | undefined;
 }
 
-let { obj, buildNumber }: Props = $props();
+let { obj: sourceObj, buildNumber: sourceBuildNumber }: Props = $props();
+const obj = untrack(() => sourceObj);
+const buildNumber = untrack(() => sourceBuildNumber);
 
 const _context = "View/Edit on GitHub";
 

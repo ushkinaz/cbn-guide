@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { MartialArt, MartialArtBuff } from "../types";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 import { CBNData, i18n, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
@@ -30,7 +30,8 @@ interface Props {
   item: MartialArt;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 const weaponCategories = asArray(item.weapon_category);
 const _context = "Martial Art";
 

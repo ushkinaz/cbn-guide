@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { byName, CBNData, i18n, singular, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { MartialArtBuff, Technique } from "../types";
@@ -15,7 +15,12 @@ interface Props {
   standalone?: boolean;
 }
 
-let { item, buffMap = new Map(), standalone = true }: Props = $props();
+let {
+  item: sourceItem,
+  buffMap = new Map(),
+  standalone = true,
+}: Props = $props();
+const item = untrack(() => sourceItem);
 
 const data = getContext<CBNData>("data");
 const _context = "Martial Art";

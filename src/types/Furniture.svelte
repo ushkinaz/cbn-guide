@@ -1,7 +1,7 @@
 <script lang="ts">
 import { CBNData, formatPercent, singular, singularName } from "../data";
 import type { Furniture } from "../types";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 import Construction from "./Construction.svelte";
 import ItemLink from "./ItemLink.svelte";
@@ -18,7 +18,8 @@ interface Props {
   item: Furniture;
 }
 
-let { item }: Props = $props();
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const deconstruct = item.deconstruct?.items
   ? data.flattenItemGroup({

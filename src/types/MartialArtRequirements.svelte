@@ -1,5 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
+import { untrack } from "svelte";
 
 import { singularName } from "../data";
 import type { MartialArtBuff, MartialArtRequirements } from "../types";
@@ -12,7 +13,8 @@ interface Props {
   buffMap?: Map<string, MartialArtBuff>;
 }
 
-let { item, buffMap = new Map() }: Props = $props();
+let { item: sourceItem, buffMap = new Map() }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const requiredBuffs =
   typeof item.req_buffs === "string"
