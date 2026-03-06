@@ -9,10 +9,15 @@ This project is fully on **Svelte 5 runes**. The core architectural rule is stil
 Main content is mounted behind `{#key}` blocks in `App.svelte`:
 
 - `{#key item}` remounts `Thing` and `Catalog`
-- `{#key search}` remounts `SearchResults`
 - Home dashboard lives in an `{:else}` branch and remounts when view mode changes
 
 Because these components are recreated, they should not implement prop-diff logic for route changes.
+
+### Fine-Grained Reactive Views (Un-Keyed)
+
+Certain views stay mounted to preserve DOM state (e.g. scroll position, focus) and update precisely via Svelte 5 fine-grained reactivity:
+
+- `SearchResults` reacts directly to the global `$searchResults` store via `$derived` projections. It is intentionally _not_ wrapped in a `{#key}` block to prevent expensive DOM remounts and layout thrashing while typing.
 
 ### Long-Lived Shell (Not Remounted)
 
@@ -89,7 +94,7 @@ For keyed route components where props are treated as mount-time inputs, use `un
 
 Avoid the following:
 
-- Prop-mirroring effects inside route-keyed pages (`Thing`, `Catalog`, `SearchResults`)
+- Prop-mirroring effects inside route-keyed pages (`Thing`, `Catalog`)
 - Side effects inside `$derived`
 - Untyped `$props()`
 - Reintroducing legacy compatibility patterns (`svelte/legacy`, component constructor API assumptions)
