@@ -713,7 +713,7 @@ let requestToken = 0;
 export const tileData = {
   subscribe,
   reset() {
-    requestToken = 0;
+    requestToken += 1;
     set(null);
   },
   setTileset(data: CBNData | null, tilesetName: string) {
