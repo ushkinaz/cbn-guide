@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 
 import type { Recipe, RequirementData } from "../../types";
@@ -9,7 +9,12 @@ import ItemLink from "../ItemLink.svelte";
 import RequirementDataTools from "./RequirementDataTools.svelte";
 
 const _context = "Requirement";
-export let requirement: RequirementData & { using?: Recipe["using"] };
+interface Props {
+  requirement: RequirementData & { using?: Recipe["using"] };
+}
+
+let { requirement: sourceRequirement }: Props = $props();
+const requirement = untrack(() => sourceRequirement);
 
 const data = getContext<CBNData>("data");
 

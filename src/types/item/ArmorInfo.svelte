@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, singular } from "../../data";
 import { formatFixed2 } from "../../utils/format";
 import type {
@@ -10,7 +10,12 @@ import type {
   ItemBasicInfo,
 } from "../../types";
 
-export let item: ItemBasicInfo & ArmorSlot;
+interface Props {
+  item: ItemBasicInfo & ArmorSlot;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 let data = getContext<CBNData>("data");
 const _context = "Armor";
 

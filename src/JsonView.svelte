@@ -1,14 +1,21 @@
 <script lang="ts">
+import { untrack } from "svelte";
 import { t } from "@transifex/native";
 import { GAME_REPO_URL } from "./constants";
 import { metrics } from "./metrics";
 
-export let obj: any;
-export let buildNumber: string | undefined;
+interface Props {
+  obj: any;
+  buildNumber: string | undefined;
+}
+
+let { obj: sourceObj, buildNumber: sourceBuildNumber }: Props = $props();
+const obj = untrack(() => sourceObj);
+const buildNumber = untrack(() => sourceBuildNumber);
 
 const _context = "View/Edit on GitHub";
 
-let expanded = false;
+let expanded = $state(false);
 
 function toggle() {
   expanded = !expanded;
@@ -16,19 +23,18 @@ function toggle() {
     metrics.count("ui.json_view.open", 1, { type: obj.type, id: obj.id });
   }
 }
-
-const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber ?? "upload"}/${obj.__filename}`;
 </script>
 
 <section class="json-view">
   <div class="json-header">
-    <button class="toggle-button" on:click={toggle}>
+    <button class="toggle-button" onclick={toggle}>
       <span>{t("Raw JSON")}</span>
       <span class="icon">{expanded ? "▼" : "▶"}</span>
     </button>
 
     <div class="actions">
-      {#if obj.__filename}
+      {#if obj?.__filename}
+        {@const githubUrl = `${GAME_REPO_URL}/blob/${buildNumber}/${obj.__filename}`}
         <a href={githubUrl} target="_blank" class="github-link"
           >{t("GitHub", { _context })}</a>
       {/if}

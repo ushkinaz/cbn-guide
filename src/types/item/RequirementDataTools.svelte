@@ -2,15 +2,24 @@
 import { t } from "@transifex/native";
 import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n, singularName } from "../../data";
 import { getVersionedBasePath } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let requirement: RequirementData & { using?: Recipe["using"] };
-export let direction: "uncraft" | "craft" = "craft";
+interface Props {
+  requirement: RequirementData & { using?: Recipe["using"] };
+  direction?: "uncraft" | "craft";
+}
+
+let {
+  requirement: sourceRequirement,
+  direction: sourceDirection = "craft",
+}: Props = $props();
+const requirement = untrack(() => sourceRequirement);
+const direction = untrack(() => sourceDirection);
 
 const _context = "Requirement";
 const data = getContext<CBNData>("data");
@@ -41,11 +50,12 @@ let { tools, qualities } =
                 )
                 .replace(/\$./g, "")}
               slot0="tool_quality">
-              <ItemLink
-                type="tool_quality"
-                id={quality.id}
-                slot="0"
-                showIcon={false} />
+              {#snippet _0()}
+                <ItemLink
+                  type="tool_quality"
+                  id={quality.id}
+                  showIcon={false} />
+              {/snippet}
             </InterpolatedTranslation>{/each}
         </li>
       {/each}
@@ -77,7 +87,7 @@ let { tools, qualities } =
                   )
                   .replace(/\$./g, "")}
                 slot0="item">
-                <svelte:fragment slot="0">
+                {#snippet _0()}
                   {#if data.craftingPseudoItem(toolId)}
                     <a
                       href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
@@ -87,7 +97,7 @@ let { tools, qualities } =
                   {:else}
                     <ItemLink type="item" id={toolId} showIcon={false} />
                   {/if}
-                </svelte:fragment>
+                {/snippet}
               </InterpolatedTranslation>
             {/if}
           {/each}

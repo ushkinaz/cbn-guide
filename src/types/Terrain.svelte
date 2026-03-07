@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 
 import { CBNData, formatPercent, singular, singularName } from "../data";
 import type { Terrain } from "../types";
@@ -14,7 +14,12 @@ import HarvestedTo from "./item/HarvestedTo.svelte";
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
 
-export let item: Terrain;
+interface Props {
+  item: Terrain;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const deconstruct = item.deconstruct?.items
   ? data.flattenItemGroup({

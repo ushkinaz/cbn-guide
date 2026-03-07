@@ -2,7 +2,7 @@
 import type { CBNData } from "../data";
 import { i18n, singular, singularName } from "../data";
 import ItemLink from "./ItemLink.svelte";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import type { Fault, RequirementData } from "../types";
 import { t } from "@transifex/native";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
@@ -10,7 +10,12 @@ import RequirementDataTools from "./item/RequirementDataTools.svelte";
 const data = getContext<CBNData>("data");
 const _context = "Fault";
 
-export let item: Fault;
+interface Props {
+  item: Fault;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const mendingMethods = (item.mending_methods ?? []).map((mm) => {
   const requirements: [RequirementData, number][] =

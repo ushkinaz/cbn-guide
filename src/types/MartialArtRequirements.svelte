@@ -1,5 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
+import { untrack } from "svelte";
 
 import { singularName } from "../data";
 import type { MartialArtBuff, MartialArtRequirements } from "../types";
@@ -7,8 +8,13 @@ import ItemLink from "./ItemLink.svelte";
 
 const _context = "Martial Art";
 
-export let item: MartialArtRequirements;
-export let buffMap: Map<string, MartialArtBuff> = new Map();
+interface Props {
+  item: MartialArtRequirements;
+  buffMap?: Map<string, MartialArtBuff>;
+}
+
+let { item: sourceItem, buffMap = new Map() }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const requiredBuffs =
   typeof item.req_buffs === "string"

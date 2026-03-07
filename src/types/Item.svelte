@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 
 import {
@@ -54,7 +54,12 @@ import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
 
-export let item: Item;
+interface Props {
+  item: Item;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 let data: CBNData = getContext("data");
 
 const weaponCategories = asArray(item.weapon_category);
@@ -270,12 +275,15 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                       .replace(/\$[ds]|<\/?color[^>]*>/g, "")}
                     slot0="level"
                     slot1="quality">
-                    <strong slot="0">{level}</strong>
-                    <ItemLink
-                      slot="1"
-                      type="tool_quality"
-                      id={quality.id}
-                      showIcon={false} />
+                    {#snippet _0()}
+                      <strong>{level}</strong>
+                    {/snippet}
+                    {#snippet _1()}
+                      <ItemLink
+                        type="tool_quality"
+                        id={quality.id}
+                        showIcon={false} />
+                    {/snippet}
                   </InterpolatedTranslation>
                 </li>
               {/each}
@@ -445,16 +453,20 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 {#if fuelForItems.length}
   <section>
     <h2>{t("Fuel For", { _context })}</h2>
-    <LimitedList items={fuelForItems} let:item>
-      <ItemLink type={item.type} id={item.id} />
+    <LimitedList items={fuelForItems}>
+      {#snippet children({ item })}
+        <ItemLink type={item.type} id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
 {#if usedToRepair.length}
   <section>
     <h2>{t("Used to Repair", { _context })}</h2>
-    <LimitedList items={usedToRepair} let:item>
-      <ItemLink type="fault" id={item.id} showIcon={false} />
+    <LimitedList items={usedToRepair}>
+      {#snippet children({ item })}
+        <ItemLink type="fault" id={item.id} showIcon={false} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

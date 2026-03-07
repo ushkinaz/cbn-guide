@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n, singular, singularName } from "../data";
 import type { Construction, RequirementData } from "../types";
 import ItemLink from "./ItemLink.svelte";
@@ -11,8 +11,14 @@ import RequirementDataTools from "./item/RequirementDataTools.svelte";
 const data = getContext<CBNData>("data");
 const _context = "Construction";
 
-export let construction: Construction;
-export let includeTitle: boolean = false;
+interface Props {
+  construction: Construction;
+  includeTitle?: boolean;
+}
+
+let { construction: sourceConstruction, includeTitle = false }: Props =
+  $props();
+const construction = untrack(() => sourceConstruction);
 
 const using =
   typeof construction.using === "string"

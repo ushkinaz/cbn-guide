@@ -1,12 +1,17 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 
 import type { BookSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item: BookSlot & { id: string; type: "BOOK" };
+interface Props {
+  item: BookSlot & { id: string; type: "BOOK" };
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 let data = getContext<CBNData>("data");
 

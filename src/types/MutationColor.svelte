@@ -1,7 +1,14 @@
 <script lang="ts">
+import { untrack } from "svelte";
 import type { Mutation } from "src/types";
 
-export let mutation: Mutation;
+interface Props {
+  mutation: Mutation;
+  children?: import("svelte").Snippet;
+}
+
+let { mutation: sourceMutation, children }: Props = $props();
+const mutation = untrack(() => sourceMutation);
 
 let displayColor =
   mutation.threshold || mutation.profession
@@ -16,4 +23,4 @@ let displayColor =
 </script>
 
 <span style={`color: var(--cata-color-${displayColor})`}
-  ><slot>({mutation.points ?? 0})</slot></span>
+  >{#if children}{@render children()}{:else}({mutation.points ?? 0}){/if}</span>

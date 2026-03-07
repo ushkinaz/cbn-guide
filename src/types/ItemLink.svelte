@@ -23,14 +23,27 @@ type ItemSymbolItem = {
   type: string;
 };
 
-export let type: keyof SupportedTypesWithMapped;
-export let id: string;
-export let plural: boolean = false;
-export let count: number | [number, number] | undefined = undefined;
-export let overrideText: string | undefined = undefined;
-export let showIcon: boolean = true;
-export let showText: boolean = true;
-export let link: boolean = true;
+interface Props {
+  type: keyof SupportedTypesWithMapped;
+  id: string;
+  plural?: boolean;
+  count?: number | [number, number] | undefined;
+  overrideText?: string | undefined;
+  showIcon?: boolean;
+  showText?: boolean;
+  link?: boolean;
+}
+
+let {
+  type,
+  id,
+  plural = false,
+  count = undefined,
+  overrideText = undefined,
+  showIcon = true,
+  showText = true,
+  link = true,
+}: Props = $props();
 
 function countToString(count: number | [number, number]): string {
   if (typeof count === "number") return count.toString();
@@ -69,24 +82,33 @@ function isSymbolItem(value: any): value is ItemSymbolItem {
 
 const data = getContext<CBNData>("data");
 
-$: item = data.byIdMaybe(type, id);
-let linkItem: typeof item;
-$: {
-  linkItem = item;
-  if (linkItem?.type === "vehicle_part" && !linkItem.name && linkItem.item)
-    linkItem = data.byId("item", linkItem.item);
-}
+let item = $derived(data.byIdMaybe(type, id));
+let linkItem = $derived.by(() => {
+  let resolvedItem = item;
+  if (
+    resolvedItem?.type === "vehicle_part" &&
+    !resolvedItem.name &&
+    resolvedItem.item
+  ) {
+    resolvedItem = data.byId("item", resolvedItem.item);
+  }
+  return resolvedItem;
+});
 
 // For overmap_special, use the roadmap item's icon instead of the overmap_special's own symbol
-$: iconItem = isSymbolItem(item)
-  ? type === "overmap_special"
-    ? data.byIdMaybe("item", "roadmap")
-    : item
-  : null;
+let iconItem = $derived(
+  isSymbolItem(item)
+    ? type === "overmap_special"
+      ? data.byIdMaybe("item", "roadmap")
+      : item
+    : null,
+);
 // Use $page.url to trigger updates when the URL changes
-$: href = `${getVersionedBasePath()}${type}/${id}${
-  $page.url.search || location.search
-}`;
+let href = $derived(
+  `${getVersionedBasePath()}${type}/${id}${
+    $page.url.search || location.search
+  }`,
+);
 </script>
 
 <span class="item-link" class:item-link--count={count != null}>

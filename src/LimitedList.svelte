@@ -2,31 +2,29 @@
 import { t } from "@transifex/native";
 import { isTesting } from "./utils/env";
 import { metrics } from "./metrics";
-export let items: any[];
 
-export let limit = 10;
+interface Props {
+  items: any[];
+  limit?: number;
+  grace?: number;
+  children?: import("svelte").Snippet<[any]>;
+}
 
-export let grace = 4;
+let { items, limit = 10, grace = 4, children }: Props = $props();
 
 // In test mode, always render the expanded list to catch any render bugs that
 // only show up when the full list is shown.
-$: initialLimit = isTesting
-  ? Infinity
-  : items.length <= limit + grace
-    ? limit + grace
-    : limit;
+let initialLimit = $derived(
+  isTesting ? Infinity : items.length <= limit + grace ? limit + grace : limit,
+);
 
-let expanded = false;
-$: {
-  items;
-  expanded = false;
-}
-$: realLimit = expanded ? Infinity : initialLimit;
+let expanded = $state(false);
+let realLimit = $derived(expanded ? Infinity : initialLimit);
 </script>
 
 <ul class="no-bullets">
   {#each items.slice(0, realLimit) as item}
-    <li><slot {item} /></li>
+    <li>{@render children?.({ item })}</li>
   {/each}
 </ul>
 
@@ -34,7 +32,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
   <button
     class="disclosure"
     aria-expanded={expanded}
-    on:click={(e) => {
+    onclick={(e) => {
       e.preventDefault();
       expanded = !expanded;
       if (expanded) {

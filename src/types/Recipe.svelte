@@ -1,15 +1,20 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n } from "../data";
 
 import type { Recipe } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
 import ItemLink from "./ItemLink.svelte";
 
-export let recipe: Recipe;
-export let showResult: boolean = false;
+interface Props {
+  recipe: Recipe;
+  showResult?: boolean;
+}
+
+let { recipe: sourceRecipe, showResult = false }: Props = $props();
+const recipe = untrack(() => sourceRecipe);
 
 const data = getContext<CBNData>("data");
 const _context = "Recipe";
@@ -103,20 +108,18 @@ function activityLevelName(level: number) {
         _comment: "Section heading",
       })}{:else}{t("Craft", { _context, _comment: "Section heading" })}{/if}
   </h2>
-  <p>
-    {#if recipe.never_learn}
-      <section class="warning">
-        ⚠️ {t(
-          "This recipe is not learnable. It may be used by NPCs or for debugging purposes.",
-          {
-            _context,
-            _comment:
-              "This is a basecamp recipe or other utility recipe that isn't directly usable by the player.",
-          },
-        )}
-      </section>
-    {/if}
-  </p>
+  {#if recipe.never_learn}
+    <section class="warning">
+      ⚠️ {t(
+        "This recipe is not learnable. It may be used by NPCs or for debugging purposes.",
+        {
+          _context,
+          _comment:
+            "This is a basecamp recipe or other utility recipe that isn't directly usable by the player.",
+        },
+      )}
+    </section>
+  {/if}
   <dl>
     {#if showResult && recipe.result}
       <dt>{t("Result", { _context })}</dt>

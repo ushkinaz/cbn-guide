@@ -14,7 +14,11 @@ import { metrics } from "./metrics";
 const SEEN_WARNING = "cbn-guide:next-warning-seen";
 const DEV_DISABLE = "cbn-guide:next-warning-disabled";
 
-export let visible = true;
+interface Props {
+  visible?: boolean;
+}
+
+let { visible = $bindable(true) }: Props = $props();
 
 /**
  * Dismisses the banner and records the action in sessionStorage.
@@ -85,7 +89,7 @@ onMount(() => {
 
     <button
       class="dismiss-btn"
-      on:click={dismiss}
+      onclick={dismiss}
       aria-label={t("Dismiss warning")}
       title={t("Dismiss warning")}>
       ✕

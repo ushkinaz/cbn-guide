@@ -1,11 +1,16 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n, singularName } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id: sourceItemId }: Props = $props();
+const item_id = untrack(() => sourceItemId);
 const _context = "Item Basic Info";
 
 const data = getContext<CBNData>("data");
@@ -63,8 +68,10 @@ const toolResults = [...toolRecipes].sort((a, b) =>
         _comment: "Section heading",
       })}
     </h2>
-    <LimitedList items={providedByVparts} let:item>
-      <ItemLink type={item.type} id={item.id} />
+    <LimitedList items={providedByVparts}>
+      {#snippet children({ item })}
+        <ItemLink type={item.type} id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
@@ -74,8 +81,10 @@ const toolResults = [...toolRecipes].sort((a, b) =>
     <h2>
       {t("Provided By Furniture", { _context, _comment: "Section heading" })}
     </h2>
-    <LimitedList items={providedByFurniture} let:item>
-      <ItemLink type={item.type} id={item.id} />
+    <LimitedList items={providedByFurniture}>
+      {#snippet children({ item })}
+        <ItemLink type={item.type} id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}
@@ -85,8 +94,10 @@ const toolResults = [...toolRecipes].sort((a, b) =>
     {#if results.length}
       <section>
         <h2>{t("Component Of", { _context, _comment: "Section heading" })}</h2>
-        <LimitedList items={results} let:item>
-          <ItemLink type="item" id={item} />
+        <LimitedList items={results}>
+          {#snippet children({ item })}
+            <ItemLink type="item" id={item} />
+          {/snippet}
         </LimitedList>
       </section>
     {/if}
@@ -96,8 +107,10 @@ const toolResults = [...toolRecipes].sort((a, b) =>
         <h2>
           {t("Tool For Crafting", { _context, _comment: "Section heading" })}
         </h2>
-        <LimitedList items={toolResults} let:item>
-          <ItemLink type="item" id={item} />
+        <LimitedList items={toolResults}>
+          {#snippet children({ item })}
+            <ItemLink type="item" id={item} />
+          {/snippet}
         </LimitedList>
       </section>
     {/if}
@@ -111,17 +124,19 @@ const toolResults = [...toolRecipes].sort((a, b) =>
         <h2>
           {t("Used In Construction", { _context, _comment: "Section heading" })}
         </h2>
-        <LimitedList items={constructions} let:item={f}>
-          <ItemLink id={f.group} type="construction_group" showIcon={false} />
-          {#if f.pre_terrain}
-            on {#each [f.pre_terrain].flat() as preTerrain, i}
-              {@const itemType = preTerrain.startsWith("f_")
-                ? "furniture"
-                : "terrain"}
-              {#if i !== 0}{i18n.__(" OR ")}{/if}
-              <ItemLink type={itemType} id={preTerrain} />
-            {/each}
-          {/if}
+        <LimitedList items={constructions}>
+          {#snippet children({ item: f })}
+            <ItemLink id={f.group} type="construction_group" showIcon={false} />
+            {#if f.pre_terrain}
+              on {#each [f.pre_terrain].flat() as preTerrain, i}
+                {@const itemType = preTerrain.startsWith("f_")
+                  ? "furniture"
+                  : "terrain"}
+                {#if i !== 0}{i18n.__(" OR ")}{/if}
+                <ItemLink type={itemType} id={preTerrain} />
+              {/each}
+            {/if}
+          {/snippet}
         </LimitedList>
       </section>
     {/if}
@@ -133,17 +148,19 @@ const toolResults = [...toolRecipes].sort((a, b) =>
             _comment: "Section heading",
           })}
         </h2>
-        <LimitedList items={toolConstructions} let:item={f}>
-          <ItemLink id={f.group} type="construction_group" showIcon={false} />
-          {#if f.pre_terrain}
-            on {#each [f.pre_terrain].flat() as preTerrain, i}
-              {@const itemType = preTerrain.startsWith("f_")
-                ? "furniture"
-                : "terrain"}
-              {#if i !== 0}{i18n.__(" OR ")}{/if}
-              <ItemLink type={itemType} id={preTerrain} />
-            {/each}
-          {/if}
+        <LimitedList items={toolConstructions}>
+          {#snippet children({ item: f })}
+            <ItemLink id={f.group} type="construction_group" showIcon={false} />
+            {#if f.pre_terrain}
+              on {#each [f.pre_terrain].flat() as preTerrain, i}
+                {@const itemType = preTerrain.startsWith("f_")
+                  ? "furniture"
+                  : "terrain"}
+                {#if i !== 0}{i18n.__(" OR ")}{/if}
+                <ItemLink type={itemType} id={preTerrain} />
+              {/each}
+            {/if}
+          {/snippet}
         </LimitedList>
       </section>
     {/if}

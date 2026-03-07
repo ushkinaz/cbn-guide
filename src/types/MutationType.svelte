@@ -7,7 +7,11 @@ import { CBNData, singularName } from "../data";
 import type { MutationType } from "../types";
 import MutationList from "./MutationList.svelte";
 
-export let item: MutationType;
+interface Props {
+  item: MutationType;
+}
+
+let { item }: Props = $props();
 
 let data = getContext<CBNData>("data");
 

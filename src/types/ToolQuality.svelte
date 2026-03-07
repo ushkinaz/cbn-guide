@@ -1,13 +1,18 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { byName, CBNData, i18n, singularName } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Construction, Item, ToolQuality, VehiclePart } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: ToolQuality;
+interface Props {
+  item: ToolQuality;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 let data = getContext<CBNData>("data");
 const _context = "Tool Quality";
@@ -137,8 +142,10 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
           {t("Level {level}", { level, _context })}
         </dt>
         <dd>
-          <LimitedList items={tools} limit={20} let:item>
-            <ItemLink type="item" id={item.id} />
+          <LimitedList items={tools} limit={20}>
+            {#snippet children({ item })}
+              <ItemLink type="item" id={item.id} />
+            {/snippet}
           </LimitedList>
         </dd>
       {/each}
@@ -154,8 +161,10 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
           {t("Level {level}", { level, _context })}
         </dt>
         <dd>
-          <LimitedList items={vparts.sort(byName)} limit={20} let:item>
-            <ItemLink type="vehicle_part" id={item.id} />
+          <LimitedList items={vparts.sort(byName)} limit={20}>
+            {#snippet children({ item })}
+              <ItemLink type="vehicle_part" id={item.id} />
+            {/snippet}
           </LimitedList>
         </dd>
       {/each}
@@ -171,8 +180,10 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
           {t("Level {level}", { level, _context })}
         </dt>
         <dd>
-          <LimitedList items={recipes} let:item limit={20}>
-            <ItemLink type="item" id={item} />
+          <LimitedList items={recipes} limit={20}>
+            {#snippet children({ item })}
+              <ItemLink type="item" id={item} />
+            {/snippet}
           </LimitedList>
         </dd>
       {/each}
@@ -188,17 +199,22 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
           {t("Level {level}", { level, _context })}
         </dt>
         <dd>
-          <LimitedList items={constructions} let:item={f}>
-            <ItemLink id={f.group} type="construction_group" showIcon={false} />
-            {#if f.pre_terrain}
-              on {#each [f.pre_terrain].flat() as preTerrain, i}
-                {@const itemType = preTerrain.startsWith("f_")
-                  ? "furniture"
-                  : "terrain"}
-                {#if i !== 0}{i18n.__(" OR ")}{/if}
-                <ItemLink type={itemType} id={preTerrain} />
-              {/each}
-            {/if}
+          <LimitedList items={constructions}>
+            {#snippet children({ item: f })}
+              <ItemLink
+                id={f.group}
+                type="construction_group"
+                showIcon={false} />
+              {#if f.pre_terrain}
+                on {#each [f.pre_terrain].flat() as preTerrain, i}
+                  {@const itemType = preTerrain.startsWith("f_")
+                    ? "furniture"
+                    : "terrain"}
+                  {#if i !== 0}{i18n.__(" OR ")}{/if}
+                  <ItemLink type={itemType} id={preTerrain} />
+                {/each}
+              {/if}
+            {/snippet}
           </LimitedList>
         </dd>
       {/each}

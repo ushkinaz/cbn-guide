@@ -4,7 +4,11 @@ import { singularName } from "../data";
 import type { AmmunitionType } from "../types";
 import CompatibleItems from "./item/CompatibleItems.svelte";
 
-export let item: AmmunitionType;
+interface Props {
+  item: AmmunitionType;
+}
+
+let { item }: Props = $props();
 
 const _context = "Ammunition Type";
 </script>

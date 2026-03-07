@@ -84,19 +84,16 @@ describe("ModSelector", () => {
   });
 
   test("closes on Escape and applies ordered mod ids", async () => {
-    const { component, getByLabelText, getByText } = render(ModSelector, {
+    const onClose = vi.fn();
+    const onApply = vi.fn();
+    const { getByLabelText, getByText } = render(ModSelector, {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
       loading: false,
       errorMessage: null,
-    });
-
-    const onClose = vi.fn();
-    let applied: string[] | null = null;
-    component.$on("close", onClose);
-    component.$on("apply", (event) => {
-      applied = event.detail;
+      onclose: onClose,
+      onapply: onApply,
     });
 
     await fireEvent.keyDown(window, { key: "Escape" });
@@ -104,21 +101,18 @@ describe("ModSelector", () => {
 
     await fireEvent.click(getByLabelText("Magiclysm"));
     await fireEvent.click(getByText("Apply"));
-    expect(applied).toEqual(["aftershock", "magiclysm"]);
+    expect(onApply).toHaveBeenCalledWith(["aftershock", "magiclysm"]);
   });
 
   test("reset clears all selected mods", async () => {
-    const { component, getByLabelText, getByText } = render(ModSelector, {
+    const onApply = vi.fn();
+    const { getByLabelText, getByText } = render(ModSelector, {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
       loading: false,
       errorMessage: null,
-    });
-
-    let applied: string[] | null = null;
-    component.$on("apply", (event) => {
-      applied = event.detail;
+      onapply: onApply,
     });
 
     expect(isChecked(getByLabelText("Aftershock") as HTMLInputElement)).toBe(
@@ -134,21 +128,18 @@ describe("ModSelector", () => {
     );
 
     await fireEvent.click(getByText("Apply"));
-    expect(applied).toEqual([]);
+    expect(onApply).toHaveBeenCalledWith([]);
   });
 
   test("selecting mod auto-selects dependencies", async () => {
-    const { component, getByLabelText, getByText } = render(ModSelector, {
+    const onApply = vi.fn();
+    const { getByLabelText, getByText } = render(ModSelector, {
       open: true,
       mods: testMods,
       selectedModIds: [],
       loading: false,
       errorMessage: null,
-    });
-
-    let applied: string[] | null = null;
-    component.$on("apply", (event) => {
-      applied = event.detail;
+      onapply: onApply,
     });
 
     await fireEvent.click(getByLabelText("Arcana"));
@@ -161,41 +152,35 @@ describe("ModSelector", () => {
     await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
 
     await fireEvent.click(getByText("Apply"));
-    expect(applied).toEqual(["aftershock", "arcana"]);
+    expect(onApply).toHaveBeenCalledWith(["aftershock", "arcana"]);
   });
 
   test("default selects game default mods that are available", async () => {
-    const { component, getByText } = render(ModSelector, {
+    const onApply = vi.fn();
+    const { getByText } = render(ModSelector, {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
       loading: false,
       errorMessage: null,
-    });
-
-    let applied: string[] | null = null;
-    component.$on("apply", (event) => {
-      applied = event.detail;
+      onapply: onApply,
     });
 
     await fireEvent.click(getByText("Default"));
     await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
     await fireEvent.click(getByText("Apply"));
-    expect(applied).toEqual(["no_npc_food", "cbm_slots"]);
+    expect(onApply).toHaveBeenCalledWith(["no_npc_food", "cbm_slots"]);
   });
 
   test("default restores full defaults after manual uncheck", async () => {
-    const { component, getByLabelText, getByText } = render(ModSelector, {
+    const onApply = vi.fn();
+    const { getByLabelText, getByText } = render(ModSelector, {
       open: true,
       mods: testMods,
       selectedModIds: [],
       loading: false,
       errorMessage: null,
-    });
-
-    let applied: string[] | null = null;
-    component.$on("apply", (event) => {
-      applied = event.detail;
+      onapply: onApply,
     });
 
     await fireEvent.click(getByText("Default"));
@@ -208,7 +193,7 @@ describe("ModSelector", () => {
     await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
 
     await fireEvent.click(getByText("Apply"));
-    expect(applied).toEqual(["no_npc_food", "cbm_slots"]);
+    expect(onApply).toHaveBeenCalledWith(["no_npc_food", "cbm_slots"]);
   });
 
   test("renders mod content stats and skips missing categories", () => {

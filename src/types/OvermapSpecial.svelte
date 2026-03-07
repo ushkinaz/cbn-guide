@@ -1,7 +1,7 @@
 <script lang="ts">
 import { type CBNData, singularName } from "../data";
 import type { OvermapSpecial } from "../types";
-import { getContext, onMount } from "svelte";
+import { getContext, onMount, untrack } from "svelte";
 import {
   getFurnitureForMapgen,
   getLootForMapgen,
@@ -17,7 +17,12 @@ import ItemTable from "./item/ItemTable.svelte";
 
 const data = getContext<CBNData>("data");
 
-export let item: OvermapSpecial;
+interface Props {
+  item: OvermapSpecial;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 const mevels =
   item.subtype === "mutable"
     ? [0]
@@ -35,7 +40,7 @@ const lookalikeIds = (
 
 const _context = "Overmap Special";
 
-const layerElements: HTMLElement[] = [];
+const layerElements: HTMLElement[] = $state([]);
 
 onMount(() => {
   layerElements.forEach((el) => {

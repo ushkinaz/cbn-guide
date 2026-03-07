@@ -59,7 +59,7 @@ import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 import { onMount } from "svelte";
 
-let scrollY = 0;
+let scrollY = $state(0);
 
 const SEARCH_UI_CONTEXT = "Search UI";
 const PWA_INSTALL_CONTEXT = "PWA Install";
@@ -109,9 +109,8 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-let item: { type: string; id: string } | null = null;
-let search: string = "";
-$: item = $page.route.item;
+let item: { type: string; id: string } | null = $derived($page.route.item);
+let search: string = $state("");
 
 // Track URL changes for navigation detection
 let previousUrl: string | undefined = undefined;
@@ -121,131 +120,134 @@ let previousRouteSearch: string | undefined = undefined;
 // Sync search and scroll on URL changes (navigation).
 // IMPORTANT: Only update 'search' if it differs from page store to preserve user input
 // while typing. This prevents the reactive statement from overwriting partial queries.
-$: if ($page.url.href !== previousUrl) {
-  const currentPathname = $page.url.pathname;
-  const currentRouteSearch = $page.route.search;
+$effect(() => {
+  if ($page.url.href !== previousUrl) {
+    const currentPathname = $page.url.pathname;
+    const currentRouteSearch = $page.route.search;
 
-  // On initial load OR URL changed - sync search (only if different)
-  if (
-    currentRouteSearch !== previousRouteSearch &&
-    search !== currentRouteSearch
-  ) {
-    search = currentRouteSearch;
+    // On initial load OR URL changed - sync search (only if different)
+    if (
+      currentRouteSearch !== previousRouteSearch &&
+      search !== currentRouteSearch
+    ) {
+      search = currentRouteSearch;
+    }
+
+    if (
+      previousUrl !== undefined &&
+      (currentPathname !== previousPathname ||
+        currentRouteSearch !== previousRouteSearch)
+    ) {
+      // This is a navigation event (not initial load), scroll to top
+      window.scrollTo(0, 0);
+    }
+
+    previousUrl = $page.url.href;
+    previousPathname = currentPathname;
+    previousRouteSearch = currentRouteSearch;
   }
+});
 
-  if (
-    previousUrl !== undefined &&
-    (currentPathname !== previousPathname ||
-      currentRouteSearch !== previousRouteSearch)
-  ) {
-    // This is a navigation event (not initial load), scroll to top
-    window.scrollTo(0, 0);
-  }
-
-  previousUrl = $page.url.href;
-  previousPathname = currentPathname;
-  previousRouteSearch = currentRouteSearch;
-}
-
-let builds: BuildInfo[] | null = null;
+let builds: BuildInfo[] | null = $state(null);
 
 const requestedVersion = $page.route.version;
-let resolvedVersion: string;
+let resolvedVersion = $state(STABLE_VERSION);
 const isBranchAlias =
   requestedVersion === STABLE_VERSION || requestedVersion === NIGHTLY_VERSION;
 
-let latestStableBuild: BuildInfo | undefined;
-let latestNightlyBuild: BuildInfo | undefined;
+let latestStableBuild: BuildInfo | undefined = $state();
+let latestNightlyBuild: BuildInfo | undefined = $state();
 let prewarmScheduledFor: CBNData | null = null;
 
 // Initialize routing and fetch builds
 const appStart = nowTimeStamp();
 const p = mark("app-routing-start");
-initializeRouting()
-  .then((result: InitialAppState) => {
+void initializeRouting()
+  .then(async (result: InitialAppState) => {
     builds = result.builds;
     resolvedVersion = result.resolvedVersion;
     latestStableBuild = result.latestStableBuild;
     latestNightlyBuild = result.latestNightlyBuild;
+    if (result.redirected) {
+      // initializeRouting already called location.replace() for an invalid URL.
+      // Stop startup here so we don't start data loading right before navigation.
+      return;
+    }
     const requestedModsFromUrl = [...$page.route.mods];
 
-    data
-      .setVersion(
+    try {
+      await data.setVersion(
         resolvedVersion,
         localeParam,
         isBranchAlias ? requestedVersion : undefined,
         builds.find((b) => b.build_number === resolvedVersion)?.langs,
         requestedModsFromUrl,
-      )
-      .then(() => {
-        if ($data) {
-          const resolvedMods = $data.active_mods ?? [];
-          if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
-            const removedMods = requestedModsFromUrl.filter(
-              (modId) => !resolvedMods.includes(modId),
-            );
-            updateQueryParamNoReload(
-              "mods",
-              resolvedMods.length > 0 ? resolvedMods.join(",") : null,
-            );
-            if (removedMods.length > 0) {
-              notify(
-                t("Ignored unknown mods from URL: {mods}.", {
-                  mods: removedMods.join(", "),
-                  _context: URL_MODS_CONTEXT,
-                }),
-                "warn",
-              );
-            }
-          }
-        }
+      );
+    } catch (e) {
+      console.error(e);
+      notify(
+        t(
+          "Failed to load data for {version}. Please select a different version from the footer.",
+          { version: resolvedVersion },
+        ),
+        "error",
+      );
+      return;
+    }
 
-        if (
-          $data &&
-          $data.requested_locale !== $data.effective_locale &&
-          $data.requested_locale !== "en"
-        ) {
-          const build_number = $data.build_number;
-          const from = getLanguageName($data.requested_locale);
-          const to = getLanguageName($data.effective_locale);
+    if ($data) {
+      const resolvedMods = $data.active_mods ?? [];
+      if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
+        const removedMods = requestedModsFromUrl.filter(
+          (modId) => !resolvedMods.includes(modId),
+        );
+        updateQueryParamNoReload(
+          "mods",
+          resolvedMods.length > 0 ? resolvedMods.join(",") : null,
+        );
+        if (removedMods.length > 0) {
           notify(
-            t(
-              "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
-              {
-                build_number: build_number,
-                requested_lang: from,
-                resolved_lang: to,
-              },
-            ),
+            t("Ignored unknown mods from URL: {mods}.", {
+              mods: removedMods.join(", "),
+              _context: URL_MODS_CONTEXT,
+            }),
             "warn",
           );
         }
-        metrics.distribution(
-          "data.load.duration_ms",
-          nowTimeStamp() - appStart,
+      }
+    }
+
+    if (
+      $data &&
+      $data.requested_locale !== $data.effective_locale &&
+      $data.requested_locale !== "en"
+    ) {
+      const build_number = $data.build_number;
+      const from = getLanguageName($data.requested_locale);
+      const to = getLanguageName($data.effective_locale);
+      notify(
+        t(
+          "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
           {
-            unit: "millisecond",
+            build_number: build_number,
+            requested_lang: from,
+            resolved_lang: to,
           },
-        );
-      })
-      .catch((e) => {
-        console.error(e);
-        notify(
-          t(
-            "Failed to load data for {version}. Please select a different version from the footer.",
-            { version: resolvedVersion },
-          ),
-          "error",
-        );
-      })
-      .finally(() => {
-        p.finish();
-      });
+        ),
+        "warn",
+      );
+    }
+    metrics.distribution("data.load.duration_ms", nowTimeStamp() - appStart, {
+      unit: "millisecond",
+    });
   })
   .catch((e) => {
     Sentry.captureException(e);
     console.error(e);
     //TODO: Notify user, we failed to load our app.
+  })
+  .finally(() => {
+    p.finish();
   });
 
 const urlConfig = getUrlConfig();
@@ -301,11 +303,14 @@ function setOgTitle(value: string) {
   document.head.appendChild(created);
 }
 
-let tileset: string =
-  (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset();
+let tileset: string = $state(
+  (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset(),
+);
 
 // React to tileset changes
-$: tileData.setTileset($data, tileset);
+$effect(() => {
+  tileData.setTileset($data, tileset);
+});
 
 function formatTitle(pageTitle: string | null = null): string {
   if (RUNNING_MODE !== "browser") {
@@ -321,9 +326,9 @@ const defaultMetaDescription = t(
   },
 );
 
-let metaDescription = defaultMetaDescription;
+let metaDescription = $state(defaultMetaDescription);
 
-$: {
+$effect(() => {
   try {
     if (
       item &&
@@ -365,16 +370,20 @@ $: {
 
   setOgTitle(document.title);
   if (metaDescription) setMetaDescription(metaDescription);
-}
+});
 
-$: if ($data) {
-  syncSearch(search, $data);
-}
+$effect(() => {
+  if ($data) {
+    syncSearch(search, $data);
+  }
+});
 
-$: if ($data && $data !== prewarmScheduledFor) {
-  prewarmScheduledFor = $data;
-  schedulePrewarm($data);
-}
+$effect(() => {
+  if ($data && $data !== prewarmScheduledFor) {
+    prewarmScheduledFor = $data;
+    schedulePrewarm($data);
+  }
+});
 
 const handleSearchInput = () => {
   updateSearchRoute(search, $page.route.item);
@@ -407,9 +416,9 @@ const handleSearchKeydown = (e: KeyboardEvent) => {
   }
 };
 
-let isModSelectorOpen = false;
-let isModSelectorLoading = false;
-let modSelectorError: string | null = null;
+let isModSelectorOpen = $state(false);
+let isModSelectorLoading = $state(false);
+let modSelectorError: string | null = $state(null);
 
 async function openModSelector(): Promise<void> {
   if (!$data) return;
@@ -434,10 +443,9 @@ function closeModSelector(): void {
   isModSelectorOpen = false;
 }
 
-function applyMods(event: CustomEvent<string[]>): void {
+function applyMods(selectedMods: string[]): void {
   // Changing mods triggers a full page reload to ensure data consistency.
   isModSelectorOpen = false;
-  const selectedMods = event.detail;
   metrics.gauge("data.mods.count", selectedMods.length);
   updateQueryParam(
     "mods",
@@ -459,7 +467,7 @@ function handleNavigation(event: MouseEvent) {
   handleInternalNavigation(event);
 }
 
-let deferredPrompt: any;
+let deferredPrompt: any = $state();
 const handleAppInstalled = () => metrics.count("app.pwa.install");
 function handleBeforeInstallPrompt(e: Event) {
   deferredPrompt = e;
@@ -478,7 +486,6 @@ onMount(() => {
     window.removeEventListener("appinstalled", handleAppInstalled);
   };
 });
-
 function maybeFocusSearch(e: KeyboardEvent) {
   if (e.key === "/" && document.activeElement?.id !== "search") {
     document.getElementById("search")?.focus();
@@ -510,20 +517,21 @@ function getLanguageName(code: string) {
   return code;
 }
 
-$: canonicalUrl = buildUrl(
-  STABLE_VERSION,
-  $page.route.item,
-  $page.route.search,
-  localeParam,
-  null,
-  $page.route.mods,
+let canonicalUrl = $derived(
+  buildUrl(
+    STABLE_VERSION,
+    $page.route.item,
+    $page.route.search,
+    localeParam,
+    null,
+    $page.route.mods,
+  ),
 );
 </script>
 
 <svelte:window
-  on:click={handleNavigation}
-  on:keydown={maybeFocusSearch}
-  on:appinstalled={() => metrics.count("app.pwa.install")}
+  onclick={handleNavigation}
+  onkeydown={maybeFocusSearch}
   bind:scrollY />
 
 <svelte:head>
@@ -561,7 +569,7 @@ $: canonicalUrl = buildUrl(
       <a
         href={getVersionedBasePath() + location.search}
         class="brand-link"
-        on:click={() => (search = "")}
+        onclick={() => (search = "")}
         ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow">HHG</span
         ></a>
     </div>
@@ -578,8 +586,8 @@ $: canonicalUrl = buildUrl(
             type="search"
             enterkeyhint="go"
             bind:value={search}
-            on:input={handleSearchInput}
-            on:keydown={handleSearchKeydown}
+            oninput={handleSearchInput}
+            onkeydown={handleSearchKeydown}
             id="search" />
 
           <div class="search-controls">
@@ -595,7 +603,7 @@ $: canonicalUrl = buildUrl(
                 class="search-control-btn search-clear-button"
                 tabindex="-1"
                 aria-label={t("Clear search", { _context: SEARCH_UI_CONTEXT })}
-                on:click={() => {
+                onclick={() => {
                   search = "";
                   handleSearchInput();
                   document.getElementById("search")?.focus();
@@ -611,8 +619,8 @@ $: canonicalUrl = buildUrl(
                   aria-label={t("Go to first result", {
                     _context: SEARCH_UI_CONTEXT,
                   })}
-                  on:mousedown|preventDefault
-                  on:click={executeSearchAction}>
+                  onmousedown={(e) => e.preventDefault()}
+                  onclick={executeSearchAction}>
                   <span class="structure" aria-hidden="true">[</span>
                   <kbd class="key" aria-hidden="true">⏎</kbd>
                   <span class="structure" aria-hidden="true">]</span>
@@ -627,7 +635,7 @@ $: canonicalUrl = buildUrl(
       <button
         class="mods-button"
         type="button"
-        on:click={openModSelector}
+        onclick={openModSelector}
         disabled={!$data}
         aria-busy={isModSelectorLoading || !$data}
         aria-label={t("Mods ({count} active)", {
@@ -662,8 +670,8 @@ $: canonicalUrl = buildUrl(
   selectedModIds={$page.route.mods}
   loading={isModSelectorLoading}
   errorMessage={modSelectorError}
-  on:close={closeModSelector}
-  on:apply={applyMods} />
+  onclose={closeModSelector}
+  onapply={(mods) => applyMods(mods)} />
 
 <main>
   {#if item}
@@ -735,7 +743,7 @@ $: canonicalUrl = buildUrl(
               <button
                 class="install-button"
                 aria-label={t("install", { _context: PWA_INSTALL_CONTEXT })}
-                on:click={(e) => {
+                onclick={(e) => {
                   e.preventDefault();
                   deferredPrompt.prompt();
                 }}>
@@ -782,7 +790,7 @@ $: canonicalUrl = buildUrl(
   {/if}
   {#if scrollY > 300}
     <button
-      on:click={scrollToTop}
+      onclick={scrollToTop}
       transition:fade={{ duration: 200 }}
       aria-label={t("Scroll to top")}
       class="scroll-to-top">
@@ -802,12 +810,11 @@ $: canonicalUrl = buildUrl(
     <div class="select-group">
       {#if $data || builds}
         {#if builds}
-          <!-- svelte-ignore a11y-no-onchange -->
           <select
             id="version_select"
             aria-label={t("Version", { _context: VERSION_SELECTOR_CONTEXT })}
             value={requestedVersion}
-            on:change={(e) => {
+            onchange={(e) => {
               const v = e.currentTarget.value;
               metrics.count("ui.version.change", 1, { v });
               changeVersion(v);
@@ -844,12 +851,11 @@ $: canonicalUrl = buildUrl(
       {/if}
     </div>
     <div class="select-group">
-      <!-- svelte-ignore a11y-no-onchange -->
       <select
         id="tileset_select"
         aria-label={t("Tileset")}
         value={tileset}
-        on:change={(e) => {
+        onchange={(e) => {
           tileset = e.currentTarget.value ?? "";
           saveTileset(tileset);
           updateQueryParamNoReload("t", tileset);
@@ -867,7 +873,7 @@ $: canonicalUrl = buildUrl(
           id="language_select"
           aria-label={t("Language", { _context: LANGUAGE_SELECTOR_CONTEXT })}
           value={$data?.effective_locale || localeParam || "en"}
-          on:change={(e) => {
+          onchange={(e) => {
             const lang = e.currentTarget.value;
             updateQueryParam("lang", lang === "en" ? null : lang);
           }}>

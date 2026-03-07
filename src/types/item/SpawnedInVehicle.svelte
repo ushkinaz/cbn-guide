@@ -6,7 +6,11 @@ import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -26,10 +30,12 @@ vehiclesAndProbabilities.sort((a, b) => b.prob - a.prob);
 {#if vehiclesAndProbabilities.length}
   <section>
     <h2>{t("In Vehicle", { _context: "Obtaining" })}</h2>
-    <LimitedList items={vehiclesAndProbabilities} let:item={{ vehicle, prob }}>
-      <ItemLink id={vehicle.id} type="vehicle" showIcon={false} /> ({formatPercent(
-        prob,
-      )})
+    <LimitedList items={vehiclesAndProbabilities}>
+      {#snippet children({ item: { vehicle, prob } })}
+        <ItemLink id={vehicle.id} type="vehicle" showIcon={false} /> ({formatPercent(
+          prob,
+        )})
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

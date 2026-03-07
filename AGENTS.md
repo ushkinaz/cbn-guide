@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-- A Svelte 4 + Vite 5 application that provides an offline-capable wiki for Cataclysm: Bright Nights game data
+- A Svelte 5 + Vite 5 application that provides an offline-capable wiki for Cataclysm: Bright Nights game data
 - The app is a mirror of game data. Upstream source code and data may live at `../Cataclysm-BN`
 
 ## Tech Stack
 
 - Node.js: 24
 - pnpm: 10.x
-- Core: `TypeScript` 5, `Svelte` 4 + `Vite` 5
+- Core: `TypeScript` 5, `Svelte` 5 + `Vite` 5
 - Testing: `vitest`, `puppeteer`
 - Styling: Scoped CSS, custom design tokens in `/src/assets/game-palette.css` and `src/assets/design.css`.
 
@@ -62,7 +62,7 @@ Test matrix:
 
 ## Core Architecture
 
-- Route-Driven Remounting: main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#key}` blocks and destroyed/recreated on every navigation. Do not use `$:` reactive statements for prop changes inside keyed components. 99% of other components are mounted inside keyed patents
+- Route-Driven Remounting: main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#key}` blocks and destroyed/recreated on every navigation. Avoid prop-mirroring effects inside keyed components; route remounting is the source of truth. Most other components are mounted inside keyed parents.
 - Global Data: `data` store from `src/data.ts` - write-once per page load
 - URL as Source of Truth: Version and search params drive app state (see `docs/routing.md`)
 - Reactivity: read `docs/reactivity.md`
@@ -154,6 +154,6 @@ Test matrix:
 
 ## Critical Anti-Patterns
 
-Never add prop-watching `$:` inside `{#key}` blocks  
+Never add prop-mirroring effects inside `{#key}` blocks  
 Never run `pnpm test:full` by default for tiny/localized changes  
 Never commit without running `pnpm check` and `pnpm lint`

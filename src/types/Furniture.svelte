@@ -1,7 +1,7 @@
 <script lang="ts">
 import { CBNData, formatPercent, singular, singularName } from "../data";
 import type { Furniture } from "../types";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 import Construction from "./Construction.svelte";
 import ItemLink from "./ItemLink.svelte";
@@ -14,7 +14,12 @@ import HarvestedTo from "./item/HarvestedTo.svelte";
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
 
-export let item: Furniture;
+interface Props {
+  item: Furniture;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const deconstruct = item.deconstruct?.items
   ? data.flattenItemGroup({
@@ -174,8 +179,10 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
 {#if bashedFrom.length}
   <section>
     <h2>{t("Bashed From", { _context })}</h2>
-    <LimitedList items={bashedFrom} let:item>
-      <ItemLink type="furniture" id={item.id} />
+    <LimitedList items={bashedFrom}>
+      {#snippet children({ item })}
+        <ItemLink type="furniture" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

@@ -2,7 +2,11 @@
 import { t } from "@transifex/native";
 import { mapType } from "./data";
 
-export let item: any;
+interface Props {
+  item: any;
+}
+
+let { item }: Props = $props();
 </script>
 
 <section class="obsolete-banner">

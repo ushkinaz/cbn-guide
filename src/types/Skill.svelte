@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 
 import { byName, CBNData, singular, singularName } from "../data";
@@ -9,7 +9,12 @@ import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: Skill;
+interface Props {
+  item: Skill;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const data = getContext<CBNData>("data");
 
@@ -128,8 +133,10 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
 {#if itemsUsingSkill.length}
   <section>
     <h2>{t("Used By", { _context: "Skill" })}</h2>
-    <LimitedList items={itemsUsingSkill} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={itemsUsingSkill}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

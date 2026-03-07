@@ -1,5 +1,5 @@
 <script lang="ts">
-import { setContext } from "svelte";
+import { setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 
 import { byName, CBNData, singularName, pluralName, plural } from "./data";
@@ -17,10 +17,15 @@ import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./utils/collections";
 import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
 
-// TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(type)) heading with literal branches.
+interface Props {
+  // TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(type)) heading with literal branches.
+  type: string;
+  data: CBNData;
+}
 
-export let type: string;
-export let data: CBNData;
+let { type: sourceType, data: sourceData }: Props = $props();
+const type = untrack(() => sourceType);
+const data = untrack(() => sourceData);
 let typeWithCorrectType = type as keyof SupportedTypesWithMapped;
 setContext("data", data);
 
@@ -86,19 +91,20 @@ const groupFilter = ({
       {/if}
       <LimitedList
         items={group.filter(groupFilter)}
-        let:item
         limit={groupsList.length === 1 ? Infinity : 10}>
-        {#if (type === "overmap_special" || type === "city_building") && item.subtype !== "mutable"}
-          <OvermapAppearance overmapSpecial={item} />
-        {/if}
-        <ItemLink
-          type={typeWithCorrectType}
-          id={item.id}
-          showIcon={type === "item" ||
-            type === "terrain" ||
-            type === "furniture" ||
-            type === "monster" ||
-            type === "vehicle_part"} />
+        {#snippet children({ item })}
+          {#if (type === "overmap_special" || type === "city_building") && item.subtype !== "mutable"}
+            <OvermapAppearance overmapSpecial={item} />
+          {/if}
+          <ItemLink
+            type={typeWithCorrectType}
+            id={item.id}
+            showIcon={type === "item" ||
+              type === "terrain" ||
+              type === "furniture" ||
+              type === "monster" ||
+              type === "vehicle_part"} />
+        {/snippet}
       </LimitedList>
     </section>
   {/if}

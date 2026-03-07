@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import {
   CBNData,
   parseMass,
@@ -13,7 +13,12 @@ import type { Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
 let data = getContext<CBNData>("data");
-export let item: Item;
+interface Props {
+  item: Item;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 let techniques = (item.techniques ?? []).map((t) => data.byId("technique", t));
 

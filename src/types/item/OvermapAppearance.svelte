@@ -5,27 +5,26 @@ import type { OvermapSpecial } from "../../types";
 
 const data = getContext<CBNData>("data");
 
-export let overmapSpecial: OvermapSpecial;
-export let showZ: number = 0;
+interface Props {
+  overmapSpecial: OvermapSpecial;
+  showZ?: number;
+}
 
-$: overmaps = [
+let { overmapSpecial, showZ = 0 }: Props = $props();
+
+let overmaps = $derived([
   ...(overmapSpecial.subtype !== "mutable"
     ? (overmapSpecial.overmaps ?? [])
     : []),
-];
-let minX = Infinity,
-  minY = Infinity;
-let maxX = -Infinity,
-  maxY = -Infinity;
-let overmapsByPoint: Map<string, (typeof overmaps)[0]>;
+]);
+type OvermapEntry = (typeof overmaps)[number];
 
-$: {
-  minX = Infinity;
-  minY = Infinity;
-  maxX = -Infinity;
-  maxY = -Infinity;
-  overmapsByPoint = new Map();
-
+let appearanceState = $derived.by(() => {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const overmapsByPoint = new Map<string, OvermapEntry>();
   for (const om of overmaps) {
     const [x, y, z] = om.point;
     if (om.overmap) {
@@ -36,14 +35,15 @@ $: {
       overmapsByPoint.set(`${x}|${y}|${z}`, om);
     }
   }
-}
+  return { minX, minY, maxX, maxY, overmapsByPoint };
+});
 
 function makeAppearanceGrid(z: number) {
   const appearanceGrid: { sym?: string; color: string; name: string }[][] = [];
-  for (let y = minY; y <= maxY; y++) {
+  for (let y = appearanceState.minY; y <= appearanceState.maxY; y++) {
     const appearanceRow: { sym?: string; color: string; name: string }[] = [];
-    for (let x = minX; x <= maxX; x++) {
-      const om = overmapsByPoint.get(`${x}|${y}|${z}`);
+    for (let x = appearanceState.minX; x <= appearanceState.maxX; x++) {
+      const om = appearanceState.overmapsByPoint.get(`${x}|${y}|${z}`);
       if (om?.overmap) {
         const [, omt_id, dir] = /^(.+?)(?:_(north|south|east|west))?$/.exec(
           om.overmap,

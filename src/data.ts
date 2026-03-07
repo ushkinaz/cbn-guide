@@ -40,6 +40,11 @@ import type {
   Vehicle,
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
+import {
+  lootByOMSAppearance,
+  furnitureByOMSAppearance,
+  terrainByOMSAppearance,
+} from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
 import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
 import { HttpError, isNotFoundError } from "./utils/http-errors";
@@ -2723,17 +2728,12 @@ export const loadProgress = { subscribe: loadProgressStore.subscribe };
 let _hasSetVersion = false;
 let _currentData: CBNData | null = null;
 let _ensureModsLoadedPromise: Promise<void> | null = null;
+let _resetToken = 0;
 const prewarmedDerivedCaches = new WeakSet<CBNData>();
 
 export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
   if (isTesting || prewarmedDerivedCaches.has(targetData)) return;
   try {
-    const {
-      lootByOMSAppearance,
-      furnitureByOMSAppearance,
-      terrainByOMSAppearance,
-    } = await import("./types/item/spawnLocations");
-
     await lootByOMSAppearance(targetData);
     await yieldUntilIdle();
     await furnitureByOMSAppearance(targetData);
@@ -2756,6 +2756,7 @@ export const data = {
     availableLangs?: string[],
     activeMods: string[] = [],
   ) {
+    const resetToken = _resetToken;
     if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
     _hasSetVersion = true;
@@ -2888,6 +2889,7 @@ export const data = {
       filteredActiveMods,
       rawModsJson,
     );
+    if (resetToken !== _resetToken) return;
     try {
       if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
     } catch (e) {
@@ -2896,6 +2898,20 @@ export const data = {
     }
     _currentData = instance;
     set(instance);
+  },
+  /**
+   * Resets singleton data store state between test app mounts in routing tests.
+   * Side effects: clears `_hasSetVersion`, `_currentData`, and
+   * `_ensureModsLoadedPromise`, then calls `set(null)`.
+   *
+   * `@returns` {void}
+   */
+  _reset(): void {
+    _resetToken += 1;
+    _hasSetVersion = false;
+    _currentData = null;
+    _ensureModsLoadedPromise = null;
+    set(null);
   },
   async ensureModsLoaded() {
     const startData = _currentData;

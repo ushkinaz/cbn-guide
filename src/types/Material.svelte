@@ -10,7 +10,11 @@ import ItemLink from "./ItemLink.svelte";
 
 const data = getContext<CBNData>("data");
 
-export let item: Material;
+interface Props {
+  item: Material;
+}
+
+let { item }: Props = $props();
 const _context = "Material";
 
 function isStrings<T>(array: string[] | T[]): array is string[] {
@@ -101,8 +105,10 @@ let itemsWithMaterial = data
 {#if itemsWithMaterial.length}
   <section>
     <h2>{t("Items Made From {material}", { material: singularName(item) })}</h2>
-    <LimitedList items={itemsWithMaterial} let:item>
-      <ItemLink id={item.id} type="item" />
+    <LimitedList items={itemsWithMaterial}>
+      {#snippet children({ item })}
+        <ItemLink id={item.id} type="item" />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

@@ -7,16 +7,24 @@ import { formatFixed2, formatPercent } from "../../utils/format";
 import { t } from "@transifex/native";
 import type { SupportedTypesWithMapped } from "src/types";
 
-export let loot: Loot | Promise<Loot> | (() => Loot | Promise<Loot>);
-export let type: keyof SupportedTypesWithMapped = "item";
-export let heading: string =
-  type === "furniture"
+interface Props {
+  loot: Loot | Promise<Loot> | (() => Loot | Promise<Loot>);
+  type?: keyof SupportedTypesWithMapped;
+  heading?: string;
+  // By default, data is not shown but can be loaded on demand
+  showData?: boolean;
+}
+
+let {
+  loot,
+  type = "item",
+  heading = type === "furniture"
     ? t("Furniture", { _context: "Loot Table" })
     : type === "terrain"
       ? t("Terrain", { _context: "Loot Table" })
-      : t("Loot", { _context: "Loot Table" });
-// By default, data is not shown but can be loaded on demand
-export let showData = true;
+      : t("Loot", { _context: "Loot Table" }),
+  showData = $bindable(true),
+}: Props = $props();
 </script>
 
 {#if showData}
@@ -38,30 +46,39 @@ export let showData = true;
       })}
       <section>
         <LimitedTableList items={sortedLoot}>
-          <tr slot="header">
-            <th>{heading}</th>
-            <th class="numeric">
-              {t("Avg. Count", {
-                _context: "Loot Table",
-                _comment:
-                  "Column heading in a table: average number of an item found in a location/vehicle, dropped by a monster, etc.",
-              })}
-            </th>
-            <th class="numeric">
-              {t("Chance", {
-                _context: "Loot Table",
-                _comment:
-                  "Column heading in a table: chance that at least one of an item is found in a location/vehicle, dropped by a monster, etc.",
-              })}
-            </th>
-          </tr>
-          <tr slot="item" let:item={[item_id, chance]}>
-            <td style="padding-left: 5px;">
-              <ItemLink {type} id={item_id} showIcon={true} />
-            </td>
-            <td class="numeric">{formatFixed2(chance.expected)}</td>
-            <td class="numeric">{formatPercent(chance.prob)}</td>
-          </tr>
+          {#snippet header()}
+            <tr>
+              <th>{heading}</th>
+              <th class="numeric">
+                {t("Avg. Count", {
+                  _context: "Loot Table",
+                  _comment:
+                    "Column heading in a table: average number of an item found in a location/vehicle, dropped by a monster, etc.",
+                })}
+              </th>
+              <th class="numeric">
+                {t("Chance", {
+                  _context: "Loot Table",
+                  _comment:
+                    "Column heading in a table: chance that at least one of an item is found in a location/vehicle, dropped by a monster, etc.",
+                })}
+              </th>
+            </tr>
+          {/snippet}
+          {#snippet item({
+            item,
+          }: {
+            item: [string, { expected: number; prob: number }];
+          })}
+            {@const [item_id, chance] = item}
+            <tr>
+              <td style="padding-left: 5px;">
+                <ItemLink {type} id={item_id} showIcon={true} />
+              </td>
+              <td class="numeric">{formatFixed2(chance.expected)}</td>
+              <td class="numeric">{formatPercent(chance.prob)}</td>
+            </tr>
+          {/snippet}
         </LimitedTableList>
       </section>
     {/if}
@@ -69,7 +86,7 @@ export let showData = true;
 {:else}
   <section>
     <button
-      on:click={() => {
+      onclick={() => {
         showData = true;
         metrics.count("data.loot_table.load", 1, { type, heading });
       }}

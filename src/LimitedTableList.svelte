@@ -1,36 +1,38 @@
-<script lang="ts">
+<script lang="ts" generics="T">
 import { t } from "@transifex/native";
+import type { Snippet } from "svelte";
+
 import { isTesting } from "./utils/env";
 import { metrics } from "./metrics";
 
-export let items: any[];
+interface Props {
+  items: T[];
+  limit?: number;
+  grace?: number;
+  header?: Snippet;
+  item?: Snippet<[{ item: T }]>;
+}
 
-export let limit = 10;
-
-export let grace = 4;
+let { items, limit = 10, grace = 4, header, item }: Props = $props();
 
 // In test mode, always render the expanded list to catch any render bugs that
 // only show up when the full list is shown.
-$: initialLimit = isTesting
-  ? Infinity
-  : items.length <= limit + grace
-    ? limit + grace
-    : limit;
+let initialLimit = $derived(
+  isTesting ? Infinity : items.length <= limit + grace ? limit + grace : limit,
+);
 
-let expanded = false;
-$: {
-  items;
-  expanded = false;
-}
-$: realLimit = expanded ? Infinity : initialLimit;
+let expanded = $state(false);
+let realLimit = $derived(expanded ? Infinity : initialLimit);
 </script>
 
 <div class="table-container">
   <table class="data-table">
-    <slot name="header" />
+    <thead>
+      {@render header?.()}
+    </thead>
     <tbody>
-      {#each items.slice(0, realLimit) as item}
-        <slot name="item" {item} />
+      {#each items.slice(0, realLimit) as row}
+        {@render item?.({ item: row })}
       {/each}
     </tbody>
   </table>
@@ -39,7 +41,7 @@ $: realLimit = expanded ? Infinity : initialLimit;
   <button
     class="disclosure"
     aria-expanded={expanded}
-    on:click={(e) => {
+    onclick={(e) => {
       e.preventDefault();
       expanded = !expanded;
       if (expanded) {

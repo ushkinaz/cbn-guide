@@ -6,7 +6,7 @@ import type {
   TransformUseFunction,
 } from "../../types";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import {
   asHumanReadableDuration,
   CBNData,
@@ -15,7 +15,12 @@ import {
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id: sourceItemId }: Props = $props();
+const item_id = untrack(() => sourceItemId);
 
 const data = getContext<CBNData>("data");
 const transformedFrom = data.transformedFrom(item_id);
@@ -28,13 +33,15 @@ const getTransformAction = (item: Item) =>
 {#if transformedFrom.length}
   <section>
     <h2>{t("Transformed From", { _context: "Obtaining" })}</h2>
-    <LimitedList items={transformedFrom} let:item>
-      {@const ua = getTransformAction(item)}
-      <ItemLink
-        type="item"
-        id={item.id} />{#if ua.type === "delayed_transform" && ua.transform_age}{" "}({asHumanReadableDuration(
-          ua.transform_age * 100,
-        )}){/if}
+    <LimitedList items={transformedFrom}>
+      {#snippet children({ item })}
+        {@const ua = getTransformAction(item)}
+        <ItemLink
+          type="item"
+          id={item.id} />{#if ua.type === "delayed_transform" && ua.transform_age}{" "}({asHumanReadableDuration(
+            ua.transform_age * 100,
+          )}){/if}
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

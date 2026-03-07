@@ -1,13 +1,18 @@
 <script lang="ts">
 import { CBNData, singular, singularName } from "../data";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import type { UseFunction } from "../types";
 import ItemLink from "./ItemLink.svelte";
 import { t } from "@transifex/native";
 
 const data = getContext<CBNData>("data");
 
-export let usage: UseFunction;
+interface Props {
+  usage: UseFunction;
+}
+
+let { usage: sourceUsage }: Props = $props();
+const usage = untrack(() => sourceUsage);
 
 let action =
   usage.type === "__item_action__"

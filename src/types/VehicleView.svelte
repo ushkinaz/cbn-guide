@@ -1,5 +1,5 @@
 <script lang="ts">
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import {
   CBNData,
   getVehiclePartIdAndVariant,
@@ -16,16 +16,17 @@ import {
 } from "../tile-data";
 import { t } from "@transifex/native";
 
-export let item: Vehicle;
+interface Props {
+  item: Vehicle;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const data = getContext<CBNData>("data");
 const _context = "Vehicle View";
 //TODO: HitButton_iso uses isometric perspective, support that
 
-let minX = Infinity;
-let maxX = -Infinity;
-let minY = Infinity;
-let maxY = -Infinity;
 //https://github.com/cataclysmbn/Cataclysm-BN/blob/1f1f5abf1e5135933fb2bbdbd74194d0e2dc75a8/src/veh_type.cpp#L552
 const zOrder: Record<NonNullable<VehiclePart["location"]>, number> = {
   on_roof: 9,
@@ -57,48 +58,56 @@ type NormalizedPartList = {
   parts: NormalizedPart[];
 };
 
-const normalizedParts: NormalizedPartList[] = normalizeVehicleMountedParts(
-  item,
-).map((part) => {
-  if (part.x < minX) minX = part.x;
-  if (part.x > maxX) maxX = part.x;
-  if (part.y < minY) minY = part.y;
-  if (part.y > maxY) maxY = part.y;
+const { minX, maxX, minY, maxY, normalizedParts, finalGrid } = (() => {
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
 
-  const parts =
-    part.parts?.map(({ part, fuel }) => {
-      const [partId, variant] = getVehiclePartIdAndVariant(data, part);
-      return { partId, variant, fuel };
-    }) ?? [];
-  return { x: part.x, y: part.y, parts };
-});
+  const normalizedParts: NormalizedPartList[] = normalizeVehicleMountedParts(
+    item,
+  ).map((part) => {
+    if (part.x < minX) minX = part.x;
+    if (part.x > maxX) maxX = part.x;
+    if (part.y < minY) minY = part.y;
+    if (part.y > maxY) maxY = part.y;
 
-const finalGrid: (NormalizedPart | undefined)[][] = [];
-for (let x = maxX; x >= minX; x--) {
-  const row: (NormalizedPart | undefined)[] = [];
-  for (let y = minY; y <= maxY; y++) {
-    const cellParts = normalizedParts
-      .filter((p) => p.x === x && p.y === y)
-      .flatMap((p) => p.parts);
-    if (!cellParts.length) {
-      row.push(undefined);
-      continue;
-    }
-    let topPart = cellParts[0];
-    let topZ = zForPart(topPart.partId);
-    for (const part of cellParts) {
-      const z = zForPart(part.partId);
-      if (z >= 0 && z > topZ) {
-        topZ = z;
-        topPart = part;
+    const parts =
+      part.parts?.map(({ part, fuel }) => {
+        const [partId, variant] = getVehiclePartIdAndVariant(data, part);
+        return { partId, variant, fuel };
+      }) ?? [];
+    return { x: part.x, y: part.y, parts };
+  });
+
+  const finalGrid: (NormalizedPart | undefined)[][] = [];
+  for (let x = maxX; x >= minX; x--) {
+    const row: (NormalizedPart | undefined)[] = [];
+    for (let y = minY; y <= maxY; y++) {
+      const cellParts = normalizedParts
+        .filter((p) => p.x === x && p.y === y)
+        .flatMap((p) => p.parts);
+      if (!cellParts.length) {
+        row.push(undefined);
+        continue;
       }
+      let topPart = cellParts[0];
+      let topZ = zForPart(topPart.partId);
+      for (const part of cellParts) {
+        const z = zForPart(part.partId);
+        if (z >= 0 && z > topZ) {
+          topZ = z;
+          topPart = part;
+        }
+      }
+      row.push(topPart);
     }
-    row.push(topPart);
+    finalGrid.push(row);
   }
-  finalGrid.push(row);
-}
+  return { minX, maxX, minY, maxY, normalizedParts, finalGrid };
+})();
 
-$: tile_info = $tileData?.tile_info[0];
+let tile_info = $derived($tileData?.tile_info[0]);
 
 const standardSymbols = {
   cover: "^",
@@ -202,7 +211,8 @@ function getFallback(partId: string, variant: string) {
                       {-tile.bg.ty * tile.bg.height}px;
                     transform: scale({tile_info.pixelscale})
                     translate({tile.bg.offx}px, {tile.bg.offy}px);
-                  " />
+                  ">
+                  </div>
                 {/if}
                 {#if tile.fg != null}
                   <div
@@ -218,7 +228,8 @@ function getFallback(partId: string, variant: string) {
                       .fg.ty * tile.fg.height}px;
                     transform: scale({tile_info.pixelscale}) translate({tile.fg
                       .offx}px, {tile.fg.offy}px);
-                  " />
+                  ">
+                  </div>
                 {/if}
               </div>
             {:else}

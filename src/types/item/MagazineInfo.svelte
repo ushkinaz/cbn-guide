@@ -1,13 +1,18 @@
 <script lang="ts">
 import LimitedList from "../../LimitedList.svelte";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { byName, CBNData } from "../../data";
 import type { ItemBasicInfo, MagazineSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 import CompatibleItems from "./CompatibleItems.svelte";
 
-export let item: ItemBasicInfo & MagazineSlot;
+interface Props {
+  item: ItemBasicInfo & MagazineSlot;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 const data = getContext<CBNData>("data");
 
 let ammo_types = [item.ammo_type].flat();
@@ -63,8 +68,10 @@ const compatibleGuns = data
   {#if compatibleGuns.length}
     <section>
       <h2>{t("Weapons", { _context: "Item Magazine Info" })}</h2>
-      <LimitedList items={compatibleGuns} let:item>
-        <ItemLink type="item" id={item.id} />
+      <LimitedList items={compatibleGuns}>
+        {#snippet children({ item })}
+          <ItemLink type="item" id={item.id} />
+        {/snippet}
       </LimitedList>
     </section>
   {/if}

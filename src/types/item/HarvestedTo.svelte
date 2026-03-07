@@ -1,14 +1,19 @@
 <script lang="ts">
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { CBNData, i18n } from "../../data";
 import ItemLink from "../ItemLink.svelte";
 import type { MapDataCommon } from "../../types";
 import { t } from "@transifex/native";
 
-/**
- * The source from which resources are harvested.
- */
-export let item: MapDataCommon;
+interface Props {
+  /**
+   * The source from which resources are harvested.
+   */
+  item: MapDataCommon;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";

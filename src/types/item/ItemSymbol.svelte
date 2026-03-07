@@ -8,35 +8,31 @@ import {
 } from "../../tile-data";
 import { colorForName } from "../../colors";
 import { CBNData, mapType } from "../../data";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 
-export let item: {
-  id: string;
-  looks_like?: string;
-  color?: string | string[];
-  bgcolor?: string | [string] | [string, string, string, string];
-  symbol?: string | string[];
-  type: string;
-};
-export let width: number | undefined = undefined;
-export let height: number | undefined = undefined;
-export let centered: boolean = false;
+interface Props {
+  item: {
+    id: string;
+    looks_like?: string;
+    color?: string | string[];
+    bgcolor?: string | [string] | [string, string, string, string];
+    symbol?: string | string[];
+    type: string;
+  };
+  width?: number | undefined;
+  height?: number | undefined;
+  centered?: boolean;
+}
+
+let {
+  item: sourceItem,
+  width = undefined,
+  height = undefined,
+  centered = false,
+}: Props = $props();
+const item = untrack(() => sourceItem);
 
 let data: CBNData = getContext("data");
-
-$: tile_info = $tileData?.tile_info[0];
-$: tile = typeHasTile(item)
-  ? (findTileOrLooksLike(data, $tileData, item) ??
-    fallbackTile($tileData, item.symbol, item.color ?? "white"))
-  : null;
-
-$: finalWidth =
-  width ?? (tile_info?.width ?? 32) * (tile_info?.pixelscale ?? 1);
-$: finalHeight =
-  height ?? (tile_info?.height ?? 32) * (tile_info?.pixelscale ?? 1);
-
-$: scaleX = finalWidth / (tile_info?.width ?? 32);
-$: scaleY = finalHeight / (tile_info?.height ?? 32);
 
 const sym = [item.symbol].flat()[0] ?? " ";
 const symbol = /^LINE_/.test(sym) ? "|" : sym;
@@ -115,6 +111,21 @@ function fallbackTile(
     } else return -1;
   }
 }
+let tile_info = $derived($tileData?.tile_info[0]);
+let tile = $derived(
+  typeHasTile(item)
+    ? (findTileOrLooksLike(data, $tileData, item) ??
+        fallbackTile($tileData, item.symbol, item.color ?? "white"))
+    : null,
+);
+let finalWidth = $derived(
+  width ?? (tile_info?.width ?? 32) * (tile_info?.pixelscale ?? 1),
+);
+let finalHeight = $derived(
+  height ?? (tile_info?.height ?? 32) * (tile_info?.pixelscale ?? 1),
+);
+let scaleX = $derived(finalWidth / (tile_info?.width ?? 32));
+let scaleY = $derived(finalHeight / (tile_info?.height ?? 32));
 </script>
 
 {#if tile && tile_info}
@@ -140,7 +151,8 @@ function fallbackTile(
           : `translate(${tile.bg.offx}px, ${tile.bg.offy}px)`}{centered
           ? ' translate(-50%, -50%)'
           : ''};
-        " />
+        ">
+      </div>
     {/if}
     {#if tile.fg != null}
       <div
@@ -158,7 +170,8 @@ function fallbackTile(
           : `translate(${tile.fg.offx}px, ${tile.fg.offy}px)`}{centered
           ? ' translate(-50%, -50%)'
           : ''};
-        " />
+        ">
+      </div>
     {/if}
   </div>
 {:else if tile_info}

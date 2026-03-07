@@ -2,7 +2,7 @@
 
 ## Getting started
 
-This project is a Svelte 4 application that uses Vite 5 for building and Vitest for testing. It requires a local copy of the game data to function correctly during development.
+This project is a Svelte 5 application that uses Vite 6 for building and Vitest for testing. It requires a local copy of the game data to function correctly during development.
 
 ### Prerequisites
 

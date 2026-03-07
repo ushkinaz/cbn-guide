@@ -1,13 +1,18 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 
 import { CBNData, plural, singular, singularName } from "../data";
 import type { Achievement } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-export let item: Achievement;
+interface Props {
+  item: Achievement;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 const data = getContext<CBNData>("data");
 const _context = "Achievement";
 

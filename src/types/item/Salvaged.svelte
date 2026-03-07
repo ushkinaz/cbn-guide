@@ -1,13 +1,18 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { byName, CBNData, parseMass } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Item, Material } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id: sourceItemId }: Props = $props();
+const item_id = untrack(() => sourceItemId);
 
 let data = getContext<CBNData>("data");
 
@@ -37,8 +42,10 @@ const salvagedFromMaterials = data
 {#if salvagedFromMaterials.length}
   <section>
     <h2>{t("Salvage", { _context: "Obtaining" })}</h2>
-    <LimitedList items={salvagedFromMaterials} let:item>
-      <ItemLink type="item" id={item.id} />
+    <LimitedList items={salvagedFromMaterials}>
+      {#snippet children({ item })}
+        <ItemLink type="item" id={item.id} />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

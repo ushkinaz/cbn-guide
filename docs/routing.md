@@ -7,7 +7,6 @@ This document describes the routing and navigation architecture of the cbn-guide
 The application uses a **hybrid routing approach**:
 
 - **Full page reloads** for version, language, and tileset changes
-- **Full page reloads** for version, language, and tileset changes
 - **SPA (Single Page Application) navigation** for browsing items, searching, and catalog navigation
 - **Smart path correction** for legacy or incomplete URLs (e.g., `/item/rock` → `/stable/item/rock`)
 
@@ -217,6 +216,7 @@ Parses the current URL and extracts route information.
     id: string;
   } | null;
   search: string;         // Empty string if not search
+  mods: string[];         // Normalized from ?mods=
 }
 ```
 
@@ -285,7 +285,7 @@ isSupportedVersion("2025-12-30"); // true (assumes recent = supported)
 
 #### Build Operations
 
-##### `buildUrl(version, item, search, locale?, tileset?): string`
+##### `buildUrl(version, item, search, locale?, tileset?, mods?): string`
 
 Builds a complete URL from route components.
 
@@ -296,6 +296,7 @@ Builds a complete URL from route components.
 - `search: string` - Search query
 - `locale?: string | null` - Language code (omit for English)
 - `tileset?: string | null` - Tileset ID
+- `mods?: string[]` - Active mod IDs to persist in URL
 
 **Returns:** Complete URL string
 
@@ -307,6 +308,11 @@ buildUrl("stable", { type: "item", id: "rock" }, "");
 
 buildUrl("nightly", null, "C++", "ru_RU", "UltimateCataclysm");
 // "http://localhost:3000/cbn-guide/nightly/search/C%2B%2B?lang=ru_RU&t=UltimateCataclysm"
+
+buildUrl("stable", { type: "item", id: "rock" }, "", null, null, [
+  "aftershock",
+]);
+// "http://localhost:3000/cbn-guide/stable/item/rock?mods=aftershock"
 ```
 
 #### Navigation Operations

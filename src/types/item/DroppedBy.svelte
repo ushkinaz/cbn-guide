@@ -8,7 +8,11 @@ import type { Harvest } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import ItemTable from "./ItemTable.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 let data = getContext<CBNData>("data");
 const mons = new Map(
@@ -47,8 +51,10 @@ const harvestableFrom = data
 {#if harvestableFrom.length}
   <section>
     <h2>{t("Butcher", { _context: "Obtaining" })}</h2>
-    <LimitedList items={harvestableFrom} let:item={m}>
-      <ItemLink id={m.id} type="monster" />
+    <LimitedList items={harvestableFrom}>
+      {#snippet children({ item: m })}
+        <ItemLink id={m.id} type="monster" />
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

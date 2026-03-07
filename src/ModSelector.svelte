@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { createEventDispatcher, onDestroy } from "svelte";
+import { onDestroy } from "svelte";
 import type {
   ModData,
   ModInfo,
@@ -30,21 +30,30 @@ const DEFAULT_MOD_IDS = [
   "cbm_slots",
 ];
 
-export let open = false;
-export let mods: ModInfo[] = [];
-export let rawModsJson: Record<string, ModData> = {};
-export let selectedModIds: string[] = [];
-export let loading = false;
-export let errorMessage: string | null = null;
+interface Props {
+  open?: boolean;
+  mods?: ModInfo[];
+  rawModsJson?: Record<string, ModData>;
+  selectedModIds?: string[];
+  loading?: boolean;
+  errorMessage?: string | null;
+  onclose?: () => void;
+  onapply?: (selectedModIds: string[]) => void;
+}
 
-const dispatch = createEventDispatcher<{
-  close: void;
-  apply: string[];
-}>();
+let {
+  open = false,
+  mods = [],
+  rawModsJson = {},
+  selectedModIds = [],
+  loading = false,
+  errorMessage = null,
+  onclose = () => {},
+  onapply = () => {},
+}: Props = $props();
 
-let draftSelectedModIds: string[] = [];
+let draftSelectedModIds: string[] = $state([]);
 let wasOpen = false;
-let availableDefaultModIds: string[] = [];
 
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -150,11 +159,11 @@ function toVisibleStats(counts: ModContentCounts): ModContentStat[] {
 }
 
 function close(): void {
-  dispatch("close");
+  onclose();
 }
 
 function apply(): void {
-  dispatch("apply", draftSelectedModIds);
+  onapply(draftSelectedModIds);
 }
 
 function reset(): void {
@@ -182,72 +191,86 @@ function syncBodyClass(enabled: boolean): void {
   document.body.classList.toggle("mods-selector-open", enabled);
 }
 
-$: {
+$effect.pre(() => {
   if (open && !wasOpen) {
     draftSelectedModIds = [...selectedModIds];
   }
   wasOpen = open;
-}
-
-$: groupedMods = mods.reduce((acc, mod) => {
-  const label = categoryLabel(mod);
-  if (!acc.has(label)) {
-    acc.set(label, []);
-  }
-  acc.get(label)!.push(mod);
-  return acc;
-}, new Map<string, ModInfo[]>());
-
-$: groupedCategories = [...groupedMods.entries()]
-  .sort(([a], [b]) => a.localeCompare(b))
-  .map(([category, mods]): [string, ModInfo[]] => [
-    category,
-    [...mods].sort((a, b) =>
-      modDisplayName(a).localeCompare(modDisplayName(b)),
-    ),
-  ]);
-
-$: availableDefaultModIds = DEFAULT_MOD_IDS.filter((modId, idx, all) => {
-  if (modId === "bn") return false;
-  if (all.indexOf(modId) !== idx) return false;
-  return mods.some((mod) => mod.id === modId);
 });
 
-$: modContentStatsById = mods.reduce((acc, mod) => {
-  const rawData = rawModsJson[mod.id]?.data ?? [];
-  acc.set(mod.id, toVisibleStats(deriveModContentCounts(rawData)));
-  return acc;
-}, new Map<string, ModContentStat[]>());
+let groupedMods = $derived(
+  mods.reduce((acc, mod) => {
+    const label = categoryLabel(mod);
+    if (!acc.has(label)) {
+      acc.set(label, []);
+    }
+    acc.get(label)!.push(mod);
+    return acc;
+  }, new Map<string, ModInfo[]>()),
+);
 
-$: modsById = mods.reduce((acc, mod) => {
-  acc.set(mod.id, mod);
-  return acc;
-}, new Map<string, ModInfo>());
+let groupedCategories = $derived(
+  [...groupedMods.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([category, mods]): [string, ModInfo[]] => [
+      category,
+      [...mods].sort((a, b) =>
+        modDisplayName(a).localeCompare(modDisplayName(b)),
+      ),
+    ]),
+);
 
-$: if (modsById.size > 0) {
-  // Keep URL-selected ids intact while mod metadata is still loading.
-  // Otherwise, resolving against an empty map clears valid selections.
-  const normalizedSelection = resolveSelectionWithDependencies(
-    draftSelectedModIds,
-    modsById,
-  );
-  if (!arraysEqual(normalizedSelection, draftSelectedModIds)) {
-    draftSelectedModIds = normalizedSelection;
+let availableDefaultModIds = $derived(
+  DEFAULT_MOD_IDS.filter((modId, idx, all) => {
+    if (modId === "bn") return false;
+    if (all.indexOf(modId) !== idx) return false;
+    return mods.some((mod) => mod.id === modId);
+  }),
+);
+
+let modContentStatsById = $derived(
+  mods.reduce((acc, mod) => {
+    const rawData = rawModsJson[mod.id]?.data ?? [];
+    acc.set(mod.id, toVisibleStats(deriveModContentCounts(rawData)));
+    return acc;
+  }, new Map<string, ModContentStat[]>()),
+);
+
+let modsById = $derived(
+  mods.reduce((acc, mod) => {
+    acc.set(mod.id, mod);
+    return acc;
+  }, new Map<string, ModInfo>()),
+);
+
+$effect(() => {
+  if (modsById.size > 0) {
+    // Keep URL-selected ids intact while mod metadata is still loading.
+    // Otherwise, resolving against an empty map clears valid selections.
+    const normalizedSelection = resolveSelectionWithDependencies(
+      draftSelectedModIds,
+      modsById,
+    );
+    if (!arraysEqual(normalizedSelection, draftSelectedModIds)) {
+      draftSelectedModIds = normalizedSelection;
+    }
   }
-}
+});
 
-$: syncBodyClass(open);
+$effect(() => {
+  syncBodyClass(open);
+});
 
 onDestroy(() => {
-  syncBodyClass(false);
+  if (open) syncBodyClass(false);
 });
 </script>
 
-<svelte:window on:keydown={handleEscape} />
+<svelte:window onkeydown={handleEscape} />
 
 {#if open}
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div class="mods-overlay" on:click={onOverlayClick} role="presentation">
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <div class="mods-overlay" onclick={onOverlayClick} role="presentation">
     <div
       class="mods-dialog"
       role="dialog"
@@ -265,7 +288,7 @@ onDestroy(() => {
         <button
           type="button"
           class="close-button"
-          on:click={close}
+          onclick={close}
           aria-label={t("Close mod selector", {
             _context: MOD_SELECTOR_CONTEXT,
           })}
@@ -344,13 +367,13 @@ onDestroy(() => {
 
       <footer class="mods-actions">
         <div class="mods-actions-buttons">
-          <button type="button" class="ghost" on:click={close}>
+          <button type="button" class="ghost" onclick={close}>
             {t("Cancel", { _context: MOD_SELECTOR_CONTEXT })}
           </button>
           <button
             type="button"
             class="ghost"
-            on:click={reset}
+            onclick={reset}
             disabled={draftSelectedModIds.length === 0}>
             {t("Reset", { _context: MOD_SELECTOR_CONTEXT })}
           </button>
@@ -360,7 +383,7 @@ onDestroy(() => {
             <button
               type="button"
               class="ghost"
-              on:click={selectDefaultMods}
+              onclick={selectDefaultMods}
               disabled={availableDefaultModIds.length === 0 ||
                 loading ||
                 !!errorMessage}
@@ -372,7 +395,7 @@ onDestroy(() => {
             <button
               type="button"
               class="apply"
-              on:click={apply}
+              onclick={apply}
               disabled={loading || !!errorMessage}>
               {t("Apply", { _context: MOD_SELECTOR_CONTEXT })}
             </button>

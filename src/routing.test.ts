@@ -22,6 +22,8 @@ import {
 } from "vitest";
 import * as fs from "fs";
 import App from "./App.svelte";
+import { data } from "./data";
+import { tileData } from "./tile-data";
 import { dismiss, notifications } from "./Notification.svelte";
 
 vi.hoisted(() => {
@@ -86,7 +88,9 @@ const testModsData = {
 
 describe("Routing E2E Tests", () => {
   vi.setConfig({ testTimeout: 120_000 });
+  const ROUTING_TEARDOWN_SETTLE_MS = 150;
   let originalFetch: typeof global.fetch;
+  let originalImage: typeof global.Image;
   let defaultFetchMock: typeof fetch;
   let container: HTMLElement;
 
@@ -141,8 +145,30 @@ describe("Routing E2E Tests", () => {
 
   beforeAll(() => {
     originalFetch = global.fetch;
+    originalImage = global.Image;
     defaultFetchMock = createFetchMock();
     global.fetch = defaultFetchMock;
+
+    class MockImage {
+      onload: ((this: GlobalEventHandlers, ev: Event) => any) | null = null;
+      onerror: OnErrorEventHandler = null;
+      width = 32;
+      height = 32;
+      #src = "";
+
+      get src() {
+        return this.#src;
+      }
+
+      set src(value: string) {
+        this.#src = value;
+        queueMicrotask(() => {
+          this.onload?.call(window, new Event("load"));
+        });
+      }
+    }
+
+    global.Image = MockImage as unknown as typeof global.Image;
   });
 
   beforeEach(() => {
@@ -180,56 +206,41 @@ describe("Routing E2E Tests", () => {
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
+    data._reset();
+    tileData.reset();
     global.fetch = defaultFetchMock;
     vi.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterAll(async () => {
+    // Let pending Svelte window-binding timeouts settle before async-leak collection.
+    await new Promise((resolve) =>
+      setTimeout(resolve, ROUTING_TEARDOWN_SETTLE_MS),
+    );
     global.fetch = originalFetch;
+    global.Image = originalImage;
   });
 
   async function waitForDataLoad(expectedText?: string | RegExp) {
-    const start = Date.now();
-    const timeout = 10000;
-
-    while (Date.now() - start < timeout) {
-      const text = document.body.textContent || "";
-      const lowerText = text.toLowerCase();
-
-      if (expectedText) {
-        if (typeof expectedText === "string") {
-          if (lowerText.includes(expectedText.toLowerCase())) return;
-        } else if (expectedText.test(text)) {
-          return;
-        }
-      } else {
-        const isLoading =
-          lowerText.includes("loading") &&
-          (lowerText.includes("game data") || lowerText.includes("builds"));
-        if (!isLoading) {
-          if (
-            lowerText.includes("hitchhiker") ||
-            lowerText.includes("description") ||
-            lowerText.includes("results") ||
-            lowerText.includes("catalog") ||
-            lowerText.includes("items") ||
-            lowerText.includes("location") ||
-            lowerText.includes("monsters") ||
-            lowerText.includes("mutations") ||
-            lowerText.includes("rock")
-          ) {
-            return;
-          }
-        }
-      }
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
-
-    const currentLoc = window.location.pathname;
-    const bodySlice = document.body.textContent?.slice(0, 1000) || "";
-    throw new Error(
-      `Timed out waiting for data load (expected: ${expectedText || "any trigger"}).\nURL: ${currentLoc}\nBody snippet: ${bodySlice}`,
+    await waitFor(() => expect(get(data)).not.toBeNull(), { timeout: 10_000 });
+    await waitFor(
+      () =>
+        expect(
+          document.querySelector(".loading-container.full-screen"),
+        ).toBeNull(),
+      { timeout: 10_000 },
     );
+
+    if (!expectedText) return;
+
+    await waitFor(() => {
+      const text = document.body.textContent || "";
+      if (typeof expectedText === "string") {
+        expect(text.toLowerCase()).toContain(expectedText.toLowerCase());
+        return;
+      }
+      expect(expectedText.test(text)).toBe(true);
+    });
   }
 
   async function waitForNavigation() {
@@ -349,6 +360,7 @@ describe("Routing E2E Tests", () => {
 
       // Check query param persists
       expect(window.location.search).toContain("lang=ru_RU");
+      await waitForDataLoad();
     });
 
     test("navigateTo preserves mods query param", async () => {
@@ -386,6 +398,7 @@ describe("Routing E2E Tests", () => {
       expect(new URL(window.location.href).searchParams.get("mods")).toBe(
         "aftershock,magiclysm",
       );
+      await waitForDataLoad();
     });
 
     test("loads compatible mod tileset chunk URLs for active mods", async () => {
@@ -770,6 +783,7 @@ describe("Routing E2E Tests", () => {
   describe("Version Handling", () => {
     test("navigates to correct version with incorrect typed-in URL", async () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const setVersionSpy = vi.spyOn(data, "setVersion");
       const originalReplace = window.location.replace;
       let replaceCalled = false;
       delete (window.location as any).replace;
@@ -793,8 +807,10 @@ describe("Routing E2E Tests", () => {
       // Should have called location.replace to prepend /stable/
       expect(replaceCalled).toBe(true);
       expect(window.location.pathname).toContain("stable/invalid-version-999");
+      expect(setVersionSpy).not.toHaveBeenCalled();
 
       warnSpy.mockRestore();
+      setVersionSpy.mockRestore();
       window.location.replace = originalReplace;
     });
 

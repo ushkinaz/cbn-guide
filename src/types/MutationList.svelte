@@ -1,6 +1,6 @@
 <script lang="ts">
 import { CBNData, singularName } from "../data";
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 import { topologicalSortComponentsByRank } from "../utils/toposort";
 import type { Mutation } from "../types";
 import ItemLink from "./ItemLink.svelte";
@@ -8,7 +8,12 @@ import { asArray } from "../utils/collections";
 
 let data = getContext<CBNData>("data");
 
-export let mutations: Mutation[];
+interface Props {
+  mutations: Mutation[];
+}
+
+let { mutations: sourceMutations }: Props = $props();
+const mutations = untrack(() => sourceMutations);
 const allPrereqs = (m: Mutation) =>
   asArray(m.prereqs).concat(asArray(m.prereqs2)).concat(asArray(m.threshreq));
 let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>

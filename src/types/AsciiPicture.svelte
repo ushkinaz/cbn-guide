@@ -1,7 +1,13 @@
 <script lang="ts">
+import { untrack } from "svelte";
 import type { AsciiArt } from "../types";
 
-export let picture: AsciiArt;
+interface Props {
+  picture: AsciiArt;
+}
+
+let { picture: sourcePicture }: Props = $props();
+const picture = untrack(() => sourcePicture);
 
 let color = ["white"];
 const parsed: { string: string; color: string }[][] = [];

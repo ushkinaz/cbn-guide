@@ -1,47 +1,108 @@
-# Reactivity in CBN Guide
+# Reactivity in CBN Guide (Svelte 5)
 
-This project uses **route-driven remounting** for main content. The key architecture decision: wrap content in `{#key}` blocks that destroy and recreate components on navigation.
+This project is fully on **Svelte 5 runes**. The core architectural rule is still the same: main pages are route-keyed and remounted on navigation.
 
 ## Architecture
 
-### Remounted on Every Route Change
+### Route-Keyed Content (Remounted)
 
-- `{#key item}` → remounts `Thing` and `Catalog`
-- `{#key search}` → remounts `SearchResults`
-- Home view is in the `{:else}` branch, remounts when switching views
+Main content is mounted behind `{#key}` blocks in `App.svelte`:
 
-**Implication**: Prop-change reactivity (`$:`) is unnecessary inside these components—they start fresh on every navigation.
+- `{#key item}` remounts `Thing` and `Catalog`
+- Home dashboard lives in an `{:else}` branch and remounts when view mode changes
 
-### Long-Lived (Not Remounted)
+Because these components are recreated, they should not implement prop-diff logic for route changes.
 
-- App shell: header, search bar, footer
-- Global stores: `data` and `tileData`
+### Fine-Grained Reactive Views (Un-Keyed)
 
-## Data Model
+Certain views stay mounted to preserve DOM state (e.g. scroll position, focus) and update precisely via Svelte 5 fine-grained reactivity:
 
-- `data` store is **write-once** per page load (`setVersion` throws if called twice)
-- Version/language changes trigger **full page reload**
-- Tileset changes update `tileData` **without** reload
+- `SearchResults` reacts directly to the global `$searchResults` store via `$derived` projections. It is intentionally _not_ wrapped in a `{#key}` block to prevent expensive DOM remounts and layout thrashing while typing.
 
-## When to Use `$:` Reactive Statements
+### Long-Lived Shell (Not Remounted)
 
-**Use `$:` for:**
+These areas stay alive and should use runes for reactive behavior:
 
-- **Store subscriptions** that change without remount (e.g., `$tileData` in `ItemSymbol.svelte`)
-- **Local state derivation** (e.g., `expanded` in `LimitedList.svelte`)
-- **App-level logic** in long-lived components (e.g., document title in `App.svelte`)
+- App shell UI (header/search/footer controls)
+- Global stores (`data`, `tileData`, routing `page` store)
+- UI-only local state (expanded/collapsed controls, loading flags)
 
-**Avoid `$:` for:**
+## Rune Usage Rules
 
-- Prop changes inside `Thing`, `Catalog`, `SearchResults` and descendants (keyed blocks handle this)
-- Any component that only exists inside `{#key}` blocks and doesn't observe changing stores
+### `$state`
 
-## Legacy Anti-Patterns
+Use for mutable local UI state:
 
-Some components still use discouraged patterns:
+- `App.svelte`: `scrollY`, `builds`, `resolvedVersion`, warning visibility
+- `LimitedList.svelte`: `expanded`
 
-- `SearchResults.svelte`: `$: setContext("data", data)` — doesn't update children reactively, only appears to work because component is keyed and recreated
+### `$derived`
 
-## Summary
+Use for pure computed values:
 
-Main content is **route-driven**: navigation remounts the page. Use `$:` for stores and local state, but **prop-change reactivity is unnecessary** inside keyed content blocks.
+- `App.svelte`: `item` from `$page.route.item`
+- `SearchResults.svelte`: `matchingObjectsList` from `$searchResults`
+- `LimitedList.svelte`: computed limits
+
+Keep `$derived` side-effect free.
+
+### `$effect` and `$effect.pre`
+
+Use effects only for imperative synchronization:
+
+- URL-driven sync and scroll behavior in `App.svelte`
+- Reset-on-input-change behavior in list components (`$effect.pre` in `LimitedList.svelte`)
+
+Effects should be idempotent and limited to explicit side effects (DOM, metrics, navigation, store writes).
+
+## Props and Typing
+
+All component props use typed `$props()`.
+
+```svelte
+<script lang="ts">
+interface Props {
+  data: CBNData;
+  search: string;
+}
+
+let { data, search }: Props = $props();
+</script>
+```
+
+Do not use untyped `$props()` destructuring.
+
+## Snippets and `{@render}`
+
+Reusable list rendering uses Svelte 5 snippets:
+
+```svelte
+<LimitedList items={results} limit={25}>
+  {#snippet children({ item: result })}
+    <ItemLink type={mapType(result.item.type)} id={result.item.id} />
+  {/snippet}
+</LimitedList>
+```
+
+Consumer components should render optional snippets with `{@render ...}`.
+
+## Route-Driven Remounting and `untrack`
+
+For keyed route components where props are treated as mount-time inputs, use `untrack` when you need a stable local value (for context wiring or one-time setup) instead of effect-based prop mirroring.
+
+## Anti-Patterns
+
+Avoid the following:
+
+- Prop-mirroring effects inside route-keyed pages (`Thing`, `Catalog`)
+- Side effects inside `$derived`
+- Untyped `$props()`
+- Reintroducing legacy compatibility patterns (`svelte/legacy`, component constructor API assumptions)
+
+## Quick Checklist
+
+- Use `$state` for mutable local state
+- Use `$derived` for computed state
+- Use `$effect` only for side effects
+- Keep route-keyed pages mount-driven, not prop-diff-driven
+- Keep snippets typed and rendered via `{@render}`

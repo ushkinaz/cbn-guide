@@ -6,7 +6,11 @@ import { byName, CBNData, i18n } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 
-export let item_id: string;
+interface Props {
+  item_id: string;
+}
+
+let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
@@ -24,17 +28,19 @@ const constructions = data
 {#if constructions.length}
   <section>
     <h2>{t("Construct", { _context: "Obtaining" })}</h2>
-    <LimitedList items={constructions} let:item={f}>
-      <ItemLink id={f.group} type="construction_group" showIcon={false} />
-      {#if f.pre_terrain}
-        on {#each [f.pre_terrain].flat() as preTerrain, i}
-          {@const itemType = preTerrain.startsWith("f_")
-            ? "furniture"
-            : "terrain"}
-          {#if i !== 0}{i18n.__(" OR ")}{/if}
-          <ItemLink type={itemType} id={preTerrain} />
-        {/each}
-      {/if}
+    <LimitedList items={constructions}>
+      {#snippet children({ item: f })}
+        <ItemLink id={f.group} type="construction_group" showIcon={false} />
+        {#if f.pre_terrain}
+          on {#each [f.pre_terrain].flat() as preTerrain, i}
+            {@const itemType = preTerrain.startsWith("f_")
+              ? "furniture"
+              : "terrain"}
+            {#if i !== 0}{i18n.__(" OR ")}{/if}
+            <ItemLink type={itemType} id={preTerrain} />
+          {/each}
+        {/if}
+      {/snippet}
     </LimitedList>
   </section>
 {/if}

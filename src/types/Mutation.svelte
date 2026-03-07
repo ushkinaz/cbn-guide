@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 
 import { byName, CBNData, singular, singularName } from "../data";
 
@@ -11,7 +11,12 @@ import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
 import { asArray } from "../utils/collections";
 
-export let item: Mutation;
+interface Props {
+  item: Mutation;
+}
+
+let { item: sourceItem }: Props = $props();
+const item = untrack(() => sourceItem);
 
 let data = getContext<CBNData>("data");
 const _context = "Mutation";
