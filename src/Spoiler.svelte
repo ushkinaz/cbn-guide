@@ -1,19 +1,16 @@
 <script lang="ts">
 import { t } from "@transifex/native";
+import type { Snippet } from "svelte";
 
 import { isTesting } from "./utils/env";
 
 interface Props {
   spoily?: boolean;
-  revealed?: any; // Spoilers are revealed in test mode.
-  children?: import("svelte").Snippet;
+  revealed?: boolean; // Spoilers are revealed in test mode.
+  children?: Snippet;
 }
 
-let {
-  spoily = false,
-  revealed = $bindable(isTesting),
-  children,
-}: Props = $props();
+let { spoily = false, revealed = isTesting, children }: Props = $props();
 </script>
 
 {#if spoily}

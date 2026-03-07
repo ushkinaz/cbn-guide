@@ -1,14 +1,16 @@
-<script lang="ts">
+<script lang="ts" generics="T">
 import { t } from "@transifex/native";
+import type { Snippet } from "svelte";
+
 import { isTesting } from "./utils/env";
 import { metrics } from "./metrics";
 
 interface Props {
-  items: any[];
+  items: T[];
   limit?: number;
   grace?: number;
-  header?: import("svelte").Snippet;
-  item?: import("svelte").Snippet<[any]>;
+  header?: Snippet;
+  item?: Snippet<[{ item: T }]>;
 }
 
 let { items, limit = 10, grace = 4, header, item }: Props = $props();
