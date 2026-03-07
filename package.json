@@ -92,7 +92,7 @@
     "workbox-build": "^7.4.0"
   },
   "dependencies": {
-    "@sentry/browser": "^10.40.0",
+    "@sentry/browser": "^10.42.0",
     "@sentry/vite-plugin": "^5.1.1",
     "@transifex/native": "^7.1.5",
     "fuzzysort": "^3.1.0",
