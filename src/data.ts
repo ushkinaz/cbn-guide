@@ -2723,6 +2723,7 @@ export const loadProgress = { subscribe: loadProgressStore.subscribe };
 let _hasSetVersion = false;
 let _currentData: CBNData | null = null;
 let _ensureModsLoadedPromise: Promise<void> | null = null;
+let _resetToken = 0;
 const prewarmedDerivedCaches = new WeakSet<CBNData>();
 
 export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
@@ -2756,6 +2757,7 @@ export const data = {
     availableLangs?: string[],
     activeMods: string[] = [],
   ) {
+    const resetToken = _resetToken;
     if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
     _hasSetVersion = true;
@@ -2894,11 +2896,19 @@ export const data = {
       console.error("Failed to apply locale JSON:", e);
       instance.effective_locale = "en";
     }
+    if (resetToken !== _resetToken) return;
     _currentData = instance;
     set(instance);
   },
-  // Test helper: reset singleton store state between app mounts in routing tests.
-  _reset() {
+  /**
+   * Reset `_reset` singleton store state between test app mounts in routing tests.
+   * Side effects: clears `_hasSetVersion`, `_currentData`, and
+   * `_ensureModsLoadedPromise`, then calls `set(null)`.
+   *
+   * @returns {void}
+   */
+  _reset(): void {
+    _resetToken += 1;
     _hasSetVersion = false;
     _currentData = null;
     _ensureModsLoadedPromise = null;
