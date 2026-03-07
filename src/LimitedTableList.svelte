@@ -27,7 +27,9 @@ let realLimit = $derived(expanded ? Infinity : initialLimit);
 
 <div class="table-container">
   <table class="data-table">
-    {@render header?.()}
+    <thead>
+      {@render header?.()}
+    </thead>
     <tbody>
       {#each items.slice(0, realLimit) as row}
         {@render item?.({ item: row })}
