@@ -2889,13 +2889,13 @@ export const data = {
       filteredActiveMods,
       rawModsJson,
     );
+    if (resetToken !== _resetToken) return;
     try {
       if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
     } catch (e) {
       console.error("Failed to apply locale JSON:", e);
       instance.effective_locale = "en";
     }
-    if (resetToken !== _resetToken) return;
     _currentData = instance;
     set(instance);
   },
