@@ -33,6 +33,19 @@ if (typeof Element !== "undefined" && !Element.prototype.animate) {
   Object.defineProperty(Element.prototype, "animate", {
     writable: true,
     value: vi.fn().mockImplementation(() => {
+      let finishGeneration = 0;
+      const queueFinish = () => {
+        const generation = finishGeneration;
+        queueMicrotask(() => {
+          if (
+            generation !== finishGeneration ||
+            animation.playState !== "running"
+          ) {
+            return;
+          }
+          animation.finish();
+        });
+      };
       const animation = {
         currentTime: 0,
         effect: null,
@@ -42,6 +55,7 @@ if (typeof Element !== "undefined" && !Element.prototype.animate) {
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(() => true),
         cancel: vi.fn(() => {
+          finishGeneration += 1;
           animation.playState = "idle";
         }),
         finish: vi.fn(() => {
@@ -53,16 +67,17 @@ if (typeof Element !== "undefined" && !Element.prototype.animate) {
           );
         }),
         pause: vi.fn(() => {
+          finishGeneration += 1;
           animation.playState = "paused";
         }),
         play: vi.fn(() => {
           animation.playState = "running";
-          queueMicrotask(() => animation.finish());
+          queueFinish();
         }),
         reverse: vi.fn(),
       };
 
-      queueMicrotask(() => animation.finish());
+      queueFinish();
       return animation as unknown as Animation;
     }),
   });
