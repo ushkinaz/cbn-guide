@@ -40,6 +40,11 @@ import type {
   Vehicle,
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
+import {
+  lootByOMSAppearance,
+  furnitureByOMSAppearance,
+  terrainByOMSAppearance,
+} from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
 import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
 import { HttpError, isNotFoundError } from "./utils/http-errors";
@@ -2729,12 +2734,6 @@ const prewarmedDerivedCaches = new WeakSet<CBNData>();
 export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
   if (isTesting || prewarmedDerivedCaches.has(targetData)) return;
   try {
-    const {
-      lootByOMSAppearance,
-      furnitureByOMSAppearance,
-      terrainByOMSAppearance,
-    } = await import("./types/item/spawnLocations");
-
     await lootByOMSAppearance(targetData);
     await yieldUntilIdle();
     await furnitureByOMSAppearance(targetData);
