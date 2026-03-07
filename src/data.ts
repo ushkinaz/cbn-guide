@@ -2901,11 +2901,11 @@ export const data = {
     set(instance);
   },
   /**
-   * Reset `_reset` singleton store state between test app mounts in routing tests.
+   * Resets singleton data store state between test app mounts in routing tests.
    * Side effects: clears `_hasSetVersion`, `_currentData`, and
    * `_ensureModsLoadedPromise`, then calls `set(null)`.
    *
-   * @returns {void}
+   * `@returns` {void}
    */
   _reset(): void {
     _resetToken += 1;
