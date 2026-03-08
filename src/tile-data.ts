@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/browser";
 import { writable } from "svelte/store";
 import type { CBNData } from "./data";
 import { mapType } from "./data";
@@ -744,7 +745,7 @@ export const tileData = {
             active_mods: data.active_mods ?? [],
           };
           console.warn("Error fetching tiles", { ...extra, error: err });
-          throw err; // Re-throw to propagate the error to the promise chain
+          return;
         });
       return;
     }
