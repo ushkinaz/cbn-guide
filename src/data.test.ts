@@ -110,6 +110,52 @@ test("includes container item specified in item", () => {
   ]);
 });
 
+test("getDissectionSources returns monsters that provide the item via dissection", () => {
+  const monster_id = "mon_test";
+  const harvest_id = "harvest_test";
+  const item_id = "item_test";
+  const group_id = "group_test";
+
+  const data = new CBNData([
+    {
+      type: "MONSTER",
+      id: monster_id,
+      name: "Test Monster",
+      harvest: harvest_id,
+    },
+    {
+      type: "harvest",
+      id: harvest_id,
+      entries: [
+        { drop: item_id, type: "bionic" },
+        { drop: group_id, type: "bionic_group" },
+      ],
+    },
+    {
+      type: "GENERIC",
+      id: item_id,
+      name: "Test Item",
+    },
+    {
+      type: "item_group",
+      id: group_id,
+      items: [{ item: "other_item", prob: 100 }],
+    },
+  ]);
+
+  const sourcesForItem = data.getDissectionSources(item_id);
+  expect(sourcesForItem).toHaveLength(1);
+  expect(sourcesForItem[0].monster.id).toBe(monster_id);
+  expect(sourcesForItem[0].harvest.id).toBe(harvest_id);
+  expect(sourcesForItem[0].entry.drop).toBe(item_id);
+
+  const sourcesForGroupMember = data.getDissectionSources("other_item");
+  expect(sourcesForGroupMember).toHaveLength(1);
+  expect(sourcesForGroupMember[0].monster.id).toBe(monster_id);
+  expect(sourcesForGroupMember[0].harvest.id).toBe(harvest_id);
+  expect(sourcesForGroupMember[0].entry.drop).toBe(group_id);
+});
+
 test("nested", () => {
   const data = new CBNData([
     {
