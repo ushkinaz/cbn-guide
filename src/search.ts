@@ -199,3 +199,14 @@ export function syncSearch(query: string, data: CBNData) {
 export function flushSearch() {
   performDebouncedSearch.flush();
 }
+
+/**
+ * Test helper: reset singleton store and module state between app mounts in routing tests.
+ * @internal
+ */
+export function _reset() {
+  lastData = null;
+  lastIndex = [];
+  performDebouncedSearch.cancel();
+  _searchResults.set(null);
+}
