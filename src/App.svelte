@@ -69,7 +69,7 @@ const PAGE_DESCRIPTION_CONTEXT = "Page description";
 const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
 const URL_MODS_CONTEXT = "URL mods";
-const PREWARM_IDLE_TIMEOUT_MS = 8000;
+const PREWARM_IDLE_TIMEOUT_MS = 500;
 
 function schedulePrewarm(cbnData: CBNData): void {
   if (isTesting || typeof window === "undefined") return;
