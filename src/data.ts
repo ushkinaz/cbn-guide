@@ -2755,12 +2755,19 @@ const prewarmedDerivedCaches = new WeakSet<CBNData>();
 
 export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
   if (isTesting || prewarmedDerivedCaches.has(targetData)) return;
+  const startToken = _generationToken;
   try {
+    if (startToken !== _generationToken) return;
     await lootByOMSAppearance(targetData);
+    if (startToken !== _generationToken) return;
     await yieldUntilIdle();
+    if (startToken !== _generationToken) return;
     await furnitureByOMSAppearance(targetData);
+    if (startToken !== _generationToken) return;
     await yieldUntilIdle();
+    if (startToken !== _generationToken) return;
     await terrainByOMSAppearance(targetData);
+    if (startToken !== _generationToken) return;
     prewarmedDerivedCaches.add(targetData);
   } catch (error) {
     // Keep prewarm best-effort: failures should not prevent future retries.
