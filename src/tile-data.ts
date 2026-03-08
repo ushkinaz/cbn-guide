@@ -715,6 +715,8 @@ export const tileData = {
   reset() {
     requestToken += 1;
     set(null);
+    baseTilesetCache.clear();
+    mergedTilesetCache.clear();
   },
   setTileset(data: CBNData | null, tilesetName: string) {
     requestToken += 1;

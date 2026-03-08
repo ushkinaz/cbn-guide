@@ -24,6 +24,8 @@ import * as fs from "fs";
 import App from "./App.svelte";
 import { data } from "./data";
 import { tileData } from "./tile-data";
+import { _reset as resetRouting } from "./routing";
+import { _reset as resetSearch } from "./search";
 import { dismiss, notifications } from "./Notification.svelte";
 
 vi.hoisted(() => {
@@ -208,6 +210,8 @@ describe("Routing E2E Tests", () => {
     }
     data._reset();
     tileData.reset();
+    resetRouting();
+    resetSearch();
     global.fetch = defaultFetchMock;
     vi.clearAllMocks();
   });

@@ -345,11 +345,14 @@ export class CBNData {
 
   /**
    * @param raw Raw game data objects
-   * @param build_number Concrete build number
-   * @param release Release metadata
-   * @param fetching_version Original version slug used for fetching
-   * @param effective_locale Effective locale actually loaded
-   * @param requested_locale Locale originally requested
+   * @param build_number Concrete build number from the loaded data blob
+   * @param release Release metadata from the loaded data blob
+   * @param fetching_version Original version slug or alias used for fetching
+   * @param effective_locale Locale actually loaded after fallback resolution
+   * @param requested_locale Locale originally requested by the user
+   * @param mods Ordered non-core mod metadata, or `null` if not loaded
+   * @param active_mods Ordered non-core active mod ids, or `null` if not loaded
+   * @param raw_mods_json Full parsed mod payload keyed by mod id, or `null` if not loaded
    */
   constructor(
     raw: any[],
@@ -2419,10 +2422,10 @@ export const normalizeVehicleMountedParts = (
   return ret;
 };
 
-const _itemGroupFromVehicleCache = new Map<Vehicle, ItemGroupData>();
+const _itemGroupFromVehicleCache = new WeakMap<Vehicle, ItemGroupData>();
 export function itemGroupFromVehicle(vehicle: Vehicle): ItemGroupData {
-  if (_itemGroupFromVehicleCache.has(vehicle))
-    return _itemGroupFromVehicleCache.get(vehicle)!;
+  const cached = _itemGroupFromVehicleCache.get(vehicle);
+  if (cached) return cached;
   const ret: ItemGroupData = {
     subtype: "collection",
     entries: (vehicle.items ?? []).map((it) => {
@@ -2725,10 +2728,29 @@ function applyLoadedModsMetadata(
 
 const loadProgressStore = writable<[number, number] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
+/**
+ * Guards the "initialize once per page load" invariant in production.
+ *
+ * Tests call `_reset()` between mounts, which clears this flag.
+ */
 let _hasSetVersion = false;
+/**
+ * Holds the currently published singleton data instance.
+ *
+ * This remains `null` until `setVersion()` finishes successfully.
+ */
 let _currentData: CBNData | null = null;
+/**
+ * Deduplicates concurrent `ensureModsLoaded()` calls for the same base instance.
+ */
 let _ensureModsLoadedPromise: Promise<void> | null = null;
-let _resetToken = 0;
+/**
+ * Monotonic generation counter used to invalidate stale async work.
+ *
+ * Incremented on every `setVersion()` start and on `_reset()`, so any older
+ * in-flight load exits before mutating the singleton store.
+ */
+let _loadGeneration = 0;
 const prewarmedDerivedCaches = new WeakSet<CBNData>();
 
 export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
@@ -2742,11 +2764,12 @@ export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
     prewarmedDerivedCaches.add(targetData);
   } catch (error) {
     // Keep prewarm best-effort: failures should not prevent future retries.
-    console.error("Failed to prewarm derived caches", error);
+    console.warn("Failed to prewarm derived caches", error);
   }
 }
 
 const { subscribe, set } = writable<CBNData | null>(null);
+
 export const data = {
   subscribe,
   async setVersion(
@@ -2756,10 +2779,11 @@ export const data = {
     availableLangs?: string[],
     activeMods: string[] = [],
   ) {
-    const resetToken = _resetToken;
     if (_hasSetVersion && !isTesting)
       throw new Error("can only set version once");
     _hasSetVersion = true;
+    const loadGeneration = ++_loadGeneration;
+
     _ensureModsLoadedPromise = null;
     let totals = [0, 0, 0, 0];
     let receiveds = [0, 0, 0, 0];
@@ -2782,6 +2806,8 @@ export const data = {
           "Failed to load data after 3 attempts. Please check your internet connection and try refreshing the page.",
       },
     );
+
+    if (loadGeneration !== _loadGeneration) return;
 
     let localeJson: any = null;
     let pinyinNameJson: any = null;
@@ -2826,16 +2852,18 @@ export const data = {
       if (targetLocale) {
         try {
           localeJson = await loadLocale(targetLocale, 1);
+          if (loadGeneration !== _loadGeneration) return;
           effective_locale = targetLocale;
           if (targetLocale.startsWith("zh_")) {
             try {
               pinyinNameJson = await loadLocale(targetLocale + "_pinyin", 2);
+              if (loadGeneration !== _loadGeneration) return;
             } catch (e) {
               console.warn(`Failed to load pinyin for ${targetLocale}`, e);
             }
           }
         } catch (e) {
-          console.error(
+          console.warn(
             `Failed to load locale ${targetLocale}, falling back to English:`,
             e,
           );
@@ -2859,6 +2887,7 @@ export const data = {
           updateProgress();
         },
       );
+      if (loadGeneration !== _loadGeneration) return;
       if (parsedMods) {
         mods = parsedMods.mods;
         rawModsJson = parsedMods.raw;
@@ -2889,28 +2918,31 @@ export const data = {
       filteredActiveMods,
       rawModsJson,
     );
-    if (resetToken !== _resetToken) return;
     try {
       if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
     } catch (e) {
-      console.error("Failed to apply locale JSON:", e);
+      console.warn("Failed to apply locale JSON:", e);
       instance.effective_locale = "en";
     }
+    if (loadGeneration !== _loadGeneration) return;
     _currentData = instance;
     set(instance);
   },
   /**
    * Resets singleton data store state between test app mounts in routing tests.
    * Side effects: clears `_hasSetVersion`, `_currentData`, and
-   * `_ensureModsLoadedPromise`, then calls `set(null)`.
+   * `_ensureModsLoadedPromise`, invalidates in-flight loads, recreates the
+   * module-scoped gettext instance, then calls `set(null)`.
    *
-   * `@returns` {void}
+   * @internal
+   * @returns {void}
    */
   _reset(): void {
-    _resetToken += 1;
+    _loadGeneration++;
     _hasSetVersion = false;
     _currentData = null;
     _ensureModsLoadedPromise = null;
+    i18n = makeI18n();
     set(null);
   },
   async ensureModsLoaded() {

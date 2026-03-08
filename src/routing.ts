@@ -285,6 +285,23 @@ function updatePageState() {
   });
 }
 
+/**
+ * Test helper: reset singleton store and module state between app mounts in routing tests.
+ * @internal
+ */
+export function _reset() {
+  debouncedReplaceState.cancel();
+  _page.set({
+    url: new URL(
+      typeof window !== "undefined" ? location.href : "http://localhost/",
+    ),
+    route:
+      typeof window !== "undefined"
+        ? parseRoute()
+        : { version: STABLE_VERSION, item: null, search: "", mods: [] },
+  });
+}
+
 // ============================================================================
 // Core Exported Utilities (Read/Compute)
 // ============================================================================
