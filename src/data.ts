@@ -2932,6 +2932,8 @@ export const data = {
     } catch (e) {
       console.warn("Failed to apply locale JSON:", e);
       instance.effective_locale = "en";
+      i18n = makeI18n();
+      i18n.setLocale(instance.effective_locale);
     }
     if (generationToken !== _generationToken) return;
     _currentData = instance;
