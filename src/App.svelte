@@ -87,8 +87,7 @@ function schedulePrewarm(cbnData: CBNData): void {
         });
       })
       .catch((error: unknown) => {
-        Sentry.captureException(error);
-        console.error("Failed to prewarm derived caches", error);
+        console.warn("Failed to prewarm derived caches", error);
       });
   };
 
@@ -184,7 +183,7 @@ void initializeRouting()
         requestedModsFromUrl,
       );
     } catch (e) {
-      console.error(e);
+      console.warn("Failed to set version", e);
       notify(
         t(
           "Failed to load data for {version}. Please select a different version from the footer.",
@@ -242,9 +241,9 @@ void initializeRouting()
     });
   })
   .catch((e) => {
-    Sentry.captureException(e);
-    console.error(e);
     //TODO: Notify user, we failed to load our app.
+    Sentry.captureException(e);
+    console.error("Failed to load the app, please reload", e);
   })
   .finally(() => {
     p.finish();
@@ -362,8 +361,7 @@ $effect(() => {
       metaDescription = defaultMetaDescription;
     }
   } catch (error: unknown) {
-    Sentry.captureException(error);
-    console.error("Failed to build page metadata", error);
+    console.warn("Failed to build page metadata", error);
     document.title = formatTitle();
     metaDescription = defaultMetaDescription;
   }
@@ -432,8 +430,8 @@ async function openModSelector(): Promise<void> {
   try {
     await data.ensureModsLoaded();
   } catch (e) {
-    console.error(e);
-    modSelectorError = t("Failed to load mods. Please try again.");
+    console.warn("Failed to load mods.", e);
+    modSelectorError = t("Failed to load mods. Please reload.");
   } finally {
     isModSelectorLoading = false;
   }

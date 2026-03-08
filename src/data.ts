@@ -1157,7 +1157,7 @@ export class CBNData {
 
     const parent = this._resolveCopyFromParent(obj);
     if ("copy-from" in obj && !parent)
-      console.error(
+      console.warn(
         `Missing parent in ${
           obj.id ?? obj.abstract ?? obj.result ?? JSON.stringify(obj)
         }`,
@@ -2106,7 +2106,7 @@ function flattenChoices<T>(
       if (isList) {
         const otherRequirement = data.byId("requirement", id);
         if (otherRequirement.type !== "requirement") {
-          console.error(
+          console.warn(
             `Expected a requirement, got ${otherRequirement.type} (id=${otherRequirement.id})`,
           );
         }
