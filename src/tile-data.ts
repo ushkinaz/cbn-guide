@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/browser";
 import { writable } from "svelte/store";
 import type { CBNData } from "./data";
 import { mapType } from "./data";
@@ -708,17 +709,23 @@ export function findTileOrLooksLike(
 
 const { subscribe, set } = writable<TilesetData>(null);
 
-let requestToken = 0;
+/**
+ * Monotonic generation token used to invalidate stale async work for tileset loading.
+ *
+ * Incremented on every `reset()` or `setTileset()` start, so older in-flight
+ * loads exit before mutating the singleton store.
+ */
+let _requestToken = 0;
 
 export const tileData = {
   subscribe,
   reset() {
-    requestToken += 1;
+    _requestToken++;
     set(null);
   },
   setTileset(data: CBNData | null, tilesetName: string) {
-    requestToken += 1;
-    const token = requestToken;
+    _requestToken++;
+    const requestToken = _requestToken;
     const tileset =
       TILESETS.find((entry) => entry.name === tilesetName) ?? DEFAULT_TILESET;
 
@@ -726,19 +733,19 @@ export const tileData = {
       const version = data.fetching_version ?? data.build_number;
       loadMergedTileset(data, version, tileset)
         .then((loaded) => {
-          if (token !== requestToken) return;
+          if (requestToken !== _requestToken) return;
           set(loaded);
           return loaded;
         })
         .catch((err) => {
-          if (token !== requestToken) return;
+          if (requestToken !== _requestToken) return;
           const extra = {
             tileset: tileset.name,
             version,
             active_mods: data.active_mods ?? [],
           };
           console.warn("Error fetching tiles", { ...extra, error: err });
-          throw err; // Re-throw to propagate the error to the promise chain
+          return;
         });
       return;
     }
@@ -754,6 +761,15 @@ export const tileData = {
     tileData.reset();
   },
 };
+
+/**
+ * Test helper: reset module cache state between app mounts in routing tests.
+ * @internal
+ */
+export function _resetCache() {
+  baseTilesetCache.clear();
+  mergedTilesetCache.clear();
+}
 
 export function isValidTileset(tilesetID: string | null) {
   return TILESETS.some((t) => t.name === tilesetID);

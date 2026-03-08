@@ -37,6 +37,7 @@
 ### Testing
 
 Prefer targeted tests first; run full suite only for cross-cutting changes.
+Always add `--no-color` to test run commands
 
 - `pnpm lint` and `pnpm check` - Required before commit
 - `pnpm test:changed` - Tests related to changed files

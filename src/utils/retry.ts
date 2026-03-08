@@ -35,7 +35,7 @@ export async function retry<T>(
         throw e;
       }
 
-      console.error(`Attempt ${attempt}/${maxRetries} failed:`, e);
+      console.warn(`Attempt ${attempt}/${maxRetries} failed:`, e);
 
       if (attempt === maxRetries) {
         if (options.finalErrorMessage) {
@@ -49,7 +49,7 @@ export async function retry<T>(
       }
 
       const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
-      console.warn(`Retrying in ${delayMs / 1000}s...`);
+      console.log(`Retrying in ${delayMs / 1000}s...`);
       await new Promise((r) => setTimeout(r, delayMs));
     }
   }

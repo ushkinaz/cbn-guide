@@ -60,9 +60,9 @@
   },
   "devDependencies": {
     "@babel/traverse": "^7.29.0",
-    "@commitlint/cli": "^20.4.2",
-    "@commitlint/config-conventional": "^20.4.2",
-    "@sveltejs/vite-plugin-svelte": "^5.1.1",
+    "@commitlint/cli": "^20.4.3",
+    "@commitlint/config-conventional": "^20.4.3",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/svelte": "^5.3.1",
     "@transifex/cli": "^7.1.5",
@@ -72,27 +72,27 @@
     "@types/requestidlecallback": "^0.3.7",
     "ajv": "^8.18.0",
     "esbuild": "^0.27.3",
-    "happy-dom": "^20.7.0",
+    "happy-dom": "^20.8.3",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
+    "lint-staged": "^16.3.2",
     "prettier": "^3.8.1",
-    "prettier-plugin-svelte": "^3.5.0",
-    "puppeteer": "^24.37.5",
+    "prettier-plugin-svelte": "^3.5.1",
+    "puppeteer": "^24.38.0",
     "sharp": "^0.33.5",
     "svelte": "^5.53.6",
-    "svelte-check": "^4.4.4",
-    "ts-json-schema-generator": "^2.5.0",
+    "svelte-check": "^4.4.5",
+    "ts-json-schema-generator": "^2.9.0",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "undici": "^7.22.0",
-    "vite": "^6.4.1",
+    "vite": "^7.3.1",
     "vite-plugin-environment": "^1.1.3",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.18",
     "workbox-build": "^7.4.0"
   },
   "dependencies": {
-    "@sentry/browser": "^10.40.0",
+    "@sentry/browser": "^10.42.0",
     "@sentry/vite-plugin": "^5.1.1",
     "@transifex/native": "^7.1.5",
     "fuzzysort": "^3.1.0",
@@ -101,9 +101,9 @@
     "zaraz-ts": "^1.2.0"
   },
   "engines": {
-    "node": ">=18.12"
+    "node": "^20.19.0 || >=22.12.0"
   },
-  "packageManager": "pnpm@10.28.0+sha512.05df71d1421f21399e053fde567cea34d446fa02c76571441bfc1c7956e98e363088982d940465fd34480d4d90a0668bc12362f8aa88000a64e83d0b0e47be48",
+  "packageManager": "pnpm@10.30.3+sha512.c961d1e0a2d8e354ecaa5166b822516668b7f44cb5bd95122d590dd81922f606f5473b6d23ec4a5be05e7fcd18e8488d47d978bbe981872f1145d06e9a740017",
   "pnpm": {
     "overrides": {
       "minimatch@>=10 <11": "10.2.3",
