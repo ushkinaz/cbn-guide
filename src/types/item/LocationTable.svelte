@@ -65,7 +65,7 @@ function filterLocations(
         <LimitedTableList items={spawnLocations}>
           {#snippet header()}
             <tr>
-              <th>{heading}</th>
+              <th><h2>{heading}</h2></th>
               <th style="text-align: right; padding-left: 1em;"
                 >{t("Avg. Count", { _context: "Obtaining" })}</th>
               <th style="text-align: right; padding-left: 1em;"

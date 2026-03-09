@@ -48,7 +48,7 @@ let {
         <LimitedTableList items={sortedLoot}>
           {#snippet header()}
             <tr>
-              <th>{heading}</th>
+              <th><h2>{heading}</h2></th>
               <th class="numeric">
                 {t("Avg. Count", {
                   _context: "Loot Table",
@@ -65,11 +65,7 @@ let {
               </th>
             </tr>
           {/snippet}
-          {#snippet item({
-            item,
-          }: {
-            item: [string, { expected: number; prob: number }];
-          })}
+          {#snippet item({ item })}
             {@const [item_id, chance] = item}
             <tr>
               <td style="padding-left: 5px;">
