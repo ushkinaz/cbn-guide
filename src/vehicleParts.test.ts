@@ -45,8 +45,8 @@ describe("normalizeVehicleMountedParts", () => {
 
     expect(normalizeVehicleMountedParts(vehicle)).toEqual([
       {
-        x: 0,
-        y: -1,
+        x: -1,
+        y: 0,
         parts: [{ part: "frame" }],
       },
       {
@@ -55,9 +55,41 @@ describe("normalizeVehicleMountedParts", () => {
         parts: [{ part: "seat" }, { part: "roof" }],
       },
       {
+        x: 0,
+        y: 1,
+        parts: [{ part: "wheel" }],
+      },
+    ]);
+  });
+
+  test("combines legacy parts with blueprint + palette format", () => {
+    const vehicle: Vehicle = {
+      id: "mixed_vehicle",
+      type: "vehicle",
+      name: "Mixed vehicle",
+      parts: [{ x: 0, y: 0, part: "tank", fuel: "gasoline" }],
+      blueprint: ["AB"],
+      palette: {
+        A: ["frame"],
+        B: ["seat"],
+      },
+    };
+
+    expect(normalizeVehicleMountedParts(vehicle)).toEqual([
+      {
+        x: 0,
+        y: 0,
+        parts: [{ part: "tank", fuel: "gasoline" }],
+      },
+      {
+        x: 0,
+        y: 0,
+        parts: [{ part: "frame" }],
+      },
+      {
         x: 1,
         y: 0,
-        parts: [{ part: "wheel" }],
+        parts: [{ part: "seat" }],
       },
     ]);
   });

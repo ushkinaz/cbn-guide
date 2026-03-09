@@ -2442,26 +2442,29 @@ export type NormalizedVehicleMountedPart = {
 export const normalizeVehicleMountedParts = (
   vehicle: Vehicle,
 ): NormalizedVehicleMountedPart[] => {
+  const ret: NormalizedVehicleMountedPart[] = [];
+
   if (vehicle.parts) {
-    return vehicle.parts.map((part) => ({
-      x: part.x,
-      y: part.y,
-      parts:
-        (part.part
-          ? [{ part: part.part, fuel: part.fuel }]
-          : part.parts?.map((p) =>
-              typeof p === "string" ? { part: p } : p,
-            )) ?? [],
-    }));
+    ret.push(
+      ...vehicle.parts.map((part) => ({
+        x: part.x,
+        y: part.y,
+        parts:
+          (part.part
+            ? [{ part: part.part, fuel: part.fuel }]
+            : part.parts?.map((p) =>
+                typeof p === "string" ? { part: p } : p,
+              )) ?? [],
+      })),
+    );
   }
 
-  if (!vehicle.blueprint || !vehicle.palette) return [];
+  if (!vehicle.blueprint || !vehicle.palette) return ret;
 
   const origin = vehicle.blueprint_origin ?? { x: 0, y: 0 };
   const rows = vehicle.blueprint.map((row) =>
     Array.isArray(row) ? row.join("") : row,
   );
-  const ret: NormalizedVehicleMountedPart[] = [];
 
   for (const [rowIndex, row] of rows.entries()) {
     for (const [colIndex, symbol] of [...row].entries()) {
@@ -2476,8 +2479,10 @@ export const normalizeVehicleMountedParts = (
       if (!parts.length) continue;
 
       ret.push({
-        x: rowIndex - origin.y,
-        y: colIndex - origin.x,
+        // Match Cataclysm-BN's vehicle blueprint loader in `veh_type.cpp`,
+        // which uses column -> x and row -> y after subtracting the origin.
+        x: colIndex - origin.x,
+        y: rowIndex - origin.y,
         parts,
       });
     }
