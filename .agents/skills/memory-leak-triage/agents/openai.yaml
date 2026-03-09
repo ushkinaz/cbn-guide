@@ -1,0 +1,4 @@
+interface:
+  display_name: "Memory Leak Triage"
+  short_description: "Diagnose heap growth, OOMs, and hanging tests."
+  default_prompt: "Use $memory-leak-triage to diagnose heap growth, Vitest OOMs, or hanging tests, fix the retaining lifecycle or worker-pressure issue, and verify with focused checks."
