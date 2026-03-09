@@ -742,11 +742,6 @@ export async function initializeRouting(): Promise<InitialAppState> {
     unit: "millisecond",
   });
 
-  const buildNum = parseInt(resolvedVersion.replace(/\D/g, ""), 10);
-  if (!isNaN(buildNum)) {
-    metrics.gauge("data.resolved_version", buildNum);
-  }
-
   return {
     builds,
     resolvedVersion,
