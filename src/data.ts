@@ -19,6 +19,8 @@ import type {
   Bionic,
   DamageInstance,
   DamageUnit,
+  Harvest,
+  HarvestEntry,
   Item,
   ItemGroup,
   ItemGroupData,
@@ -289,6 +291,12 @@ export function asKilograms(string: string | number): string {
   return formatKg(g);
 }
 
+type DissectionSource = {
+  monster: Monster;
+  harvest: Harvest;
+  entry: HarvestEntry;
+};
+
 /**
  * Central data store for the application.
  * Handles loading, indexing, and accessing game data.
@@ -326,6 +334,13 @@ export class CBNData {
    * @internal
    */
   _monsterVisibilityById: Map<string, boolean> = new Map();
+
+  /**
+   * Reverse index for "Dissected From" functionality.
+   * Maps item_id or item_group_id to a list of monsters that provide it.
+   * @internal
+   */
+  _dissectionSources: Map<string, DissectionSource[]> = new Map();
 
   release: any;
   /** Concrete build number from the game data (e.g., "v0.9.1") */
@@ -467,6 +482,7 @@ export class CBNData {
       .get("item_group")
       ?.set("EMPTY_GROUP", { id: "EMPTY_GROUP", entries: [] });
     this._indexMonsterVisibilityPolicy();
+    this._indexDissectionSources();
     p.finish();
   }
 
@@ -648,6 +664,54 @@ export class CBNData {
     if (typeof id !== "string") return false;
     const visible = this._monsterVisibilityById.get(id);
     return visible ?? true;
+  }
+
+  /** @internal */
+  _indexDissectionSources(): void {
+    const monsters = this.byType("monster");
+    for (const monster of monsters) {
+      if (!monster.harvest) continue;
+      const harvest = this.byIdMaybe("harvest", monster.harvest);
+      if (!harvest || !harvest.entries) continue;
+
+      for (const entry of harvest.entries) {
+        if (
+          entry.type === "bionic" ||
+          entry.type === "bionic_group" ||
+          entry.type === "bionic_faulty"
+        ) {
+          const dropIds =
+            entry.type === "bionic_group"
+              ? this.flattenTopLevelItemGroup(
+                  this.byId("item_group", entry.drop),
+                ).map((x) => x.id)
+              : [entry.drop];
+
+          for (const dropId of dropIds) {
+            let sources = this._dissectionSources.get(dropId);
+            if (!sources) {
+              sources = [];
+              this._dissectionSources.set(dropId, sources);
+            }
+            sources.push({
+              monster,
+              harvest,
+              entry,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns a list of monsters that provide the given item (or group) via dissection.
+   *
+   * @param id The item ID or item group ID to search for.
+   * @returns A list of dissection sources.
+   */
+  getDissectionSources(id: string): DissectionSource[] {
+    return this._dissectionSources.get(id) ?? [];
   }
 
   /**

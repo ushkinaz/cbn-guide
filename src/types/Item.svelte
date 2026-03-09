@@ -33,6 +33,7 @@ import ContainerInfo from "./item/Container.svelte";
 import ConstructionByproduct from "./item/ConstructionByproduct.svelte";
 import Deconstruct from "./item/Deconstruct.svelte";
 import Disassembly from "./item/Disassembly.svelte";
+import DissectedFrom from "./item/DissectedFrom.svelte";
 import DroppedBy from "./item/DroppedBy.svelte";
 import Foraged from "./item/Foraged.svelte";
 import GrownFrom from "./item/GrownFrom.svelte";
@@ -482,6 +483,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <SmokedFrom item_id={item.id} />
   <TransformedFrom item_id={item.id} />
   <Disassembly item_id={item.id} />
+  <DissectedFrom item_id={item.id} />
   <Salvaged item_id={item.id} />
   <Recipes item_id={item.id} />
   <ConstructionByproduct item_id={item.id} />
