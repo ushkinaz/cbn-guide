@@ -744,6 +744,13 @@ export const tileData = {
             version,
             active_mods: data.active_mods ?? [],
           };
+          Sentry.withScope((scope) => {
+            scope.setTag("tileset", tileset.name);
+            scope.setExtra("version", version);
+            scope.setExtra("active_mods", data.active_mods ?? []);
+            scope.setExtra("tileset_error", err);
+            Sentry.captureException(err);
+          });
           console.warn("Error fetching tiles", { ...extra, error: err });
           return;
         });
