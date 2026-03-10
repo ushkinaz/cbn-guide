@@ -3011,12 +3011,9 @@ export const data = {
     set(instance);
   },
   /**
-   * Resets singleton data store state between test app mounts in routing tests.
-   * Side effects: clears `_hasSetVersion`, `_currentData`, and
-   * `_ensureModsLoadedPromise`, invalidates in-flight loads, recreates the
-   * module-scoped gettext instance, then calls `set(null)`.
+   * `_reset`: resetting singleton store state between test app mounts.
+   * Side effects: clearing _hasSetVersion, _currentData, _ensureModsLoadedPromise and calling set(null).
    *
-   * @internal
    * @returns {void}
    */
   _reset(): void {
