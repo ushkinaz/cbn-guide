@@ -84,6 +84,36 @@ test("search result icon updates when the top match changes", async () => {
   ).toBe("d");
 });
 
+test("search result mutation color metadata updates with the top match", async () => {
+  const searchData = new CBNData([
+    { type: "mutation", id: "growth", name: "growth", points: 2 },
+    { type: "mutation", id: "shrink", name: "shrink", points: -2 },
+  ]);
+
+  syncSearch("gr", searchData);
+  flushSearch();
+
+  const view = render(SearchResults, { data: searchData, search: "gr" });
+
+  expect(
+    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+  ).toBe("growth");
+  expect(
+    view.container.querySelector("li .item-link > span[style]")?.textContent,
+  ).toBe("(2)");
+
+  syncSearch("sh", searchData);
+  flushSearch();
+  await view.rerender({ data: searchData, search: "sh" });
+
+  expect(
+    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+  ).toBe("shrink");
+  expect(
+    view.container.querySelector("li .item-link > span[style]")?.textContent,
+  ).toBe("(-2)");
+});
+
 test("performSearch returns all results and dedups", () => {
   const manyItems = [];
   for (let i = 0; i < 300; i++) {

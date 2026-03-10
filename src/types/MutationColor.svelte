@@ -1,5 +1,4 @@
 <script lang="ts">
-import { untrack } from "svelte";
 import type { Mutation } from "src/types";
 
 interface Props {
@@ -7,10 +6,9 @@ interface Props {
   children?: import("svelte").Snippet;
 }
 
-let { mutation: sourceMutation, children }: Props = $props();
-const mutation = untrack(() => sourceMutation);
+let { mutation, children }: Props = $props();
 
-let displayColor =
+let displayColor = $derived(
   mutation.threshold || mutation.profession
     ? "white"
     : mutation.mixed_effect
@@ -19,7 +17,8 @@ let displayColor =
         ? "light_green"
         : (mutation.points ?? 0) < 0
           ? "light_red"
-          : "yellow";
+          : "yellow",
+);
 </script>
 
 <span style={`color: var(--cata-color-${displayColor})`}
