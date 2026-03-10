@@ -19,7 +19,7 @@ The application uses a **hybrid routing approach**:
 ## URL Structure
 
 ```
-/{version}/{type?}/{id?}?lang={locale}&t={tileset}
+/{version}/{type?}/{id?}?lang={locale}&t={tileset}&mods={mods}
 ```
 
 ### Path Segments
@@ -56,6 +56,10 @@ The application uses a **hybrid routing approach**:
     1. URL Parameter (`?t=`)
     2. `localStorage`
     3. Default (ASCII)
+
+- **`mods`**: Comma-separated list of active mod IDs (e.g., `"dda,aftershock"`)
+  - Parsed into a `string[]` by `parseRoute()`
+  - URL remains the strict source-of-truth for active mods
 
 ## Navigation Types
 
@@ -223,11 +227,11 @@ Parses the current URL and extracts route information.
 **Example:**
 
 ```typescript
-// URL: /stable/item/rock
-parseRoute(); // { version: "stable", item: { type: "item", id: "rock" }, search: "" }
+// URL: /stable/item/rock?mods=dda,aftershock
+parseRoute(); // { version: "stable", item: { type: "item", id: "rock" }, search: "", mods: ["dda", "aftershock"] }
 
 // URL: /nightly/search/C%2B%2B
-parseRoute(); // { version: "nightly", item: null, search: "C++" }
+parseRoute(); // { version: "nightly", item: null, search: "C++", mods: [] }
 ```
 
 ##### `getUrlConfig(): UrlConfig`
@@ -331,7 +335,7 @@ Programmatically navigates to a new route while preserving query parameters.
 **Behavior:**
 
 - Uses `history.pushState` (or `replaceState`) for SPA navigation
-- Preserves current `lang` and `t` query parameters
+- Preserves current `lang`, `t`, and `mods` query parameters
 - Cancels any pending debounced URL updates
 - Updates browser history without triggering page reload
 - Updates the `page` store to reflect new route
@@ -433,6 +437,7 @@ export type ParsedRoute = {
   version: string;
   item: { type: string; id: string } | null;
   search: string;
+  mods: string[];
 };
 
 export type UrlConfig = {
