@@ -36,13 +36,17 @@ let data: CBNData = getContext("data");
 let sym = $derived([item.symbol].flat()[0] ?? " ");
 let symbol = $derived(/^LINE_/.test(sym) ? "|" : sym);
 let color = $derived(
-  item.color
-    ? typeof item.color === "string"
-      ? item.color
-      : item.color[0]
-    : item.bgcolor
-      ? colorFromBgcolor(item.bgcolor)
-      : "white",
+  !item.symbol
+    ? "c_transparent"
+    : `c_${
+        item.color
+          ? typeof item.color === "string"
+            ? item.color
+            : item.color[0]
+          : item.bgcolor
+            ? colorFromBgcolor(item.bgcolor)
+            : "white"
+      }`,
 );
 
 function typeHasTile(item: any): boolean {
@@ -179,7 +183,7 @@ let scaleY = $derived(finalHeight / (tile_info?.height ?? 32));
   <!-- Sized ASCII fallback: We have cached tileset dimensions but tile data hasn't loaded yet.
        This prevents layout shift during initial page load or version switching. -->
   <span
-    class="tile-icon c_{color}"
+    class="tile-icon {color}"
     style="
       width: {finalWidth}px;
       height: {finalHeight}px;
@@ -192,7 +196,7 @@ let scaleY = $derived(finalHeight / (tile_info?.height ?? 32));
   <!--    class="-&#45;&#45;c_{color}">&nbsp;</span>-->
 {:else}
   <span
-    class="tile-icon c_{color}"
+    class="tile-icon {color}"
     style="
       width: {finalWidth}px;
       height: {finalHeight}px;
@@ -217,5 +221,10 @@ let scaleY = $derived(finalHeight / (tile_info?.height ?? 32));
   position: absolute;
   transform-origin: top left;
   image-rendering: pixelated;
+}
+
+.c_transparent {
+  color: var(--cata-color-white);
+  background: transparent;
 }
 </style>
