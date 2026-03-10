@@ -101,6 +101,7 @@ describe("ModSelector", () => {
 
     await fireEvent.click(getByLabelText("Magiclysm"));
     await fireEvent.click(getByText("Apply"));
+    expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith(["aftershock", "magiclysm"]);
   });
 
@@ -128,6 +129,7 @@ describe("ModSelector", () => {
     );
 
     await fireEvent.click(getByText("Apply"));
+    expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith([]);
   });
 
@@ -152,6 +154,7 @@ describe("ModSelector", () => {
     await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
 
     await fireEvent.click(getByText("Apply"));
+    expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith(["aftershock", "arcana"]);
   });
 
@@ -169,6 +172,7 @@ describe("ModSelector", () => {
     await fireEvent.click(getByText("Default"));
     await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
     await fireEvent.click(getByText("Apply"));
+    expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith(["no_npc_food", "cbm_slots"]);
   });
 
@@ -193,6 +197,7 @@ describe("ModSelector", () => {
     await waitFor(() => expect(getByText("Mods [2]")).toBeTruthy());
 
     await fireEvent.click(getByText("Apply"));
+    expect(onApply).toHaveBeenCalledTimes(1);
     expect(onApply).toHaveBeenCalledWith(["no_npc_food", "cbm_slots"]);
   });
 
