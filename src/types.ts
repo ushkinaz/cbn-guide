@@ -2003,7 +2003,6 @@ export type MutationType = {
 export type MutationCategory = {
   id: string;
   type: "mutation_category";
-  vitamin?: string;
   name: Translation;
   description?: Translation;
   threshold_mut?: string;

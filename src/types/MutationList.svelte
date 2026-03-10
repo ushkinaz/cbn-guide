@@ -21,7 +21,7 @@ let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>
 ).sort((a, b) => singularName(a[0][0]).localeCompare(singularName(b[0][0])));
 </script>
 
-<ul>
+<ul class="no-bullets">
   {#each sortedMutations as rank}
     <li>
       {#each rank as mg, i}

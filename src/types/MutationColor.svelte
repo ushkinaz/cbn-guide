@@ -9,17 +9,13 @@ interface Props {
 let { mutation, children }: Props = $props();
 
 let displayColor = $derived(
-  mutation.threshold || mutation.profession
-    ? "white"
-    : mutation.mixed_effect
-      ? "light_magenta"
-      : (mutation.points ?? 0) > 0
-        ? "light_green"
-        : (mutation.points ?? 0) < 0
-          ? "light_red"
-          : "yellow",
+  (mutation.points ?? 0) > 0
+    ? "light_green"
+    : (mutation.points ?? 0) < 0
+      ? "light_red"
+      : "white",
 );
 </script>
 
 <span style={`color: var(--cata-color-${displayColor})`}
-  >{#if children}{@render children()}{:else}({mutation.points ?? 0}){/if}</span>
+  >{#if children}{@render children()}{:else}{mutation.points ?? 0}{/if}</span>

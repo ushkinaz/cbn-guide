@@ -55,14 +55,12 @@ const conflictsWithBionics = data
 </script>
 
 <h1>
-  {item.threshold ? t("Threshold Mutation") : t("Mutation")}: {singularName(
-    item,
-  )}
+  {item.threshold ? t("Threshold") : t("Mutation")}: {singularName(item)}
 </h1>
 <section>
   <dl>
     <dt>{t("Points", { _context })}</dt>
-    <dd><MutationColor mutation={item}>{item.points ?? 0}</MutationColor></dd>
+    <dd><MutationColor mutation={item} /></dd>
     {#if item.category}
       <dt>{t("Category", { _context })}</dt>
       <dd>
@@ -282,7 +280,7 @@ const conflictsWithBionics = data
 
 {#if item.threshold && postThresholdMutations.length}
   <section>
-    <h2>{t("Post-Threshold Mutations", { _context })}</h2>
+    <h2>{t("Post-Threshold", { _context })}</h2>
     <MutationList mutations={postThresholdMutations} />
   </section>
 {/if}
