@@ -54,6 +54,36 @@ test("search with no results shows 'no results'", () => {
   expect(container.textContent).toMatch(/No results/);
 });
 
+test("search result icon updates when the top match changes", async () => {
+  const searchData = new CBNData([
+    { type: "BOOK", id: "opal", name: "opal", symbol: "*" },
+    { type: "MONSTER", id: "opossum", name: "opossum", symbol: "d" },
+  ]);
+
+  syncSearch("op", searchData);
+  flushSearch();
+
+  const view = render(SearchResults, { data: searchData, search: "op" });
+
+  expect(
+    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+  ).toBe("opal");
+  expect(
+    view.container.querySelector("li .tile-icon")?.textContent?.trim(),
+  ).toBe("*");
+
+  syncSearch("opo", searchData);
+  flushSearch();
+  await view.rerender({ data: searchData, search: "opo" });
+
+  expect(
+    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+  ).toBe("opossum");
+  expect(
+    view.container.querySelector("li .tile-icon")?.textContent?.trim(),
+  ).toBe("d");
+});
+
 test("performSearch returns all results and dedups", () => {
   const manyItems = [];
   for (let i = 0; i < 300; i++) {

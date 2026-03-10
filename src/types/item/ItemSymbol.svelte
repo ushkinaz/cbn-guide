@@ -8,7 +8,7 @@ import {
 } from "../../tile-data";
 import { colorForName } from "../../colors";
 import { CBNData, mapType } from "../../data";
-import { getContext, untrack } from "svelte";
+import { getContext } from "svelte";
 
 interface Props {
   item: {
@@ -25,24 +25,25 @@ interface Props {
 }
 
 let {
-  item: sourceItem,
+  item,
   width = undefined,
   height = undefined,
   centered = false,
 }: Props = $props();
-const item = untrack(() => sourceItem);
 
 let data: CBNData = getContext("data");
 
-const sym = [item.symbol].flat()[0] ?? " ";
-const symbol = /^LINE_/.test(sym) ? "|" : sym;
-const color = item.color
-  ? typeof item.color === "string"
-    ? item.color
-    : item.color[0]
-  : item.bgcolor
-    ? colorFromBgcolor(item.bgcolor)
-    : "white";
+let sym = $derived([item.symbol].flat()[0] ?? " ");
+let symbol = $derived(/^LINE_/.test(sym) ? "|" : sym);
+let color = $derived(
+  item.color
+    ? typeof item.color === "string"
+      ? item.color
+      : item.color[0]
+    : item.bgcolor
+      ? colorFromBgcolor(item.bgcolor)
+      : "white",
+);
 
 function typeHasTile(item: any): boolean {
   return ["item", "monster", "terrain", "furniture", "vehicle_part"].includes(
