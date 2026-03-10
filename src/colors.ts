@@ -124,16 +124,15 @@ function color_pair(i: number) {
 }
 
 /**
- * Resolves a color name to its foreground/background indices and inverse color name.
+ * Resolves a color name to its foreground/background indices.
  * Automatically adds "c_" prefix if missing and defaults to "c_white" for empty names.
  *
  * @param name - Color name (e.g., "c_red", "red", or "")
- * @returns Color definition with fg/bg indices and inverse color name
+ * @returns Color definition with fg/bg indices
  */
 export function colorForName(name: string): {
   fg: number;
   bg: number;
-  inverse: string;
 } {
   if (!name) return colorForName("c_white");
   if (name[1] != "_") return colorForName("c_" + name);
@@ -143,684 +142,165 @@ export function colorForName(name: string): {
  * Complete mapping of color names to their terminal color pair definitions.
  * Used by both runtime code (ItemSymbol.svelte) and build scripts (gen-css.ts).
  */
-export const all_colors: Record<
-  string,
-  { fg: number; bg: number; inverse: string }
-> = {};
+export const all_colors: Record<string, { fg: number; bg: number }> = {};
 
-function add_color(
-  _def: string,
-  name: string,
-  pair: ReturnType<typeof color_pair>,
-  inverse: string,
-) {
+function add_color(name: string, pair: ReturnType<typeof color_pair>) {
   all_colors[name] = {
     ...pair.color(),
-    inverse,
   };
 }
 
-add_color("def_c_black", "c_black", color_pair(30), "def_i_black");
-add_color("def_c_white", "c_white", color_pair(1).bold(), "def_i_white");
-add_color(
-  "def_c_light_gray",
-  "c_light_gray",
-  color_pair(1),
-  "def_i_light_gray",
-);
-add_color(
-  "def_c_dark_gray",
-  "c_dark_gray",
-  color_pair(30).bold(),
-  "def_i_dark_gray",
-);
-add_color("def_c_red", "c_red", color_pair(2), "def_i_red");
-add_color("def_c_green", "c_green", color_pair(3), "def_i_green");
-add_color("def_c_blue", "c_blue", color_pair(4), "def_i_blue");
-add_color("def_c_cyan", "c_cyan", color_pair(5), "def_i_cyan");
-add_color("def_c_magenta", "c_magenta", color_pair(6), "def_i_magenta");
-add_color("def_c_brown", "c_brown", color_pair(7), "def_i_brown");
-add_color(
-  "def_c_light_red",
-  "c_light_red",
-  color_pair(2).bold(),
-  "def_i_light_red",
-);
-add_color(
-  "def_c_light_green",
-  "c_light_green",
-  color_pair(3).bold(),
-  "def_i_light_green",
-);
-add_color(
-  "def_c_light_blue",
-  "c_light_blue",
-  color_pair(4).bold(),
-  "def_i_light_blue",
-);
-add_color(
-  "def_c_light_cyan",
-  "c_light_cyan",
-  color_pair(5).bold(),
-  "def_i_light_cyan",
-);
-add_color("def_c_pink", "c_pink", color_pair(6).bold(), "def_i_pink");
-add_color("def_c_yellow", "c_yellow", color_pair(7).bold(), "def_i_yellow");
+add_color("c_black", color_pair(30));
+add_color("c_white", color_pair(1).bold());
+add_color("c_light_gray", color_pair(1));
+add_color("c_dark_gray", color_pair(30).bold());
+add_color("c_red", color_pair(2));
+add_color("c_green", color_pair(3));
+add_color("c_blue", color_pair(4));
+add_color("c_cyan", color_pair(5));
+add_color("c_magenta", color_pair(6));
+add_color("c_brown", color_pair(7));
+add_color("c_light_red", color_pair(2).bold());
+add_color("c_light_green", color_pair(3).bold());
+add_color("c_light_blue", color_pair(4).bold());
+add_color("c_light_cyan", color_pair(5).bold());
+add_color("c_pink", color_pair(6).bold());
+add_color("c_yellow", color_pair(7).bold());
 
-add_color("def_h_black", "h_black", color_pair(20), "def_c_blue");
-add_color(
-  "def_h_white",
-  "h_white",
-  color_pair(15).bold(),
-  "def_c_light_blue_white",
-);
-add_color(
-  "def_h_light_gray",
-  "h_light_gray",
-  color_pair(15),
-  "def_c_blue_white",
-);
-add_color(
-  "def_h_dark_gray",
-  "h_dark_gray",
-  color_pair(20).bold(),
-  "def_c_light_blue",
-);
-add_color("def_h_red", "h_red", color_pair(16), "def_c_blue_red");
-add_color("def_h_green", "h_green", color_pair(17), "def_c_blue_green");
-add_color("def_h_blue", "h_blue", color_pair(20), "def_h_blue");
-add_color("def_h_cyan", "h_cyan", color_pair(19), "def_c_blue_cyan");
-add_color("def_h_magenta", "h_magenta", color_pair(21), "def_c_blue_magenta");
-add_color("def_h_brown", "h_brown", color_pair(22), "def_c_blue_yellow");
-add_color(
-  "def_h_light_red",
-  "h_light_red",
-  color_pair(16).bold(),
-  "def_c_light_blue_red",
-);
-add_color(
-  "def_h_light_green",
-  "h_light_green",
-  color_pair(17).bold(),
-  "def_c_light_blue_green",
-);
-add_color(
-  "def_h_light_blue",
-  "h_light_blue",
-  color_pair(18).bold(),
-  "def_h_light_blue",
-);
-add_color(
-  "def_h_light_cyan",
-  "h_light_cyan",
-  color_pair(19).bold(),
-  "def_c_light_blue_cyan",
-);
-add_color(
-  "def_h_pink",
-  "h_pink",
-  color_pair(21).bold(),
-  "def_c_light_blue_magenta",
-);
-add_color(
-  "def_h_yellow",
-  "h_yellow",
-  color_pair(22).bold(),
-  "def_c_light_blue_yellow",
-);
+add_color("h_black", color_pair(20));
+add_color("h_white", color_pair(15).bold());
+add_color("h_light_gray", color_pair(15));
+add_color("h_dark_gray", color_pair(20).bold());
+add_color("h_red", color_pair(16));
+add_color("h_green", color_pair(17));
+add_color("h_blue", color_pair(20));
+add_color("h_cyan", color_pair(19));
+add_color("h_magenta", color_pair(21));
+add_color("h_brown", color_pair(22));
+add_color("h_light_red", color_pair(16).bold());
+add_color("h_light_green", color_pair(17).bold());
+add_color("h_light_blue", color_pair(18).bold());
+add_color("h_light_cyan", color_pair(19).bold());
+add_color("h_pink", color_pair(21).bold());
+add_color("h_yellow", color_pair(22).bold());
 
-add_color("def_i_black", "i_black", color_pair(32), "def_c_black");
-add_color("def_i_white", "i_white", color_pair(8).blink(), "def_c_white");
-add_color(
-  "def_i_light_gray",
-  "i_light_gray",
-  color_pair(8),
-  "def_c_light_gray",
-);
-add_color(
-  "def_i_dark_gray",
-  "i_dark_gray",
-  color_pair(32).blink(),
-  "def_c_dark_gray",
-);
-add_color("def_i_red", "i_red", color_pair(9), "def_c_red");
-add_color("def_i_green", "i_green", color_pair(10), "def_c_green");
-add_color("def_i_blue", "i_blue", color_pair(11), "def_c_blue");
-add_color("def_i_cyan", "i_cyan", color_pair(12), "def_c_cyan");
-add_color("def_i_magenta", "i_magenta", color_pair(13), "def_c_magenta");
-add_color("def_i_brown", "i_brown", color_pair(14), "def_c_brown");
-add_color(
-  "def_i_light_red",
-  "i_light_red",
-  color_pair(9).blink(),
-  "def_c_light_red",
-);
-add_color(
-  "def_i_light_green",
-  "i_light_green",
-  color_pair(10).blink(),
-  "def_c_light_green",
-);
-add_color(
-  "def_i_light_blue",
-  "i_light_blue",
-  color_pair(11).blink(),
-  "def_c_light_blue",
-);
-add_color(
-  "def_i_light_cyan",
-  "i_light_cyan",
-  color_pair(12).blink(),
-  "def_c_light_cyan",
-);
-add_color("def_i_pink", "i_pink", color_pair(13).blink(), "def_c_pink");
-add_color("def_i_yellow", "i_yellow", color_pair(14).blink(), "def_c_yellow");
+add_color("i_black", color_pair(32));
+add_color("i_white", color_pair(8).blink());
+add_color("i_light_gray", color_pair(8));
+add_color("i_dark_gray", color_pair(32).blink());
+add_color("i_red", color_pair(9));
+add_color("i_green", color_pair(10));
+add_color("i_blue", color_pair(11));
+add_color("i_cyan", color_pair(12));
+add_color("i_magenta", color_pair(13));
+add_color("i_brown", color_pair(14));
+add_color("i_light_red", color_pair(9).blink());
+add_color("i_light_green", color_pair(10).blink());
+add_color("i_light_blue", color_pair(11).blink());
+add_color("i_light_cyan", color_pair(12).blink());
+add_color("i_pink", color_pair(13).blink());
+add_color("i_yellow", color_pair(14).blink());
 
-add_color("def_c_black_red", "c_black_red", color_pair(9).bold(), "def_c_red");
-add_color(
-  "def_c_white_red",
-  "c_white_red",
-  color_pair(23).bold(),
-  "def_c_red_white",
-);
-add_color(
-  "def_c_light_gray_red",
-  "c_light_gray_red",
-  color_pair(23),
-  "def_c_light_red_white",
-);
-add_color(
-  "def_c_dark_gray_red",
-  "c_dark_gray_red",
-  color_pair(9),
-  "def_c_dark_gray_red",
-);
-add_color("def_c_red_red", "c_red_red", color_pair(9), "def_c_red_red");
-add_color("def_c_green_red", "c_green_red", color_pair(25), "def_c_red_green");
-add_color("def_c_blue_red", "c_blue_red", color_pair(26), "def_h_red");
-add_color("def_c_cyan_red", "c_cyan_red", color_pair(27), "def_c_red_cyan");
-add_color(
-  "def_c_magenta_red",
-  "c_magenta_red",
-  color_pair(28),
-  "def_c_red_magenta",
-);
-add_color("def_c_brown_red", "c_brown_red", color_pair(29), "def_c_red_yellow");
-add_color(
-  "def_c_light_red_red",
-  "c_light_red_red",
-  color_pair(24).bold(),
-  "def_c_red_red",
-);
-add_color(
-  "def_c_light_green_red",
-  "c_light_green_red",
-  color_pair(25).bold(),
-  "def_c_light_red_green",
-);
-add_color(
-  "def_c_light_blue_red",
-  "c_light_blue_red",
-  color_pair(26).bold(),
-  "def_h_light_red",
-);
-add_color(
-  "def_c_light_cyan_red",
-  "c_light_cyan_red",
-  color_pair(27).bold(),
-  "def_c_light_red_cyan",
-);
-add_color(
-  "def_c_pink_red",
-  "c_pink_red",
-  color_pair(28).bold(),
-  "def_c_light_red_magenta",
-);
-add_color(
-  "def_c_yellow_red",
-  "c_yellow_red",
-  color_pair(29).bold(),
-  "def_c_red_yellow",
-);
+add_color("c_black_red", color_pair(9).bold());
+add_color("c_white_red", color_pair(23).bold());
+add_color("c_light_gray_red", color_pair(23));
+add_color("c_dark_gray_red", color_pair(9));
+add_color("c_red_red", color_pair(9));
+add_color("c_green_red", color_pair(25));
+add_color("c_blue_red", color_pair(26));
+add_color("c_cyan_red", color_pair(27));
+add_color("c_magenta_red", color_pair(28));
+add_color("c_brown_red", color_pair(29));
+add_color("c_light_red_red", color_pair(24).bold());
+add_color("c_light_green_red", color_pair(25).bold());
+add_color("c_light_blue_red", color_pair(26).bold());
+add_color("c_light_cyan_red", color_pair(27).bold());
+add_color("c_pink_red", color_pair(28).bold());
+add_color("c_yellow_red", color_pair(29).bold());
 
-add_color("def_c_unset", "c_unset", color_pair(31), "def_c_unset");
+add_color("c_unset", color_pair(31));
 
-add_color(
-  "def_c_black_white",
-  "c_black_white",
-  color_pair(32),
-  "def_c_light_gray",
-);
-add_color(
-  "def_c_dark_gray_white",
-  "c_dark_gray_white",
-  color_pair(32).bold(),
-  "def_c_white",
-);
-add_color(
-  "def_c_light_gray_white",
-  "c_light_gray_white",
-  color_pair(33),
-  "def_c_light_gray_white",
-);
-add_color(
-  "def_c_white_white",
-  "c_white_white",
-  color_pair(33).bold(),
-  "def_c_white_white",
-);
-add_color("def_c_red_white", "c_red_white", color_pair(34), "def_c_white_red");
-add_color(
-  "def_c_light_red_white",
-  "c_light_red_white",
-  color_pair(34).bold(),
-  "def_c_light_gray_red",
-);
-add_color(
-  "def_c_green_white",
-  "c_green_white",
-  color_pair(35),
-  "def_c_light_gray_green",
-);
-add_color(
-  "def_c_light_green_white",
-  "c_light_green_white",
-  color_pair(35).bold(),
-  "def_c_white_green",
-);
-add_color(
-  "def_c_brown_white",
-  "c_brown_white",
-  color_pair(36),
-  "def_c_light_gray_yellow",
-);
-add_color(
-  "def_c_yellow_white",
-  "c_yellow_white",
-  color_pair(36).bold(),
-  "def_c_white_yellow",
-);
-add_color(
-  "def_c_blue_white",
-  "c_blue_white",
-  color_pair(37),
-  "def_h_light_gray",
-);
-add_color(
-  "def_c_light_blue_white",
-  "c_light_blue_white",
-  color_pair(37).bold(),
-  "def_h_white",
-);
-add_color(
-  "def_c_magenta_white",
-  "c_magenta_white",
-  color_pair(38),
-  "def_c_light_gray_magenta",
-);
-add_color(
-  "def_c_pink_white",
-  "c_pink_white",
-  color_pair(38).bold(),
-  "def_c_white_magenta",
-);
-add_color(
-  "def_c_cyan_white",
-  "c_cyan_white",
-  color_pair(39),
-  "def_c_light_gray_cyan",
-);
-add_color(
-  "def_c_light_cyan_white",
-  "c_light_cyan_white",
-  color_pair(39).bold(),
-  "def_c_white_cyan",
-);
+add_color("c_black_white", color_pair(32));
+add_color("c_dark_gray_white", color_pair(32).bold());
+add_color("c_light_gray_white", color_pair(33));
+add_color("c_white_white", color_pair(33).bold());
+add_color("c_red_white", color_pair(34));
+add_color("c_light_red_white", color_pair(34).bold());
+add_color("c_green_white", color_pair(35));
+add_color("c_light_green_white", color_pair(35).bold());
+add_color("c_brown_white", color_pair(36));
+add_color("c_yellow_white", color_pair(36).bold());
+add_color("c_blue_white", color_pair(37));
+add_color("c_light_blue_white", color_pair(37).bold());
+add_color("c_magenta_white", color_pair(38));
+add_color("c_pink_white", color_pair(38).bold());
+add_color("c_cyan_white", color_pair(39));
+add_color("c_light_cyan_white", color_pair(39).bold());
 
-add_color("def_c_black_green", "c_black_green", color_pair(40), "def_c_green");
-add_color(
-  "def_c_dark_gray_green",
-  "c_dark_gray_green",
-  color_pair(40).bold(),
-  "def_c_light_green",
-);
-add_color(
-  "def_c_light_gray_green",
-  "c_light_gray_green",
-  color_pair(41),
-  "def_c_green_white",
-);
-add_color(
-  "def_c_white_green",
-  "c_white_green",
-  color_pair(41).bold(),
-  "def_c_light_green_white",
-);
-add_color("def_c_red_green", "c_red_green", color_pair(42), "def_c_green_red");
-add_color(
-  "def_c_light_red_green",
-  "c_light_red_green",
-  color_pair(42).bold(),
-  "def_c_light_green_red",
-);
-add_color(
-  "def_c_green_green",
-  "c_green_green",
-  color_pair(43),
-  "def_c_green_green",
-);
-add_color(
-  "def_c_light_green_green",
-  "c_light_green_green",
-  color_pair(43).bold(),
-  "def_c_light_green_green",
-);
-add_color(
-  "def_c_brown_green",
-  "c_brown_green",
-  color_pair(44),
-  "def_c_green_yellow",
-);
-add_color(
-  "def_c_yellow_green",
-  "c_yellow_green",
-  color_pair(44).bold(),
-  "def_c_light_green_yellow",
-);
-add_color("def_c_blue_green", "c_blue_green", color_pair(45), "def_h_green");
-add_color(
-  "def_c_light_blue_green",
-  "c_light_blue_green",
-  color_pair(45).bold(),
-  "def_h_light_green",
-);
-add_color(
-  "def_c_magenta_green",
-  "c_magenta_green",
-  color_pair(46),
-  "def_c_green_magenta",
-);
-add_color(
-  "def_c_pink_green",
-  "c_pink_green",
-  color_pair(46).bold(),
-  "def_c_light_green_magenta",
-);
-add_color(
-  "def_c_cyan_green",
-  "c_cyan_green",
-  color_pair(47),
-  "def_c_green_cyan",
-);
-add_color(
-  "def_c_light_cyan_green",
-  "c_light_cyan_green",
-  color_pair(47).bold(),
-  "def_c_light_green_cyan",
-);
+add_color("c_black_green", color_pair(40));
+add_color("c_dark_gray_green", color_pair(40).bold());
+add_color("c_light_gray_green", color_pair(41));
+add_color("c_white_green", color_pair(41).bold());
+add_color("c_red_green", color_pair(42));
+add_color("c_light_red_green", color_pair(42).bold());
+add_color("c_green_green", color_pair(43));
+add_color("c_light_green_green", color_pair(43).bold());
+add_color("c_brown_green", color_pair(44));
+add_color("c_yellow_green", color_pair(44).bold());
+add_color("c_blue_green", color_pair(45));
+add_color("c_light_blue_green", color_pair(45).bold());
+add_color("c_magenta_green", color_pair(46));
+add_color("c_pink_green", color_pair(46).bold());
+add_color("c_cyan_green", color_pair(47));
+add_color("c_light_cyan_green", color_pair(47).bold());
 
-add_color(
-  "def_c_black_yellow",
-  "c_black_yellow",
-  color_pair(48),
-  "def_c_brown",
-);
-add_color(
-  "def_c_dark_gray_yellow",
-  "c_dark_gray_yellow",
-  color_pair(48).bold(),
-  "def_c_yellow",
-);
-add_color(
-  "def_c_light_gray_yellow",
-  "c_light_gray_yellow",
-  color_pair(49),
-  "def_c_brown_white",
-);
-add_color(
-  "def_c_white_yellow",
-  "c_white_yellow",
-  color_pair(49).bold(),
-  "def_c_yellow_white",
-);
-add_color(
-  "def_c_red_yellow",
-  "c_red_yellow",
-  color_pair(50),
-  "def_c_yellow_red",
-);
-add_color(
-  "def_c_light_red_yellow",
-  "c_light_red_yellow",
-  color_pair(50).bold(),
-  "def_c_yellow_red",
-);
-add_color(
-  "def_c_green_yellow",
-  "c_green_yellow",
-  color_pair(51),
-  "def_c_brown_green",
-);
-add_color(
-  "def_c_light_green_yellow",
-  "c_light_green_yellow",
-  color_pair(51).bold(),
-  "def_c_yellow_green",
-);
-add_color(
-  "def_c_brown_yellow",
-  "c_brown_yellow",
-  color_pair(52),
-  "def_c_brown_yellow",
-);
-add_color(
-  "def_c_yellow_yellow",
-  "c_yellow_yellow",
-  color_pair(52).bold(),
-  "def_c_yellow_yellow",
-);
-add_color("def_c_blue_yellow", "c_blue_yellow", color_pair(53), "def_h_brown");
-add_color(
-  "def_c_light_blue_yellow",
-  "c_light_blue_yellow",
-  color_pair(53).bold(),
-  "def_h_yellow",
-);
-add_color(
-  "def_c_magenta_yellow",
-  "c_magenta_yellow",
-  color_pair(54),
-  "def_c_brown_magenta",
-);
-add_color(
-  "def_c_pink_yellow",
-  "c_pink_yellow",
-  color_pair(54).bold(),
-  "def_c_yellow_magenta",
-);
-add_color(
-  "def_c_cyan_yellow",
-  "c_cyan_yellow",
-  color_pair(55),
-  "def_c_brown_cyan",
-);
-add_color(
-  "def_c_light_cyan_yellow",
-  "c_light_cyan_yellow",
-  color_pair(55).bold(),
-  "def_c_yellow_cyan",
-);
+add_color("c_black_yellow", color_pair(48));
+add_color("c_dark_gray_yellow", color_pair(48).bold());
+add_color("c_light_gray_yellow", color_pair(49));
+add_color("c_white_yellow", color_pair(49).bold());
+add_color("c_red_yellow", color_pair(50));
+add_color("c_light_red_yellow", color_pair(50).bold());
+add_color("c_green_yellow", color_pair(51));
+add_color("c_light_green_yellow", color_pair(51).bold());
+add_color("c_brown_yellow", color_pair(52));
+add_color("c_yellow_yellow", color_pair(52).bold());
+add_color("c_blue_yellow", color_pair(53));
+add_color("c_light_blue_yellow", color_pair(53).bold());
+add_color("c_magenta_yellow", color_pair(54));
+add_color("c_pink_yellow", color_pair(54).bold());
+add_color("c_cyan_yellow", color_pair(55));
+add_color("c_light_cyan_yellow", color_pair(55).bold());
 
-add_color(
-  "def_c_black_magenta",
-  "c_black_magenta",
-  color_pair(56),
-  "def_c_magenta",
-);
-add_color(
-  "def_c_dark_gray_magenta",
-  "c_dark_gray_magenta",
-  color_pair(56).bold(),
-  "def_c_pink",
-);
-add_color(
-  "def_c_light_gray_magenta",
-  "c_light_gray_magenta",
-  color_pair(57),
-  "def_c_magenta_white",
-);
-add_color(
-  "def_c_white_magenta",
-  "c_white_magenta",
-  color_pair(57).bold(),
-  "def_c_pink_white",
-);
-add_color(
-  "def_c_red_magenta",
-  "c_red_magenta",
-  color_pair(58),
-  "def_c_magenta_red",
-);
-add_color(
-  "def_c_light_red_magenta",
-  "c_light_red_magenta",
-  color_pair(58).bold(),
-  "def_c_pink_red",
-);
-add_color(
-  "def_c_green_magenta",
-  "c_green_magenta",
-  color_pair(59),
-  "def_c_magenta_green",
-);
-add_color(
-  "def_c_light_green_magenta",
-  "c_light_green_magenta",
-  color_pair(59).bold(),
-  "def_c_pink_green",
-);
-add_color(
-  "def_c_brown_magenta",
-  "c_brown_magenta",
-  color_pair(60),
-  "def_c_magenta_yellow",
-);
-add_color(
-  "def_c_yellow_magenta",
-  "c_yellow_magenta",
-  color_pair(60).bold(),
-  "def_c_pink_yellow",
-);
-add_color(
-  "def_c_blue_magenta",
-  "c_blue_magenta",
-  color_pair(61),
-  "def_h_magenta",
-);
-add_color(
-  "def_c_light_blue_magenta",
-  "c_light_blue_magenta",
-  color_pair(61).bold(),
-  "def_h_pink",
-);
-add_color(
-  "def_c_magenta_magenta",
-  "c_magenta_magenta",
-  color_pair(62),
-  "def_c_magenta_magenta",
-);
-add_color(
-  "def_c_pink_magenta",
-  "c_pink_magenta",
-  color_pair(62).bold(),
-  "def_c_pink_magenta",
-);
-add_color(
-  "def_c_cyan_magenta",
-  "c_cyan_magenta",
-  color_pair(63),
-  "def_c_magenta_cyan",
-);
-add_color(
-  "def_c_light_cyan_magenta",
-  "c_light_cyan_magenta",
-  color_pair(63).bold(),
-  "def_c_pink_cyan",
-);
+add_color("c_black_magenta", color_pair(56));
+add_color("c_dark_gray_magenta", color_pair(56).bold());
+add_color("c_light_gray_magenta", color_pair(57));
+add_color("c_white_magenta", color_pair(57).bold());
+add_color("c_red_magenta", color_pair(58));
+add_color("c_light_red_magenta", color_pair(58).bold());
+add_color("c_green_magenta", color_pair(59));
+add_color("c_light_green_magenta", color_pair(59).bold());
+add_color("c_brown_magenta", color_pair(60));
+add_color("c_yellow_magenta", color_pair(60).bold());
+add_color("c_blue_magenta", color_pair(61));
+add_color("c_light_blue_magenta", color_pair(61).bold());
+add_color("c_magenta_magenta", color_pair(62));
+add_color("c_pink_magenta", color_pair(62).bold());
+add_color("c_cyan_magenta", color_pair(63));
+add_color("c_light_cyan_magenta", color_pair(63).bold());
 
-add_color("def_c_black_cyan", "c_black_cyan", color_pair(64), "def_c_cyan");
-add_color(
-  "def_c_dark_gray_cyan",
-  "c_dark_gray_cyan",
-  color_pair(64).bold(),
-  "def_c_light_cyan",
-);
-add_color(
-  "def_c_light_gray_cyan",
-  "c_light_gray_cyan",
-  color_pair(65),
-  "def_c_cyan_white",
-);
-add_color(
-  "def_c_white_cyan",
-  "c_white_cyan",
-  color_pair(65).bold(),
-  "def_c_light_cyan_white",
-);
-add_color("def_c_red_cyan", "c_red_cyan", color_pair(66), "def_c_cyan_red");
-add_color(
-  "def_c_light_red_cyan",
-  "c_light_red_cyan",
-  color_pair(66).bold(),
-  "def_c_light_cyan_red",
-);
-add_color(
-  "def_c_green_cyan",
-  "c_green_cyan",
-  color_pair(67),
-  "def_c_cyan_green",
-);
-add_color(
-  "def_c_light_green_cyan",
-  "c_light_green_cyan",
-  color_pair(67).bold(),
-  "def_c_light_cyan_green",
-);
-add_color(
-  "def_c_brown_cyan",
-  "c_brown_cyan",
-  color_pair(68),
-  "def_c_cyan_yellow",
-);
-add_color(
-  "def_c_yellow_cyan",
-  "c_yellow_cyan",
-  color_pair(68).bold(),
-  "def_c_light_cyan_yellow",
-);
-add_color("def_c_blue_cyan", "c_blue_cyan", color_pair(69), "def_h_cyan");
-add_color(
-  "def_c_light_blue_cyan",
-  "c_light_blue_cyan",
-  color_pair(69).bold(),
-  "def_h_light_cyan",
-);
-add_color(
-  "def_c_magenta_cyan",
-  "c_magenta_cyan",
-  color_pair(70),
-  "def_c_cyan_magenta",
-);
-add_color(
-  "def_c_pink_cyan",
-  "c_pink_cyan",
-  color_pair(70).bold(),
-  "def_c_light_cyan_magenta",
-);
-add_color("def_c_cyan_cyan", "c_cyan_cyan", color_pair(71), "def_c_cyan_cyan");
-add_color(
-  "def_c_light_cyan_cyan",
-  "c_light_cyan_cyan",
-  color_pair(71).bold(),
-  "def_c_light_cyan_cyan",
-);
+add_color("c_black_cyan", color_pair(64));
+add_color("c_dark_gray_cyan", color_pair(64).bold());
+add_color("c_light_gray_cyan", color_pair(65));
+add_color("c_white_cyan", color_pair(65).bold());
+add_color("c_red_cyan", color_pair(66));
+add_color("c_light_red_cyan", color_pair(66).bold());
+add_color("c_green_cyan", color_pair(67));
+add_color("c_light_green_cyan", color_pair(67).bold());
+add_color("c_brown_cyan", color_pair(68));
+add_color("c_yellow_cyan", color_pair(68).bold());
+add_color("c_blue_cyan", color_pair(69));
+add_color("c_light_blue_cyan", color_pair(69).bold());
+add_color("c_magenta_cyan", color_pair(70));
+add_color("c_pink_cyan", color_pair(70).bold());
+add_color("c_cyan_cyan", color_pair(71));
+add_color("c_light_cyan_cyan", color_pair(71).bold());
