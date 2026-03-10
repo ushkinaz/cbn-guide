@@ -241,9 +241,9 @@ void initializeRouting()
     });
   })
   .catch((e) => {
-    //TODO: Notify user, we failed to load our app.
     Sentry.captureException(e);
-    console.error("Failed to load the app, please reload", e);
+    console.error("Failed to initialize app.", e);
+    notify(t("Failed to initialize application. Please reload."), "error");
   })
   .finally(() => {
     p.finish();
