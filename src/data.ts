@@ -680,12 +680,14 @@ export class CBNData {
           entry.type === "bionic_group" ||
           entry.type === "bionic_faulty"
         ) {
-          const dropIds =
-            entry.type === "bionic_group"
-              ? this.flattenTopLevelItemGroup(
-                  this.byId("item_group", entry.drop),
-                ).map((x) => x.id)
-              : [entry.drop];
+          let dropIds: string[];
+          if (entry.type === "bionic_group") {
+            const group = this.byIdMaybe("item_group", entry.drop);
+            if (!group) continue;
+            dropIds = this.flattenTopLevelItemGroup(group).map((x) => x.id);
+          } else {
+            dropIds = [entry.drop];
+          }
 
           for (const dropId of dropIds) {
             let sources = this._dissectionSources.get(dropId);

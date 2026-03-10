@@ -156,6 +156,24 @@ test("getDissectionSources returns monsters that provide the item via dissection
   expect(sourcesForGroupMember[0].entry.drop).toBe(group_id);
 });
 
+test("getDissectionSources ignores missing bionic_group references", () => {
+  const data = new CBNData([
+    {
+      type: "MONSTER",
+      id: "mon_test",
+      name: "Test Monster",
+      harvest: "harvest_test",
+    },
+    {
+      type: "harvest",
+      id: "harvest_test",
+      entries: [{ drop: "missing_group", type: "bionic_group" }],
+    },
+  ]);
+
+  expect(data.getDissectionSources("missing_group")).toEqual([]);
+});
+
 test("nested", () => {
   const data = new CBNData([
     {
