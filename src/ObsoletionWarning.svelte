@@ -1,9 +1,10 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { mapType } from "./data";
+import type { SupportedTypesWithMapped } from "./types";
 
 interface Props {
-  item: any;
+  item: { type: keyof SupportedTypesWithMapped };
 }
 
 let { item }: Props = $props();
