@@ -100,7 +100,7 @@ test("search result mutation color metadata updates with the top match", async (
   ).toBe("growth");
   expect(
     view.container.querySelector("li .item-link > span[style]")?.textContent,
-  ).toBe("(2)");
+  ).toBe("2");
 
   syncSearch("sh", searchData);
   flushSearch();
@@ -111,7 +111,7 @@ test("search result mutation color metadata updates with the top match", async (
   ).toBe("shrink");
   expect(
     view.container.querySelector("li .item-link > span[style]")?.textContent,
-  ).toBe("(-2)");
+  ).toBe("-2");
 });
 
 test("performSearch returns all results and dedups", () => {
