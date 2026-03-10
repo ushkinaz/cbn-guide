@@ -71,7 +71,7 @@ partsCounted.sort((a, b) => {
     <h2>{t("Parts", { _context })}</h2>
     <LimitedList items={partsCounted}>
       {#snippet children({ item: { id, count } })}
-        <ItemLink {id} type="vehicle_part" showIcon={false} /> ({count})
+        <ItemLink {id} type="vehicle_part" /> ({count})
       {/snippet}
     </LimitedList>
   </section>
