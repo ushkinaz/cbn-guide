@@ -21,7 +21,7 @@ Metrics should answer **product questions**, not measure every function call:
 We use a **Controlled Vocabulary** for metric names to ensure discoverability and consistency.
 Treat it as the canonical baseline and extend sparingly when semantics require it.
 
-👉 **See [docs/metrics_naming.md](./metrics_naming.md) for the full naming specification.**
+👉 **See [docs/metrics_naming.md](metrics-naming.md) for the full naming specification.**
 
 Key format: `<domain>.<subject>.<action>[.unit]`
 
