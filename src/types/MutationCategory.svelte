@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 
-import { getContext } from "svelte";
+import { getContext, untrack } from "svelte";
 
 import { byName, CBNData, singularName } from "../data";
 import type { MutationCategory } from "../types";
@@ -16,7 +16,8 @@ interface Props {
   inCatalog?: boolean;
 }
 
-let { item, inCatalog = false }: Props = $props();
+let { item: sourceItem, inCatalog = false }: Props = $props();
+const item = untrack(() => sourceItem);
 
 const mutationsInCategory = data
   .byType("mutation")
