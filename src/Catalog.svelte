@@ -1,8 +1,7 @@
 <script lang="ts">
 import { setContext, untrack } from "svelte";
-import { t } from "@transifex/native";
 
-import { byName, CBNData, singularName, pluralName, plural } from "./data";
+import { byName, CBNData, singularName } from "./data";
 import LimitedList from "./LimitedList.svelte";
 import type {
   Item,
@@ -15,10 +14,9 @@ import type {
 import MutationCategory from "./types/MutationCategory.svelte";
 import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./utils/collections";
-import OvermapAppearance from "./types/item/OvermapAppearance.svelte";
+import { translateType } from "./utils/i18n";
 
 interface Props {
-  // TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(type)) heading with literal branches.
   type: string;
   data: CBNData;
 }
@@ -30,7 +28,7 @@ let typeWithCorrectType = type as keyof SupportedTypesWithMapped;
 setContext("data", data);
 
 const things = data
-  .byType(type as keyof SupportedTypesWithMapped)
+  .byType(typeWithCorrectType)
   .filter((o) => "id" in o && o.id)
   .sort(byName);
 
@@ -78,7 +76,7 @@ const groupFilter = ({
 }[type] ?? (() => true)) as (t: SupportedTypeMapped) => boolean;
 </script>
 
-<h1 class="capitalize">{t(plural(type))}</h1>
+<h1 class="capitalize">{translateType(typeWithCorrectType)}</h1>
 {#each groupsList as [groupName, group]}
   {#if type === "mutation" && groupName && data.byIdMaybe("mutation_category", groupName)}
     <MutationCategory

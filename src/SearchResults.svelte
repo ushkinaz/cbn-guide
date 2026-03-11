@@ -1,7 +1,7 @@
 <script lang="ts">
-import { type CBNData, loadProgress, mapType, plural } from "./data";
+import { type CBNData, loadProgress, mapType } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
-import type { OvermapSpecial } from "./types";
+import type { OvermapSpecial, SupportedTypesWithMapped } from "./types";
 import { setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 import LimitedList from "./LimitedList.svelte";
@@ -11,6 +11,7 @@ import {
 } from "./types/item/spawnLocations";
 import { type SearchResult, searchResults } from "./search";
 import Loading from "./Loading.svelte";
+import { translateType } from "./utils/i18n";
 
 interface Props {
   data: CBNData;
@@ -18,8 +19,6 @@ interface Props {
 }
 
 let { data, search }: Props = $props();
-
-//TODO: Transifex extraction only recognizes direct t("...") keys; replace t(plural(...)) section heading below with literal branches.
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();
@@ -44,6 +43,10 @@ setContext("data", contextData);
 let matchingObjectsList = $derived(
   $searchResults ? [...$searchResults.entries()] : null,
 );
+
+function asType(type: string): keyof SupportedTypesWithMapped {
+  return type as keyof SupportedTypesWithMapped;
+}
 </script>
 
 {#if matchingObjectsList}
@@ -58,7 +61,7 @@ let matchingObjectsList = $derived(
           {/snippet}
         </LimitedList>
       {:else}
-        <h2>{t(plural(type.replace(/_/g, " ")))}</h2>
+        <h2>{translateType(asType(type))}</h2>
         <LimitedList items={results} limit={25}>
           {#snippet children({ item: result })}
             <ItemLink type={mapType(result.item.type)} id={result.item.id} />
