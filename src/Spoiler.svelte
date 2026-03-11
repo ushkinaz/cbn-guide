@@ -6,11 +6,11 @@ import { isTesting } from "./utils/env";
 
 interface Props {
   spoily?: boolean;
-  revealed?: boolean; // Spoilers are revealed in test mode.
   children?: Snippet;
 }
+let revealed = $state(isTesting); // Spoilers are revealed in test mode.
 
-let { spoily = false, revealed = isTesting, children }: Props = $props();
+let { spoily = false, children }: Props = $props();
 </script>
 
 {#if spoily}
@@ -26,7 +26,7 @@ let { spoily = false, revealed = isTesting, children }: Props = $props();
         >{t("Reveal Spoilers")}</button>
     </section>
   {:else}
-    <p style="font-style: italic; color: var(--cata-color-gray)">
+    <p>
       {t(
         `You cheated not only the game, but yourself. You didn't grow. You didn't improve. You took a shortcut and gained nothing. You experienced a hollow victory. Nothing was risked and nothing was gained. It's sad that you don't know the difference.`,
       )}

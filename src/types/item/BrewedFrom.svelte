@@ -23,7 +23,8 @@ const sources = data.brewedFrom(item_id);
     <h2>{t("Fermented From", { _context: "Obtaining" })}</h2>
     <LimitedList items={sources}>
       {#snippet children({ item })}
-        <ItemLink id={item.id} type="item" /> ({item.brewable.time ?? "1 turn"})
+        <ItemLink id={item.id} type="item" /> ({item.brewable?.time ??
+          t("1 turn")})
       {/snippet}
     </LimitedList>
   </section>

@@ -4,7 +4,7 @@ import { mapType } from "./data";
 import type { SupportedTypesWithMapped } from "./types";
 
 interface Props {
-  item: { type: keyof SupportedTypesWithMapped };
+  item: { type: any };
 }
 
 let { item }: Props = $props();

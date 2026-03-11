@@ -93,17 +93,9 @@ const groupFilter = ({
         items={group.filter(groupFilter)}
         limit={groupsList.length === 1 ? Infinity : 10}>
         {#snippet children({ item })}
-          {#if (type === "overmap_special" || type === "city_building") && item.subtype !== "mutable"}
-            <OvermapAppearance overmapSpecial={item} />
-          {/if}
           <ItemLink
             type={typeWithCorrectType}
-            id={item.id}
-            showIcon={type === "item" ||
-              type === "terrain" ||
-              type === "furniture" ||
-              type === "monster" ||
-              type === "vehicle_part"} />
+            id={"id" in item ? item.id : ""} />
         {/snippet}
       </LimitedList>
     </section>

@@ -23,7 +23,8 @@ const sources = data.grownFrom(item_id);
     <h2>{t("Grown From", { _context: "Obtaining" })}</h2>
     <LimitedList items={sources}>
       {#snippet children({ item })}
-        <ItemLink id={item.id} type="item" /> ({item.seed_data.grow ?? "1 day"})
+        <ItemLink id={item.id} type="item" /> ({item.seed_data?.grow ??
+          t("1 day")})
       {/snippet}
     </LimitedList>
   </section>
