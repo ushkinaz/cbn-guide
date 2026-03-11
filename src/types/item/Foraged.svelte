@@ -4,6 +4,7 @@ import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
+import { translateSeason } from "../../utils/i18n";
 
 interface Props {
   item_id: string;
@@ -42,7 +43,7 @@ const forageSources = data
         <ItemLink type="terrain" id={item.id} /> in
         <ul class="comma-separated or">
           {#each forageable as [season, _prob]}
-            <li>{season}</li>
+            <li>{translateSeason(season)}</li>
           {/each}
         </ul>
       {/snippet}

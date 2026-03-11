@@ -145,3 +145,20 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
     //Adding a new type will trigger an error - this is intentional
   }
 }
+
+export function translateSeason(season: string) {
+  switch (season) {
+    case "Spring":
+      return t("Spring");
+    case "Summer":
+      return t("Summer");
+    case "Autumn":
+      return t("Autumn");
+    case "Winter":
+      return t("Winter");
+    case "any season":
+      return t("any season");
+    default:
+      return season;
+  }
+}
