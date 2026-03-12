@@ -1,20 +1,17 @@
 ---
 name: create-issue
-description: Create issue description file
+description: Create issue
 ---
 
 Create a separate bug report for each issue you found.
-Place Markdown formatted files in ./issues
+Prepare a description of the issue and post it to the GitHub after user confirmation.
+Apply appropriate labels to the issue.
 
-Each issue should contain
+Each issue should contain:
 
 ## Summary
 
 <guidance>Up to 400 chars</guidance>
-
-## Categorization
-
-<guidance>one or more of: enhancement, bug, documentation, logic, data parsing, data validation</guidance>
 
 ## Context
 
@@ -30,9 +27,19 @@ Each issue should contain
 
 ## Steps to reproduce
 
+<guidance>How to reproduce the bug.
+
+- If rendering bug: include concrete game items and their types
+- If functional bug: include concrete function names and arguments  
+  </guidance>
+
 ## Tech details
 
-<guidance>Avoid giving exact line numbers, as code might change. Give function names instead or functional description</guidance>
+<guidance> Avoid:
+
+- giving exact line numbers, as code might change.
+- Give function names instead or functional description
+  </guidance>
 
 ## Examples
 
@@ -40,4 +47,4 @@ Each issue should contain
 
 ## Acceptance criteria
 
-<guidance>make sure that it's focused on end-user experience if it affects end-user where possible</guidance>
+<guidance>Make sure that it's focused on end-user experience if it affects end-user where possible</guidance>
