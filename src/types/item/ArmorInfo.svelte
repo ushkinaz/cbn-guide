@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
-import { CBNData, singular } from "../../data";
+import { CBNData } from "../../data";
 import { formatFixed2 } from "../../utils/format";
 import type {
   ArmorPortionData,
@@ -9,6 +9,8 @@ import type {
   CoveredPart,
   ItemBasicInfo,
 } from "../../types";
+
+import { gameSingular } from "../../utils/i18n";
 
 interface Props {
   item: ItemBasicInfo & ArmorSlot;
@@ -192,9 +194,9 @@ function coverageLabel(apd: ArmorPortionData): Set<string> {
 function safeName(bodyPartId: string, composite: boolean = false): string {
   const bp = data.byId("body_part", bodyPartId);
   if (composite) {
-    return singular(bp.heading_multiple ?? bp.heading);
+    return gameSingular(bp.heading_multiple ?? bp.heading);
   } else {
-    return singular(bp.heading);
+    return gameSingular(bp.heading);
   }
 }
 function safeMaxEncumbrance(apd: ArmorPortionData | ArmorSlot): number | null {

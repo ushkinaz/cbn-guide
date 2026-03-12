@@ -1,7 +1,9 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CBNData, singular } from "../../data";
+import { CBNData } from "../../data";
 import type { OvermapSpecial } from "../../types";
+
+import { gameSingular } from "../../utils/i18n";
 
 const data = getContext<CBNData>("data");
 
@@ -94,7 +96,7 @@ function omtAppearance(
     ? {
         color: omt.color ?? "black",
         sym: rotateSymbol(omt.sym ?? "\u00a0" /* LINE_XOXO_C */, dir),
-        name: singular(omt.name),
+        name: gameSingular(omt.name),
       }
     : { color: "black", sym: " ", name: "" };
 }

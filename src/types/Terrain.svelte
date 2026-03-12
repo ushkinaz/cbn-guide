@@ -3,13 +3,14 @@ import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
 
-import { CBNData, formatPercent, singular, singularName } from "../data";
+import { CBNData, formatPercent } from "../data";
 import type { Terrain } from "../types";
 import Construction from "./Construction.svelte";
 import ItemLink from "./ItemLink.svelte";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
+import { gameSingular, gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
@@ -117,7 +118,7 @@ const constructions = data
     </dd>
   </dl>
   <p style="color: var(--cata-color-gray); margin-bottom: 0;">
-    {singular(item.description)}
+    {gameSingular(item.description)}
   </p>
 </section>
 

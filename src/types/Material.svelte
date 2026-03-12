@@ -3,10 +3,11 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { byName, CBNData, singularName } from "../data";
+import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Material } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { byName, gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 
@@ -37,7 +38,7 @@ let itemsWithMaterial = data
   .sort(byName);
 </script>
 
-<h1>{t("Material")}: {singularName(item)}</h1>
+<h1>{t("Material")}: {gameSingularName(item)}</h1>
 <section>
   <h2>{t("Properties", { _context })}</h2>
   <dl>
@@ -104,7 +105,9 @@ let itemsWithMaterial = data
 
 {#if itemsWithMaterial.length}
   <section>
-    <h2>{t("Items Made From {material}", { material: singularName(item) })}</h2>
+    <h2>
+      {t("Items Made From {material}", { material: gameSingularName(item) })}
+    </h2>
     <LimitedList items={itemsWithMaterial}>
       {#snippet children({ item })}
         <ItemLink id={item.id} type="item" />

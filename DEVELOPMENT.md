@@ -135,7 +135,7 @@ The project uses a semantic naming convention (`scope:action`) for NPM scripts:
 
 - `pnpm i18n:push`: Upload source strings to Transifex.
   - Transifex extraction only picks direct `t("...")` keys.
-  - `t(variableOrExpression)` is not extracted (for example: `t(cat.label)` or `t(plural(type))`).
+  - `t(variableOrExpression)` is not extracted (for example: `t(cat.label)` or `t(gamePlural(type))`).
   - Dynamic keys can still translate at runtime only if that key was extracted elsewhere before.
 
 #### CI / Local Testing

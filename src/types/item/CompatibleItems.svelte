@@ -1,10 +1,12 @@
 <script lang="ts">
 import { getContext, untrack } from "svelte";
 import { t } from "@transifex/native";
-import { byName, CBNData } from "../../data";
+import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import type { SupportedTypes } from "../../types";
+
+import { byName } from "../../utils/i18n";
 
 interface Props {
   ammo_type: string;

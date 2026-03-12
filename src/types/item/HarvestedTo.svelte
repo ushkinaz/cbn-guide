@@ -1,9 +1,11 @@
 <script lang="ts">
 import { getContext, untrack } from "svelte";
-import { CBNData, i18n } from "../../data";
+import { CBNData } from "../../data";
 import ItemLink from "../ItemLink.svelte";
 import type { MapDataCommon } from "../../types";
 import { t } from "@transifex/native";
+
+import { i18n } from "../../utils/i18n";
 
 interface Props {
   /**

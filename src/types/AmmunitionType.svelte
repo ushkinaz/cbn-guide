@@ -1,8 +1,9 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { singularName } from "../data";
 import type { AmmunitionType } from "../types";
 import CompatibleItems from "./item/CompatibleItems.svelte";
+
+import { gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: AmmunitionType;
@@ -13,7 +14,7 @@ let { item }: Props = $props();
 const _context = "Ammunition Type";
 </script>
 
-<h1>{t("Ammunition Type")}: {singularName(item)}</h1>
+<h1>{t("Ammunition Type")}: {gameSingularName(item)}</h1>
 
 <CompatibleItems ammo_type={item.id} type="AMMO" />
 

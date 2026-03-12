@@ -1,18 +1,12 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import {
-  CBNData,
-  countsByCharges,
-  omsName,
-  pluralName,
-  singular,
-  singularName,
-} from "../data";
+import { CBNData, countsByCharges, omsName } from "../data";
 import { getVersionedBasePath, page } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import { t } from "@transifex/native";
+import { gamePluralName, gameSingular, gameSingularName } from "../utils/i18n";
 
 type ItemSymbolItem = {
   id: string;
@@ -64,9 +58,9 @@ function countIsPlural(count: number | [number, number]): boolean {
 function linkText(item: any, plural: boolean): string {
   if (overrideText) return overrideText;
   if (item) {
-    if (item.type === "addiction_type") return singular(item.type_name);
+    if (item.type === "addiction_type") return gameSingular(item.type_name);
     if (item.type === "overmap_special") return omsName(data, item);
-    return (plural ? pluralName : singularName)(item);
+    return (plural ? gamePluralName : gameSingularName)(item);
   }
   return id;
 }

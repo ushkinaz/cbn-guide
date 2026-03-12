@@ -1,10 +1,12 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { CBNData, singularName } from "../../data";
+import { CBNData } from "../../data";
 import type { AmmoSlot, DamageUnit } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import { getContext, untrack } from "svelte";
 import CompatibleItems from "./CompatibleItems.svelte";
+
+import { gameSingularName } from "../../utils/i18n";
 
 interface Props {
   item: AmmoSlot;
@@ -60,7 +62,7 @@ function computeLoudness(item: AmmoSlot): number {
       </dd>
       <dt>{t("Damage")}</dt>
       <dd>
-        {damage.amount ?? 0} ({singularName(
+        {damage.amount ?? 0} ({gameSingularName(
           data.byIdMaybe("damage_type", damage.damage_type) ?? {
             id: damage.damage_type,
           },

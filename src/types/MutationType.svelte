@@ -3,9 +3,11 @@ import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
 
-import { CBNData, singularName } from "../data";
+import { CBNData } from "../data";
 import type { MutationType } from "../types";
 import MutationList from "./MutationList.svelte";
+
+import { gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: MutationType;
@@ -20,7 +22,7 @@ const mutationsWithType = data
   .filter((m) => (m.types ?? []).includes(item.id));
 </script>
 
-<h1>{t("Mutation Type")}: {singularName(item)}</h1>
+<h1>{t("Mutation Type")}: {gameSingularName(item)}</h1>
 <section>
   <dl>
     <dt>{t("Mutations")}</dt>

@@ -1,13 +1,7 @@
 <script lang="ts">
 import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
-import {
-  type CBNData,
-  data,
-  mapType,
-  prewarmDerivedCaches,
-  singularName,
-} from "./data";
+import { type CBNData, data, mapType, prewarmDerivedCaches } from "./data";
 import {
   DEFAULT_TILESET,
   isValidTileset,
@@ -58,6 +52,8 @@ import { isTesting, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 import { onMount } from "svelte";
+
+import { gameSingularName } from "./utils/i18n";
 
 let scrollY = $state(0);
 
@@ -337,7 +333,7 @@ $effect(() => {
       $data.byIdMaybe(item.type, item.id)
     ) {
       const it = $data.byId(item.type, item.id);
-      document.title = formatTitle(singularName(it));
+      document.title = formatTitle(gameSingularName(it));
       metaDescription = buildMetaDescription(it);
     } else if (item && !item.id && item.type) {
       document.title = formatTitle(item.type);

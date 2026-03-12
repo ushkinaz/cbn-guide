@@ -1,12 +1,31 @@
-import type { SupportedTypesWithMapped } from "../types";
+/**
+ * Internationalization (i18n) utility for the Cataclysm: Bright Nights guide.
+ *
+ * ARCHITECTURE:
+ * The application uses two distinct translation systems:
+ *
+ * 1. **Transifex (`@transifex/native`)**:
+ *    Used for static UI strings within the web application (e.g., button labels, headers).
+ *    Strings are extracted at build time and served via Transifex Native.
+ *    Use the `t()` function imported from `@transifex/native` for these.
+ *
+ * 2. **Gettext (`gettext.js`)**:
+ *    Used for dynamic game content (items, monsters, etc.) loaded from external JSON data.
+ *    These strings are translated at runtime using pre-compiled gettext dictionaries from the game.
+ *    Functions in this module prefixed with `game` (e.g., `gameSingular`) use this system.
+ */
+import type { SupportedTypesWithMapped, Translation } from "../types";
 import { t } from "@transifex/native";
+import makeI18n, { type Gettext } from "gettext.js";
+import { stripColorTags } from "./format";
 
 /**
- * This is needed because transifex doesn't support translation of dynamically generated strings, only static ones.
+ * Translates a game entity type code into a human-readable display name.
+ * This is needed because Transifex doesn't support translation of dynamically
+ * generated strings, so we map these known keys to static calls.
  *
- * @param {keyof SupportedTypesWithMapped} type The type key to be translated.
- *        It must be one of the predefined keys in the SupportedTypesWithMapped type.
- * @return {string} The translated string corresponding to the provided type key.
+ * @param type The internal type key (e.g., "AMMO", "GENERIC").
+ * @returns The translated display name.
  */
 export function translateType(type: keyof SupportedTypesWithMapped): string {
   switch (type) {
@@ -146,6 +165,9 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
   }
 }
 
+/**
+ * Translates a season name into its localized version.
+ */
 export function translateSeason(season: string) {
   switch (season) {
     case "Spring":
@@ -162,3 +184,107 @@ export function translateSeason(season: string) {
       return season;
   }
 }
+
+const needsPlural = [
+  "AMMO",
+  "ARMOR",
+  "BATTERY",
+  "BIONIC_ITEM",
+  "BOOK",
+  "COMESTIBLE",
+  "CONTAINER",
+  "ENGINE",
+  "GENERIC",
+  "GUN",
+  "GUNMOD",
+  "MAGAZINE",
+  "PET_ARMOR",
+  "TOOL",
+  "TOOLMOD",
+  "TOOL_ARMOR",
+  "WHEEL",
+  "MONSTER",
+  "vehicle_part",
+  "json_flag",
+];
+
+export let i18n: Gettext = makeI18n();
+
+/**
+ * Resets the Gettext i18n singleton and sets the new locale.
+ * Called when changing language versions.
+ */
+export function resetI18n(locale: string = "en"): void {
+  i18n = makeI18n();
+  i18n.setLocale(locale);
+}
+
+function getMsgId(t: Translation) {
+  if (t == null) return "";
+  return typeof t === "string" ? t : "str_sp" in t ? t.str_sp : t.str;
+}
+
+function getMsgIdPlural(t: Translation): string {
+  if (t == null) return "";
+  return typeof t === "string"
+    ? t + "s"
+    : "str_sp" in t
+      ? t.str_sp
+      : "str_pl" in t && t.str_pl
+        ? t.str_pl
+        : t.str + "s";
+}
+
+/**
+ * Core translation function for game data strings.
+ * Uses the Gettext to resolve translations, including variants
+ * for number-based plurals.
+ *
+ * @param t The raw translation object or string from the game data.
+ * @param needsPlural Whether this string needs a plural form.
+ * @param n Cardinality for plural selection.
+ * @param domain Optional text domain (e.g., for mods).
+ */
+export function gameTranslate(
+  t: Translation,
+  needsPlural: boolean,
+  n: number,
+  domain?: string,
+): string {
+  const sg = getMsgId(t);
+  const pl = needsPlural ? getMsgIdPlural(t) : "";
+  const raw =
+    i18n.dcnpgettext(domain, undefined, sg, pl, n) ||
+    (n === 1 ? sg : (pl ?? sg));
+  return stripColorTags(raw);
+}
+
+/** Translates a game string into its singular form. */
+export const gameSingular = (name: Translation): string =>
+  gameTranslate(name, false, 1);
+
+/** Translates a game string into its plural form (defaulting to n=2). */
+export const gamePlural = (name: Translation, n: number = 2): string =>
+  gameTranslate(name, true, n);
+
+/** Translates a game object's name property into its singular form. */
+export const gameSingularName = (obj: any, domain?: string): string =>
+  gamePluralName(obj, 1, domain);
+
+/** Translates a game object's name property into its plural form. */
+export const gamePluralName = (
+  obj: any,
+  n: number = 2,
+  domain?: string,
+): string => {
+  const name: Translation = obj?.name?.male ?? obj?.name;
+  if (name == null) return obj?.id ?? obj?.abstract;
+  const txed = Array.isArray(name)
+    ? gameTranslate(name[0], needsPlural.includes(obj.type), n, domain)
+    : gameTranslate(name, needsPlural.includes(obj.type), n, domain);
+  if (txed.length === 0) return obj?.id ?? obj?.abstract;
+  return txed;
+};
+
+export const byName = (a: any, b: any) =>
+  gameSingularName(a).localeCompare(gameSingularName(b));

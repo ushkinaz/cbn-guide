@@ -2,15 +2,10 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import {
-  CBNData,
-  parseMass,
-  parseVolume,
-  singular,
-  singularName,
-} from "../../data";
+import { CBNData, parseMass, parseVolume } from "../../data";
 import type { Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
+import { gameSingular, gameSingularName } from "../../utils/i18n";
 
 let data = getContext<CBNData>("data");
 interface Props {
@@ -102,7 +97,7 @@ const piercing =
                     type="technique"
                     id={technique.id}
                     showIcon={false} /></strong
-                >{#if technique.description}: {singular(
+                >{#if technique.description}: {gameSingular(
                     technique.description,
                   )}{/if}
               </li>

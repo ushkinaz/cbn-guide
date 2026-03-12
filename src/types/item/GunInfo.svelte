@@ -3,9 +3,11 @@ import { t } from "@transifex/native";
 
 import type { DamageUnit, GunSlot, Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
-import { CBNData, singularName } from "../../data";
+import { CBNData } from "../../data";
 import { getContext, untrack } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
+
+import { gameSingularName } from "../../utils/i18n";
 
 interface Props {
   item: Item;
@@ -76,7 +78,7 @@ const ranged_damage = extractRangedDamage();
     {/if}
     <dt>{t("Base Damage")}</dt>
     <dd>
-      {ranged_damage.amount ?? 0} ({singularName(
+      {ranged_damage.amount ?? 0} ({gameSingularName(
         data.byIdMaybe(
           "damage_type",
           ranged_damage.damage_type ?? "bullet",

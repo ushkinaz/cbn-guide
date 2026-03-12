@@ -11,7 +11,6 @@
  * This design is intentional - changing versions or mods requires loading completely different JSON.
  */
 import { writable } from "svelte/store";
-import makeI18n, { type Gettext } from "gettext.js";
 import * as perf from "./utils/perf";
 import { isTesting } from "./utils/env";
 
@@ -43,16 +42,17 @@ import type {
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
 import {
-  lootByOMSAppearance,
   furnitureByOMSAppearance,
+  lootByOMSAppearance,
   terrainByOMSAppearance,
 } from "./types/item/spawnLocations";
 import { getDataJsonUrl } from "./constants";
-import { cleanText, formatKg, formatL, stripColorTags } from "./utils/format";
+import { cleanText, formatKg, formatL } from "./utils/format";
 import { HttpError, isNotFoundError } from "./utils/http-errors";
 import { yieldUntilIdle } from "./utils/idle";
 import { retry } from "./utils/retry";
 import { asArray } from "./utils/collections";
+import { byName, i18n, resetI18n, gameSingularName } from "./utils/i18n";
 
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
@@ -81,87 +81,6 @@ const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
 export const mapType = (
   type: keyof SupportedTypesWithMapped,
 ): keyof SupportedTypesWithMapped => typeMappings.get(type) ?? type;
-
-export let i18n: Gettext = makeI18n();
-
-const needsPlural = [
-  "AMMO",
-  "ARMOR",
-  "BATTERY",
-  "BIONIC_ITEM",
-  "BOOK",
-  "COMESTIBLE",
-  "CONTAINER",
-  "ENGINE",
-  "GENERIC",
-  "GUN",
-  "GUNMOD",
-  "MAGAZINE",
-  "PET_ARMOR",
-  "TOOL",
-  "TOOLMOD",
-  "TOOL_ARMOR",
-  "WHEEL",
-  "MONSTER",
-  "vehicle_part",
-  "json_flag",
-];
-
-function getMsgId(t: Translation) {
-  if (t == null) return "";
-  return typeof t === "string" ? t : "str_sp" in t ? t.str_sp : t.str;
-}
-
-function getMsgIdPlural(t: Translation): string {
-  if (t == null) return "";
-  return typeof t === "string"
-    ? t + "s"
-    : "str_sp" in t
-      ? t.str_sp
-      : "str_pl" in t && t.str_pl
-        ? t.str_pl
-        : t.str + "s";
-}
-
-export function translate(
-  t: Translation,
-  needsPlural: boolean,
-  n: number,
-  domain?: string,
-): string {
-  const sg = getMsgId(t);
-  const pl = needsPlural ? getMsgIdPlural(t) : "";
-  const raw =
-    i18n.dcnpgettext(domain, undefined, sg, pl, n) ||
-    (n === 1 ? sg : (pl ?? sg));
-  return stripColorTags(raw);
-}
-
-export const singular = (name: Translation): string =>
-  translate(name, false, 1);
-
-export const plural = (name: Translation, n: number = 2): string =>
-  translate(name, true, n);
-
-export const singularName = (obj: any, domain?: string): string =>
-  pluralName(obj, 1, domain);
-
-export const pluralName = (
-  obj: any,
-  n: number = 2,
-  domain?: string,
-): string => {
-  const name: Translation = obj?.name?.male ?? obj?.name;
-  if (name == null) return obj?.id ?? obj?.abstract;
-  const txed = Array.isArray(name)
-    ? translate(name[0], needsPlural.includes(obj.type), n, domain)
-    : translate(name, needsPlural.includes(obj.type), n, domain);
-  if (txed.length === 0) return obj?.id ?? obj?.abstract;
-  return txed;
-};
-
-export const byName = (a: any, b: any) =>
-  singularName(a).localeCompare(singularName(b));
 
 const VOLUME_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Z]+)/g;
 const VOLUME_UNIT_MAP: Record<string, number> = {
@@ -3003,8 +2922,7 @@ export const data = {
     } catch (e) {
       console.warn("Failed to apply locale JSON:", e);
       instance.effective_locale = "en";
-      i18n = makeI18n();
-      i18n.setLocale(instance.effective_locale);
+      resetI18n(instance.effective_locale);
     }
     if (generationToken !== _generationToken) return;
     _currentData = instance;
@@ -3022,7 +2940,7 @@ export const data = {
     _currentData = null;
     _ensureModsLoadedPromise = null;
     loadProgressStore.set(null);
-    i18n = makeI18n();
+    resetI18n();
     set(null);
   },
   async ensureModsLoaded() {
@@ -3096,7 +3014,7 @@ export function omsName(data: CBNData, oms: OvermapSpecial): string {
       centerOmt.overmap.replace(DIRECTION_SUFFIX_REGEX, ""),
     );
     if (omt) {
-      return singularName(omt);
+      return gameSingularName(omt);
     }
   }
   return oms.id;

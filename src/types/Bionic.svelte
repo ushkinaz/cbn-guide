@@ -3,10 +3,11 @@ import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
 
-import { CBNData, singular, singularName } from "../data";
+import { CBNData } from "../data";
 import type { Bionic } from "../types";
 import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
+import { gameSingular, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Bionic;
@@ -23,7 +24,7 @@ const containingBionics = data
   .filter((x) => x.id && x.included_bionics?.includes(item.id));
 </script>
 
-<h1>{t("Bionic")}: {singularName(item)}</h1>
+<h1>{t("Bionic")}: {gameSingularName(item)}</h1>
 <section>
   <h2>{t("General", { _context, _comment: "Section heading" })}</h2>
   <dl>
@@ -50,7 +51,7 @@ const containingBionics = data
           {#each item.occupied_bodyparts as [bp_id, slots]}
             <!-- prettier-ignore -->
             <li>
-              {singularName(data.byId("body_part", bp_id))} ({slots}
+              {gameSingularName(data.byId("body_part", bp_id))} ({slots}
               {slots === 1 ? "slot" : "slots"})</li>{/each}
         </ul>
       {:else}
@@ -62,7 +63,7 @@ const containingBionics = data
       <dd>
         <ul class="comma-separated">
           {#each item.encumbrance as [bp_id, encum]}
-            <li>{singularName(data.byId("body_part", bp_id))} ({encum})</li>
+            <li>{gameSingularName(data.byId("body_part", bp_id))} ({encum})</li>
           {/each}
         </ul>
       </dd>
@@ -215,5 +216,5 @@ const containingBionics = data
       </dd>
     {/if}
   </dl>
-  <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+  <p style="color: var(--cata-color-gray)">{gameSingular(item.description)}</p>
 </section>

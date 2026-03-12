@@ -1,9 +1,10 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
-import { CBNData, i18n, singularName } from "../../data";
+import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
+import { i18n, gameSingularName } from "../../utils/i18n";
 
 interface Props {
   item_id: string;
@@ -28,8 +29,8 @@ const constructions = [
 ]
   .map((id) => data.byId("construction", id))
   .sort((a, b) =>
-    singularName(data.byId("construction_group", a.group)).localeCompare(
-      singularName(data.byId("construction_group", b.group)),
+    gameSingularName(data.byId("construction_group", a.group)).localeCompare(
+      gameSingularName(data.byId("construction_group", b.group)),
     ),
   );
 const toolConstructions = [
@@ -37,8 +38,8 @@ const toolConstructions = [
 ]
   .map((id) => data.byId("construction", id))
   .sort((a, b) =>
-    singularName(data.byId("construction_group", a.group)).localeCompare(
-      singularName(data.byId("construction_group", b.group)),
+    gameSingularName(data.byId("construction_group", a.group)).localeCompare(
+      gameSingularName(data.byId("construction_group", b.group)),
     ),
   );
 
@@ -49,13 +50,13 @@ const providedByFurniture = data
   .byType("furniture")
   .filter((f) => f.id && f.crafting_pseudo_item === item_id);
 const results = [...recipes].sort((a, b) =>
-  singularName(data.byId("item", a)).localeCompare(
-    singularName(data.byId("item", b)),
+  gameSingularName(data.byId("item", a)).localeCompare(
+    gameSingularName(data.byId("item", b)),
   ),
 );
 const toolResults = [...toolRecipes].sort((a, b) =>
-  singularName(data.byId("item", a)).localeCompare(
-    singularName(data.byId("item", b)),
+  gameSingularName(data.byId("item", a)).localeCompare(
+    gameSingularName(data.byId("item", b)),
   ),
 );
 </script>

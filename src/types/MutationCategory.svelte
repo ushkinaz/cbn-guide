@@ -3,10 +3,11 @@ import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
 
-import { byName, CBNData, singularName } from "../data";
+import { CBNData } from "../data";
 import type { MutationCategory } from "../types";
 import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
+import { byName, gameSingularName } from "../utils/i18n";
 
 let data = getContext<CBNData>("data");
 const _context = "Mutation";
@@ -32,12 +33,12 @@ const postThreshold = mutationsInCategory.filter(
 </script>
 
 {#if !inCatalog}
-  <h1>{t("Mutation Category")}: {singularName(item)}</h1>
+  <h1>{t("Mutation Category")}: {gameSingularName(item)}</h1>
 {/if}
 
 <section>
   {#if inCatalog}
-    <h2>{singularName(item)}</h2>
+    <h2>{gameSingularName(item)}</h2>
   {/if}
   <dl>
     {#if preThreshold.length}

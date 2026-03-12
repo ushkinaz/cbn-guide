@@ -1,5 +1,5 @@
 <script lang="ts">
-import { type CBNData, singularName } from "../data";
+import { type CBNData } from "../data";
 import type { OvermapSpecial } from "../types";
 import { getContext, onMount, untrack } from "svelte";
 import {
@@ -14,6 +14,8 @@ import ItemLink from "./ItemLink.svelte";
 import { t } from "@transifex/native";
 import OvermapAppearance from "./item/OvermapAppearance.svelte";
 import ItemTable from "./item/ItemTable.svelte";
+
+import { gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 
@@ -62,7 +64,7 @@ onMount(() => {
 });
 </script>
 
-<h1>{singularName(item)}</h1>
+<h1>{gameSingularName(item)}</h1>
 
 <section>
   {#if item.subtype === "mutable"}

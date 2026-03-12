@@ -1,5 +1,5 @@
 <script lang="ts">
-import { CBNData, formatPercent, singular, singularName } from "../data";
+import { CBNData, formatPercent } from "../data";
 import type { Furniture } from "../types";
 import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
@@ -10,6 +10,7 @@ import TerFurnActivity from "./TerFurnActivity.svelte";
 import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
 import LimitedList from "../LimitedList.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
+import { gameSingular, gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
@@ -166,7 +167,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
       </ul>
     </dd>
   </dl>
-  <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+  <p style="color: var(--cata-color-gray)">{gameSingular(item.description)}</p>
 </section>
 
 {#if constructions.length}

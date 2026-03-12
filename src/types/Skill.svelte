@@ -4,10 +4,11 @@ import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 
-import { byName, CBNData, singular, singularName } from "../data";
+import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { byName, gameSingular, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Skill;
@@ -22,7 +23,7 @@ const booksWithSkill = data
   .byType("item")
   .filter((t) => t.id && t.type === "BOOK" && t.skill === item.id)
   .sort((a, b) =>
-    singularName(a).localeCompare(singularName(b)),
+    gameSingularName(a).localeCompare(gameSingularName(b)),
   ) as SupportedTypesWithMapped["BOOK"][];
 
 const booksByLevel = new Map<number, SupportedTypesWithMapped["BOOK"][]>();
@@ -89,9 +90,9 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
 });
 </script>
 
-<h1>{t("Skill")}: {singularName(item)}</h1>
+<h1>{t("Skill")}: {gameSingularName(item)}</h1>
 <section>
-  <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+  <p style="color: var(--cata-color-gray)">{gameSingular(item.description)}</p>
 </section>
 
 {#if booksWithSkill.length}

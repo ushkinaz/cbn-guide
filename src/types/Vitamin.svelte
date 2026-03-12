@@ -2,13 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import {
-  CBNData,
-  normalizeUseAction,
-  parseDuration,
-  singular,
-  singularName,
-} from "../data";
+import { CBNData, normalizeUseAction, parseDuration } from "../data";
 import LimitedList from "../LimitedList.svelte";
 
 import type {
@@ -18,6 +12,7 @@ import type {
   Vitamin,
 } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { gameSingular, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Vitamin;
@@ -66,7 +61,9 @@ const containingDrugs = data
 const containing = containingComestibles.concat(containingDrugs);
 containing.sort((a, b) =>
   b.pct - a.pct === 0
-    ? singularName(a.comestible).localeCompare(singularName(b.comestible))
+    ? gameSingularName(a.comestible).localeCompare(
+        gameSingularName(b.comestible),
+      )
     : b.pct - a.pct,
 );
 
@@ -78,7 +75,7 @@ const deficiencyNames = item.deficiency
   : [];
 </script>
 
-<h1>{t("Vitamin")}: {singularName(item)}</h1>
+<h1>{t("Vitamin")}: {gameSingularName(item)}</h1>
 <section>
   <dl>
     <dt>{t("Type", { _context })}</dt>
@@ -89,7 +86,7 @@ const deficiencyNames = item.deficiency
         <ul class="comma-separated">
           {#each excessNames as n, i}
             <!-- prettier-ignore -->
-            <li>{singular(n)} ({item.disease_excess[i][0]}→{item.disease_excess[i][1]})</li>
+            <li>{gameSingular(n)} ({item.disease_excess[i][0]}→{item.disease_excess[i][1]})</li>
           {/each}
         </ul>
       </dd>
@@ -100,7 +97,7 @@ const deficiencyNames = item.deficiency
         <ul class="comma-separated">
           {#each deficiencyNames as n, i}
             <!-- prettier-ignore -->
-            <li>{singular(n)} ({item.disease[i][0]}→{item.disease[i][1]})</li>
+            <li>{gameSingular(n)} ({item.disease[i][0]}→{item.disease[i][1]})</li>
           {/each}
         </ul>
       </dd>

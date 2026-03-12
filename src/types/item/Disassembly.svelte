@@ -1,10 +1,12 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { getContext } from "svelte";
-import { CBNData, singularName } from "../../data";
+import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Recipe } from "../../types";
 import ItemLink from "../ItemLink.svelte";
+
+import { gameSingularName } from "../../utils/i18n";
 
 interface Props {
   item_id: string;
@@ -29,8 +31,8 @@ for (const id of allCraftableThings) {
   }
 }
 const uncraftableFrom = [...uncraftableFromSet].sort((a, b) =>
-  singularName(data.byId("item", a)).localeCompare(
-    singularName(data.byId("item", b)),
+  gameSingularName(data.byId("item", a)).localeCompare(
+    gameSingularName(data.byId("item", b)),
   ),
 );
 </script>

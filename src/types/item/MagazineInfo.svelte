@@ -1,11 +1,13 @@
 <script lang="ts">
 import LimitedList from "../../LimitedList.svelte";
 import { getContext, untrack } from "svelte";
-import { byName, CBNData } from "../../data";
+import { CBNData } from "../../data";
 import type { ItemBasicInfo, MagazineSlot } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 import CompatibleItems from "./CompatibleItems.svelte";
+
+import { byName } from "../../utils/i18n";
 
 interface Props {
   item: ItemBasicInfo & MagazineSlot;

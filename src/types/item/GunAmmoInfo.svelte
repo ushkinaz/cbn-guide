@@ -1,12 +1,14 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
-import { byName, CBNData } from "../../data";
+import { CBNData } from "../../data";
 import type { GunSlot, Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 import LimitedList from "../../LimitedList.svelte"; // Assuming we want symbols in lists
 import CompatibleItems from "./CompatibleItems.svelte";
 import { asArray } from "../../utils/collections";
+
+import { byName } from "../../utils/i18n";
 
 interface Props {
   item: Item;

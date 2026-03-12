@@ -1,10 +1,12 @@
 <script lang="ts">
-import { CBNData, singularName } from "../data";
+import { CBNData } from "../data";
 import { getContext, untrack } from "svelte";
 import { topologicalSortComponentsByRank } from "../utils/toposort";
 import type { Mutation } from "../types";
 import ItemLink from "./ItemLink.svelte";
 import { asArray } from "../utils/collections";
+
+import { gameSingularName } from "../utils/i18n";
 
 let data = getContext<CBNData>("data");
 
@@ -18,7 +20,9 @@ const allPrereqs = (m: Mutation) =>
   asArray(m.prereqs).concat(asArray(m.prereqs2)).concat(asArray(m.threshreq));
 let sortedMutations = topologicalSortComponentsByRank(mutations, (m) =>
   allPrereqs(m).map((x) => data.byId("mutation", x)),
-).sort((a, b) => singularName(a[0][0]).localeCompare(singularName(b[0][0])));
+).sort((a, b) =>
+  gameSingularName(a[0][0]).localeCompare(gameSingularName(b[0][0])),
+);
 </script>
 
 <ul class="no-bullets">

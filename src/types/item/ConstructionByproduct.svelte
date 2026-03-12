@@ -2,9 +2,10 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { byName, CBNData, i18n } from "../../data";
+import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
+import { byName, i18n } from "../../utils/i18n";
 
 interface Props {
   item_id: string;

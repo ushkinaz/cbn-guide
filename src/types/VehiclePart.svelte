@@ -11,14 +11,13 @@ import {
   normalizeVehicleMountedParts,
   parseDuration,
   formatPercent,
-  singular,
-  singularName,
 } from "../data";
 import LimitedList from "../LimitedList.svelte";
 
 import type { ItemGroupData, VehiclePart } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
 import ItemLink from "./ItemLink.svelte";
+import { gameSingular, gameSingularName } from "../utils/i18n";
 
 const _context = "Vehicle Part";
 
@@ -76,7 +75,7 @@ const vehiclesContainingPart = data
       ),
   );
 vehiclesContainingPart.sort((a, b) =>
-  singularName(a).localeCompare(singularName(b)),
+  gameSingularName(a).localeCompare(gameSingularName(b)),
 );
 </script>
 
@@ -221,7 +220,7 @@ vehiclesContainingPart.sort((a, b) =>
   </dl>
 
   <p style="color: var(--cata-color-gray)">
-    {singular(
+    {gameSingular(
       item.description ?? data.byId("item", item.item).description ?? "",
     )}
   </p>

@@ -2,12 +2,13 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import { byName, CBNData, i18n, singular, singularName } from "../data";
+import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { MartialArtBuff, Technique } from "../types";
 import BonusContainer from "./BonusContainer.svelte";
 import ItemLink from "./ItemLink.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
+import { byName, i18n, gameSingular, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Technique;
@@ -64,12 +65,12 @@ if (item.stunned_target)
 </script>
 
 {#if standalone}
-  <h1>{t("Technique", { _context })}: {singularName(item)}</h1>
+  <h1>{t("Technique", { _context })}: {gameSingularName(item)}</h1>
 {/if}
 
 <section>
   {#if !standalone}
-    <h2>{t("Technique", { _context })}: {singularName(item)}</h2>
+    <h2>{t("Technique", { _context })}: {gameSingularName(item)}</h2>
   {/if}
   <dl>
     <dt>{t("Type", { _context })}</dt>
@@ -121,7 +122,9 @@ if (item.stunned_target)
     {/if}
   </dl>
   {#if item.description}
-    <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+    <p style="color: var(--cata-color-gray)">
+      {gameSingular(item.description)}
+    </p>
   {/if}
   <details>
     <summary>{t("Technique JSON", { _context })}</summary>

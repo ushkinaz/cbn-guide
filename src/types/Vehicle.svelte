@@ -8,7 +8,6 @@ import {
   getVehiclePartIdAndVariant,
   itemGroupFromVehicle,
   normalizeVehicleMountedParts,
-  singularName,
 } from "../data";
 import LimitedList from "../LimitedList.svelte";
 
@@ -17,6 +16,8 @@ import { groupBy } from "../utils/collections";
 import ItemLink from "./ItemLink.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 import VehicleView from "./VehicleView.svelte";
+
+import { gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Vehicle;
@@ -55,14 +56,14 @@ const partsCounted = [...partsGrouped.entries()].map(([id, list]) => ({
 }));
 partsCounted.sort((a, b) => {
   if (a.count === b.count)
-    return singularName(data.byId("vehicle_part", a.id)).localeCompare(
-      singularName(data.byId("vehicle_part", b.id)),
+    return gameSingularName(data.byId("vehicle_part", a.id)).localeCompare(
+      gameSingularName(data.byId("vehicle_part", b.id)),
     );
   else return b.count - a.count;
 });
 </script>
 
-<h1>{singularName(item)}</h1>
+<h1>{gameSingularName(item)}</h1>
 
 <VehicleView {item} />
 

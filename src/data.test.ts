@@ -5,10 +5,11 @@ import {
   parseDuration,
   parseMass,
   parseVolume,
-  singularName,
   omsName,
 } from "./data";
 import type { OvermapSpecial } from "./types";
+
+import { gameSingularName } from "./utils/i18n";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([
@@ -76,7 +77,7 @@ test("byType returns canonical override entries without duplicate ids", () => {
 
   expect(items).toHaveLength(1);
   expect(items[0].weight).toBe(1100);
-  expect(singularName(items[0])).toBe("Modded item");
+  expect(gameSingularName(items[0])).toBe("Modded item");
 });
 
 test("includes container item specified in item", () => {
@@ -420,7 +421,7 @@ describe("Language Loading Fallback", () => {
       expect(d).toBeDefined();
       expect(d?.byId("item", "stick")).toBeDefined();
       // Should fall back to English name if locale failed to load/parse
-      expect(singularName(d?.byId("item", "stick"))).toBe("Stick");
+      expect(gameSingularName(d?.byId("item", "stick"))).toBe("Stick");
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;

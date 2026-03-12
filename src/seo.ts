@@ -1,4 +1,4 @@
-import { data, singular, singularName } from "./data";
+import { data } from "./data";
 import type {
   ArmorSlot,
   DamageInstance,
@@ -12,6 +12,7 @@ import type {
 import { get } from "svelte/store";
 import { cleanText, formatDisplayValue, formatNumeric } from "./utils/format";
 import { asArray } from "./utils/collections";
+import { gameSingular, gameSingularName } from "./utils/i18n";
 
 const MAX_DESCRIPTION_LENGTH = 160;
 const TRIM_DESCRIPTION_LENGTH = 155;
@@ -43,7 +44,7 @@ const formatQualities = (qualities?: [string, number][]): string | null => {
     .slice(0, 5)
     .map(([id, level]) => {
       const quality = cbnData?.byIdMaybe("tool_quality", id);
-      const resolvedName = quality ? singularName(quality) : undefined;
+      const resolvedName = quality ? gameSingularName(quality) : undefined;
       const safeName = resolvedName ?? id;
       if (!safeName) return null;
       return `${cleanText(safeName)} ${formatNumeric(level)}`;
@@ -103,7 +104,7 @@ const statsForMonster = (item: SupportedTypes["MONSTER"]): string[] => {
 const statsForAmmo = (item: SupportedTypes["AMMO"]): string[] => {
   const stats: string[] = [];
   const ammo_type = get(data)?.byIdMaybe("ammunition_type", item.ammo_type);
-  if (ammo_type?.name) stats.push(singular(ammo_type.name));
+  if (ammo_type?.name) stats.push(gameSingular(ammo_type.name));
 
   if (item.range) stats.push(formatStat("rng", item.range));
   if (item.dispersion) stats.push(formatStat("disp", item.dispersion));
@@ -122,7 +123,7 @@ const statsForMagazine = (item: SupportedTypes["MAGAZINE"]): string[] => {
     "ammunition_type",
     asArray(item.ammo_type)[0],
   );
-  if (ammo_type?.name) stats.push(singular(ammo_type.name));
+  if (ammo_type?.name) stats.push(gameSingular(ammo_type.name));
   if (item.capacity) stats.push(formatStat("cap", item.capacity));
   return stats;
 };
@@ -133,7 +134,7 @@ const statsForGun = (item: SupportedTypes["GUN"]): string[] => {
   if (item.ammo != null && typeof item.ammo == "string") {
     const ammo_type = get(data)?.byIdMaybe("ammunition_type", item.ammo);
     if (ammo_type?.name)
-      stats.push(formatStat("ammo", singular(ammo_type.name)));
+      stats.push(formatStat("ammo", gameSingular(ammo_type.name)));
   }
   const damageUnit = primaryDamageUnit(item.ranged_damage);
   if (damageUnit?.amount != null)
@@ -196,7 +197,9 @@ const statsForGeneric = (item: ItemBasicInfo): string[] => {
 
 const descriptionForItem = (item: SupportedTypeMapped): string => {
   const desc =
-    "description" in item && item.description ? singular(item.description) : "";
+    "description" in item && item.description
+      ? gameSingular(item.description)
+      : "";
   if (!desc) return "";
   return cleanText(desc);
 };
@@ -240,7 +243,7 @@ const buildKeyStats = (item: SupportedTypeMapped): string[] => {
  * Synchronized with a document title and optimized for SEO.
  */
 export const buildMetaDescription = (item: SupportedTypeMapped): string => {
-  const typeLabel = singular(typeLabelForItem(item));
+  const typeLabel = gameSingular(typeLabelForItem(item));
   const keyStats = buildKeyStats(item);
   const statsText = formatStatList(keyStats);
 

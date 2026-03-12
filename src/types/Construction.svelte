@@ -3,10 +3,11 @@ import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 
 import { getContext, untrack } from "svelte";
-import { CBNData, i18n, singular, singularName } from "../data";
+import { CBNData } from "../data";
 import type { Construction, RequirementData } from "../types";
 import ItemLink from "./ItemLink.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
+import { i18n, gameSingular, gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 const _context = "Construction";
@@ -53,7 +54,9 @@ if (construction.pre_flags)
 
 <section>
   {#if includeTitle}
-    <h2>{singularName(data.byId("construction_group", construction.group))}</h2>
+    <h2>
+      {gameSingularName(data.byId("construction_group", construction.group))}
+    </h2>
   {/if}
   <dl>
     <dt>{t("Required Skills")}</dt>
@@ -137,7 +140,7 @@ if (construction.pre_flags)
   </dl>
   {#if construction.pre_note}
     <p style="color: var(--cata-color-gray)">
-      {singular(construction.pre_note)}
+      {gameSingular(construction.pre_note)}
     </p>
   {/if}
   <JsonView obj={construction} buildNumber={data.build_number} />

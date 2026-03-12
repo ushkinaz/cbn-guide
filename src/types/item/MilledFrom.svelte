@@ -1,9 +1,11 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { byName, CBNData } from "../../data";
+import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
+
+import { byName } from "../../utils/i18n";
 
 interface Props {
   item_id: string;

@@ -1,8 +1,10 @@
 <script lang="ts">
 import { getContext } from "svelte";
-import { CBNData, singularName } from "../data";
+import { CBNData } from "../data";
 import type { ConstructionGroup } from "../types";
 import Construction from "./Construction.svelte";
+
+import { gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: ConstructionGroup;
@@ -17,7 +19,7 @@ const constructions = data
   .filter((x) => x.group === item.id);
 </script>
 
-<h1>{singularName(item)}</h1>
+<h1>{gameSingularName(item)}</h1>
 
 {#each constructions as construction}
   <Construction {construction} />

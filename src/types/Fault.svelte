@@ -1,11 +1,11 @@
 <script lang="ts">
 import type { CBNData } from "../data";
-import { i18n, singular, singularName } from "../data";
 import ItemLink from "./ItemLink.svelte";
 import { getContext, untrack } from "svelte";
 import type { Fault, RequirementData } from "../types";
 import { t } from "@transifex/native";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
+import { i18n, gameSingular, gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 const _context = "Fault";
@@ -36,7 +36,7 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
 });
 </script>
 
-<h1>{t("Fault")}: {singularName(item)}</h1>
+<h1>{t("Fault")}: {gameSingularName(item)}</h1>
 
 <section>
   <dl>
@@ -51,7 +51,7 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
       </ul>
     </dd>
   </dl>
-  <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+  <p style="color: var(--cata-color-gray)">{gameSingular(item.description)}</p>
 </section>
 
 {#if mendingMethods.length}
@@ -60,7 +60,7 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
 
 {#each mendingMethods as { components, requirement, mending_method }}
   <section>
-    <h2>{singularName(mending_method)}</h2>
+    <h2>{gameSingularName(mending_method)}</h2>
     <dl>
       <dt>{t("Skills Used", { _context })}</dt>
       <dd>

@@ -2,10 +2,11 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { byName, CBNData, singularName } from "../data";
+import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { WeaponCategory } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { byName, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: WeaponCategory;
@@ -40,7 +41,7 @@ const martialArts = data
 martialArts.sort(byName);
 </script>
 
-<h1>{t("Weapon Category")}: {singularName(item)}</h1>
+<h1>{t("Weapon Category")}: {gameSingularName(item)}</h1>
 <section>
   <h2>{t("Weapons", { _context: "Martial Art" })}</h2>
   {#if itemsInCategory.length}

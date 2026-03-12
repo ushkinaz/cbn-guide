@@ -2,11 +2,13 @@
 import { t } from "@transifex/native";
 import JsonView from "../JsonView.svelte";
 import { getContext, untrack } from "svelte";
-import { CBNData, i18n } from "../data";
+import { CBNData } from "../data";
 
 import type { Recipe } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
 import ItemLink from "./ItemLink.svelte";
+
+import { i18n } from "../utils/i18n";
 
 interface Props {
   recipe: Recipe;

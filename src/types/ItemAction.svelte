@@ -1,15 +1,11 @@
 <script lang="ts">
 import type { ItemAction } from "../types";
-import {
-  byName,
-  type CBNData,
-  normalizeUseAction,
-  singularName,
-} from "../data";
+import { type CBNData, normalizeUseAction } from "../data";
 import { getContext } from "svelte";
 import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
 import ItemLink from "./ItemLink.svelte";
+import { byName, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: ItemAction;
@@ -38,7 +34,7 @@ const providerQualities = data
   .filter((i) => i.id && i.usages?.some((u) => u[1].includes(item.id)));
 </script>
 
-<h1>{singularName(item)}</h1>
+<h1>{gameSingularName(item)}</h1>
 
 {#if providers.length}
   <section>

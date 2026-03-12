@@ -2,10 +2,11 @@
 import { t } from "@transifex/native";
 
 import { getContext } from "svelte";
-import { byName, CBNData, singular } from "../data";
+import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { JsonFlag } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { byName, gameSingular } from "../utils/i18n";
 
 interface Props {
   item: JsonFlag;
@@ -44,7 +45,7 @@ const bionicWithFlag = data
   <section>
     <p
       style="color: var(--cata-color-gray); margin-bottom: 0; white-space: pre-wrap;">
-      {singular(item.info)}
+      {gameSingular(item.info)}
     </p>
   </section>
 {/if}

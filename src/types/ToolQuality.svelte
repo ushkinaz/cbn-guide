@@ -2,10 +2,11 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import { byName, CBNData, i18n, singularName } from "../data";
+import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Construction, Item, ToolQuality, VehiclePart } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { byName, i18n, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: ToolQuality;
@@ -79,8 +80,8 @@ for (const [level, set] of recipesUsingQualitySet)
   recipesUsingQuality.set(
     level,
     [...set].sort((a, b) =>
-      singularName(data.byId("item", a)).localeCompare(
-        singularName(data.byId("item", b)),
+      gameSingularName(data.byId("item", a)).localeCompare(
+        gameSingularName(data.byId("item", b)),
       ),
     ),
   );
@@ -107,14 +108,14 @@ const constructionsUsingQualityByLevelList = [
 ].sort((a, b) => a[0] - b[0]);
 constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
   constructions.sort((a, b) =>
-    singularName(data.byId("construction_group", a.group)).localeCompare(
-      singularName(data.byId("construction_group", b.group)),
+    gameSingularName(data.byId("construction_group", a.group)).localeCompare(
+      gameSingularName(data.byId("construction_group", b.group)),
     ),
   );
 });
 </script>
 
-<h1>{t("Quality", { _comment: "Tool Quality" })}: {singularName(item)}</h1>
+<h1>{t("Quality", { _comment: "Tool Quality" })}: {gameSingularName(item)}</h1>
 {#if item.usages}
   <section>
     <h2>{t("Usages", { _context })}</h2>

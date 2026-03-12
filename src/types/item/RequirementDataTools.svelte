@@ -3,11 +3,12 @@ import { t } from "@transifex/native";
 import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
 import { getContext, untrack } from "svelte";
-import { CBNData, i18n, singularName } from "../../data";
+import { CBNData } from "../../data";
 import { getVersionedBasePath } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
 import ItemLink from "../ItemLink.svelte";
+import { i18n, gameSingularName } from "../../utils/i18n";
 
 interface Props {
   requirement: RequirementData & { using?: Recipe["using"] };
@@ -69,7 +70,7 @@ let { tools, qualities } =
                   href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
                     toolId,
                   )}{location.search}"
-                  >{singularName(data.byId("item", toolId))}</a>
+                  >{gameSingularName(data.byId("item", toolId))}</a>
               {:else}
                 <ItemLink type="item" id={toolId} showIcon={false} />
               {/if}
@@ -93,7 +94,7 @@ let { tools, qualities } =
                       href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
                         toolId,
                       )}{location.search}"
-                      >{singularName(data.byId("item", toolId))}</a>
+                      >{gameSingularName(data.byId("item", toolId))}</a>
                   {:else}
                     <ItemLink type="item" id={toolId} showIcon={false} />
                   {/if}

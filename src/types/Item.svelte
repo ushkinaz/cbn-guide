@@ -8,11 +8,8 @@ import {
   asKilograms,
   asLiters,
   CBNData,
-  i18n,
   normalizeUseAction,
   parseVolume,
-  singular,
-  singularName,
 } from "../data";
 import type {
   Item,
@@ -54,6 +51,7 @@ import UsageDescription from "./UsageDescription.svelte";
 import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
+import { i18n, gameSingular, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Item;
@@ -118,7 +116,7 @@ const ascii_picture =
   item.ascii_picture && data.byIdMaybe("ascii_art", item.ascii_picture);
 
 const byName = (a: any, b: any) =>
-  singularName(a).localeCompare(singularName(b));
+  gameSingularName(a).localeCompare(gameSingularName(b));
 // TODO: eventually vehicle_parts will probably switch to using materials for fuel_options
 const fuelForVPs = data
   .byType("vehicle_part")
@@ -237,7 +235,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
                   {#if "info" in f && f.info}
                     <ItemLink type="json_flag" id={f.id} showIcon={false} />
                     <span style="color: var(--cata-color-gray)"
-                      >({singular(f.info)})</span>
+                      >({gameSingular(f.info)})</span>
                   {:else}
                     <ItemLink type="json_flag" id={f.id} showIcon={false} />
                   {/if}
@@ -379,7 +377,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
       {#if item.description}
         <p
           style="color: var(--cata-color-gray); margin-bottom: 0; white-space: pre-wrap;">
-          {singular(item.description)}
+          {gameSingular(item.description)}
         </p>
       {/if}
     </div>

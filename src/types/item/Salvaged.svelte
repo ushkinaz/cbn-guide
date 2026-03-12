@@ -2,10 +2,12 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import { byName, CBNData, parseMass } from "../../data";
+import { CBNData, parseMass } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Item, Material } from "../../types";
 import ItemLink from "../ItemLink.svelte";
+
+import { byName } from "../../utils/i18n";
 
 interface Props {
   item_id: string;

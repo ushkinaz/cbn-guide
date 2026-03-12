@@ -2,13 +2,14 @@
 import type { MartialArt, MartialArtBuff } from "../types";
 import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
-import { CBNData, i18n, singular, singularName } from "../data";
+import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import ItemLink from "./ItemLink.svelte";
 import Technique from "./Technique.svelte";
 import BonusContainer from "./BonusContainer.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
 import { t } from "@transifex/native";
+import { i18n, gameSingular, gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 
@@ -58,7 +59,7 @@ const buffMap = new Map(
 );
 </script>
 
-<h1>{t("Martial Art")}: {singularName(item)}</h1>
+<h1>{t("Martial Art")}: {gameSingularName(item)}</h1>
 
 <section>
   <h2>{t("General", { _context })}</h2>
@@ -135,7 +136,7 @@ const buffMap = new Map(
       {/if}
     </dl>
   {/if}
-  <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+  <p style="color: var(--cata-color-gray)">{gameSingular(item.description)}</p>
 </section>
 
 {#if item.weapons?.length}
@@ -143,8 +144,8 @@ const buffMap = new Map(
     <h2>{t("Weapons", { _context })}</h2>
     <LimitedList
       items={[...item.weapons].sort((a, b) =>
-        singularName(data.byId("item", a)).localeCompare(
-          singularName(data.byId("item", b)),
+        gameSingularName(data.byId("item", a)).localeCompare(
+          gameSingularName(data.byId("item", b)),
         ),
       )}>
       {#snippet children({ item })}
@@ -158,7 +159,7 @@ const buffMap = new Map(
 {#each buffss as [title, buffs]}
   {#each buffs as buff}
     <section>
-      <h2>{i18n.__(title)}: {singularName(buff)}</h2>
+      <h2>{i18n.__(title)}: {gameSingularName(buff)}</h2>
       <dl>
         <MartialArtRequirements item={buff} {buffMap} />
         <BonusContainer item={buff} />
@@ -199,7 +200,7 @@ const buffMap = new Map(
       </dl>
       {#if buff.description}
         <p style="color: var(--cata-color-gray); white-space: pre-wrap">
-          {singular(buff.description)}
+          {gameSingular(buff.description)}
         </p>
       {/if}
     </section>

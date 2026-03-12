@@ -1,7 +1,7 @@
 <script lang="ts">
 import { setContext, untrack } from "svelte";
 
-import { byName, CBNData, singularName } from "./data";
+import { CBNData } from "./data";
 import LimitedList from "./LimitedList.svelte";
 import type {
   Item,
@@ -14,7 +14,7 @@ import type {
 import MutationCategory from "./types/MutationCategory.svelte";
 import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./utils/collections";
-import { translateType } from "./utils/i18n";
+import { byName, gameSingularName, translateType } from "./utils/i18n";
 
 interface Props {
   type: string;
@@ -51,7 +51,7 @@ function getCategory(i: Item) {
 
 function getCategoryName(category: string) {
   const cat = data.byIdMaybe("ITEM_CATEGORY", category);
-  return cat ? singularName(cat) : category;
+  return cat ? gameSingularName(cat) : category;
 }
 
 const groupingFn =

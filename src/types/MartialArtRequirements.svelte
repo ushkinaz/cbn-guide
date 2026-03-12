@@ -2,9 +2,10 @@
 import { t } from "@transifex/native";
 import { untrack } from "svelte";
 
-import { singularName } from "../data";
 import type { MartialArtBuff, MartialArtRequirements } from "../types";
 import ItemLink from "./ItemLink.svelte";
+
+import { gameSingularName } from "../utils/i18n";
 
 const _context = "Martial Art";
 
@@ -36,7 +37,7 @@ const requiredBuffs =
     <ul class="comma-separated">
       {#each requiredBuffs as buf}
         {#if buffMap.has(buf)}
-          <li>{singularName(buffMap.get(buf))}</li>
+          <li>{gameSingularName(buffMap.get(buf))}</li>
         {:else}
           <li>{buf}</li>
         {/if}

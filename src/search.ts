@@ -1,11 +1,12 @@
 import fuzzysort from "fuzzysort";
-import { type CBNData, i18n, mapType, singularName } from "./data";
+import { type CBNData, mapType } from "./data";
 import type { SupportedTypeMapped, SupportedTypesWithMapped } from "./types";
 import { metrics } from "./metrics";
 import { writable, type Readable } from "svelte/store";
 import { debounce } from "./utils/debounce";
 import { isTesting } from "./utils/env";
 import { nowTimeStamp } from "./utils/perf";
+import { i18n, gameSingularName } from "./utils/i18n";
 
 export const SEARCHABLE_TYPES = new Set<keyof SupportedTypesWithMapped>([
   "item",
@@ -51,7 +52,7 @@ export function searchableName(data: CBNData, item: SupportedTypeMapped) {
               "",
             );
             const om = data.byIdMaybe("overmap_terrain", normalizedId);
-            return om ? singularName(om) : normalizedId;
+            return om ? gameSingularName(om) : normalizedId;
           })
           .join("\0") ?? flat.id
       );
@@ -70,9 +71,11 @@ export function searchableName(data: CBNData, item: SupportedTypeMapped) {
 
   if (i18n.getLocale().startsWith("zh_")) {
     const pseudoObj = { id, type, name };
-    return singularName(pseudoObj) + " " + singularName(pseudoObj, "pinyin");
+    return (
+      gameSingularName(pseudoObj) + " " + gameSingularName(pseudoObj, "pinyin")
+    );
   }
-  return singularName({ id, type, name });
+  return gameSingularName({ id, type, name });
 }
 
 export function buildSearchIndex(data: CBNData): SearchTarget[] {

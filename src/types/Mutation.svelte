@@ -3,13 +3,14 @@ import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
 
-import { byName, CBNData, singular, singularName } from "../data";
+import { CBNData } from "../data";
 
 import type { Mutation } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
 import { asArray } from "../utils/collections";
+import { byName, gameSingular, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Mutation;
@@ -55,7 +56,7 @@ const conflictsWithBionics = data
 </script>
 
 <h1>
-  {item.threshold ? t("Threshold") : t("Mutation")}: {singularName(item)}
+  {item.threshold ? t("Threshold") : t("Mutation")}: {gameSingularName(item)}
 </h1>
 <section>
   <dl>
@@ -274,7 +275,9 @@ const conflictsWithBionics = data
   </dl>
   <!-- TODO remove after #92  -->
   {#if item.description}
-    <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+    <p style="color: var(--cata-color-gray)">
+      {gameSingular(item.description)}
+    </p>
   {/if}
 </section>
 

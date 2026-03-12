@@ -3,9 +3,10 @@ import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
 
-import { CBNData, plural, singular, singularName } from "../data";
+import { CBNData } from "../data";
 import type { Achievement } from "../types";
 import ItemLink from "./ItemLink.svelte";
+import { gamePlural, gameSingular, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: Achievement;
@@ -29,12 +30,14 @@ const hiddenBy = item.hidden_by
 </script>
 
 <h1>
-  Achievement: {singularName(item)}
+  Achievement: {gameSingularName(item)}
 </h1>
 
 <section>
   {#if item.description}
-    <p style="color: var(--cata-color-gray)">{singular(item.description)}</p>
+    <p style="color: var(--cata-color-gray)">
+      {gameSingular(item.description)}
+    </p>
   {/if}
   <dl>
     {#if hiddenBy && hiddenBy.length > 0}
@@ -78,7 +81,7 @@ const hiddenBy = item.hidden_by
               {@const stat = data.byId("event_statistic", req.event_statistic)}
               <strong
                 >{stat.description
-                  ? plural(stat.description)
+                  ? gamePlural(stat.description)
                   : stat.id}</strong>
               is <strong>{req.is} {req.target ?? ""}</strong>
             {/if}

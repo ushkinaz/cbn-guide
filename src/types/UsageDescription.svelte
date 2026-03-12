@@ -1,9 +1,10 @@
 <script lang="ts">
-import { CBNData, singular, singularName } from "../data";
+import { CBNData } from "../data";
 import { getContext, untrack } from "svelte";
 import type { UseFunction } from "../types";
 import ItemLink from "./ItemLink.svelte";
 import { t } from "@transifex/native";
+import { gameSingular, gameSingularName } from "../utils/i18n";
 
 const data = getContext<CBNData>("data");
 
@@ -20,8 +21,8 @@ let action =
     : data.byId("item_action", usage.type);
 let description =
   ("menu_text" in usage ? usage.menu_text : null) ??
-  ("name" in usage && usage.name ? singular(usage.name) : null) ??
-  singularName(action);
+  ("name" in usage && usage.name ? gameSingular(usage.name) : null) ??
+  gameSingularName(action);
 </script>
 
 <ItemLink

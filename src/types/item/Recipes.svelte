@@ -1,6 +1,7 @@
 <script module lang="ts">
 import type { Recipe as RecipeType } from "../../types";
-import { singularName } from "../../data";
+
+import { gameSingularName } from "../../utils/i18n";
 // Lazily compute the recipe index.
 let recipeIndex: Record<string, RecipeType[]>;
 export function getRecipeIndex(data: CBNData) {
@@ -38,7 +39,9 @@ export function getByproductsIndex(data: CBNData) {
       byproducts.sort((a, b) => {
         const aResult = data.byId("item", a.result!);
         const bResult = data.byId("item", b.result!);
-        return singularName(aResult).localeCompare(singularName(bResult));
+        return gameSingularName(aResult).localeCompare(
+          gameSingularName(bResult),
+        );
       });
     }
   }

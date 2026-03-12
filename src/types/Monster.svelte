@@ -6,11 +6,8 @@ import {
   asKilograms,
   asLiters,
   CBNData,
-  byName,
   formatPercent,
   normalizeDamageInstance,
-  singular,
-  singularName,
 } from "../data";
 import ItemLink from "./ItemLink.svelte";
 import type { Harvest, Monster } from "../types";
@@ -18,6 +15,7 @@ import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
+import { byName, gameSingular, gameSingularName } from "../utils/i18n";
 
 const _context = "Monster";
 interface Props {
@@ -123,13 +121,13 @@ function damage(mon: Monster) {
   }
   //melee_damage = melee_damage ?? [ { damage_type: "bash", amount: `${melee_dice}d${melee_dice_sides}` } ]
   return (
-    `${melee_dice}d${melee_dice_sides} ${singularName(
+    `${melee_dice}d${melee_dice_sides} ${gameSingularName(
       data.byIdMaybe("damage_type", "bash") ?? { id: "bash" },
     )}` +
     du
       .map(
         (u) =>
-          ` + ${u.amount} ${singularName(
+          ` + ${u.amount} ${gameSingularName(
             data.byIdMaybe("damage_type", u.damage_type) ?? {
               id: u.damage_type,
             },
@@ -431,7 +429,7 @@ for (const group of sortedGroups) {
         </dd>
       </dl>
       {#if item.description}
-        <p class="monster-description">{singular(item.description)}</p>
+        <p class="monster-description">{gameSingular(item.description)}</p>
       {/if}
     </div>
     <aside class="monster-stage" aria-label={t("Monster Sprite", { _context })}>
