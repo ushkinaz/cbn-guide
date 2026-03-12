@@ -23,7 +23,7 @@ let {
     : type === "terrain"
       ? t("Terrain", { _context: "Loot Table" })
       : t("Loot", { _context: "Loot Table" }),
-  showData = $bindable(true),
+  showData = true,
 }: Props = $props();
 </script>
 

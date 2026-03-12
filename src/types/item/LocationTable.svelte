@@ -6,7 +6,6 @@ import { formatFixed2, formatPercent } from "../../utils/format";
 import type { OvermapSpecial } from "../../types";
 import { t } from "@transifex/native";
 import LimitedTableList from "../../LimitedTableList.svelte";
-import { isTesting } from "../../utils/env";
 import { metrics } from "../../metrics";
 import ItemLink from "../ItemLink.svelte";
 
@@ -19,7 +18,7 @@ interface Props {
   showData?: boolean;
 }
 
-let { id, loots, heading, showData = $bindable(true) }: Props = $props();
+let { id, loots, heading, showData = true }: Props = $props();
 
 const data = getContext<CBNData>("data");
 

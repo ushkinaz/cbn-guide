@@ -45,7 +45,6 @@ const harvestableFrom = data
 <ItemTable
   type="monster"
   loot={mons}
-  showData={true}
   heading={t("Dropped By", { _context: "Obtaining" })} />
 
 {#if harvestableFrom.length}
