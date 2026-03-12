@@ -162,7 +162,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
           {t("Level {level}", { level, _context })}
         </dt>
         <dd>
-          <LimitedList items={vparts.sort(byName)} limit={20}>
+          <LimitedList items={vparts} limit={20}>
             {#snippet children({ item })}
               <ItemLink type="vehicle_part" id={item.id} />
             {/snippet}
