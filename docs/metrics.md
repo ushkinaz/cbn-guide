@@ -129,7 +129,7 @@ metrics.distribution("something.time", performance.now() - t1);
 // Problem: Metrics are for product questions, not profiling
 
 // ✅ GOOD: Measure user-visible performance only
-const t1 = performance.now();
+const t2 = performance.now();
 await loadInitialData();
 metrics.distribution("app.init.duration_ms", performance.now() - t1);
 ```

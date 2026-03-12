@@ -10,6 +10,7 @@ if (typeof global.location === "undefined") {
 }
 
 if (typeof global.history === "undefined") {
+  // noinspection JSConstantReassignment
   global.history = {
     replaceState: () => {},
     pushState: () => {},
