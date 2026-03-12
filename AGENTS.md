@@ -9,13 +9,14 @@
 
 - Node.js: 24
 - pnpm: 10.x
-- Core: `TypeScript` 5, `Svelte` 5 + `Vite` 5
+- Core: `TypeScript` 5, `Svelte` 5 + `Vite` 7
 - Testing: `vitest`, `puppeteer`
 - Styling: Scoped CSS, custom design tokens in `/src/assets/game-palette.css` and `src/assets/design.css`.
 
 ## Project Structure
 
 - `src/`: app source (key files: `src/data.ts`, `src/types.ts`; plus routing and type-specific views)
+- `src/types.ts`: game data schema definitions, no app specific types here
 - `scripts/`: development scripts
 - `_test/`: test fixtures (`all.json`, `all_mods.json`)
 
@@ -23,10 +24,7 @@
 
 ### Development
 
-- `pnpm i` - install dependencies
 - `pnpm dev` - Start Vite dev server at http://localhost:3000
-- `pnpm build` - Build production bundle
-- `pnpm preview` - Preview production build
 
 ### Code Quality
 
@@ -40,7 +38,7 @@ Prefer targeted tests first; run full suite only for cross-cutting changes.
 Always add `--no-color` to test run commands
 
 - `pnpm lint` and `pnpm check` - Required before commit
-- `pnpm test:changed` - Tests related to changed files
+- `pnpm test:changed --maxWorkers=50% --bail 1` - Tests related to changed files
 - `pnpm test:fast` - All non-render-regression tests
 - `pnpm check` - TypeScript/Svelte correctness
 - `pnpm vitest run <path/to/test.ts>` - Run single test
@@ -49,11 +47,12 @@ Test matrix:
 
 - Tiny/localized change: `pnpm lint && pnpm test:changed`
 - Normal feature/bugfix: `pnpm lint && pnpm check && pnpm test:fast`
-- Cross-cutting/data-model/routing change: `pnpm test:full --maxWorkers=50% --bail 1`
+- Cross-cutting/data-model/routing change: `pnpm test --maxWorkers=50% --bail 1`
 
 #### Key Test Files
 
 - `src/all.X.test.ts`: slow full-data rendering integration tests
+- `src/routing.test.ts`: slow full-data rendering integration tests
 - `src/schema.test.ts`: game data schema validation
 
 ### Data & Scripts
@@ -63,10 +62,10 @@ Test matrix:
 
 ## Core Architecture
 
-- Route-Driven Remounting: main content components (`Thing`, `Catalog`, `SearchResults`) are wrapped in `{#key}` blocks and destroyed/recreated on every navigation. Avoid prop-mirroring effects inside keyed components; route remounting is the source of truth. Most other components are mounted inside keyed parents.
+- Route-Driven Remounting: main content components (`Thing`, `Catalog` ) are wrapped in `{#key}` blocks and destroyed/recreated on every navigation. Avoid prop-mirroring effects inside keyed components; route remounting is the source of truth. Most other components are mounted inside keyed parents.
 - Global Data: `data` store from `src/data.ts` - write-once per page load
 - URL as Source of Truth: Version and search params drive app state (see `docs/routing.md`)
-- Reactivity: read `docs/reactivity.md`
+- Reactivity usage: read `docs/reactivity.md`
 
 ## Code Style Guidelines
 
@@ -94,7 +93,7 @@ Test matrix:
 - JSDoc: For public functions and complex logic
 - Inline comments: For non-obvious decisions
 - TODO comments: Format as `//TODO: description`
-- Never remove comments not related to the current task
+- Never remove comments that aren’t related to the current task
 
 ### Formatting and Commit
 
@@ -104,8 +103,7 @@ Test matrix:
 
 ## Project-Specific Rules
 
-- Colors usage: `.agent/rules/colors.md`
-- i18n: use `t` from `@transifex/native` for all user-facing text. Read `.agent/rules/i18n.md` for details
+- i18n: use `t` from `@transifex/native` for all user-facing text. Use `gettext` module for game-internal text.
 - Truth: `_test/all.json` is the compiled data blob (~30MB)
 - NEVER grep the whole file: Use `jq` to filter
 
@@ -124,15 +122,13 @@ Test matrix:
 
 ### Architecture Decision Records (ADRs)
 
-- Located in `docs/adr/`
-- Use Lightweight ADR format (see `docs/adr/README.md`)
+- Use Lightweight ADR format (read `docs/adr/README.md` for index and usage)
 - Create ADR for significant architectural decisions
 
 ### Key Documentation
 
-- `DEVELOPMENT.md` - Developer setup and workflows
 - `docs/architecture.md` - High-level architecture overview
-- `docs/reactivity.md` - Svelte reactivity patterns
+- `docs/reactivity.md` - Svelte reactivity and runes usage patterns
 - `docs/routing.md` - URL-based state management
 
 ## Common Workflows
