@@ -70,6 +70,7 @@
     "@types/gettext.js": "^2.0.0",
     "@types/node": "^24.10.15",
     "@types/requestidlecallback": "^0.3.7",
+    "@vite-pwa/assets-generator": "^1.0.2",
     "ajv": "^8.18.0",
     "esbuild": "^0.27.3",
     "happy-dom": "^20.8.3",

@@ -83,14 +83,25 @@ export default defineConfig({
           "Database for Cataclysm: Bright Nights. Search for items, monsters, bionics & more",
         icons: [
           {
-            src: "icon-192.png",
+            src: "pwa-64x64.png",
+            sizes: "64x64",
             type: "image/png",
-            sizes: "192x192",
           },
           {
-            src: "icon-512.png",
+            src: "pwa-192x192.png",
+            sizes: "192x192",
             type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
             sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
         start_url: "./",
