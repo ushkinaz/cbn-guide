@@ -2014,11 +2014,14 @@ export type Vehicle = {
   name: Translation;
   blueprint?: string[][] | string[];
   blueprint_origin?: { x: integer; y: integer };
-  palette?: Record<string, (string | string[])[]>;
+  palette?: Record<
+    string,
+    (string | string[] | VehicleMountedPartDefinition)[]
+  >;
   parts?: {
     x: integer;
     y: integer;
-    parts?: (string | { part: string; fuel?: string })[];
+    parts?: (string | VehicleMountedPartDefinition)[];
     part?: string;
     fuel?: string;
   }[];
@@ -2029,6 +2032,14 @@ export type Vehicle = {
     items?: string | string[];
     item_groups?: string | string[];
   }[];
+};
+
+export type VehicleMountedPartDefinition = {
+  part: string;
+  fuel?: string;
+  ammo?: integer;
+  ammo_types?: string[];
+  ammo_qty?: [integer, integer];
 };
 
 export type WeaponCategory = {

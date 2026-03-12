@@ -93,4 +93,62 @@ describe("normalizeVehicleMountedParts", () => {
       },
     ]);
   });
+
+  test("normalizes object palette entries with fuel and ammo metadata", () => {
+    const vehicle: Vehicle = {
+      id: "object_palette_vehicle",
+      type: "vehicle",
+      name: "Object palette vehicle",
+      blueprint: ["AB"],
+      palette: {
+        A: [
+          "frame",
+          {
+            part: "fuel_bunker",
+            fuel: "coal_lump",
+          },
+        ],
+        B: [
+          "turret_mount_manual_wood",
+          {
+            part: "mounted_launcher_ballista",
+            ammo: 75,
+            ammo_types: [
+              "rock",
+              "sling_bullet",
+              "ammo_ballista_wood",
+              "ammo_ballista_iron",
+            ],
+            ammo_qty: [1, 10],
+          },
+        ],
+      },
+    };
+
+    expect(normalizeVehicleMountedParts(vehicle)).toEqual([
+      {
+        x: 0,
+        y: 0,
+        parts: [{ part: "frame" }, { part: "fuel_bunker", fuel: "coal_lump" }],
+      },
+      {
+        x: 1,
+        y: 0,
+        parts: [
+          { part: "turret_mount_manual_wood" },
+          {
+            part: "mounted_launcher_ballista",
+            ammo: 75,
+            ammo_types: [
+              "rock",
+              "sling_bullet",
+              "ammo_ballista_wood",
+              "ammo_ballista_iron",
+            ],
+            ammo_qty: [1, 10],
+          },
+        ],
+      },
+    ]);
+  });
 });
