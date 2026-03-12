@@ -6,20 +6,23 @@ This is a monthly changelog for The Hitchhiker's [Guide](https://cataclysmbn-gui
 
 ### Highlights
 
-- Full mod support landed: you can select mods, auto-include dependencies, and keep mod selections in shared URLs.
-- Data and mapgen parsing were hardened, so loot/content results are more accurate with real BN data.
+- Full mod support landed: you can pick mods, auto-include dependencies, see what each mod adds, and keep selections in shared URLs.
+- The guide became friendlier to browse, with a redesigned front page, stronger monster/item presentation, clearer loading states, and better mobile behavior.
+- BN data compatibility was tightened across mapgen, vehicles, monsters, mutations, and tilesets, so pages line up more closely with real game content.
 
 ### Changes
 
-- [FEATURE] Mod loading now respects order and provenance, improving compatibility for mixed mod setups.
-- [FEATURE] Mod selector UX was improved with better defaults, sorting, dependency details, and safer selection behavior.
-- [FEATURE] Added support for mod-provided tilesets and external tileset metadata.
 - [FEATURE] Added addictions support in item data presentation.
-- [FEATURE] Translation flow improved with Transifex integration, locale fallback handling, and cleaner language options.
-- [UI] Loading feedback is clearer with improved spinners and loading indicators.
-- [PERF] Cache and edge/header tuning improved perceived load speed and reduced stale-cache friction.
+- [FEATURE] Gun mods and other item pages now show more useful related stats and data instead of hiding important context.
+- [FEATURE] Monster pages got a stronger header layout and clearer localized helper text for behavior and regeneration details.
+- [FEATURE] The front page was refreshed with a new intro layout, better category presentation, and a clearer PWA prompt.
+- [FEATURE] Translation support moved forward with Transifex integration, locale fallback handling, and cleaner language selection.
+- [UI] Loading feedback is clearer with improved spinners, steadier selectors, cleaner list styling, and better small-screen layout touches.
+- [PERF] Search, loot sorting, Found In tables, and caching behavior were tuned to feel faster and stutter less while browsing.
 - [FIX] Retry logic now skips permanent 404 failures, reducing wasted requests and noisy errors.
-- [FIX] Data normalization fixes improved correctness for vehicles, monsters, mutations, and mapgen item placement edge cases.
+- [FIX] Data normalization fixes improved correctness for vehicles, monsters, mutations, flags, hand-cranked gear, and mapgen item placement edge cases.
+- [FIX] iOS WebKit no longer clips some sprites because of the old contrast filter.
+- [FIX] Schema and mapgen handling now cover more BN cases, including Lua mapgen and direct item ids in placement data.
 
 ## January 2026
 
