@@ -39,6 +39,7 @@ import type {
   Translation,
   UseFunction,
   Vehicle,
+  VehicleMountedPartDefinition,
 } from "./types";
 import type { Loot } from "./types/item/spawnLocations";
 import {
@@ -2357,7 +2358,7 @@ export const getVehiclePartIdAndVariant = (
 export type NormalizedVehicleMountedPart = {
   x: number;
   y: number;
-  parts: { part: string; fuel?: string }[];
+  parts: VehicleMountedPartDefinition[];
 };
 
 export const normalizeVehicleMountedParts = (
@@ -2394,6 +2395,10 @@ export const normalizeVehicleMountedParts = (
 
       const parts = paletteEntries.flatMap((entry) => {
         if (typeof entry === "string") return [{ part: entry }];
+        if (!Array.isArray(entry)) return [entry];
+
+        // Cataclysm-BN's blueprint palette loader uses only the first element as
+        // the vehicle part id and ignores any extra legacy metadata in the array.
         const [part] = entry;
         return typeof part === "string" ? [{ part }] : [];
       });
