@@ -2471,10 +2471,6 @@ const fetchJsonWithProgress = (
   url: string,
   progress: (receivedBytes: number, totalBytes: number) => void,
 ): Promise<any> => {
-  // GoogleBot has a 15MB limit on the size of the response, so we need to
-  // serve it double-gzipped JSON.
-  if (/latest/.test(url) && /googlebot/i.test(navigator.userAgent))
-    return fetchGzippedJsonForGoogleBot(url);
   if (isTesting) {
     progress(100, 100);
     return fetch(url).then((r) => {
@@ -2530,31 +2526,6 @@ const fetchJsonWithProgress = (
     xhr.send();
   });
 };
-
-async function fetchGzippedJsonForGoogleBot(url: string): Promise<any> {
-  const gzUrl = url.replace(/latest/, "latest.gz");
-  const res = await fetch(gzUrl, { mode: "cors" });
-  if (!res.ok) {
-    throw new HttpError(
-      `HTTP ${res.status} (${res.statusText}) fetching ${url}`,
-      res.status,
-      url,
-    );
-  }
-  if (!res.body) {
-    throw new Error(`No body in response from ${url} (status ${res.status})`);
-  }
-
-  // Use DecompressionStream to decompress the gzipped response
-  const decompressionStream = new (globalThis as any).DecompressionStream(
-    "gzip",
-  );
-  const decompressedStream: ReadableStream<ArrayBuffer> =
-    res.body.pipeThrough(decompressionStream);
-
-  const text = await new Response(decompressedStream).text();
-  return JSON.parse(text);
-}
 
 const fetchJson = async (
   version: string,
