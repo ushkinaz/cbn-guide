@@ -20,7 +20,7 @@ let expanded = $state(false);
 function toggle() {
   expanded = !expanded;
   if (expanded) {
-    metrics.count("ui.json_view.open", 1, { type: obj.type, id: obj.id });
+    metrics.count("ui.json_view.open", 1, { type: obj?.type, id: obj?.id });
   }
 }
 </script>

@@ -154,6 +154,22 @@ let latestStableBuild: BuildInfo | undefined = $state();
 let latestNightlyBuild: BuildInfo | undefined = $state();
 let prewarmScheduledFor: CBNData | null = null;
 
+function updateSentryRoutingContext(params: {
+  requestedVersion: string;
+  resolvedVersion?: string;
+}): void {
+  Sentry.setTag("requestedVersion", params.requestedVersion);
+  if (params.resolvedVersion) {
+    Sentry.setTag("resolvedVersion", params.resolvedVersion);
+  }
+  Sentry.setContext("routing", {
+    requestedVersion: params.requestedVersion,
+    resolvedVersion: params.resolvedVersion,
+  });
+}
+
+updateSentryRoutingContext({ requestedVersion });
+
 // Initialize routing and fetch builds
 const appStart = nowTimeStamp();
 const p = mark("app-routing-start");
@@ -161,6 +177,10 @@ void initializeRouting()
   .then(async (result: InitialAppState) => {
     builds = result.builds;
     resolvedVersion = result.resolvedVersion;
+    updateSentryRoutingContext({
+      requestedVersion,
+      resolvedVersion: result.resolvedVersion,
+    });
     latestStableBuild = result.latestStableBuild;
     latestNightlyBuild = result.latestNightlyBuild;
     if (result.redirected) {

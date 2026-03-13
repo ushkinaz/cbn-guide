@@ -47,13 +47,13 @@ const data = untrack(() => sourceData);
 setContext("data", data);
 
 function onError(e: Error) {
-  metrics.count("app.error.catch", 1, { type: item.type, id: item.id });
+  metrics.count("app.error.catch", 1, { type: item?.type, id: item?.id });
   console.error(e);
   Sentry.captureException(e, {
     contexts: {
       item: {
-        type: item.type,
-        id: item.id,
+        type: item?.type,
+        id: item?.id,
       },
     },
   });
