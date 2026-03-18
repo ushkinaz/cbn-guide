@@ -9,16 +9,18 @@ import {
   getOMSByAppearance,
   overmapAppearance,
 } from "./types/item/spawnLocations";
-import { type SearchResult, searchResults } from "./search";
+import { searchState } from "./search-state.svelte";
+import type { SearchResult, SearchResultsMap } from "./search-engine";
 import Loading from "./Loading.svelte";
 import { translateType } from "./utils/i18n";
 
 interface Props {
   data: CBNData;
   search: string;
+  results?: SearchResultsMap | null;
 }
 
-let { data, search }: Props = $props();
+let { data, search, results: sourceResults }: Props = $props();
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();
@@ -40,9 +42,10 @@ function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
 }
 const contextData = untrack(() => data);
 setContext("data", contextData);
-let matchingObjectsList = $derived(
-  $searchResults ? [...$searchResults.entries()] : null,
+let results = $derived(
+  sourceResults === undefined ? searchState.results : sourceResults,
 );
+let matchingObjectsList = $derived(results ? [...results.entries()] : null);
 
 function asType(type: string): keyof SupportedTypesWithMapped {
   return type as keyof SupportedTypesWithMapped;
@@ -50,7 +53,7 @@ function asType(type: string): keyof SupportedTypesWithMapped {
 </script>
 
 {#if matchingObjectsList}
-  {#each matchingObjectsList as [type, results]}
+  {#each matchingObjectsList as [type, results] (type)}
     <section>
       {#if type === "overmap_special"}
         {@const grouped = groupByAppearance(results)}

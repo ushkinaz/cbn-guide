@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { performance } from "perf_hooks";
 import { CBNData, omsName } from "../src/data.js";
-import { buildSearchIndex, performSearch } from "../src/search.js";
+import { buildSearchIndex, performSearch } from "../src/search-engine.js";
 import {
   getGitSha,
   createHistogramStats,
