@@ -5,6 +5,11 @@ import JsonView from "../JsonView.svelte";
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../data";
 import type { Construction, RequirementData } from "../types";
+import {
+  getConstructionPrerequisites,
+  getConstructionResults,
+  isNullConstructionResult,
+} from "./construction";
 import ItemLink from "./ItemLink.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
 import { i18n, gameSingular, gameSingularName } from "../utils/i18n";
@@ -42,6 +47,8 @@ const components = requirements.flatMap(([req, count]) => {
 const byproducts = data.flattenItemGroup(
   data.normalizeItemGroup(construction.byproducts, "collection"),
 );
+const prerequisites = getConstructionPrerequisites(construction);
+const results = getConstructionResults(construction);
 
 const preFlags: { flag: string; force_terrain?: boolean }[] = [];
 if (construction.pre_flags)
@@ -71,14 +78,16 @@ if (construction.pre_flags)
         ? `${construction.time} m`
         : (construction.time ?? "0 m")}
     </dd>
-    {#if construction.pre_terrain}
+    {#if prerequisites.length}
       <dt>{t("Requires", { _context })}</dt>
       <dd>
-        <ItemLink
-          type={construction.pre_terrain.startsWith("f_")
-            ? "furniture"
-            : "terrain"}
-          id={construction.pre_terrain} />
+        <ul class="comma-separated">
+          {#each prerequisites as prerequisite}
+            <li>
+              <ItemLink type={prerequisite.type} id={prerequisite.id} />
+            </li>
+          {/each}
+        </ul>
       </dd>
     {/if}
     {#if preFlags.length}
@@ -118,23 +127,25 @@ if (construction.pre_flags)
         </ul>
       </dd>
     {/if}
-    {#if !includeTitle && construction.post_terrain}
+    {#if !includeTitle && results.length}
       <dt>{t("Creates", { _context })}</dt>
       <dd>
-        {#if construction.post_terrain === "f_null"}
-          <em
-            >{t("nothing", {
-              _context,
-              _comment:
-                'The furniture/terrain "created" by a deconstruction is...',
-            })}</em>
-        {:else}
-          <ItemLink
-            type={construction.post_terrain.startsWith("f_")
-              ? "furniture"
-              : "terrain"}
-            id={construction.post_terrain} />
-        {/if}
+        <ul class="comma-separated">
+          {#each results as result}
+            <li>
+              {#if isNullConstructionResult(result)}
+                <em
+                  >{t("nothing", {
+                    _context,
+                    _comment:
+                      'The furniture/terrain "created" by a deconstruction is...',
+                  })}</em>
+              {:else}
+                <ItemLink type={result.type} id={result.id} />
+              {/if}
+            </li>
+          {/each}
+        </ul>
       </dd>
     {/if}
   </dl>

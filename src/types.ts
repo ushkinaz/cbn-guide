@@ -97,8 +97,10 @@ export type Construction = {
       )[];
   pre_note?: string;
 
-  pre_terrain?: string; // if starts with f_, then furniture_id, else terrain_id
-  post_terrain?: string; // as above
+  pre_terrain?: string;
+  pre_furniture?: string;
+  post_terrain?: string;
+  post_furniture?: string;
 
   pre_flags?: string | string[];
   post_flags?: string[];

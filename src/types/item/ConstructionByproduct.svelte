@@ -5,7 +5,8 @@ import { getContext } from "svelte";
 import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
-import { byName, i18n } from "../../utils/i18n";
+import { getConstructionPrerequisites } from "../construction";
+import { byName } from "../../utils/i18n";
 
 interface Props {
   item_id: string;
@@ -32,13 +33,13 @@ const constructions = data
     <LimitedList items={constructions}>
       {#snippet children({ item: f })}
         <ItemLink id={f.group} type="construction_group" showIcon={false} />
-        {#if f.pre_terrain}
-          on {#each [f.pre_terrain].flat() as preTerrain, i}
-            {@const itemType = preTerrain.startsWith("f_")
-              ? "furniture"
-              : "terrain"}
-            {#if i !== 0}{i18n.__(" OR ")}{/if}
-            <ItemLink type={itemType} id={preTerrain} />
+        {@const prerequisites = getConstructionPrerequisites(f)}
+        {#if prerequisites.length}
+          {t("on")}
+          {#each prerequisites as prerequisite, i}
+            {#if i !== 0},
+            {/if}
+            <ItemLink type={prerequisite.type} id={prerequisite.id} />
           {/each}
         {/if}
       {/snippet}

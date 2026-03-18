@@ -5,8 +5,9 @@ import { getContext, untrack } from "svelte";
 import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Construction, Item, ToolQuality, VehiclePart } from "../types";
+import { getConstructionPrerequisites } from "./construction";
 import ItemLink from "./ItemLink.svelte";
-import { byName, i18n, gameSingularName } from "../utils/i18n";
+import { byName, gameSingularName } from "../utils/i18n";
 
 interface Props {
   item: ToolQuality;
@@ -206,13 +207,13 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
                 id={f.group}
                 type="construction_group"
                 showIcon={false} />
-              {#if f.pre_terrain}
-                on {#each [f.pre_terrain].flat() as preTerrain, i}
-                  {@const itemType = preTerrain.startsWith("f_")
-                    ? "furniture"
-                    : "terrain"}
-                  {#if i !== 0}{i18n.__(" OR ")}{/if}
-                  <ItemLink type={itemType} id={preTerrain} />
+              {@const prerequisites = getConstructionPrerequisites(f)}
+              {#if prerequisites.length}
+                {t("on")}
+                {#each prerequisites as prerequisite, i}
+                  {#if i !== 0},
+                  {/if}
+                  <ItemLink type={prerequisite.type} id={prerequisite.id} />
                 {/each}
               {/if}
             {/snippet}
