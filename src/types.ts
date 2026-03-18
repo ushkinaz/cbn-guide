@@ -464,6 +464,7 @@ export type UseFunction =
   | CloningSyringeUseFunction
   | ConsumeDrugUseFunction
   | DelayedTransformUseFunction
+  | DimensionTravelUseFunction
   | DnaEditorUseFunction
   | GpsDeviceUseFunction
   | HandCrankUseFunction
@@ -472,6 +473,7 @@ export type UseFunction =
   | MessageUseFunction
   | MulticookerUseFunction
   | MusicPlayerUseFunction
+  | PocketDimensionUseFunction
   | ProspectPickUseFunction
   | RepairItemUseFunction
   | RevealContentsUseFunction
@@ -579,6 +581,15 @@ export type DnaEditorUseFunction = {
   charges_to_use?: integer;
 };
 
+export type DimensionTravelUseFunction = {
+  type: "dimension_travel";
+  destination: string;
+  travel_radius?: integer;
+  need_charges?: integer;
+  fail_message?: Translation;
+  success_message?: Translation;
+};
+
 type ItemActionUseFunction = {
   type: "__item_action__";
   id: string;
@@ -644,6 +655,14 @@ export type MessageUseFunction = {
   type: "message";
   name?: Translation;
   message: Translation;
+};
+
+export type PocketDimensionUseFunction = {
+  type: "pocket_dimension";
+  pocket_name: Translation;
+  entry_mapgen: string;
+  need_charges?: integer;
+  persistent?: boolean;
 };
 
 // Used in mods (e.g. Magiclysm) and test data (e.g. fake.json)
