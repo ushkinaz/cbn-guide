@@ -2,9 +2,6 @@ import fuzzysort from "fuzzysort";
 import { type CBNData, mapType } from "./data";
 import type { SupportedTypeMapped, SupportedTypesWithMapped } from "./types";
 import { metrics } from "./metrics";
-import { writable, type Readable } from "svelte/store";
-import { debounce } from "./utils/debounce";
-import { isTesting } from "./utils/env";
 import { nowTimeStamp } from "./utils/perf";
 import { i18n, gameSingularName } from "./utils/i18n";
 
@@ -36,7 +33,12 @@ export type SearchResult = {
   } & { __filename?: string };
 };
 
+export type SearchResultsMap = Map<string, SearchResult[]>;
+
 const OVERMAP_DIRECTION_SUFFIX = /_(north|south|east|west)$/;
+
+export const cjkRegex =
+  /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f\u3131-\ud79d]/;
 
 export function searchableName(data: CBNData, item: SupportedTypeMapped) {
   if (item.type === "overmap_special" || item.type === "city_building") {
@@ -115,7 +117,7 @@ export function performSearch(
   text: string,
   targets: SearchTarget[],
   data: CBNData,
-): Map<string, SearchResult[]> {
+): SearchResultsMap {
   const results = fuzzysort.go(text, targets, {
     keys: ["id", "name"],
     threshold: -10000,
@@ -145,71 +147,4 @@ export function performSearch(
     list.push({ item: obj });
   }
   return byType;
-}
-
-const _searchResults = writable<Map<string, SearchResult[]> | null>(null);
-export const searchResults: Readable<Map<string, SearchResult[]> | null> = {
-  subscribe: _searchResults.subscribe,
-};
-
-let lastData: CBNData | null = null;
-let lastIndex: SearchTarget[] = [];
-
-const cjkRegex =
-  /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff66-\uff9f\u3131-\ud79d]/;
-
-const searchDebounceMs = isTesting ? 0 : 150;
-
-const performDebouncedSearch = debounce(
-  (query: string, index: SearchTarget[], data: CBNData) => {
-    const shouldSearch = query.length >= 2 || cjkRegex.test(query);
-    const results = shouldSearch ? performSearch(query, index, data) : null;
-    _searchResults.set(results);
-  },
-  searchDebounceMs,
-);
-
-/**
- * Synchronize search results based on query and data.
- * Rebuilds the search index if data has changed.
- * Debounces search execution to avoid expensive operations on every keystroke.
- *
- * @param query - Search query string
- * @param data - Game data to search within
- */
-export function syncSearch(query: string, data: CBNData) {
-  // If data changed, rebuild index immediately
-  if (data !== lastData) {
-    lastIndex = buildSearchIndex(data);
-    lastData = data;
-  }
-
-  // If query is empty, clear results immediately
-  if (!query) {
-    performDebouncedSearch.cancel();
-    _searchResults.set(null);
-    return;
-  }
-
-  // For non-empty queries, debounce the search
-  performDebouncedSearch(query, lastIndex, data);
-}
-
-/**
- * Flush any pending debounced search, executing it immediately.
- * Useful when the user wants results right away (e.g., pressing Enter to navigate).
- */
-export function flushSearch() {
-  performDebouncedSearch.flush();
-}
-
-/**
- * Test helper: reset singleton store and module state between app mounts in routing tests.
- * @internal
- */
-export function _reset() {
-  lastData = null;
-  lastIndex = [];
-  performDebouncedSearch.cancel();
-  _searchResults.set(null);
 }

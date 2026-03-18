@@ -41,7 +41,7 @@ import {
 
 import { metrics } from "./metrics";
 import { mark, nowTimeStamp } from "./utils/perf";
-import { syncSearch, searchResults, flushSearch } from "./search";
+import { searchState } from "./search-state.svelte";
 
 import Logo from "./Logo.svelte";
 import CategoryGrid from "./CategoryGrid.svelte";
@@ -386,9 +386,7 @@ $effect(() => {
 });
 
 $effect(() => {
-  if ($data) {
-    syncSearch(search, $data);
-  }
+  searchState.sync(search, $data);
 });
 
 $effect(() => {
@@ -404,21 +402,16 @@ const handleSearchInput = () => {
 
 const executeSearchAction = () => {
   // Flush any pending debounced search to ensure results are fresh
-  flushSearch();
+  searchState.flush();
 
-  const results = $searchResults;
-  if (results && results.size > 0) {
-    // Get the first item from the first group in the results
-    const firstGroup = results.values().next().value;
-    if (firstGroup && firstGroup.length > 0) {
-      const firstResult = firstGroup[0].item;
-      metrics.count("search.result.open", 1, { method: "enter_key" });
-      navigateTo(
-        getCurrentVersionSlug(),
-        { type: mapType(firstResult.type), id: firstResult.id },
-        "",
-      );
-    }
+  const firstResult = searchState.firstResult;
+  if (firstResult) {
+    metrics.count("search.result.open", 1, { method: "enter_key" });
+    navigateTo(
+      getCurrentVersionSlug(),
+      { type: mapType(firstResult.type), id: firstResult.id },
+      "",
+    );
   }
 };
 
@@ -619,7 +612,7 @@ let canonicalUrl = $derived(
                 <span class="icon-text">✕</span>
               </button>
 
-              {#if $searchResults && $searchResults.size > 0}
+              {#if searchState.results && searchState.results.size > 0}
                 <span class="separator"></span>
                 <button
                   class="search-control-btn search-action-button"
@@ -700,7 +693,7 @@ let canonicalUrl = $derived(
     {/if}
   {:else if search}
     {#if $data}
-      <SearchResults data={$data} {search} />
+      <SearchResults data={$data} {search} results={searchState.results} />
     {:else}
       <Loading
         fullScreen={true}

@@ -6,12 +6,8 @@ import { cleanup, render } from "@testing-library/svelte";
 
 import { CBNData } from "./data";
 import SearchResults from "./SearchResults.svelte";
-import {
-  performSearch,
-  buildSearchIndex,
-  syncSearch,
-  flushSearch,
-} from "./search";
+import { searchState } from "./search-state.svelte";
+import { performSearch, buildSearchIndex } from "./search-engine";
 
 let data: CBNData = new CBNData([
   { type: "MONSTER", id: "zombie", name: "zombie", symbol: "Z" },
@@ -21,13 +17,13 @@ let data: CBNData = new CBNData([
 ]);
 
 afterEach(() => {
-  syncSearch("", data); // Clear search results
+  searchState.reset();
   cleanup();
 });
 
 test("search results shows results", () => {
-  syncSearch("zombie", data);
-  flushSearch(); // Ensure search completes synchronously
+  searchState.sync("zombie", data);
+  searchState.flush();
   const { container } = render(SearchResults, { data, search: "zombie" });
   expect(container.textContent).not.toMatch(/undefined|NaN|object Object/);
   expect(container.textContent).toMatch(/zombie/);
@@ -44,8 +40,8 @@ test("search with <2 letters shows ...", () => {
 });
 
 test("search with no results shows 'no results'", () => {
-  syncSearch("zaoeusthhhahchsigdiypcgiybx", data);
-  flushSearch();
+  searchState.sync("zaoeusthhhahchsigdiypcgiybx", data);
+  searchState.flush();
   const { container } = render(SearchResults, {
     data,
     search: "zaoeusthhhahchsigdiypcgiybx",
@@ -60,8 +56,8 @@ test("search result icon updates when the top match changes", async () => {
     { type: "MONSTER", id: "opossum", name: "opossum", symbol: "d" },
   ]);
 
-  syncSearch("op", searchData);
-  flushSearch();
+  searchState.sync("op", searchData);
+  searchState.flush();
 
   const view = render(SearchResults, { data: searchData, search: "op" });
 
@@ -72,8 +68,8 @@ test("search result icon updates when the top match changes", async () => {
     view.container.querySelector("li .tile-icon")?.textContent?.trim(),
   ).toBe("*");
 
-  syncSearch("opo", searchData);
-  flushSearch();
+  searchState.sync("opo", searchData);
+  searchState.flush();
   await view.rerender({ data: searchData, search: "opo" });
 
   expect(
@@ -90,8 +86,8 @@ test("search result mutation color metadata updates with the top match", async (
     { type: "mutation", id: "shrink", name: "shrink", points: -2 },
   ]);
 
-  syncSearch("gr", searchData);
-  flushSearch();
+  searchState.sync("gr", searchData);
+  searchState.flush();
 
   const view = render(SearchResults, { data: searchData, search: "gr" });
 
@@ -102,8 +98,8 @@ test("search result mutation color metadata updates with the top match", async (
     view.container.querySelector("li .item-link > span[style]")?.textContent,
   ).toBe("2");
 
-  syncSearch("sh", searchData);
-  flushSearch();
+  searchState.sync("sh", searchData);
+  searchState.flush();
   await view.rerender({ data: searchData, search: "sh" });
 
   expect(

@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { describe, expect, test } from "vitest";
 import { CBNData } from "./data";
-import { buildSearchIndex } from "./search";
+import { buildSearchIndex } from "./search-engine";
 import type { ModData } from "./types";
 
 describe("monster policy filtering", () => {
