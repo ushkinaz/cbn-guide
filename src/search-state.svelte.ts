@@ -14,6 +14,22 @@ type SearchResultsSubscriber = (value: SearchResultsMap | null) => void;
 
 export type SearchState = ReturnType<typeof createSearchState>;
 
+/**
+ * Creates a reactive search state that manages search data, query, debounced result computation, and subscriptions.
+ *
+ * The returned object exposes the current query, latest search results, and the first result (if any), and provides methods to update data and query, synchronize both at once, flush pending debounced work, reset state, and subscribe to result changes.
+ *
+ * @returns An object with:
+ *  - `query`: getter for the current search query string
+ *  - `results`: getter for the current SearchResultsMap or `null`
+ *  - `firstResult`: getter for the first search result item or `null`
+ *  - `setData(data)`: set the searchable data (or `null`)
+ *  - `setQuery(query)`: set the search query
+ *  - `sync(query, data)`: set both query and data, then synchronize results
+ *  - `flush()`: immediately run any pending debounced search
+ *  - `reset()`: clear data, query, index, and published results
+ *  - `subscribeResults(run)`: subscribe to results updates; returns an unsubscribe function
+ */
 export function createSearchState() {
   const state = $state({
     data: null as CBNData | null,
@@ -133,6 +149,11 @@ export function createSearchState() {
 
 export const searchState = createSearchState();
 
+/**
+ * Reset the global search state to its initial, empty condition.
+ *
+ * Clears stored data and query, cancels any pending debounced searches, and publishes `null` results to subscribers.
+ */
 export function resetSearchState(): void {
   searchState.reset();
 }
