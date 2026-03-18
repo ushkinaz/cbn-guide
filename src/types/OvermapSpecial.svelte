@@ -1,7 +1,8 @@
 <script lang="ts">
 import { type CBNData } from "../data";
 import type { OvermapSpecial } from "../types";
-import { getContext, onMount, untrack } from "svelte";
+import { getContext, untrack } from "svelte";
+import type { Action } from "svelte/action";
 import {
   getFurnitureForMapgen,
   getLootForMapgen,
@@ -42,26 +43,41 @@ const lookalikeIds = (
 
 const _context = "Overmap Special";
 
-const layerElements: HTMLElement[] = $state([]);
+function resetParentStyles(parent: HTMLElement): void {
+  parent.style.width = "";
+  parent.style.height = "";
+  parent.style.position = "";
+  parent.style.left = "";
+  parent.style.top = "";
+}
 
-onMount(() => {
-  layerElements.forEach((el) => {
-    // Capture the transformed element's size and adjust its wrapper element to fully contain it.
-    // Surely there's a better way to do this.
-    function makeFitTight() {
-      const { x, y, width, height } = el.getBoundingClientRect();
-      el.parentElement!.style.width = `${width}px`;
-      el.parentElement!.style.height = `${height}px`;
-      const p = el.parentElement!.getBoundingClientRect();
-      el.parentElement!.style.position = "relative";
-      el.parentElement!.style.left = `${p.x - x}px`;
-      el.parentElement!.style.top = `${p.y - y}px`;
-    }
-    // Resize observer needed to handle font changes during loading.
-    new ResizeObserver(makeFitTight).observe(el);
-    makeFitTight();
-  });
-});
+const fitTight: Action<HTMLElement> = (node) => {
+  function makeFitTight(): void {
+    const parent = node.parentElement;
+    if (!parent) return;
+
+    const { x, y, width, height } = node.getBoundingClientRect();
+    parent.style.width = `${width}px`;
+    parent.style.height = `${height}px`;
+    const parentBox = parent.getBoundingClientRect();
+    parent.style.position = "relative";
+    parent.style.left = `${parentBox.x - x}px`;
+    parent.style.top = `${parentBox.y - y}px`;
+  }
+
+  const observer = new ResizeObserver(makeFitTight);
+  observer.observe(node);
+  makeFitTight();
+
+  return {
+    destroy(): void {
+      observer.disconnect();
+      if (node.parentElement) {
+        resetParentStyles(node.parentElement);
+      }
+    },
+  };
+};
 </script>
 
 <h1>{gameSingularName(item)}</h1>
@@ -74,14 +90,14 @@ onMount(() => {
   {:else if item.overmaps?.length}
     <div class="om-appearance">
       {#if levels.length > 1}
-        {#each [...levels].reverse() as level, i}
+        {#each [...levels].reverse() as level, i (level)}
           <div class={`level ${level === 0 ? "ground-level" : ""}`}>
             <div class="label">
               <span style={level === 0 ? "" : "visibility: hidden"}>Z=</span
               >{level}
             </div>
             <div class="layer-container">
-              <div class="layer" bind:this={layerElements[i]}>
+              <div class="layer" use:fitTight>
                 <OvermapAppearance overmapSpecial={item} showZ={level} />
               </div>
             </div>
@@ -105,7 +121,7 @@ onMount(() => {
       <dt>{t("Locations", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
-          {#each item.locations ?? [] as location}
+          {#each item.locations ?? [] as location (location)}
             <li>{location}</li>
           {/each}
         </ul>
@@ -115,7 +131,7 @@ onMount(() => {
       <dt>{t("Flags")}</dt>
       <dd>
         <ul class="comma-separated">
-          {#each item.flags as flag}
+          {#each item.flags as flag (flag)}
             <li>{flag}</li>
           {/each}
         </ul>
@@ -126,7 +142,7 @@ onMount(() => {
       <dd>
         <ul class="comma-separated">
           <!-- prettier-ignore -->
-          {#each lookalikeIds as id}<li>{#if id === item.id}{id}{:else}<ItemLink type="overmap_special" {id}  showIcon={false} />{/if}</li>{/each}
+          {#each lookalikeIds as id (id)}<li>{#if id === item.id}{id}{:else}<ItemLink type="overmap_special" {id}  showIcon={false} />{/if}</li>{/each}
         </ul>
       </dd>
     {/if}
