@@ -230,4 +230,52 @@ describe("ModSelector", () => {
     expect(getByText("1")).toBeTruthy();
     expect(getByText("700")).toBeTruthy();
   });
+
+  test("adds and removes the body class with teardown", async () => {
+    const view = render(ModSelector, {
+      open: true,
+      mods: testMods,
+      selectedModIds: [],
+      loading: false,
+      errorMessage: null,
+    });
+
+    await waitFor(() =>
+      expect(document.body.classList.contains("mods-selector-open")).toBe(true),
+    );
+
+    await view.rerender({
+      open: false,
+      mods: testMods,
+      selectedModIds: [],
+      loading: false,
+      errorMessage: null,
+    });
+
+    await waitFor(() =>
+      expect(document.body.classList.contains("mods-selector-open")).toBe(
+        false,
+      ),
+    );
+
+    await view.rerender({
+      open: true,
+      mods: testMods,
+      selectedModIds: [],
+      loading: false,
+      errorMessage: null,
+    });
+
+    await waitFor(() =>
+      expect(document.body.classList.contains("mods-selector-open")).toBe(true),
+    );
+
+    view.unmount();
+
+    await waitFor(() =>
+      expect(document.body.classList.contains("mods-selector-open")).toBe(
+        false,
+      ),
+    );
+  });
 });

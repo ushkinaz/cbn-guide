@@ -1,6 +1,5 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { onDestroy } from "svelte";
 import type {
   ModData,
   ModInfo,
@@ -259,10 +258,9 @@ $effect(() => {
 
 $effect(() => {
   syncBodyClass(open);
-});
-
-onDestroy(() => {
-  if (open) syncBodyClass(false);
+  return () => {
+    syncBodyClass(false);
+  };
 });
 </script>
 
@@ -314,11 +312,11 @@ onDestroy(() => {
         </p>
       {:else}
         <div class="mods-list">
-          {#each groupedCategories as [category, categoryMods]}
+          {#each groupedCategories as [category, categoryMods] (category)}
             <section class="mods-category">
               <h3>{category}</h3>
               <ul>
-                {#each categoryMods as mod}
+                {#each categoryMods as mod (mod.id)}
                   {@const contentStats = modContentStatsById.get(mod.id) ?? []}
                   <li>
                     <label class="mod-row">
@@ -345,7 +343,7 @@ onDestroy(() => {
                         {#if contentStats.length > 0}
                           <span
                             class={`mod-stats mod-stats-count-${contentStats.length}`}>
-                            {#each contentStats as stat}
+                            {#each contentStats as stat (stat.label)}
                               <span class="mod-stat">
                                 <span class="mod-stat-label"
                                   >{stat.label}:</span>
