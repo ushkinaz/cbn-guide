@@ -2,6 +2,9 @@ import "svelte/elements";
 
 declare module "svelte/elements" {
   interface SvelteWindowAttributes {
-    "on:appinstalled"?: (event: Event) => void;
+    onappinstalled?: (event: Event) => void;
+    onbeforeinstallprompt?: (
+      event: Event & { prompt: () => Promise<void> | void },
+    ) => void;
   }
 }

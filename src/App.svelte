@@ -51,7 +51,6 @@ import { fade } from "svelte/transition";
 import { isTesting, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
-import { onMount } from "svelte";
 
 import { gameSingularName } from "./utils/i18n";
 
@@ -481,25 +480,18 @@ function handleNavigation(event: MouseEvent) {
   handleInternalNavigation(event);
 }
 
-let deferredPrompt: any = $state();
-const handleAppInstalled = () => metrics.count("app.pwa.install");
-function handleBeforeInstallPrompt(e: Event) {
-  deferredPrompt = e;
+type BeforeInstallPromptEvent = Event & {
+  prompt: () => Promise<void> | void;
+};
+
+let deferredPrompt: BeforeInstallPromptEvent | null = $state(null);
+function handleAppInstalled(): void {
+  deferredPrompt = null;
+  metrics.count("app.pwa.install");
 }
-onMount(() => {
-  window.addEventListener(
-    "beforeinstallprompt",
-    handleBeforeInstallPrompt as EventListener,
-  );
-  window.addEventListener("appinstalled", handleAppInstalled);
-  return () => {
-    window.removeEventListener(
-      "beforeinstallprompt",
-      handleBeforeInstallPrompt as EventListener,
-    );
-    window.removeEventListener("appinstalled", handleAppInstalled);
-  };
-});
+function handleBeforeInstallPrompt(e: Event): void {
+  deferredPrompt = e as BeforeInstallPromptEvent;
+}
 function maybeFocusSearch(e: KeyboardEvent) {
   if (e.key === "/" && document.activeElement?.id !== "search") {
     document.getElementById("search")?.focus();
@@ -546,6 +538,8 @@ let canonicalUrl = $derived(
 <svelte:window
   onclick={handleNavigation}
   onkeydown={maybeFocusSearch}
+  onbeforeinstallprompt={handleBeforeInstallPrompt}
+  onappinstalled={handleAppInstalled}
   bind:scrollY />
 
 <svelte:head>
@@ -759,7 +753,7 @@ let canonicalUrl = $derived(
                 aria-label={t("install", { _context: PWA_INSTALL_CONTEXT })}
                 onclick={(e) => {
                   e.preventDefault();
-                  deferredPrompt.prompt();
+                  deferredPrompt?.prompt();
                 }}>
                 <svg
                   class="icon-svg"

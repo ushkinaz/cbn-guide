@@ -265,6 +265,34 @@ describe("Routing E2E Tests", () => {
   }
 
   describe("Item Navigation", () => {
+    test("shows and clears the install affordance from window events", async () => {
+      render(App, {
+        target: container,
+      });
+
+      await waitForDataLoad();
+      expect(document.querySelector(".install-button")).toBeNull();
+
+      const prompt = vi.fn();
+      const beforeInstallPrompt = new Event("beforeinstallprompt");
+      Object.assign(beforeInstallPrompt, { prompt });
+
+      window.dispatchEvent(beforeInstallPrompt);
+
+      await waitFor(() =>
+        expect(document.querySelector(".install-button")).not.toBeNull(),
+      );
+
+      await fireEvent.click(document.querySelector(".install-button")!);
+      expect(prompt).toHaveBeenCalledTimes(1);
+
+      window.dispatchEvent(new Event("appinstalled"));
+
+      await waitFor(() =>
+        expect(document.querySelector(".install-button")).toBeNull(),
+      );
+    });
+
     test("navigates to an item page when clicking an internal link", async () => {
       // Start at home
       const { container: appContainer } = render(App, {
