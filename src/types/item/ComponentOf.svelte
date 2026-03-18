@@ -4,7 +4,8 @@ import { getContext, untrack } from "svelte";
 import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
-import { i18n, gameSingularName } from "../../utils/i18n";
+import { getConstructionPrerequisites } from "../construction";
+import { gameSingularName } from "../../utils/i18n";
 
 interface Props {
   item_id: string;
@@ -128,13 +129,13 @@ const toolResults = [...toolRecipes].sort((a, b) =>
         <LimitedList items={constructions}>
           {#snippet children({ item: f })}
             <ItemLink id={f.group} type="construction_group" showIcon={false} />
-            {#if f.pre_terrain}
-              on {#each [f.pre_terrain].flat() as preTerrain, i}
-                {@const itemType = preTerrain.startsWith("f_")
-                  ? "furniture"
-                  : "terrain"}
-                {#if i !== 0}{i18n.__(" OR ")}{/if}
-                <ItemLink type={itemType} id={preTerrain} />
+            {@const prerequisites = getConstructionPrerequisites(f)}
+            {#if prerequisites.length}
+              {t("on")}
+              {#each prerequisites as prerequisite, i}
+                {#if i !== 0},
+                {/if}
+                <ItemLink type={prerequisite.type} id={prerequisite.id} />
               {/each}
             {/if}
           {/snippet}
@@ -152,13 +153,13 @@ const toolResults = [...toolRecipes].sort((a, b) =>
         <LimitedList items={toolConstructions}>
           {#snippet children({ item: f })}
             <ItemLink id={f.group} type="construction_group" showIcon={false} />
-            {#if f.pre_terrain}
-              on {#each [f.pre_terrain].flat() as preTerrain, i}
-                {@const itemType = preTerrain.startsWith("f_")
-                  ? "furniture"
-                  : "terrain"}
-                {#if i !== 0}{i18n.__(" OR ")}{/if}
-                <ItemLink type={itemType} id={preTerrain} />
+            {@const prerequisites = getConstructionPrerequisites(f)}
+            {#if prerequisites.length}
+              {t("on")}
+              {#each prerequisites as prerequisite, i}
+                {#if i !== 0},
+                {/if}
+                <ItemLink type={prerequisite.type} id={prerequisite.id} />
               {/each}
             {/if}
           {/snippet}

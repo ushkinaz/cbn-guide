@@ -44,7 +44,7 @@ const bash = item.bash?.items
 
 const constructions = data
   .byType("construction")
-  .filter((c) => c.post_terrain === item.id);
+  .filter((c) => c.post_furniture === item.id);
 
 const bashedFrom = data
   .byType("furniture")
