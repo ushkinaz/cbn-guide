@@ -75,7 +75,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
       <dt>{t("Max Volume", { _context })}</dt>
       <dd>{item.max_volume}</dd>
     {/if}
-    {#if pseudo_items}
+    {#if pseudo_items.length}
       <dt>{t("Provides", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
