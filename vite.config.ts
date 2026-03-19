@@ -29,23 +29,32 @@ export default defineConfig({
   build: {
     sourcemap: process.env.VITE_SOURCEMAP === "true",
     chunkSizeWarningLimit: 1000, //I'm so sorry, Chuck
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes("node_modules")) {
-            if (id.includes("svelte")) {
-              return "vendor-svelte";
-            }
-            if (id.includes("@sentry")) {
-              return "vendor-sentry";
-            }
-            if (id.includes("@transifex") || id.includes("gettext.js")) {
-              return "vendor-i18n";
-            }
-            if (id.includes("fuzzysort")) {
-              return "vendor-fuzzysort";
-            }
-          }
+        codeSplitting: {
+          minModuleSize: 4096,
+          groups: [
+            {
+              name: "vendor-svelte",
+              test: "svelte",
+              priority: 30,
+            },
+            {
+              name: "vendor-sentry",
+              test: "sentry",
+              priority: 20,
+            },
+            {
+              name: "vendor-transifex",
+              test: "transifex",
+              priority: 20,
+            },
+            {
+              name: "vendor",
+              test: /node_modules/,
+              priority: 5,
+            },
+          ],
         },
       },
     },
