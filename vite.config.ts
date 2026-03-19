@@ -61,6 +61,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    forwardConsole: true,
   },
   define: {
     __RELEASE_ID__: JSON.stringify(releaseID),
