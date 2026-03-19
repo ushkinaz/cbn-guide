@@ -12,7 +12,7 @@ import type {
 import { get } from "svelte/store";
 import { cleanText, formatDisplayValue, formatNumeric } from "./utils/format";
 import { asArray } from "./utils/collections";
-import { gameSingular, gameSingularName } from "./utils/i18n";
+import { gameSingular, gameSingularName } from "./i18n/gettext";
 
 const MAX_DESCRIPTION_LENGTH = 160;
 const TRIM_DESCRIPTION_LENGTH = 155;

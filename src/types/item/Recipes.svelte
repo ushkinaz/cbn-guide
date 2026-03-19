@@ -1,7 +1,7 @@
 <script module lang="ts">
 import type { Recipe as RecipeType } from "../../types";
 
-import { gameSingularName } from "../../utils/i18n";
+import { gameSingularName } from "../../i18n/gettext";
 // Lazily compute the recipe index.
 let recipeIndex: Record<string, RecipeType[]>;
 export function getRecipeIndex(data: CBNData) {

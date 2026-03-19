@@ -52,7 +52,7 @@ import { isTesting, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 
-import { gameSingularName } from "./utils/i18n";
+import { gameSingularName } from "./i18n/gettext";
 
 let scrollY = $state(0);
 

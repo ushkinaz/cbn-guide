@@ -17,7 +17,7 @@ import LimitedList from "../LimitedList.svelte";
 import type { ItemGroupData, VehiclePart } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
 import ItemLink from "./ItemLink.svelte";
-import { gameSingular, gameSingularName } from "../utils/i18n";
+import { gameSingular, gameSingularName } from "../i18n/gettext";
 
 const _context = "Vehicle Part";
 

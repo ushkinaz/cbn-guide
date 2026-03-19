@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import type { AmmunitionType } from "../types";
 import CompatibleItems from "./item/CompatibleItems.svelte";
 
-import { gameSingularName } from "../utils/i18n";
+import { gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: AmmunitionType;

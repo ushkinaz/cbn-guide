@@ -4,7 +4,8 @@ import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
-import { translateSeason } from "../../utils/i18n";
+
+import { translateSeason } from "../../i18n/transifex-static";
 
 interface Props {
   item_id: string;

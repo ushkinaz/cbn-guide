@@ -7,7 +7,7 @@ import { CBNData } from "../../data";
 import { getContext, untrack } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
 
-import { gameSingularName } from "../../utils/i18n";
+import { gameSingularName } from "../../i18n/gettext";
 
 interface Props {
   item: Item;

@@ -7,7 +7,7 @@ import LimitedList from "../LimitedList.svelte";
 import type { Construction, Item, ToolQuality, VehiclePart } from "../types";
 import { getConstructionPrerequisites } from "./construction";
 import ItemLink from "./ItemLink.svelte";
-import { byName, gameSingularName } from "../utils/i18n";
+import { byName, gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: ToolQuality;

@@ -3,7 +3,7 @@ import { getContext } from "svelte";
 import { CBNData } from "../../data";
 import type { OvermapSpecial } from "../../types";
 
-import { gameSingular } from "../../utils/i18n";
+import { gameSingular } from "../../i18n/gettext";
 
 const data = getContext<CBNData>("data");
 

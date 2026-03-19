@@ -12,7 +12,8 @@ import {
 import { searchState } from "./search-state.svelte";
 import type { SearchResult, SearchResultsMap } from "./search-engine";
 import Loading from "./Loading.svelte";
-import { translateType } from "./utils/i18n";
+
+import { translateType } from "./i18n/transifex-static";
 
 interface Props {
   data: CBNData;

@@ -10,7 +10,7 @@ import type {
   ItemBasicInfo,
 } from "../../types";
 
-import { gameSingular } from "../../utils/i18n";
+import { gameSingular } from "../../i18n/gettext";
 
 interface Props {
   item: ItemBasicInfo & ArmorSlot;

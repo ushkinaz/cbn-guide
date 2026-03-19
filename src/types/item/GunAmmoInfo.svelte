@@ -8,7 +8,7 @@ import LimitedList from "../../LimitedList.svelte"; // Assuming we want symbols 
 import CompatibleItems from "./CompatibleItems.svelte";
 import { asArray } from "../../utils/collections";
 
-import { byName } from "../../utils/i18n";
+import { byName } from "../../i18n/gettext";
 
 interface Props {
   item: Item;

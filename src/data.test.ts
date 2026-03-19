@@ -9,7 +9,7 @@ import {
 } from "./data";
 import type { OvermapSpecial } from "./types";
 
-import { gameSingularName } from "./utils/i18n";
+import { gameSingularName } from "./i18n/gettext";
 
 test("flattened item group includes container item for distribution", () => {
   const data = new CBNData([

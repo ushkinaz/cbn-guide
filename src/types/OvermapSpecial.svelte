@@ -16,7 +16,7 @@ import { t } from "@transifex/native";
 import OvermapAppearance from "./item/OvermapAppearance.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 
-import { gameSingularName } from "../utils/i18n";
+import { gameSingularName } from "../i18n/gettext";
 
 const data = getContext<CBNData>("data");
 

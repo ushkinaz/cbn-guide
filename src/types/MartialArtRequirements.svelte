@@ -5,7 +5,7 @@ import { untrack } from "svelte";
 import type { MartialArtBuff, MartialArtRequirements } from "../types";
 import ItemLink from "./ItemLink.svelte";
 
-import { gameSingularName } from "../utils/i18n";
+import { gameSingularName } from "../i18n/gettext";
 
 const _context = "Martial Art";
 

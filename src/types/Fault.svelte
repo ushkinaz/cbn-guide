@@ -5,7 +5,7 @@ import { getContext, untrack } from "svelte";
 import type { Fault, RequirementData } from "../types";
 import { t } from "@transifex/native";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
-import { i18n, gameSingular, gameSingularName } from "../utils/i18n";
+import { i18n, gameSingular, gameSingularName } from "../i18n/gettext";
 
 const data = getContext<CBNData>("data");
 const _context = "Fault";

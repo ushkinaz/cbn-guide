@@ -6,7 +6,11 @@ import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
 import { t } from "@transifex/native";
-import { gamePluralName, gameSingular, gameSingularName } from "../utils/i18n";
+import {
+  gamePluralName,
+  gameSingular,
+  gameSingularName,
+} from "../i18n/gettext";
 
 type ItemSymbolItem = {
   id: string;

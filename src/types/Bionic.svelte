@@ -7,7 +7,7 @@ import { CBNData } from "../data";
 import type { Bionic } from "../types";
 import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
-import { gameSingular, gameSingularName } from "../utils/i18n";
+import { gameSingular, gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: Bionic;

@@ -7,7 +7,7 @@ import LimitedList from "../../LimitedList.svelte";
 import type { Item, Material } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-import { byName } from "../../utils/i18n";
+import { byName } from "../../i18n/gettext";
 
 interface Props {
   item_id: string;

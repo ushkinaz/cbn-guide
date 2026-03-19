@@ -51,7 +51,7 @@ import UsageDescription from "./UsageDescription.svelte";
 import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
-import { i18n, gameSingular, gameSingularName } from "../utils/i18n";
+import { i18n, gameSingular, gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: Item;

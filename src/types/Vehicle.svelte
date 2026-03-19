@@ -17,7 +17,7 @@ import ItemLink from "./ItemLink.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 import VehicleView from "./VehicleView.svelte";
 
-import { gameSingularName } from "../utils/i18n";
+import { gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: Vehicle;

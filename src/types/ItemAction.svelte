@@ -5,7 +5,7 @@ import { getContext } from "svelte";
 import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
 import ItemLink from "./ItemLink.svelte";
-import { byName, gameSingularName } from "../utils/i18n";
+import { byName, gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: ItemAction;

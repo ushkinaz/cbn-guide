@@ -6,7 +6,7 @@ import LimitedList from "../../LimitedList.svelte";
 import type { Recipe } from "../../types";
 import ItemLink from "../ItemLink.svelte";
 
-import { gameSingularName } from "../../utils/i18n";
+import { gameSingularName } from "../../i18n/gettext";
 
 interface Props {
   item_id: string;

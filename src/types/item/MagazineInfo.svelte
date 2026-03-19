@@ -7,7 +7,7 @@ import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 import CompatibleItems from "./CompatibleItems.svelte";
 
-import { byName } from "../../utils/i18n";
+import { byName } from "../../i18n/gettext";
 
 interface Props {
   item: ItemBasicInfo & MagazineSlot;

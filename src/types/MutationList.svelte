@@ -6,7 +6,7 @@ import type { Mutation } from "../types";
 import ItemLink from "./ItemLink.svelte";
 import { asArray } from "../utils/collections";
 
-import { gameSingularName } from "../utils/i18n";
+import { gameSingularName } from "../i18n/gettext";
 
 let data = getContext<CBNData>("data");
 

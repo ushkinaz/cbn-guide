@@ -111,6 +111,13 @@ For local development and testing, scripts are used to fetch data snapshots:
 - `gen-sitemap.ts`: Fetches list of all items and generates `public/sitemap.xml`.
 - `gen-css.ts`: Generates `/src/assets/game-palette.css` from `src/colors.ts` (Application defined colors).
 
+## Internationalization Boundary
+
+The application uses two translation layers with different runtime constraints:
+
+- `src/i18n/gettext.ts`: Shared, Node-safe runtime translation for game data loaded from external JSON. This module is used by the app, tests, and Node scripts that import `src/data.ts`.
+- `src/i18n/transifex-static.ts`: Browser-facing helpers for static UI labels that must remain literal `t("...")` calls for Transifex extraction. These helpers are intentionally isolated from shared Node-safe modules.
+
 ## Application Layers
 
 ```mermaid
@@ -265,7 +272,7 @@ flowchart TD
 
 ## Technology Stack
 
-- **Frontend**: Svelte 4, TypeScript, Vite
+- **Frontend**: Svelte 5, TypeScript, Vite
 - **PWA**: vite-plugin-pwa, Workbox (Offline support)
 - **Styling**: Scoped CSS, CSS Variables
 - **Data**: External JSON (fetched runtime), copy-from inheritance, Transifex i18n
@@ -279,6 +286,7 @@ cbn-guide/
 ├── src/
 │   ├── App.svelte          # Main application component
 │   ├── data.ts             # CBNData class & utilities
+│   ├── i18n/               # Translation helpers split by runtime boundary
 │   ├── routing.ts          # URL routing logic
 │   ├── tile-data.ts        # Tileset sprite management
 │   ├── assets/             # Static assets

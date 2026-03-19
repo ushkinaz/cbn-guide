@@ -6,7 +6,7 @@ import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import type { SupportedTypes } from "../../types";
 
-import { byName } from "../../utils/i18n";
+import { byName } from "../../i18n/gettext";
 
 interface Props {
   ammo_type: string;

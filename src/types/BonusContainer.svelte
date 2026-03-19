@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import type { BonusContainer } from "../types";
 
-import { i18n } from "../utils/i18n";
+import { i18n } from "../i18n/gettext";
 
 function stringFromAffectedStat(stat: string): string {
   switch (stat) {

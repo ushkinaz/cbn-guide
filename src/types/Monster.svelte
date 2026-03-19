@@ -15,7 +15,7 @@ import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
-import { byName, gameSingular, gameSingularName } from "../utils/i18n";
+import { byName, gameSingular, gameSingularName } from "../i18n/gettext";
 
 const _context = "Monster";
 interface Props {

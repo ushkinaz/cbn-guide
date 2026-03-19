@@ -6,7 +6,7 @@ import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { WeaponCategory } from "../types";
 import ItemLink from "./ItemLink.svelte";
-import { byName, gameSingularName } from "../utils/i18n";
+import { byName, gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: WeaponCategory;

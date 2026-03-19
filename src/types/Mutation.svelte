@@ -10,7 +10,7 @@ import MutationColor from "./MutationColor.svelte";
 import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
 import { asArray } from "../utils/collections";
-import { byName, gameSingular, gameSingularName } from "../utils/i18n";
+import { byName, gameSingular, gameSingularName } from "../i18n/gettext";
 
 interface Props {
   item: Mutation;

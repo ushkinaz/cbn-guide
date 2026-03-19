@@ -8,7 +8,7 @@ import { getVersionedBasePath } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
 import ItemLink from "../ItemLink.svelte";
-import { i18n, gameSingularName } from "../../utils/i18n";
+import { i18n, gameSingularName } from "../../i18n/gettext";
 
 interface Props {
   requirement: RequirementData & { using?: Recipe["using"] };
