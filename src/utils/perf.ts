@@ -3,17 +3,12 @@
  * All measurements are NO-OP in production builds.
  */
 
-import { isTesting } from "./env";
+import { isPerfEnabled } from "./env";
 
-// In browser (Vite): use import.meta.env.DEV
-// In Node.js (tsx/vitest): default to true for measurements
-const isDev =
-  typeof import.meta !== "undefined" && import.meta.env
-    ? import.meta.env.DEV &&
-      !isTesting &&
-      import.meta.env.VITE_PERF_ENABLED === "true"
-    : true;
-
+/**
+ * Performance measurement markers.
+ * All measurements are NO-OP unless isPerfEnabled is true.
+ */
 interface PerfMarker {
   finish(): number;
 }
@@ -29,7 +24,7 @@ interface PerfMarker {
 export function mark(name: string, addTimestamp: boolean = false): PerfMarker {
   const start = performance.now();
 
-  if (!isDev) {
+  if (!isPerfEnabled) {
     return {
       finish() {
         return performance.now() - start;

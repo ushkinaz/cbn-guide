@@ -4,7 +4,7 @@ import { eventFiltersIntegration } from "@sentry/browser";
 import { registerSW } from "virtual:pwa-register";
 import "./assets/fonts.css";
 import App from "./App.svelte";
-import { RUNNING_MODE } from "./utils/env";
+import { isProd, RUNNING_MODE } from "./utils/env";
 import { tx } from "@transifex/native";
 import { mount } from "svelte";
 
@@ -14,7 +14,7 @@ tx.init({
 
 const releaseID = __RELEASE_ID__;
 
-if (import.meta.env.PROD) {
+if (isProd) {
   let running_mode = RUNNING_MODE;
 
   // Check metrics opt-out flag (defensive for puppeteer/restricted browsers)

@@ -48,7 +48,7 @@ import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
 import Spinner from "./Spinner.svelte";
 import { fade } from "svelte/transition";
-import { isTesting, RUNNING_MODE } from "./utils/env";
+import { isTesting, isNext, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 
@@ -560,7 +560,7 @@ let canonicalUrl = $derived(
 </svelte:head>
 
 <Notification />
-{#if process.env.DEPLOY_NEXT === "1"}
+{#if isNext}
   <MigoWarning />
 {/if}
 

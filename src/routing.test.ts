@@ -27,6 +27,7 @@ import { tileData, _resetCache as resetTilesetCache } from "./tile-data";
 import { _reset as resetRouting } from "./routing";
 import { resetSearchState } from "./search-state.svelte";
 import { dismiss, notifications } from "./Notification.svelte";
+import { BASE_URL } from "./utils/env";
 
 vi.hoisted(() => {
   (globalThis as any).__isTesting__ = true;
@@ -178,7 +179,7 @@ describe("Routing E2E Tests", () => {
     window.scrollTo = vi.fn();
 
     // Reset DOM location
-    const baseUrl = import.meta.env.BASE_URL || "/";
+    const baseUrl = BASE_URL || "/";
     Object.defineProperty(window, "location", {
       writable: true,
       value: {
@@ -254,7 +255,7 @@ describe("Routing E2E Tests", () => {
   }
 
   function updateLocation(path: string, search = "") {
-    const baseUrl = import.meta.env.BASE_URL || "/";
+    const baseUrl = BASE_URL || "/";
     window.location.pathname = baseUrl + path;
     window.location.search = search;
     window.location.href = `http://localhost:3000${window.location.pathname}${window.location.search}`;
@@ -556,8 +557,8 @@ describe("Routing E2E Tests", () => {
         "magiclysm",
       ]);
       const builtUrl = new URL(url);
-      const path = builtUrl.pathname.startsWith(import.meta.env.BASE_URL)
-        ? builtUrl.pathname.slice(import.meta.env.BASE_URL.length)
+      const path = builtUrl.pathname.startsWith(BASE_URL)
+        ? builtUrl.pathname.slice(BASE_URL.length)
         : builtUrl.pathname.slice(1);
       updateLocation(path, builtUrl.search);
       const route = parseRoute();
@@ -655,7 +656,7 @@ describe("Routing E2E Tests", () => {
         expect(match).toBeTruthy();
 
         // Remove BASE_URL from path to get relative path
-        const baseUrl = import.meta.env.BASE_URL;
+        const baseUrl = BASE_URL;
         const relativePath = path.startsWith(baseUrl)
           ? path.slice(baseUrl.length)
           : path.slice(1); // fallback: remove leading /
@@ -678,7 +679,7 @@ describe("Routing E2E Tests", () => {
         const path = urlObj.pathname;
 
         // Remove BASE_URL from path to get relative path
-        const baseUrl = import.meta.env.BASE_URL;
+        const baseUrl = BASE_URL;
         const relativePath = path.startsWith(baseUrl)
           ? path.slice(baseUrl.length)
           : path.slice(1); // fallback: remove leading /

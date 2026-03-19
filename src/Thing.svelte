@@ -34,7 +34,7 @@ import ItemAction from "./types/ItemAction.svelte";
 import Technique from "./types/Technique.svelte";
 import { metrics } from "./metrics";
 import { nowTimeStamp } from "./utils/perf";
-import { isTesting } from "./utils/env";
+import { isDev } from "./utils/env";
 
 interface Props {
   item: { id: string; type: string };
@@ -160,7 +160,7 @@ const display = (obj && displays[obj.type]) ?? Unknown;
               "There was a problem displaying this page. Not all versions of Cataclysm are supported by the Guide currently. Try selecting a different build.",
             )}
           </p>
-          {#if import.meta.env.DEV}
+          {#if isDev}
             <section>
               <h2>{t("Debug")}</h2>
               <div>{e instanceof Error ? e.message : String(e)}</div>
