@@ -4,7 +4,7 @@
  *
  * @usage
  * ```bash
- * npx tsx scripts/fetch-builds.ts
+ * pnpm run fetch:builds
  * ```
  */
 

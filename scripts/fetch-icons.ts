@@ -7,10 +7,10 @@
  * @usage
  * ```bash
  * # Basic usage
- * npx tsx scripts/fetch-icons.ts
+ * pnpm run fetch:icons
  *
  * # With custom parameters
- * TILESET=undead_people GAME_VERSION=v0.9.1 ICON_CONCURRENCY=16 npx tsx scripts/fetch-icons.ts --force
+ * TILESET=undead_people GAME_VERSION=v0.9.1 ICON_CONCURRENCY=16 pnpm run fetch:icons --force
  * ```
  */
 

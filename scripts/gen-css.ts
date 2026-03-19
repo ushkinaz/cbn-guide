@@ -6,7 +6,7 @@
  *
  * @usage
  * ```bash
- * npx tsx scripts/gen-css.ts > /src/assets/game-palette.css
+ * pnpm run gen:css
  * ```
  */
 

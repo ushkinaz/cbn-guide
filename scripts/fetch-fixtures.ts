@@ -7,10 +7,10 @@
  * @usage
  * ```bash
  * # Fetch the build specified in _test/all.meta.json
- * npx tsx scripts/fetch-fixtures.ts
+ * pnpm run fetch:fixtures
  *
  * # Fetch the nightly build and update metadata
- * npx tsx scripts/fetch-fixtures.ts nightly
+ * pnpm run fetch:fixtures:nightly
  * ```
  */
 

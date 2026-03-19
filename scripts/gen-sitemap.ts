@@ -5,10 +5,10 @@
  * @usage
  * ```bash
  * # Basic usage (generates sitemap for latest stable)
- * npx tsx scripts/gen-sitemap.ts
+ * pnpm run gen:sitemap
  *
  * # For a specific version
- * GAME_VERSION=v0.9.1 npx tsx scripts/gen-sitemap.ts
+ * GAME_VERSION=v0.9.1 pnpm run gen:sitemap
  *
  * # Using pnpm script
  * pnpm run gen:sitemap
