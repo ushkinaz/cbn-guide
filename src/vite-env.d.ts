@@ -20,3 +20,13 @@ declare module "virtual:pwa-register" {
 declare const __RELEASE_ID__: string;
 declare const __COMMIT_SHA__: string;
 declare const __DEPLOY_ENV__: "next" | "production";
+declare const __TRANSIFEX_TOKEN__: string;
+declare const __SENTRY_DSN__: string;
+
+interface ImportMetaEnv {
+  readonly VITE_PERF_ENABLED: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}

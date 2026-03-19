@@ -9,13 +9,14 @@ import { isTesting } from "./env";
 // In Node.js (tsx/vitest): default to true for measurements
 const isDev =
   typeof import.meta !== "undefined" && import.meta.env
-    ? import.meta.env.DEV && !isTesting && process.env.PERF_ENABLED === "true"
+    ? import.meta.env.DEV &&
+      !isTesting &&
+      import.meta.env.VITE_PERF_ENABLED === "true"
     : true;
 
 interface PerfMarker {
   finish(): number;
 }
-
 /**
  * Mark the start of a performance measurement and return a marker to finish it.
  * In production, it uses a lightweight implementation just returning the duration.

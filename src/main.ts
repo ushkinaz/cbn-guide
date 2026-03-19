@@ -9,7 +9,7 @@ import { tx } from "@transifex/native";
 import { mount } from "svelte";
 
 tx.init({
-  token: process.env.TRANSIFEX_TOKEN,
+  token: __TRANSIFEX_TOKEN__,
 });
 
 const releaseID = __RELEASE_ID__;
@@ -30,7 +30,7 @@ if (import.meta.env.PROD) {
   zaraz.set("running_mode", running_mode, { scope: "session" });
 
   Sentry.init({
-    dsn: process.env.SENTRY_DSN,
+    dsn: __SENTRY_DSN__,
     enableMetrics: !metricsDisabled,
     integrations: [eventFiltersIntegration],
     tracesSampleRate: 1,

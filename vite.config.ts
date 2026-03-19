@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { svelteTesting } from "@testing-library/svelte/vite";
 import { VitePWA } from "vite-plugin-pwa";
-import EnvironmentPlugin from "vite-plugin-environment";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { readFileSync } from "fs";
 
@@ -14,6 +13,10 @@ const commitSHA = (
 
 const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
 const buildDate = new Date().toISOString().split("T")[0].replace(/-/g, "");
+const transifexToken =
+  process.env.VITE_TRANSIFEX_TOKEN ?? process.env.TRANSIFEX_TOKEN ?? undefined;
+const sentryDsn =
+  process.env.VITE_SENTRY_DSN ?? process.env.SENTRY_DSN ?? undefined;
 
 let build = commitSHA !== "local" ? `+${commitSHA}` : "+local";
 //Follows semantic versioning: https://semver.org/. Used in Sentry releases.
@@ -57,18 +60,10 @@ export default defineConfig({
     __RELEASE_ID__: JSON.stringify(releaseID),
     __COMMIT_SHA__: JSON.stringify(commitSHA),
     __DEPLOY_ENV__: JSON.stringify(deployEnv),
+    __TRANSIFEX_TOKEN__: JSON.stringify(transifexToken),
+    __SENTRY_DSN__: JSON.stringify(sentryDsn),
   },
   plugins: [
-    EnvironmentPlugin({
-      PERF_ENABLED: "false",
-      DEPLOY_NEXT: null,
-      GITHUB_SHA: null,
-      CI: "0",
-      CF_PAGES_COMMIT_SHA: null,
-      SENTRY_DSN: null,
-      SENTRY_AUTH_TOKEN: null,
-      TRANSIFEX_TOKEN: "1/2e39db44e1e5ba8d2c455d407b183aca31facc52",
-    }),
     svelte(),
     svelteTesting(),
     VitePWA({
