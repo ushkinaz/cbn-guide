@@ -26,7 +26,6 @@ import ConstructionGroup from "./types/ConstructionGroup.svelte";
 import Achievement from "./types/Achievement.svelte";
 import ObsoletionWarning from "./ObsoletionWarning.svelte";
 import Bionic from "./types/Bionic.svelte";
-import * as Sentry from "@sentry/browser";
 import type { SupportedTypes } from "./types";
 import JsonView from "./JsonView.svelte";
 import OvermapSpecial from "./types/OvermapSpecial.svelte";
@@ -34,7 +33,6 @@ import ItemAction from "./types/ItemAction.svelte";
 import Technique from "./types/Technique.svelte";
 import { metrics } from "./metrics";
 import { nowTimeStamp } from "./utils/perf";
-import { isDev } from "./utils/env";
 
 interface Props {
   item: { id: string; type: string };
@@ -45,19 +43,6 @@ let { item: sourceItem, data: sourceData }: Props = $props();
 const item = untrack(() => sourceItem);
 const data = untrack(() => sourceData);
 setContext("data", data);
-
-function onError(e: Error) {
-  metrics.count("app.error.catch", 1, { type: item?.type, id: item?.id });
-  console.error(e);
-  Sentry.captureException(e, {
-    contexts: {
-      item: {
-        type: item?.type,
-        id: item?.id,
-      },
-    },
-  });
-}
 
 function defaultItem(id: string, type: string) {
   if (type === "json_flag") {
@@ -137,53 +122,11 @@ const display = (obj && displays[obj.type]) ?? Unknown;
     _comment: "Error message when an object is not found in the data",
   })}
 {:else}
-  <svelte:boundary
-    onerror={(boundaryError) => {
-      onError(
-        boundaryError instanceof Error
-          ? boundaryError
-          : new Error(String(boundaryError)),
-      );
-    }}>
-    {#if /obsolet/.test(obj.__filename)}
-      <ObsoletionWarning item={obj} />
-    {/if}
-    {@const SvelteComponent = display}
-    <SvelteComponent item={obj} />
-
-    {#snippet failed(e)}
-      <section>
-        <div class="error">
-          <h1>{t("Error")}</h1>
-          <p>
-            {t(
-              "There was a problem displaying this page. Not all versions of Cataclysm are supported by the Guide currently. Try selecting a different build.",
-            )}
-          </p>
-          {#if isDev}
-            <section>
-              <h2>{t("Debug")}</h2>
-              <div>{e instanceof Error ? e.message : String(e)}</div>
-              <pre class="trace">{e instanceof Error ? e.stack : ""}</pre>
-            </section>
-          {/if}
-        </div>
-      </section>
-    {/snippet}
-  </svelte:boundary>
+  {#if /obsolet/.test(obj.__filename)}
+    <ObsoletionWarning item={obj} />
+  {/if}
+  {@const SvelteComponent = display}
+  <SvelteComponent item={obj} />
 {/if}
 
 <JsonView {obj} buildNumber={data.build_number} />
-
-<style>
-.error {
-  border: 1px solid red;
-  padding: 1rem;
-  margin: 1rem 0;
-}
-
-.trace {
-  font-family: monospace;
-  overflow-x: auto;
-}
-</style>

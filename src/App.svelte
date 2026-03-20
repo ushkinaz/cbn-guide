@@ -19,21 +19,21 @@ import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import { buildMetaDescription } from "./seo";
 import {
-  NIGHTLY_VERSION,
-  STABLE_VERSION,
   type BuildInfo,
-  type InitialAppState,
   buildUrl,
   changeVersion,
   getCurrentVersionSlug,
-  getVersionedBasePath,
   getUrlConfig,
+  getVersionedBasePath,
   handleInternalNavigation,
+  type InitialAppState,
   initializeRouting,
   isSupportedType,
   isSupportedVersion,
   navigateTo,
+  NIGHTLY_VERSION,
   page,
+  STABLE_VERSION,
   updateQueryParam,
   updateQueryParamNoReload,
   updateSearchRoute,
@@ -48,9 +48,10 @@ import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
 import Spinner from "./Spinner.svelte";
 import { fade } from "svelte/transition";
-import { isTesting, isNext, RUNNING_MODE } from "./utils/env";
+import { isNext, isTesting, RUNNING_MODE } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
+import RenderErrorFallback from "./RenderErrorFallback.svelte";
 
 import { gameSingularName } from "./i18n/gettext";
 
@@ -492,6 +493,30 @@ function maybeFocusSearch(e: KeyboardEvent) {
   }
 }
 
+function onItemBoundaryError(boundaryError: unknown): void {
+  const error =
+    boundaryError instanceof Error
+      ? boundaryError
+      : new Error(String(boundaryError));
+  const routeItem = $page.route.item;
+  metrics.count("app.error.catch", 1, {
+    type: routeItem?.type ?? "shell",
+    id: routeItem?.id ?? "none",
+  });
+  const context = {
+    route: {
+      version: $page.route.version,
+      type: routeItem?.type,
+      id: routeItem?.id,
+      search: $page.route.search,
+    },
+  };
+  console.error(error, context);
+  Sentry.captureException(error, {
+    contexts: { context },
+  });
+}
+
 /**
  * Returns the native name (endonym) of a language (e.g., "Deutsch" for "de").
  * Uses Intl.DisplayNames to auto-generate names without hardcoded lists.
@@ -603,7 +628,9 @@ let canonicalUrl = $derived(
                 type="button"
                 class="search-control-btn search-clear-button"
                 tabindex="-1"
-                aria-label={t("Clear search", { _context: SEARCH_UI_CONTEXT })}
+                aria-label={t("Clear search", {
+                  _context: SEARCH_UI_CONTEXT,
+                })}
                 onclick={() => {
                   search = "";
                   handleSearchInput();
@@ -678,11 +705,16 @@ let canonicalUrl = $derived(
   {#if item}
     {#if $data}
       {#key item}
-        {#if item.id}
-          <Thing {item} data={$data} />
-        {:else}
-          <Catalog type={item.type} data={$data} />
-        {/if}
+        <svelte:boundary onerror={onItemBoundaryError}>
+          {#if item.id}
+            <Thing {item} data={$data} />
+          {:else}
+            <Catalog type={item.type} data={$data} />
+          {/if}
+          {#snippet failed(e)}
+            <RenderErrorFallback data={$data} error={e} {item} />
+          {/snippet}
+        </svelte:boundary>
       {/key}
     {:else}
       <Loading
@@ -766,7 +798,9 @@ let canonicalUrl = $derived(
         <div class="specs-footer">
           <div class="footer-item">
             <span class="spec-label"
-              >{t("Maintainer", { _context: INTRO_DASHBOARD_CONTEXT })}:</span>
+              >{t("Maintainer", {
+                _context: INTRO_DASHBOARD_CONTEXT,
+              })}:</span>
             <a href="https://github.com/ushkinaz" target="_blank">ushkinaz</a>
           </div>
           <div class="footer-item">
@@ -777,7 +811,9 @@ let canonicalUrl = $derived(
           </div>
           <div class="footer-item">
             <span class="spec-label"
-              >{t("Feedback", { _context: INTRO_DASHBOARD_CONTEXT })}:</span>
+              >{t("Feedback", {
+                _context: INTRO_DASHBOARD_CONTEXT,
+              })}:</span>
             <a href="https://discord.gg/XW7XhXuZ89" target="_blank">Discord</a>
           </div>
         </div>
