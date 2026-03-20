@@ -70,10 +70,7 @@ Use this only when CLI evidence is not enough and you need DevTools heap inspect
 
 ## Optional Async-Leak Pass
 
-Current repo Vitest is `4.0.18`, so `--detect-async-leaks` is not available by default. If the failure strongly looks like stale async work and a temporary Vitest bump is acceptable, use:
-
 ```bash
-pnpm add -D vitest@^4.1.0-beta.6
 pnpm vitest run <path/to/test.ts> --run --no-color --detect-async-leaks
 ```
 
