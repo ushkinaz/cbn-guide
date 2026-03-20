@@ -167,8 +167,6 @@ it("tracks feature usage", () => {
 });
 ```
 
-See `src/metrics.test.ts` for full test suite.
-
 ## Current Usage
 
 - `src/routing.ts`: Version switches, routing init time, build number
