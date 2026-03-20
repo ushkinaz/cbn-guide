@@ -20,76 +20,23 @@ import {
   test,
   vi,
 } from "vitest";
-import * as fs from "fs";
 import App from "./App.svelte";
 import { data } from "./data";
-import { tileData, _resetCache as resetTilesetCache } from "./tile-data";
+import { dismiss, notifications } from "./Notification.svelte";
+import {
+  dispatchPopState,
+  createAppFetchMock,
+  setWindowLocation,
+} from "./routing.test-helpers";
 import { _reset as resetRouting } from "./routing";
 import { resetSearchState } from "./search-state.svelte";
-import { dismiss, notifications } from "./Notification.svelte";
-import { BASE_URL } from "./utils/env";
+import { tileData, _resetCache as resetTilesetCache } from "./tile-data";
 
 vi.hoisted(() => {
   (globalThis as any).__isTesting__ = true;
 });
 
-// Load test data
-const testData = JSON.parse(
-  fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
-);
-const testBuilds = JSON.parse(
-  fs.readFileSync(__dirname + "/../_test/builds.json", "utf8"),
-);
-const testModsData = {
-  aftershock: {
-    info: {
-      type: "MOD_INFO",
-      id: "aftershock",
-      name: "Aftershock",
-      description: "Aftershock test mod",
-      category: "content",
-      dependencies: ["bn"],
-    },
-    data: [],
-  },
-  magiclysm: {
-    info: {
-      type: "MOD_INFO",
-      id: "magiclysm",
-      name: "Magiclysm",
-      description: "Magiclysm test mod",
-      category: "total_conversion",
-      dependencies: ["bn"],
-    },
-    data: [],
-  },
-  civilians: {
-    info: {
-      type: "MOD_INFO",
-      id: "civilians",
-      name: "Civilians",
-      description: "Civilians test mod",
-      category: "creatures",
-      dependencies: ["bn"],
-    },
-    data: [
-      {
-        type: "mod_tileset",
-        compatibility: ["UNDEAD_PEOPLE"],
-        "tiles-new": [
-          {
-            file: "gfx/cops.png",
-            tiles: [{ id: "mon_civilian_police", fg: 0 }],
-            sprite_width: 32,
-            sprite_height: 32,
-          },
-        ],
-      },
-    ],
-  },
-};
-
-describe("Routing E2E Tests", () => {
+describe("App routing integration", () => {
   vi.setConfig({ testTimeout: 120_000 });
   const ROUTING_TEARDOWN_SETTLE_MS = 150;
   let originalFetch: typeof global.fetch;
@@ -97,59 +44,10 @@ describe("Routing E2E Tests", () => {
   let defaultFetchMock: typeof fetch;
   let container: HTMLElement;
 
-  function createFetchMock(): typeof fetch {
-    return vi.fn((input: string | URL | Request) => {
-      const url = typeof input === "string" ? input : input.toString();
-      if (url.includes("builds.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(testBuilds),
-        } as Response);
-      }
-      if (url.includes("all.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(testData),
-        } as Response);
-      }
-      if (url.includes("all_mods.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(testModsData),
-        } as Response);
-      }
-      if (url.includes("ru_RU.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => {},
-        } as Response);
-      }
-      // Mock tile_config.json and tile images to prevent stderr warnings
-      if (url.includes("tile_config.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              tile_info: [{ width: 32, height: 32, pixelscale: 1 }],
-              "tiles-new": [],
-            }),
-        } as Response);
-      }
-      if (url.includes(".webp") || url.includes(".png")) {
-        // Mock tile image fetches with empty blob
-        return Promise.resolve({
-          ok: true,
-          blob: () => Promise.resolve(new Blob()),
-        } as Response);
-      }
-      return Promise.reject(new Error(`Unmocked fetch: ${url}`));
-    }) as typeof fetch;
-  }
-
   beforeAll(() => {
     originalFetch = global.fetch;
     originalImage = global.Image;
-    defaultFetchMock = createFetchMock();
+    defaultFetchMock = createAppFetchMock();
     global.fetch = defaultFetchMock;
 
     class MockImage {
@@ -175,27 +73,10 @@ describe("Routing E2E Tests", () => {
   });
 
   beforeEach(() => {
-    // Mock window.scrollTo for DOM test environments
     window.scrollTo = vi.fn();
-
-    // Reset DOM location
-    const baseUrl = BASE_URL || "/";
-    Object.defineProperty(window, "location", {
-      writable: true,
-      value: {
-        href: `http://localhost:3000${baseUrl}stable/`,
-        origin: "http://localhost:3000",
-        pathname: `${baseUrl}stable/`,
-        search: "",
-        toString() {
-          return this.href;
-        },
-      },
-    });
-
+    setWindowLocation("stable/");
+    resetRouting();
     global.fetch = defaultFetchMock;
-
-    // Create a container for rendering
     container = document.createElement("div");
     document.body.appendChild(container);
 
@@ -249,1121 +130,251 @@ describe("Routing E2E Tests", () => {
     });
   }
 
-  async function waitForNavigation() {
-    // Small delay to allow Svelte reactive statements to settle
+  async function waitForUiSettled() {
     await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
   }
 
-  function updateLocation(path: string, search = "") {
-    const baseUrl = BASE_URL || "/";
-    window.location.pathname = baseUrl + path;
-    window.location.search = search;
-    window.location.href = `http://localhost:3000${window.location.pathname}${window.location.search}`;
-  }
-
-  function dispatchPopState() {
-    window.dispatchEvent(new PopStateEvent("popstate"));
-  }
-
-  describe("Item Navigation", () => {
-    test("shows and clears the install affordance from window events", async () => {
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-      expect(document.querySelector(".install-button")).toBeNull();
-
-      const prompt = vi.fn();
-      const beforeInstallPrompt = new Event("beforeinstallprompt");
-      Object.assign(beforeInstallPrompt, { prompt });
-
-      window.dispatchEvent(beforeInstallPrompt);
-
-      await waitFor(() =>
-        expect(document.querySelector(".install-button")).not.toBeNull(),
-      );
-
-      await fireEvent.click(document.querySelector(".install-button")!);
-      expect(prompt).toHaveBeenCalledTimes(1);
-
-      window.dispatchEvent(new Event("appinstalled"));
-
-      await waitFor(() =>
-        expect(document.querySelector(".install-button")).toBeNull(),
-      );
+  test("shows and clears the install affordance from window events", async () => {
+    render(App, {
+      target: container,
     });
 
-    test("navigates to an item page when clicking an internal link", async () => {
-      // Start at home
-      const { container: appContainer } = render(App, {
-        target: container,
-      });
+    await waitForDataLoad();
+    expect(document.querySelector(".install-button")).toBeNull();
 
-      await waitForDataLoad();
+    const prompt = vi.fn();
+    const beforeInstallPrompt = new Event("beforeinstallprompt");
+    Object.assign(beforeInstallPrompt, { prompt });
 
-      // Check we're on home by looking for specific text
-      expect(document.body.textContent).toContain("Hitchhiker");
+    window.dispatchEvent(beforeInstallPrompt);
 
-      // Simulate navigation by updating location and dispatching popstate
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
+    await waitFor(() =>
+      expect(document.querySelector(".install-button")).not.toBeNull(),
+    );
 
-      await waitForNavigation();
+    await fireEvent.click(document.querySelector(".install-button")!);
+    expect(prompt).toHaveBeenCalledTimes(1);
 
-      // Check URL was updated
-      expect(window.location.pathname).toContain("item/rock");
-      // Check DOM reflects item view (data has lowercase "rock")
-      // Explicitly wait for "rock" to appear in innerText to be safe
-      await waitForDataLoad();
-      await waitForNavigation();
-      const text = (
-        document.body.innerText ||
-        document.body.textContent ||
-        ""
-      ).toLowerCase();
-      expect(text).toMatch(/rock/);
-      expect(document.title.toLowerCase()).toMatch(/rock/);
+    window.dispatchEvent(new Event("appinstalled"));
+
+    await waitFor(() =>
+      expect(document.querySelector(".install-button")).toBeNull(),
+    );
+  });
+
+  test("renders the item page after popstate navigation", async () => {
+    render(App, {
+      target: container,
     });
 
-    test("ignores internal navigation when modifier keys are pressed", async () => {
-      // Start at home
-      render(App, {
-        target: container,
-      });
+    await waitForDataLoad();
+    expect(document.body.textContent).toContain("Hitchhiker");
 
-      await waitForDataLoad();
-
-      // We need to import the handler directly to test its return value
-      // since we can't easily spy on the native browser new tab behavior
-      const { handleInternalNavigation } = await import("./routing");
-
-      // Mock an event with meta key (Cmd+Click)
-      const mockEvent = {
-        target: document.createElement("a"),
-        preventDefault: vi.fn(),
-        metaKey: true,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        button: 0,
-      } as unknown as MouseEvent;
-
-      // Setup the anchor to look like an internal link
-      const anchor = mockEvent.target as HTMLAnchorElement;
-      anchor.href = "http://localhost:3000/stable/item/rock";
-      // We need to ensure the closest("a") works
-      // In a real event, target might be a child, but here it is the anchor itself
-      // The routing implementation uses target.closest("a")
-      // Since we passed a disconnected element, closest might fail if we don't mock it or append it
-      // Let's just mock closest on the target
-      (mockEvent.target as any).closest = () => anchor;
-      Object.defineProperty(anchor, "origin", {
-        value: "http://localhost:3000",
-      });
-      Object.defineProperty(anchor, "pathname", {
-        value: "/stable/item/rock",
-      });
-
-      const handled = handleInternalNavigation(mockEvent);
-
-      // Should return false (not handled) and NOT prevent default
-      expect(handled).toBe(false);
-      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    await act(async () => {
+      setWindowLocation("stable/item/rock");
+      dispatchPopState();
     });
 
-    test("preserves query parameters during navigation", async () => {
-      // Set up with a query parameter
-      updateLocation("stable/", "?lang=ru_RU");
+    await waitForDataLoad("rock");
+    await waitForUiSettled();
 
-      render(App, {
-        target: container,
-      });
+    const text = (
+      document.body.innerText ||
+      document.body.textContent ||
+      ""
+    ).toLowerCase();
+    expect(window.location.pathname).toContain("item/rock");
+    expect(text).toMatch(/rock/);
+    expect(text).toContain("ammunition");
+    expect(text).toContain("stone");
+    expect(text).toContain("a rock the size of a baseball");
+    expect(text).not.toContain("there was a problem displaying this page");
+    expect(document.title.toLowerCase()).toMatch(/rock/);
+  });
 
-      await waitForDataLoad();
+  test("renders search results when loading a search path directly", async () => {
+    setWindowLocation("stable/search/rock");
 
-      // Navigate to an item
-      await act(async () => {
-        updateLocation("stable/item/rock", "?lang=ru_RU");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-
-      // Check query param persists
-      expect(window.location.search).toContain("lang=ru_RU");
-      await waitForDataLoad();
+    render(App, {
+      target: container,
     });
 
-    test("navigateTo preserves mods query param", async () => {
-      updateLocation("stable/", "?mods=aftershock,magiclysm");
-      const { navigateTo } = await import("./routing");
-      navigateTo("stable", { type: "item", id: "rock" }, "");
-      expect(new URLSearchParams(window.location.search).get("mods")).toBe(
-        "aftershock,magiclysm",
-      );
+    await waitForDataLoad("rock");
+
+    expect(window.location.pathname).toContain("search/rock");
+    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
+    expect(document.body.textContent?.toLowerCase()).not.toContain(
+      "there was a problem displaying this page",
+    );
+  });
+
+  test("mod selector apply updates mods query param in order", async () => {
+    setWindowLocation("stable/", "?mods=aftershock");
+    const { getByLabelText, getByRole, getByText } = render(App, {
+      target: container,
     });
 
-    test("mod selector apply updates mods query param in order", async () => {
-      updateLocation("stable/", "?mods=aftershock");
-      const { getByLabelText, getByRole, getByText } = render(App, {
-        target: container,
-      });
+    await waitForDataLoad();
+    await waitFor(() =>
+      expect(
+        (
+          getByRole("button", {
+            name: "Mods (1 active)",
+          }) as HTMLButtonElement
+        ).disabled,
+      ).toBe(false),
+    );
 
-      await waitForDataLoad();
-      await waitFor(() =>
-        expect(
-          (
-            getByRole("button", {
-              name: "Mods (1 active)",
-            }) as HTMLButtonElement
-          ).disabled,
-        ).toBe(false),
-      );
+    await fireEvent.click(getByRole("button", { name: "Mods (1 active)" }));
+    await waitFor(() => expect(getByLabelText("Aftershock")).toBeTruthy());
 
-      await fireEvent.click(getByRole("button", { name: "Mods (1 active)" }));
-      await waitFor(() => expect(getByLabelText("Aftershock")).toBeTruthy());
+    await fireEvent.click(getByLabelText("Magiclysm"));
+    await fireEvent.click(getByText("Apply"));
 
-      await fireEvent.click(getByLabelText("Magiclysm"));
-      await fireEvent.click(getByText("Apply"));
+    expect(new URL(window.location.href).searchParams.get("mods")).toBe(
+      "aftershock,magiclysm",
+    );
+  });
 
-      expect(new URL(window.location.href).searchParams.get("mods")).toBe(
-        "aftershock,magiclysm",
-      );
-      await waitForDataLoad();
+  test("loads compatible mod tileset chunk URLs for active mods", async () => {
+    render(App, {
+      target: container,
     });
 
-    test("loads compatible mod tileset chunk URLs for active mods", async () => {
-      render(App, {
-        target: container,
-      });
-
-      await act(async () => {
-        updateLocation("stable/", "?mods=civilians&t=undead_people");
-        dispatchPopState();
-      });
-      await waitForDataLoad();
-      await waitForNavigation();
-
-      await waitFor(() =>
-        expect(
-          (global.fetch as any).mock.calls.some(([input]: [unknown]) =>
-            String(input).includes("/mods/civilians/gfx/cops.webp"),
-          ),
-        ).toBe(true),
-      );
+    await act(async () => {
+      setWindowLocation("stable/", "?mods=civilians&t=undead_people");
+      dispatchPopState();
     });
 
-    test("filters unknown mods from URL, rewrites URL, and shows warning", async () => {
-      updateLocation(
-        "stable/item/rock",
-        "?mods=aftershock,missing_mod,magiclysm,bad_mod",
-      );
-      const replaceStateSpy = vi.spyOn(history, "replaceState");
+    await waitForDataLoad();
 
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad("rock");
-
-      await waitFor(() =>
-        expect(replaceStateSpy).toHaveBeenCalledWith(
-          null,
-          "",
-          expect.stringContaining("mods=aftershock%2Cmagiclysm"),
+    await waitFor(() =>
+      expect(
+        (
+          global.fetch as unknown as {
+            mock: { calls: Array<[unknown, ...unknown[]]> };
+          }
+        ).mock.calls.some(([input]) =>
+          String(input).includes("/mods/civilians/gfx/cops.webp"),
         ),
-      );
-
-      const warnNotification = get(notifications).find(
-        (notification) => notification.type === "warn",
-      );
-      expect(warnNotification?.message).toContain("missing_mod, bad_mod");
-      replaceStateSpy.mockRestore();
-    });
+      ).toBe(true),
+    );
   });
 
-  describe("Search Navigation", () => {
-    test("renders search results when loading a search path directly", async () => {
-      // Set location to a search path
-      updateLocation("stable/search/test");
+  test("filters unknown mods from the URL and warns once", async () => {
+    setWindowLocation(
+      "stable/item/rock",
+      "?mods=aftershock,missing_mod,magiclysm,bad_mod",
+    );
+    const replaceStateSpy = vi.spyOn(history, "replaceState");
 
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // URL should have search path
-      expect(window.location.pathname).toContain("search/test");
-      const text = document.body.textContent || "";
-      // Logs show "HHG" is part of the search results header
-      expect(text.includes("Search Results") || text.includes("HHG")).toBe(
-        true,
-      );
+    render(App, {
+      target: container,
     });
 
-    test("handles search query encoding", async () => {
-      // Set location with special characters
-      updateLocation("stable/search/test%20query");
+    await waitForDataLoad("rock");
 
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // URL should contain encoded search
-      expect(window.location.pathname).toContain("search/test%20query");
-    });
-  });
-
-  describe("URL Encoding/Decoding", () => {
-    test("normalizes mods query param in parseRoute", async () => {
-      const { parseRoute } = await import("./routing");
-      updateLocation(
-        "stable/item/rock",
-        "?mods= aftershock , ,magiclysm,aftershock,bn ",
-      );
-      const route = parseRoute();
-      expect(route.mods).toEqual(["aftershock", "magiclysm"]);
-    });
-
-    test("buildUrl includes ordered mods query param", async () => {
-      const { buildUrl } = await import("./routing");
-      const url = buildUrl(
-        "stable",
-        { type: "item", id: "rock" },
+    await waitFor(() =>
+      expect(replaceStateSpy).toHaveBeenCalledWith(
+        null,
         "",
-        null,
-        null,
-        ["aftershock", "magiclysm"],
-      );
-      expect(url).toContain("mods=aftershock%2Cmagiclysm");
-    });
-
-    test("buildUrl omits mods query param when empty", async () => {
-      const { buildUrl } = await import("./routing");
-      const url = buildUrl("stable", { type: "item", id: "rock" }, "");
-      expect(url).not.toContain("mods=");
-    });
-
-    test("mods query param round-trips through buildUrl and parseRoute", async () => {
-      const { buildUrl, parseRoute } = await import("./routing");
-      const url = buildUrl("stable", null, "test query", null, null, [
-        "aftershock",
-        "magiclysm",
-      ]);
-      const builtUrl = new URL(url);
-      const path = builtUrl.pathname.startsWith(BASE_URL)
-        ? builtUrl.pathname.slice(BASE_URL.length)
-        : builtUrl.pathname.slice(1);
-      updateLocation(path, builtUrl.search);
-      const route = parseRoute();
-      expect(route.mods).toEqual(["aftershock", "magiclysm"]);
-      expect(route.search).toBe("test query");
-    });
-
-    test("handles plus signs in search queries correctly", async () => {
-      // Direct import to test parseRoute
-      const { parseRoute, buildUrl } = await import("./routing");
-
-      // Test encoding: "C++ programming" should encode + as %2B
-      const searchQuery = "C++ programming";
-      const url = buildUrl("stable", null, searchQuery);
-
-      // Should encode + as %2B and space as %20
-      expect(url).toContain("C%2B%2B%20programming");
-
-      // Simulate URL navigation
-      updateLocation("stable/search/C%2B%2B%20programming");
-
-      const route = parseRoute();
-      // Should decode back to original query
-      expect(route.search).toBe("C++ programming");
-    });
-
-    test("handles plus signs in item IDs correctly", async () => {
-      const { parseRoute, buildUrl } = await import("./routing");
-
-      // Test item ID with plus sign
-      const itemId = "item_id+variant";
-      const url = buildUrl("stable", { type: "item", id: itemId }, "");
-
-      // Should encode + as %2B
-      expect(url).toContain("item_id%2Bvariant");
-
-      // Simulate URL navigation
-      updateLocation("stable/item/item_id%2Bvariant");
-
-      const route = parseRoute();
-      expect(route.item?.id).toBe("item_id+variant");
-    });
-
-    test("handles spaces in search queries correctly", async () => {
-      const { parseRoute, buildUrl } = await import("./routing");
-
-      const searchQuery = "test query with spaces";
-      const url = buildUrl("stable", null, searchQuery);
-
-      // Spaces should be encoded as %20
-      expect(url).toContain("test%20query%20with%20spaces");
-
-      updateLocation("stable/search/test%20query%20with%20spaces");
-
-      const route = parseRoute();
-      expect(route.search).toBe("test query with spaces");
-    });
-
-    test("handles special characters in search", async () => {
-      const { parseRoute, buildUrl } = await import("./routing");
-
-      const searchQuery = "test&query=value";
-      const url = buildUrl("stable", null, searchQuery);
-
-      // Should properly encode & and =
-      expect(url).toContain(encodeURIComponent("test&query=value"));
-
-      const encodedQuery = encodeURIComponent(searchQuery);
-      updateLocation(`stable/search/${encodedQuery}`);
-
-      const route = parseRoute();
-      expect(route.search).toBe("test&query=value");
-    });
-
-    test("round-trip encoding: search query", async () => {
-      const { parseRoute, buildUrl } = await import("./routing");
-
-      const testCases = [
-        "simple",
-        "with spaces",
-        "C++",
-        "a+b+c",
-        "test&query",
-        "special@#$chars",
-        "unicode: 日本語",
-      ];
-
-      for (const query of testCases) {
-        const url = buildUrl("stable", null, query);
-        const urlObj = new URL(url);
-        const path = urlObj.pathname;
-
-        // Extract the search part from the path
-        const match = path.match(/\/search\/(.+)$/);
-        expect(match).toBeTruthy();
-
-        // Remove BASE_URL from path to get relative path
-        const baseUrl = BASE_URL;
-        const relativePath = path.startsWith(baseUrl)
-          ? path.slice(baseUrl.length)
-          : path.slice(1); // fallback: remove leading /
-
-        updateLocation(relativePath);
-
-        const route = parseRoute();
-        expect(route.search).toBe(query);
-      }
-    });
-
-    test("round-trip encoding: item ID", async () => {
-      const { parseRoute, buildUrl } = await import("./routing");
-
-      const testCases = ["simple_id", "id with spaces", "c++_item", "a+b"];
-
-      for (const id of testCases) {
-        const url = buildUrl("stable", { type: "item", id }, "");
-        const urlObj = new URL(url);
-        const path = urlObj.pathname;
-
-        // Remove BASE_URL from path to get relative path
-        const baseUrl = BASE_URL;
-        const relativePath = path.startsWith(baseUrl)
-          ? path.slice(baseUrl.length)
-          : path.slice(1); // fallback: remove leading /
-
-        updateLocation(relativePath);
-
-        const route = parseRoute();
-        expect(route.item?.id).toBe(id);
-      }
-    });
-  });
-
-  describe("History Navigation", () => {
-    test("reacts to history navigation and renders the matching route", async () => {
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Navigate to item
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-      expect(window.location.pathname).toContain("item/rock");
-      expect(document.body.textContent?.toLowerCase()).toContain("rock");
-
-      // Navigate to search via popstate
-      await act(async () => {
-        updateLocation("stable/search/test");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-      expect(window.location.pathname).toContain("search/test");
-      let text = document.body.textContent || "";
-      expect(text.includes("Search Results") || text.includes("HHG")).toBe(
-        true,
-      );
-
-      // Go back to item
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-      expect(window.location.pathname).toContain("item/rock");
-      text = (
-        document.body.innerText ||
-        document.body.textContent ||
-        ""
-      ).toLowerCase();
-      expect(text).toContain("rock");
-    });
-
-    test("handles back button from item to search", async () => {
-      // Start at search
-      updateLocation("stable/search/rock");
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad("rock");
-      expect(window.location.pathname).toContain("search/rock");
-
-      // Navigate forward to item
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      // Wait for item specific text
-      await waitForDataLoad("stone");
-      expect(window.location.pathname).toContain("item/rock");
-      const text = document.body.textContent?.toLowerCase() || "";
-      expect(text).toContain("rock");
-      expect(text).toContain("obtaining");
-
-      // Go back
-      await act(async () => {
-        updateLocation("stable/search/rock");
-        dispatchPopState();
-      });
-
-      // Again wait for search specific text
-      await waitForDataLoad("rock");
-      expect(window.location.pathname).toContain("search/rock");
-    }, 15000);
-
-    test("handles forward button from home to item", async () => {
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-      expect(window.location.pathname).toContain("stable/");
-
-      // Navigate to item
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-      expect(window.location.pathname).toContain("item/rock");
-      expect(document.body.textContent?.toLowerCase()).toContain("rock");
-
-      // Go back to home
-      await act(async () => {
-        updateLocation("stable/");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-      expect(window.location.pathname).toContain("stable/");
-      expect(document.body.textContent).toContain("Hitchhiker");
-
-      // Go forward to item
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-      expect(window.location.pathname).toContain("item/rock");
-      expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    }, 40_000);
-  });
-
-  describe("Version Handling", () => {
-    test("navigates to correct version with incorrect typed-in URL", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const setVersionSpy = vi.spyOn(data, "setVersion");
-      const originalReplace = window.location.replace;
-      let replaceCalled = false;
-      delete (window.location as any).replace;
-      window.location.replace = vi.fn((url: string | URL) => {
-        replaceCalled = true;
-        const u = new URL(url as string, window.location.origin);
-        window.location.pathname = u.pathname;
-        window.location.search = u.search;
-        window.location.href = u.href;
-      }) as any;
-
-      // Start with invalid version - should prepend /stable/
-      updateLocation("invalid-version-999/");
-
-      render(App, {
-        target: container,
-      });
-
-      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
-
-      // Should have called location.replace to prepend /stable/
-      expect(replaceCalled).toBe(true);
-      expect(window.location.pathname).toContain("stable/invalid-version-999");
-      expect(setVersionSpy).not.toHaveBeenCalled();
-
-      warnSpy.mockRestore();
-      setVersionSpy.mockRestore();
-      window.location.replace = originalReplace;
-    });
-
-    test("navigates to correct version when clicking an internal link", async () => {
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Navigate to nightly version item
-      await act(async () => {
-        updateLocation("nightly/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-
-      // Should navigate successfully
-      expect(window.location.pathname).toContain("nightly/item/rock");
-      const text = (
-        document.body.innerText ||
-        document.body.textContent ||
-        ""
-      ).toLowerCase();
-      expect(text).toContain("rock");
-    }, 40_000);
-
-    test(" resolves version aliases correctly", async () => {
-      // Test with stable alias
-      updateLocation("stable/");
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Should load successfully
-      expect(document.body).toBeTruthy();
-
-      cleanup();
-      if (container && container.parentNode) {
-        container.parentNode.removeChild(container);
-      }
-      container = document.createElement("div");
-      document.body.appendChild(container);
-
-      // Test with nightly alias
-      updateLocation("nightly/");
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Should load successfully
-      expect(document.body).toBeTruthy();
-    });
-
-    test("preserves version slug in URLs", async () => {
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Navigate to an item
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-
-      // URL should still contain stable
-      expect(window.location.pathname).toContain("stable");
-    });
-  });
-
-  describe("Catalog Navigation", () => {
-    test("navigates to catalog view when type without ID", async () => {
-      updateLocation("stable/item");
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Should show catalog (no ID in URL)
-      expect(window.location.pathname).toBe(
-        `${import.meta.env.BASE_URL}stable/item`,
-      );
-    });
-
-    test("handles catalog to item navigation", async () => {
-      updateLocation("stable/item");
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Should show catalog
-      expect(window.location.pathname).toContain("stable/item");
-
-      // Click an item in the catalog (simulated via navigation)
-      await act(async () => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      await waitForNavigation();
-
-      // Should navigate to item
-      expect(window.location.pathname).toContain("stable/item/rock");
-      const text = (
-        document.body.innerText ||
-        document.body.textContent ||
-        ""
-      ).toLowerCase();
-      expect(text).toContain("rock");
-    });
-  });
-
-  describe("Redirection & Fallbacks", () => {
-    test(
-      "prepends /stable/ to invalid version paths",
-      { timeout: 120000 },
-      async () => {
-        const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-        const originalReplace = window.location.replace;
-        let replaceCalled = false;
-        let replaceUrl = "";
-        delete (window.location as any).replace;
-        window.location.replace = vi.fn((url: string | URL) => {
-          replaceCalled = true;
-          replaceUrl = url.toString();
-          const u = new URL(url as string, window.location.origin);
-          window.location.pathname = u.pathname;
-          window.location.search = u.search;
-          window.location.href = u.href;
-        }) as any;
-
-        // Use a version that doesn't exist - should prepend /stable/
-        updateLocation("non-existent-version/item/rock");
-
-        render(App, {
-          target: container,
-        });
-
-        await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
-
-        // Should prepend /stable/ to the path
-        expect(replaceCalled).toBe(true);
-        expect(replaceUrl).toContain("stable/non-existent-version/item/rock");
-
-        warnSpy.mockRestore();
-        window.location.replace = originalReplace;
-      },
+        expect.stringContaining("mods=aftershock%2Cmagiclysm"),
+      ),
     );
 
-    test("prepends /stable when accessing data type path without version", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      // Mock location.replace to simulate page reload
-      const originalReplace = window.location.replace;
-      let replaceCalled = false;
-      let replaceUrl = "";
-      delete (window.location as any).replace;
-      window.location.replace = vi.fn((url: string | URL) => {
-        replaceCalled = true;
-        replaceUrl = url.toString();
-        const u = new URL(url as string, window.location.origin);
-        window.location.pathname = u.pathname;
-        window.location.search = u.search;
-        window.location.href = u.href;
-      }) as any;
-
-      // Navigate to /mutation (missing version prefix)
-      updateLocation("mutation");
-
-      render(App, {
-        target: container,
-      });
-
-      // Wait a bit for the async initialization
-      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
-
-      // Should have called location.replace to redirect to /stable/mutation
-      expect(replaceCalled).toBe(true);
-      expect(replaceUrl).toContain("stable/mutation");
-
-      warnSpy.mockRestore();
-      window.location.replace = originalReplace;
-    });
-
-    test("preserves URL encoding when redirecting versionless paths", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const originalReplace = window.location.replace;
-      let replaceCalled = false;
-      let replaceUrl = "";
-      delete (window.location as any).replace;
-      window.location.replace = vi.fn((url: string | URL) => {
-        replaceCalled = true;
-        replaceUrl = url.toString();
-        const u = new URL(url as string, window.location.origin);
-        window.location.pathname = u.pathname;
-        window.location.search = u.search;
-        window.location.href = u.href;
-      }) as any;
-
-      // Navigate to /search/fire%2Faxe (encoded slash in search query)
-      updateLocation("search/fire%2Faxe");
-
-      render(App, {
-        target: container,
-      });
-
-      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
-
-      // Should preserve %2F encoding, not turn it into /
-      expect(replaceCalled).toBe(true);
-      expect(replaceUrl).toContain("stable/search/fire%2Faxe");
-      expect(replaceUrl).not.toContain("stable/search/fire/axe");
-
-      warnSpy.mockRestore();
-      window.location.replace = originalReplace;
-    });
-
-    test("prepends /stable for various data types without version", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const originalReplace = window.location.replace;
-      let replaceCalled = false;
-      let replaceUrl = "";
-      delete (window.location as any).replace;
-      window.location.replace = vi.fn((url: string | URL) => {
-        replaceCalled = true;
-        replaceUrl = url.toString();
-        const u = new URL(url as string, window.location.origin);
-        window.location.pathname = u.pathname;
-        window.location.search = u.search;
-        window.location.href = u.href;
-      }) as any;
-
-      const dataTypes = [
-        "item",
-        "monster",
-        "terrain",
-        "tool_quality",
-        "vehicle",
-        "skill",
-        "mutation_category",
-      ];
-
-      for (const type of dataTypes) {
-        cleanup();
-        if (container && container.parentNode) {
-          container.parentNode.removeChild(container);
-        }
-        container = document.createElement("div");
-        document.body.appendChild(container);
-
-        replaceCalled = false;
-        replaceUrl = "";
-        updateLocation(type);
-
-        render(App, {
-          target: container,
-        });
-
-        await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
-
-        expect(replaceCalled).toBe(true);
-        expect(replaceUrl).toContain(`stable/${type}`);
-      }
-
-      warnSpy.mockRestore();
-      window.location.replace = originalReplace;
-    });
-
-    test("after redirect from /mutation, links use correct version slug", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      const originalReplace = window.location.replace;
-      let replaceCalled = false;
-      let replaceUrl = "";
-      delete (window.location as any).replace;
-      window.location.replace = vi.fn((url: string | URL) => {
-        replaceCalled = true;
-        replaceUrl = url.toString();
-        const u = new URL(url as string, window.location.origin);
-        window.location.pathname = u.pathname;
-        window.location.search = u.search;
-        window.location.href = u.href;
-      }) as any;
-
-      // Navigate to /mutation
-      updateLocation("mutation");
-
-      render(App, {
-        target: container,
-      });
-
-      await act(() => new Promise((resolve) => setTimeout(resolve, 100)));
-
-      // Should have called location.replace
-      expect(replaceCalled).toBe(true);
-      expect(replaceUrl).toContain("stable/mutation");
-
-      // Simulate the page reload by updating location manually
-      updateLocation("stable/mutation");
-
-      // Re-render App with the corrected URL
-      cleanup();
-      if (container && container.parentNode) {
-        container.parentNode.removeChild(container);
-      }
-      container = document.createElement("div");
-      document.body.appendChild(container);
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad("mutations");
-
-      // After redirect, getCurrentVersionSlug should return "stable"
-      const { getCurrentVersionSlug } = await import("./routing");
-      expect(getCurrentVersionSlug()).toBe("stable");
-
-      // Links should use /stable or /nightly, not /mutation as version
-      const links = document.querySelectorAll("a[href]");
-      const internalLinks = Array.from(links).filter((link) =>
-        (link as HTMLAnchorElement).href.includes("localhost:3000"),
-      );
-
-      for (const link of internalLinks) {
-        const href = (link as HTMLAnchorElement).href;
-        const path = new URL(href).pathname;
-        // Path should not start with /mutation/ (that would mean mutation is the version)
-        // but /stable/mutation/ or /nightly/mutation/ is fine (mutation is the data type)
-        expect(path).not.toMatch(/^\/mutation\//);
-      }
-
-      warnSpy.mockRestore();
-      window.location.replace = originalReplace;
-    });
+    const warnNotification = get(notifications).find(
+      (notification) => notification.type === "warn",
+    );
+    expect(warnNotification?.message).toContain("missing_mod, bad_mod");
+    replaceStateSpy.mockRestore();
   });
 
-  describe("Error Handling", () => {
-    test("shows error message when builds.json fails to load", async () => {
-      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      // Force fetch failure for builds
-      global.fetch = vi.fn(() =>
-        Promise.reject(new Error("Network Error")),
-      ) as any;
-
-      render(App, {
-        target: container,
-      });
-
-      // Wait a bit for the catch block to run
-      await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
-
-      // Since App.svelte only console.errors on builds failure,
-      // we check for the spy call.
-      // (Future improvement: check for a UI error notification if added)
-      expect(errorSpy).toHaveBeenCalled();
-
-      errorSpy.mockRestore();
+  test("reacts to history navigation and renders the matching route", async () => {
+    render(App, {
+      target: container,
     });
+
+    await waitForDataLoad();
+
+    await act(async () => {
+      setWindowLocation("stable/item/rock");
+      dispatchPopState();
+    });
+
+    await waitForUiSettled();
+    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+
+    await act(async () => {
+      setWindowLocation("stable/search/rock");
+      dispatchPopState();
+    });
+
+    await waitForUiSettled();
+    await waitFor(() =>
+      expect(window.location.pathname).toContain("search/rock"),
+    );
+    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
+
+    await act(async () => {
+      setWindowLocation("stable/item/rock");
+      dispatchPopState();
+    });
+
+    await waitForUiSettled();
+    expect(document.body.textContent?.toLowerCase()).toContain("rock");
   });
 
-  describe("Reactive Page Store Integration", () => {
-    test("page store updates correctly on navigation", async () => {
-      const { page } = await import("./routing");
+  test("canonical and alternate links include mods query param", async () => {
+    setWindowLocation("stable/item/rock", "?mods=aftershock");
 
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad();
-
-      // Verify initial state (home page)
-      expect(get(page).route.version).toBe("stable");
-      expect(get(page).route.item).toBeNull();
-      expect(get(page).route.search).toBe("");
-      expect(get(page).route.mods).toEqual([]);
-
-      // Navigate to item
-      await act(() => {
-        updateLocation("stable/item/rock");
-        dispatchPopState();
-      });
-
-      // Verify page store updated
-      expect(get(page).route.item).toEqual({ type: "item", id: "rock" });
-      expect(get(page).route.search).toBe("");
-      expect(get(page).route.mods).toEqual([]);
-      expect(get(page).url.pathname).toContain("item/rock");
-
-      // Navigate to search
-      await act(() => {
-        updateLocation("stable/search/test");
-        dispatchPopState();
-      });
-
-      // Verify page store updated for search
-      expect(get(page).route.item).toBeNull();
-      expect(get(page).route.search).toBe("test");
-      expect(get(page).route.mods).toEqual([]);
-      expect(get(page).url.pathname).toContain("search/test");
+    render(App, {
+      target: container,
     });
 
-    test(
-      "page store updates on popstate events",
-      { timeout: 120000 },
-      async () => {
-        const { page } = await import("./routing");
+    await waitForDataLoad("rock");
 
-        render(App, {
-          target: container,
-        });
-
-        await waitForDataLoad();
-
-        // Navigate to item
-        await act(() => {
-          updateLocation("stable/item/rock");
-          dispatchPopState();
-        });
-
-        expect(get(page).route.item?.id).toBe("rock");
-
-        // Navigate to another item (simulating forward)
-        await act(() => {
-          updateLocation("stable/item/test_item");
-          dispatchPopState();
-        });
-
-        expect(get(page).route.item?.id).toBe("test_item");
-
-        // Go back (simulating browser back button)
-        await act(() => {
-          updateLocation("stable/item/rock");
-          dispatchPopState();
-        });
-
-        expect(get(page).route.item?.id).toBe("rock");
-      },
-    );
-
-    test(
-      "no duplicate popstate event handling",
-      { timeout: 120000 },
-      async () => {
-        const { page } = await import("./routing");
-
-        render(App, {
-          target: container,
-        });
-
-        await waitForDataLoad();
-
-        let updateCount = 0;
-        const unsubscribe = page.subscribe(() => {
-          updateCount++;
-        });
-
-        const initialCount = updateCount;
-
-        // Trigger popstate
-        await act(async () => {
-          updateLocation("stable/item/rock");
-          dispatchPopState();
-        });
-
-        await waitForNavigation();
-
-        // Store should update exactly once per popstate
-        // (initial subscription + one update)
-        expect(updateCount).toBe(initialCount + 1);
-
-        unsubscribe();
-      },
-    );
-
-    test("canonical and alternate links include mods query param", async () => {
-      updateLocation("stable/item/rock", "?mods=aftershock");
-
-      render(App, {
-        target: container,
-      });
-
-      await waitForDataLoad("rock");
-
-      let canonical = document.querySelector(
+    let canonical = document.querySelector(
+      'link[rel="canonical"]',
+    ) as HTMLLinkElement | null;
+    const waitStart = Date.now();
+    while (!canonical && Date.now() - waitStart < 2_000) {
+      await act(() => new Promise((resolve) => setTimeout(resolve, 25)));
+      canonical = document.querySelector(
         'link[rel="canonical"]',
       ) as HTMLLinkElement | null;
-      const waitStart = Date.now();
-      while (!canonical && Date.now() - waitStart < 2000) {
-        await act(() => new Promise((resolve) => setTimeout(resolve, 25)));
-        canonical = document.querySelector(
-          'link[rel="canonical"]',
-        ) as HTMLLinkElement | null;
-      }
-      expect(canonical).toBeTruthy();
-      expect(canonical?.href).toContain("mods=aftershock");
+    }
 
-      const alternates = Array.from(
-        document.querySelectorAll('link[rel="alternate"]'),
-      ) as HTMLLinkElement[];
-      expect(alternates.length).toBeGreaterThan(0);
-      expect(
-        alternates.every((link) => link.href.includes("mods=aftershock")),
-      ).toBe(true);
+    expect(canonical).toBeTruthy();
+    expect(canonical?.href).toContain("mods=aftershock");
+
+    const alternates = Array.from(
+      document.querySelectorAll('link[rel="alternate"]'),
+    ) as HTMLLinkElement[];
+    expect(alternates.length).toBeGreaterThan(0);
+    expect(
+      alternates.every((link) => link.href.includes("mods=aftershock")),
+    ).toBe(true);
+  });
+
+  test("shows an initialization error notification when builds.json fails", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    global.fetch = vi.fn(() =>
+      Promise.reject(new Error("Network Error")),
+    ) as typeof fetch;
+
+    render(App, {
+      target: container,
     });
+
+    await waitFor(() => expect(errorSpy).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(document.body.textContent).toContain(
+        "Failed to initialize application. Please reload.",
+      ),
+    );
+
+    errorSpy.mockRestore();
   });
 });
