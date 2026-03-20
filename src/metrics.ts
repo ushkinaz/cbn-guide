@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/browser";
 import { getCurrentVersionSlug, getUrlConfig, parseRoute } from "./routing";
-import { RUNNING_MODE } from "./utils/env";
+import { isProd, RUNNING_MODE } from "./utils/env";
 
 /**
  * Metric attributes type for Sentry metrics.
@@ -45,6 +45,7 @@ export const metrics = {
    * This sends a delta to Sentry without local accumulation.
    */
   count(name: string, value: number = 1, attributes: MetricAttributes = {}) {
+    if (!isProd) return;
     Sentry.metrics.count(name, value, {
       attributes: { ...getCommonAttributes(), ...attributes },
     });
@@ -54,6 +55,7 @@ export const metrics = {
    * Track current values or state (e.g., resource usage, resolved version).
    */
   gauge(name: string, value: number, attributes: MetricAttributes = {}) {
+    if (!isProd) return;
     Sentry.metrics.gauge(name, value, {
       attributes: { ...getCommonAttributes(), ...attributes },
     });
@@ -63,6 +65,7 @@ export const metrics = {
    * Track distributions for statistical analysis (e.g., durations, latency).
    */
   distribution(name: string, value: number, attributes: MetricAttributes = {}) {
+    if (!isProd) return;
     Sentry.metrics.distribution(name, value, {
       attributes: { ...getCommonAttributes(), ...attributes },
     });
