@@ -48,5 +48,14 @@ describe("Terrain", () => {
     expect(getByText("Deconstruction")).toBeTruthy();
     expect(getByText("Tools Required")).toBeTruthy();
     expect(getByText("screw driving")).toBeTruthy();
+
+    const { queryByText } = render(WithData, {
+      Component: Terrain,
+      data,
+      item: data.byId("terrain", "t_console"),
+      includeRequires: false,
+    });
+
+    expect(queryByText("Requires")).toBeNull();
   });
 });

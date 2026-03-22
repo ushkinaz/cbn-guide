@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { render } from "@testing-library/svelte";
+import { render, within } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import WithData from "../WithData.svelte";
 import { CBNData } from "../data";
@@ -135,5 +135,16 @@ describe("Furniture", () => {
     expect(getByText("chiseling")).toBeTruthy();
     expect(getByText("prying")).toBeTruthy();
     expect(getByText("screw driving")).toBeTruthy();
+
+    const hiddenRequires = render(WithData, {
+      Component: Furniture,
+      data,
+      item: data.byId("furniture", "f_fireplace"),
+      includeRequires: false,
+    });
+
+    const hiddenQueries = within(hiddenRequires.container);
+
+    expect(hiddenQueries.queryByText("Requires")).toBeNull();
   });
 });
