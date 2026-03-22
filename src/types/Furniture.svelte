@@ -46,6 +46,12 @@ const constructions = data
   .byType("construction")
   .filter((c) => c.post_furniture === item.id);
 
+const deconstructions = data
+  .byType("construction")
+  .filter(
+    (c) => c.pre_special === "check_deconstruct" && c.pre_furniture === item.id,
+  );
+
 const bashedFrom = data
   .byType("furniture")
   .filter((f) => f.id && f.bash?.furn_set === item.id);
@@ -173,7 +179,14 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
 {#if constructions.length}
   <h2>{t("Construction", { _context })}</h2>
   {#each constructions as construction}
-    <Construction {construction} includeTitle />
+    <Construction {construction} includeTitle={true} includeRequires={false} />
+  {/each}
+{/if}
+
+{#if deconstructions.length}
+  <h2>{t("Deconstruction", { _context })}</h2>
+  {#each deconstructions as construction}
+    <Construction {construction} includeTitle={false} includeRequires={false} />
   {/each}
 {/if}
 

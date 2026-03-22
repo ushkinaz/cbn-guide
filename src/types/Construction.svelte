@@ -20,10 +20,14 @@ const _context = "Construction";
 interface Props {
   construction: Construction;
   includeTitle?: boolean;
+  includeRequires?: boolean;
 }
 
-let { construction: sourceConstruction, includeTitle = false }: Props =
-  $props();
+let {
+  construction: sourceConstruction,
+  includeTitle = false,
+  includeRequires = true,
+}: Props = $props();
 const construction = untrack(() => sourceConstruction);
 
 const using =
@@ -68,9 +72,13 @@ if (construction.pre_flags)
   <dl>
     <dt>{t("Required Skills")}</dt>
     <dd>
-      {#each construction.required_skills ?? [] as [id, level], i}
-        <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
-      {/each}
+      {#if construction.required_skills?.length}
+        {#each construction.required_skills ?? [] as [id, level], i}
+          <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
+        {/each}
+      {:else}
+        {t("none")}
+      {/if}
     </dd>
     <dt>{t("Time", { _context })}</dt>
     <dd>
@@ -78,7 +86,7 @@ if (construction.pre_flags)
         ? `${construction.time} m`
         : (construction.time ?? "0 m")}
     </dd>
-    {#if prerequisites.length}
+    {#if includeRequires && prerequisites.length}
       <dt>{t("Requires", { _context })}</dt>
       <dd>
         <ul class="comma-separated">
