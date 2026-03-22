@@ -73,7 +73,7 @@ if (construction.pre_flags)
     <dt>{t("Required Skills")}</dt>
     <dd>
       {#if construction.required_skills?.length}
-        {#each construction.required_skills ?? [] as [id, level], i}
+        {#each construction.required_skills as [id, level], i}
           <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
         {/each}
       {:else}
