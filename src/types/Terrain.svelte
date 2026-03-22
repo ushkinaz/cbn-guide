@@ -50,6 +50,12 @@ const bits = [
 const constructions = data
   .byType("construction")
   .filter((c) => c.post_terrain === item.id);
+
+const deconstructions = data
+  .byType("construction")
+  .filter(
+    (c) => c.pre_special === "check_deconstruct" && c.pre_terrain === item.id,
+  );
 </script>
 
 <h1><ItemLink type="terrain" id={item.id} link={false} /></h1>
@@ -126,6 +132,13 @@ const constructions = data
   <h2>{t("Construction", { _context })}</h2>
   {#each constructions as construction}
     <Construction {construction} includeTitle />
+  {/each}
+{/if}
+
+{#if deconstructions.length}
+  <h2>{t("Deconstruction", { _context })}</h2>
+  {#each deconstructions as construction}
+    <Construction {construction} includeTitle={false} includeRequires={false} />
   {/each}
 {/if}
 
