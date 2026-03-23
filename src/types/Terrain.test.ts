@@ -89,7 +89,6 @@ describe("Terrain", () => {
       Component: Terrain,
       data,
       item: data.byId("terrain", "t_console"),
-      includeRequires: false,
     });
 
     expect(queryByText("Requires")).toBeNull();

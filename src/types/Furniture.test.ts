@@ -140,7 +140,6 @@ describe("Furniture", () => {
       Component: Furniture,
       data,
       item: data.byId("furniture", "f_fireplace"),
-      includeRequires: false,
     });
 
     const hiddenQueries = within(hiddenRequires.container);
