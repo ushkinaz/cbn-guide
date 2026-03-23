@@ -42,11 +42,6 @@ const bash = item.bash?.items
     })
   : [];
 
-const bits = [
-  [t("Deconstruct", { _context }), deconstruct],
-  [t("Bash", { _context }), bash],
-] as const;
-
 const constructions = data
   .byType("construction")
   .filter((c) => c.post_terrain === item.id);
@@ -96,21 +91,43 @@ const deconstructions = data
         <TerFurnActivity act={item.prying} resultType="terrain" />
       </dd>
     {/if}
-    {#each bits as [title, arr]}
-      {#if arr.length}
-        <dt>{title}</dt>
-        <dd>
+    {#if deconstruct.length || item.deconstruct?.ter_set}
+      <dt>{t("Deconstruct", { _context })}</dt>
+      <dd>
+        {#if deconstruct.length}
           <ul class="comma-separated">
             <!-- prettier-ignore -->
-            {#each arr as {id, prob, count}}
+            {#each deconstruct as {id, prob, count}}
             <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
           </ul>
-        </dd>
-      {/if}
-    {/each}
+        {/if}
+        {#if item.deconstruct?.ter_set}
+          {@const becomes = item.deconstruct.ter_set}
+          <dl>
+            <dt>{t("Becomes", { _context })}</dt>
+            <dd>
+              <ItemLink type="terrain" id={becomes} />
+            </dd>
+          </dl>
+        {/if}
+      </dd>
+    {/if}
+    {#if bash.length}
+      <dt>{t("Bash", { _context })}</dt>
+      <dd>
+        <ul class="comma-separated">
+          <!-- prettier-ignore -->
+          {#each bash as {id, prob, count}}
+            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
+              ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
+              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
+            {/each}
+        </ul>
+      </dd>
+    {/if}
     <HarvestedTo {item} />
     <dt>{t("Flags")}</dt>
     <dd>

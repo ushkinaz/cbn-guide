@@ -8,6 +8,42 @@ import { CBNData } from "../data";
 import Terrain from "./Terrain.svelte";
 
 describe("Terrain", () => {
+  it("shows the terrain deconstruction result target", () => {
+    const data = new CBNData([
+      {
+        type: "terrain",
+        id: "t_test_wall",
+        name: "test wall",
+        description: "A wall awaiting negation.",
+        deconstruct: {
+          items: [{ item: "2x4", count: [2, 2] }],
+          ter_set: "t_test_rubble",
+        },
+      },
+      {
+        type: "terrain",
+        id: "t_test_rubble",
+        name: "test rubble",
+        description: "What remains.",
+      },
+      {
+        type: "item",
+        id: "2x4",
+        name: "2x4",
+      },
+    ]);
+
+    const { getByText } = render(WithData, {
+      Component: Terrain,
+      data,
+      item: data.byId("terrain", "t_test_wall"),
+    });
+
+    expect(getByText("Deconstruct")).toBeTruthy();
+    expect(getByText("Becomes")).toBeTruthy();
+    expect(getByText("test rubble")).toBeTruthy();
+  });
+
   it("shows deconstruction methods and required tools for advanced terrain removal", () => {
     const data = new CBNData([
       {

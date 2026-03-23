@@ -833,6 +833,7 @@ export type MapBashInfo = {
 
 export type MapDeconstructInfo = {
   furn_set?: string; // default: f_null
+  ter_set?: string;
   deconstruct_above?: boolean; // default: false
   items?: string | ItemGroupEntry[];
 };
