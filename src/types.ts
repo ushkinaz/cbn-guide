@@ -475,6 +475,7 @@ export type UseFunction =
   | MessageUseFunction
   | MulticookerUseFunction
   | MusicPlayerUseFunction
+  | PlaceTrapUseFunction
   | PocketDimensionUseFunction
   | ProspectPickUseFunction
   | RepairItemUseFunction
@@ -505,7 +506,6 @@ export type UseFunction =
         | "mutagen_iv"
         | "place_monster"
         | "place_npc"
-        | "place_trap"
         | "reveal_map"
         | "salvage"
         | "set_transform"
@@ -595,6 +595,15 @@ export type DimensionTravelUseFunction = {
 type ItemActionUseFunction = {
   type: "__item_action__";
   id: string;
+};
+
+export type PlaceTrapUseFunction = {
+  type: "place_trap";
+  trap: string;
+  outer_layer_trap?: string;
+  bury?: {
+    trap?: string;
+  };
 };
 
 export type TransformUseFunction = {
@@ -1021,6 +1030,37 @@ export type Technique = {
   flags?: string[];
 } & MartialArtRequirements &
   BonusContainer;
+
+export type TrapDrop =
+  | string
+  | {
+      item?: string; // item_id
+      quantity?: number;
+      charges?: number;
+    };
+
+export type Trap = {
+  id: string;
+  type: "trap";
+  name: Translation | string;
+  color?: string;
+  symbol?: string;
+  looks_like?: string;
+  visibility: number;
+  avoidance: number;
+  difficulty: number;
+  action: string;
+  benign?: boolean;
+  remove_on_trigger?: boolean;
+  always_invisible?: boolean;
+  funnel_radius?: number;
+  comfort?: number;
+  floor_bedding_warmth?: number;
+  trigger_weight?: string;
+  trap_radius?: number;
+  drops?: TrapDrop[];
+  trigger_items?: TrapDrop[];
+};
 
 export type Vitamin = {
   id: string;
@@ -2299,6 +2339,7 @@ export type SupportedTypes = {
   sub_body_part: SubBodyPart;
   technique: Technique;
   terrain: Terrain;
+  trap: Trap;
   tool_quality: ToolQuality;
   uncraft: { type: "uncraft" } & Recipe;
   vehicle: Vehicle;

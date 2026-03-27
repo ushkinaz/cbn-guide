@@ -36,6 +36,7 @@ import type {
   RequirementData,
   SupportedTypeMapped,
   SupportedTypesWithMapped,
+  Trap,
   Translation,
   UseFunction,
   Vehicle,
@@ -2035,6 +2036,23 @@ export class CBNData {
     ];
   }
 
+  #disarmTrapIndex = new ReverseIndex(this, "trap", (trap) => {
+    const droppedItems = trap.drops
+      ?.map((drop) => (typeof drop === "string" ? drop : drop.item))
+      .filter((drop): drop is string => typeof drop === "string");
+    return [...new Set(droppedItems ?? [])];
+  });
+  disarmTrap(item_id: string): Trap[] {
+    return this.#disarmTrapIndex.lookup(item_id).sort(byName);
+  }
+
+  #constructTrapIndex = new ReverseIndex(this, "item", (item) =>
+    trapIdsFromUseAction(item.use_action),
+  );
+  constructsTrap(trap_id: string): Item[] {
+    return this.#constructTrapIndex.lookup(trap_id).sort(byName);
+  }
+
   setLocale(localeJson: any, pinyinNameJson: any) {
     if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
     i18n.loadJSON(localeJson);
@@ -2465,6 +2483,17 @@ export function normalizeUseAction(action: Item["use_action"]): UseFunction[] {
   } else {
     return action ? [action] : [];
   }
+}
+
+function trapIdsFromUseAction(action: Item["use_action"]): string[] {
+  const trapIds = new Set<string>();
+  for (const useAction of normalizeUseAction(action)) {
+    if (useAction.type !== "place_trap") continue;
+    trapIds.add(useAction.trap);
+    if (useAction.outer_layer_trap) trapIds.add(useAction.outer_layer_trap);
+    if (useAction.bury?.trap) trapIds.add(useAction.bury.trap);
+  }
+  return [...trapIds];
 }
 
 const fetchJsonWithProgress = (
