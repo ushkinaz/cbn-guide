@@ -18,6 +18,7 @@ export const SEARCHABLE_TYPES = new Set<keyof SupportedTypesWithMapped>([
   "terrain",
   "skill",
   "overmap_special",
+  "trap",
 ]);
 
 export type SearchTarget = {

@@ -133,6 +133,8 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
       return t("Techniques");
     case "terrain":
       return t("Terrain");
+    case "trap":
+      return t("Traps");
     case "tool_quality":
       return t("Qualities");
     case "uncraft":

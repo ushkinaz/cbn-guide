@@ -30,6 +30,7 @@ import ContainerInfo from "./item/Container.svelte";
 import ConstructionByproduct from "./item/ConstructionByproduct.svelte";
 import Deconstruct from "./item/Deconstruct.svelte";
 import Disassembly from "./item/Disassembly.svelte";
+import DisarmTrap from "./item/DisarmTrap.svelte";
 import DissectedFrom from "./item/DissectedFrom.svelte";
 import DroppedBy from "./item/DroppedBy.svelte";
 import Foraged from "./item/Foraged.svelte";
@@ -487,6 +488,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <ConstructionByproduct item_id={item.id} />
   <Deconstruct item_id={item.id} />
   <Bash item_id={item.id} />
+  <DisarmTrap item_id={item.id} />
   <DroppedBy item_id={item.id} />
   <SpawnedIn item_id={item.id} />
   <SpawnedInVehicle item_id={item.id} />
