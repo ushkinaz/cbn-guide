@@ -26,11 +26,7 @@ import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import vehicleIcon from "./assets/category-icons/vehicle.svg";
 import { t } from "@transifex/native";
 import { CBNData, data, mapType } from "./data";
-import {
-  getCurrentVersionSlug,
-  getVersionedBasePath,
-  navigateTo,
-} from "./routing";
+import { getVersionedBasePath, navigateTo } from "./routing";
 import type { SupportedTypesWithMapped } from "./types";
 
 const categories = [
@@ -153,12 +149,11 @@ async function openRandomPage(event: MouseEvent) {
   event.preventDefault();
   const r = await getRandomPage();
   const destination = r ?? RANDOM_PICK_FALLBACK;
-  navigateTo(
-    getCurrentVersionSlug(),
-    { type: destination.type, id: destination.id },
-    "",
-    true,
-  );
+  navigateTo({
+    kind: "item",
+    type: destination.type,
+    id: destination.id,
+  });
 }
 </script>
 

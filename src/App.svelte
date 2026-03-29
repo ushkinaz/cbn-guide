@@ -23,16 +23,15 @@ import {
   buildUrl,
   changeVersion,
   getCurrentVersionSlug,
-  getUrlConfig,
   getVersionedBasePath,
   handleInternalNavigation,
   type InitialAppState,
   initializeRouting,
-  isSupportedType,
   isSupportedVersion,
   navigateTo,
   NIGHTLY_VERSION,
   page,
+  type RouteTarget,
   STABLE_VERSION,
   updateQueryParam,
   updateQueryParamNoReload,
@@ -54,6 +53,7 @@ import Notification, { notify } from "./Notification.svelte";
 import RenderErrorFallback from "./RenderErrorFallback.svelte";
 
 import { gameSingularName } from "./i18n/gettext";
+import { isSupportedType } from "./supported-types";
 
 let scrollY = $state(0);
 
@@ -104,7 +104,21 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-let item: { type: string; id: string } | null = $derived($page.route.item);
+let item: { type: string; id: string } | null = $derived.by(() => {
+  const target = $page.route.target;
+  if (target.kind === "catalog") {
+    return { type: target.type, id: "" };
+  }
+  if (target.kind === "item") {
+    return { type: target.type, id: target.id };
+  }
+  return null;
+});
+
+let routeSearchQuery: string = $derived.by(() =>
+  $page.route.target.kind === "search" ? $page.route.target.query : "",
+);
+
 let search: string = $state("");
 
 // Track URL changes for navigation detection
@@ -118,7 +132,7 @@ let previousRouteSearch: string | undefined = undefined;
 $effect(() => {
   if ($page.url.href !== previousUrl) {
     const currentPathname = $page.url.pathname;
-    const currentRouteSearch = $page.route.search;
+    const currentRouteSearch = routeSearchQuery;
 
     // On initial load OR URL changed - sync search (only if different)
     if (
@@ -173,10 +187,18 @@ updateSentryRoutingContext({ requestedVersion });
 // Initialize routing and fetch builds
 const appStart = nowTimeStamp();
 const p = mark("app-routing-start");
+const routingInitStart = nowTimeStamp();
 void initializeRouting()
   .then(async (result: InitialAppState) => {
     builds = result.builds;
     resolvedVersion = result.resolvedVersion;
+    metrics.distribution(
+      "nav.init.duration_ms",
+      nowTimeStamp() - routingInitStart,
+      {
+        unit: "millisecond",
+      },
+    );
     updateSentryRoutingContext({
       requestedVersion,
       resolvedVersion: result.resolvedVersion,
@@ -188,15 +210,16 @@ void initializeRouting()
       // Stop startup here so we don't start data loading right before navigation.
       return;
     }
-    const requestedModsFromUrl = [...$page.route.mods];
+    const requestedMods = result.mods;
+    const requestedLocale = result.locale;
 
     try {
       await data.setVersion(
         resolvedVersion,
-        localeParam,
+        requestedLocale,
         isBranchAlias ? requestedVersion : undefined,
         builds.find((b) => b.build_number === resolvedVersion)?.langs,
-        requestedModsFromUrl,
+        requestedMods,
       );
     } catch (e) {
       console.warn("Failed to set version", e);
@@ -212,8 +235,8 @@ void initializeRouting()
 
     if ($data) {
       const resolvedMods = $data.active_mods ?? [];
-      if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
-        const removedMods = requestedModsFromUrl.filter(
+      if (!arraysEqual(requestedMods, resolvedMods)) {
+        const removedMods = requestedMods.filter(
           (modId) => !resolvedMods.includes(modId),
         );
         updateQueryParamNoReload(
@@ -265,9 +288,7 @@ void initializeRouting()
     p.finish();
   });
 
-const urlConfig = getUrlConfig();
-const localeParam = urlConfig.locale;
-const tilesetParam = urlConfig.tileset;
+let localeParam: string | null = $derived($page.route.locale);
 
 function loadTileset(): string {
   try {
@@ -318,9 +339,14 @@ function setOgTitle(value: string) {
   document.head.appendChild(created);
 }
 
-let tileset: string = $state(
-  (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset(),
-);
+let tileset: string = $state(loadTileset());
+
+$effect(() => {
+  const routeTileset = $page.route.tileset;
+  if (routeTileset !== null && isValidTileset(routeTileset)) {
+    tileset = routeTileset;
+  }
+});
 
 // React to tileset changes
 $effect(() => {
@@ -362,8 +388,8 @@ $effect(() => {
         guide: UI_GUIDE_NAME,
         _context: PAGE_DESCRIPTION_CONTEXT,
       });
-    } else if ($page.route.search) {
-      const searchQuery = $page.route.search;
+    } else if (routeSearchQuery) {
+      const searchQuery = routeSearchQuery;
       document.title = formatTitle(
         `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${searchQuery}`,
       );
@@ -398,7 +424,7 @@ $effect(() => {
 });
 
 const handleSearchInput = () => {
-  updateSearchRoute(search, $page.route.item);
+  updateSearchRoute(search, $page.route.target);
 };
 
 const executeSearchAction = () => {
@@ -408,11 +434,11 @@ const executeSearchAction = () => {
   const firstResult = searchState.firstResult;
   if (firstResult) {
     metrics.count("search.result.open", 1, { method: "enter_key" });
-    navigateTo(
-      getCurrentVersionSlug(),
-      { type: mapType(firstResult.type), id: firstResult.id },
-      "",
-    );
+    navigateTo({
+      kind: "item",
+      type: mapType(firstResult.type),
+      id: firstResult.id,
+    });
   }
 };
 
@@ -498,7 +524,7 @@ function onItemBoundaryError(boundaryError: unknown): void {
     boundaryError instanceof Error
       ? boundaryError
       : new Error(String(boundaryError));
-  const routeItem = $page.route.item;
+  const routeItem = item;
   metrics.count("app.error.catch", 1, {
     type: routeItem?.type ?? "shell",
     id: routeItem?.id ?? "none",
@@ -508,7 +534,7 @@ function onItemBoundaryError(boundaryError: unknown): void {
       version: $page.route.version,
       type: routeItem?.type,
       id: routeItem?.id,
-      search: $page.route.search,
+      search: routeSearchQuery,
     },
   };
   console.error(error, context);
@@ -542,14 +568,10 @@ function getLanguageName(code: string) {
 }
 
 let canonicalUrl = $derived(
-  buildUrl(
-    STABLE_VERSION,
-    $page.route.item,
-    $page.route.search,
-    localeParam,
-    null,
-    $page.route.mods,
-  ),
+  buildUrl(STABLE_VERSION, $page.route.target, {
+    locale: localeParam,
+    mods: $page.route.mods,
+  }),
 );
 </script>
 
@@ -571,14 +593,10 @@ let canonicalUrl = $derived(
         <link
           rel="alternate"
           hreflang={lang.replace("_", "-")}
-          href={buildUrl(
-            getCurrentVersionSlug(),
-            $page.route.item,
-            $page.route.search,
-            lang,
-            null,
-            $page.route.mods,
-          )} />
+          href={buildUrl(getCurrentVersionSlug(), $page.route.target, {
+            locale: lang,
+            mods: $page.route.mods,
+          })} />
       {/each}
     {/if}
   {/if}
@@ -853,7 +871,10 @@ let canonicalUrl = $derived(
             value={requestedVersion}
             onchange={(e) => {
               const v = e.currentTarget.value;
-              metrics.count("ui.version.change", 1, { v });
+              metrics.count("ui.version.change", 1, {
+                from: $page.route.version,
+                to: v,
+              });
               changeVersion(v);
             }}>
             <optgroup
@@ -909,7 +930,7 @@ let canonicalUrl = $derived(
         <select
           id="language_select"
           aria-label={t("Language", { _context: LANGUAGE_SELECTOR_CONTEXT })}
-          value={$data?.effective_locale || localeParam || "en"}
+          value={$data?.effective_locale ?? localeParam ?? "en"}
           onchange={(e) => {
             const lang = e.currentTarget.value;
             updateQueryParam("lang", lang === "en" ? null : lang);

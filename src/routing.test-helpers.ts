@@ -244,6 +244,12 @@ export function setWindowLocation(path: string, search = ""): void {
       origin,
       pathname,
       search,
+      assign(next: string | URL) {
+        const url = new URL(next.toString(), origin);
+        this.href = url.toString();
+        this.pathname = url.pathname;
+        this.search = url.search;
+      },
       replace(next: string | URL) {
         const url = new URL(next.toString(), origin);
         this.href = url.toString();

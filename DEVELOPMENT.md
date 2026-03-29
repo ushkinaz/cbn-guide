@@ -83,7 +83,7 @@ Useful companion docs:
 
 ```mermaid
 flowchart TD
-    URL["URL + query params"] --> Routing["src/routing.ts parseRoute()"]
+    URL["URL + query params"] --> Routing["src/routing.ts getRoute()"]
     Routing --> PageStore["page store"]
     PageStore --> App["src/App.svelte"]
     App --> Init["initializeRouting()"]
@@ -127,7 +127,7 @@ Use `$derived` for pure computed values with no side effects.
 
 Real examples:
 
-- `src/App.svelte`: `item` from `$page.route.item`
+- `src/App.svelte`: `item` from `getRouteItem($page.route.target)`
 - `src/SearchResults.svelte`: `results` and `matchingObjectsList`
 - `src/LimitedList.svelte`: `initialLimit` and `realLimit`
 
@@ -235,7 +235,7 @@ Avoid these:
 | `tileData`                  | store/helper module   | `src/tile-data.ts`           | global    | updated from `App.svelte` when tileset changes  |
 | `searchState`               | rune-based singleton  | `src/search-state.svelte.ts` | global    | owns debounced query results                    |
 | `search`                    | local rune state      | `src/App.svelte`             | shell     | synced from URL and user input                  |
-| `item`                      | `$derived`            | `src/App.svelte`             | shell     | projected from `$page.route.item`               |
+| `item`                      | `$derived`            | `src/App.svelte`             | shell     | projected from `$page.route.target` via helper  |
 | `builds`, `resolvedVersion` | local rune state      | `src/App.svelte`             | shell     | populated by `initializeRouting()`              |
 | `expanded`                  | local rune state      | `src/LimitedList.svelte`     | component | UI-only disclosure state                        |
 

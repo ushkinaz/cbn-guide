@@ -58,7 +58,7 @@ The application uses a **hybrid routing approach**:
     3. Default (ASCII)
 
 - **`mods`**: Comma-separated list of active mod IDs (e.g., `"dda,aftershock"`)
-  - Parsed into a `string[]` by `parseRoute()`
+  - Parsed into a `string[]` by `getRoute()`
   - URL remains the strict source-of-truth for active mods
 
 ## Navigation Types
@@ -115,7 +115,7 @@ sequenceDiagram
 
     Init->>Init: pickLatestBuild(stable) [O(n)]
     Init->>Init: pickLatestBuild(nightly) [O(n)]
-    Init->>Init: parseRoute().version
+    Init->>Init: getRoute().version
     Init->>Init: resolveVersionAlias()
 
     alt Version exists
@@ -133,22 +133,26 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    Start[URL: /stable/item/rock] --> Parse[parseRoute]
+    Start[URL: /stable/item/rock] --> Parse[getRoute]
 
     Parse --> GetSeg[getPathSegments]
     GetSeg --> Decode[decodeURIComponent on each segment]
     Decode --> Segments["['stable', 'item', 'rock']"]
 
     Segments --> Check{type === 'search'?}
-    Check -->|Yes| SearchRoute["{ version, item: null, search: id }"]
-    Check -->|No| CheckItem{type exists?}
+    Check -->|Yes| SearchTarget["target: { kind: 'search', query: id ?? '' }"]
+    Check -->|No| CheckType{type exists?}
 
-    CheckItem -->|Yes| ItemRoute["{ version, item: {type, id}, search: '' }"]
-    CheckItem -->|No| HomeRoute["{ version, item: null, search: '' }"]
+    CheckType -->|No| HomeTarget["target: { kind: 'home' }"]
+    CheckType -->|Yes| CheckId{id exists?}
 
-    SearchRoute --> Return[ParsedRoute]
-    ItemRoute --> Return
-    HomeRoute --> Return
+    CheckId -->|Yes| ItemTarget["target: { kind: 'item', type, id }"]
+    CheckId -->|No| CatalogTarget["target: { kind: 'catalog', type }"]
+
+    SearchTarget --> Return["ParsedRoute { version, mods, locale, tileset, target: RouteTarget }"]
+    ItemTarget --> Return
+    CatalogTarget --> Return
+    HomeTarget --> Return
 ```
 
 ## State Management
@@ -158,14 +162,15 @@ graph TD
 | Variable             | Purpose                       | Scope     | Source                |
 | -------------------- | ----------------------------- | --------- | --------------------- |
 | `resolvedVersion`    | Current resolved build number | Component | `initializeRouting()` |
-| `requestedVersion`   | Version slug from URL         | Component | `parseRoute()`        |
+| `requestedVersion`   | Version slug from URL         | Component | `getRoute()`          |
 | `builds`             | List of available builds      | Component | `initializeRouting()` |
 | `latestStableBuild`  | Latest stable build info      | Component | `initializeRouting()` |
 | `latestNightlyBuild` | Latest nightly build info     | Component | `initializeRouting()` |
-| `item`               | Currently displayed item      | Component | `parseRoute()`        |
-| `search`             | Current search query          | Component | `parseRoute()`        |
-| `tileset`            | Current tileset ID            | Component | `getUrlConfig()`      |
-| `locale`             | Current language code         | Component | `getUrlConfig()`      |
+| `target`             | Parsed route target           | Component | `getRoute()`          |
+| `item`               | Derived current item/catalog  | Component | `$page.route.target`  |
+| `search`             | Derived current search query  | Component | `$page.route.target`  |
+| `tileset`            | Current tileset ID            | Component | `getRoute()`          |
+| `locale`             | Current language code         | Component | `getRoute()`          |
 
 ### Svelte Stores (`src/data.ts`)
 
@@ -206,7 +211,7 @@ The version resolution follows this priority:
 
 #### Read Operations
 
-##### `parseRoute(): ParsedRoute`
+##### `getRoute(): ParsedRoute`
 
 Parses the current URL and extracts route information.
 
@@ -214,37 +219,26 @@ Parses the current URL and extracts route information.
 
 ```typescript
 {
-  version: string;        // Version slug from URL
-  item: {                 // null if search or home
-    type: string;
-    id: string;
-  } | null;
-  search: string;         // Empty string if not search
-  mods: string[];         // Normalized from ?mods=
+  version: string;
+  mods: string[];
+  locale: string | null;
+  tileset: string | null;
+  target:
+    | { kind: "home" }
+    | { kind: "search"; query: string }
+    | { kind: "catalog"; type: string }
+    | { kind: "item"; type: string; id: string };
 }
 ```
 
 **Example:**
 
 ```typescript
-// URL: /stable/item/rock?mods=dda,aftershock
-parseRoute(); // { version: "stable", item: { type: "item", id: "rock" }, search: "", mods: ["dda", "aftershock"] }
+// URL: /stable/item/rock?lang=ru_RU&t=retro&mods=dda,aftershock
+getRoute(); // { version: "stable", mods: ["dda", "aftershock"], locale: "ru_RU", tileset: "retro", target: { kind: "item", type: "item", id: "rock" } }
 
 // URL: /nightly/search/C%2B%2B
-parseRoute(); // { version: "nightly", item: null, search: "C++", mods: [] }
-```
-
-##### `getUrlConfig(): UrlConfig`
-
-Extracts configuration from URL query parameters.
-
-**Returns:**
-
-```typescript
-{
-  locale: string | null; // ?lang= parameter
-  tileset: string | null; // ?t= parameter
-}
+getRoute(); // { version: "nightly", mods: [], locale: null, tileset: null, target: { kind: "search", query: "C++" } }
 ```
 
 ##### `getCurrentVersionSlug(): string`
@@ -289,48 +283,53 @@ isSupportedVersion("2025-12-30"); // true (assumes recent = supported)
 
 #### Build Operations
 
-##### `buildUrl(version, item, search, locale?, tileset?, mods?): string`
+##### `buildUrl(version, target, options?): string`
 
 Builds a complete URL from route components.
 
 **Parameters:**
 
 - `version: string` - Version slug or build number
-- `item: { type: string; id: string } | null` - Item to navigate to
-- `search: string` - Search query
-- `locale?: string | null` - Language code (omit for English)
-- `tileset?: string | null` - Tileset ID
-- `mods?: string[]` - Active mod IDs to persist in URL
+- `target: RouteTarget` - Destination to encode into the path
+- `options?: { locale?: string | null; tileset?: string | null; mods?: string[] }`
 
 **Returns:** Complete URL string
 
 **Example:**
 
 ```typescript
-buildUrl("stable", { type: "item", id: "rock" }, "");
+buildUrl("stable", { kind: "item", type: "item", id: "rock" });
 // "http://localhost:3000/cbn-guide/stable/item/rock"
 
-buildUrl("nightly", null, "C++", "ru_RU", "UltimateCataclysm");
+buildUrl(
+  "nightly",
+  { kind: "search", query: "C++" },
+  {
+    locale: "ru_RU",
+    tileset: "UltimateCataclysm",
+  },
+);
 // "http://localhost:3000/cbn-guide/nightly/search/C%2B%2B?lang=ru_RU&t=UltimateCataclysm"
 
-buildUrl("stable", { type: "item", id: "rock" }, "", null, null, [
-  "aftershock",
-]);
+buildUrl(
+  "stable",
+  { kind: "item", type: "item", id: "rock" },
+  {
+    mods: ["aftershock"],
+  },
+);
 // "http://localhost:3000/cbn-guide/stable/item/rock?mods=aftershock"
 ```
 
 #### Navigation Operations
 
-##### `navigateTo(version, item, search, pushToHistory?): void`
+##### `navigateTo(target): void`
 
 Programmatically navigates to a new route while preserving query parameters.
 
 **Parameters:**
 
-- `version: string` - Version slug to navigate to
-- `item: { type: string; id: string } | null` - Item to navigate to (null for home/search)
-- `search: string` - Search query (empty string if not searching)
-- `pushToHistory?: boolean` - Whether to push to history (default: true) or replace current entry
+- `target: RouteTarget` - Destination to navigate to inside the current version/query context
 
 **Behavior:**
 
@@ -343,21 +342,13 @@ Programmatically navigates to a new route while preserving query parameters.
 **Example:**
 
 ```typescript
-import { navigateTo, getCurrentVersionSlug } from "./routing";
+import { navigateTo } from "./routing";
 
 // Navigate to an item
-navigateTo(getCurrentVersionSlug(), { type: "item", id: "fire_ax" }, "");
+navigateTo({ kind: "item", type: "item", id: "fire_ax" });
 
 // Navigate to search results
-navigateTo(getCurrentVersionSlug(), null, "zombie");
-
-// Replace current history entry instead of pushing
-navigateTo(
-  getCurrentVersionSlug(),
-  { type: "monster", id: "mon_zombie" },
-  "",
-  false,
-);
+navigateTo({ kind: "search", query: "zombie" });
 ```
 
 **Use Cases:**
@@ -366,13 +357,13 @@ navigateTo(
 - Custom navigation logic in components
 - Navigating from external triggers (e.g., keyboard shortcuts)
 
-##### `updateSearchRoute(searchQuery, currentItem): void`
+##### `updateSearchRoute(searchQuery, currentTarget): void`
 
 Updates the URL to reflect a search query.
 
 **Behavior:**
 
-- Uses `pushState` when navigating from an item
+- Uses `pushState` when navigating from an item or catalog route
 - Uses debounced `replaceState` (400ms trailing) when typing in search box
 - Cancellation-aware: explicit navigation cancels pending updates
 
@@ -408,6 +399,9 @@ Initializes routing by fetching builds and resolving the requested version.
 {
   builds: BuildInfo[];
   resolvedVersion: string;
+  mods: string[];
+  locale: string | null;
+  redirected: boolean;
   latestStableBuild?: BuildInfo;
   latestNightlyBuild?: BuildInfo;
 }
@@ -435,14 +429,10 @@ export type BuildInfo = {
 
 export type ParsedRoute = {
   version: string;
-  item: { type: string; id: string } | null;
-  search: string;
   mods: string[];
-};
-
-export type UrlConfig = {
   locale: string | null;
   tileset: string | null;
+  target: RouteTarget;
 };
 
 export type InitialAppState = {
@@ -457,25 +447,37 @@ export type InitialAppState = {
 
 ### Adding a New Query Parameter
 
-1. Extract parameter in component initialization:
+1. Add it to `ParsedRoute` and parse it inside `parseRouteFromUrl()`:
 
    ```typescript
-   const myParam = getUrlConfig().myParam; // Add to UrlConfig type
-   ```
+   export type ParsedRoute = {
+     version: string;
+     mods: string[];
+     locale: string | null;
+     tileset: string | null;
+     myParam: string | null;
+     target: RouteTarget;
+   };
 
-2. Update `getUrlConfig()` to include it:
-
-   ```typescript
-   export function getUrlConfig(): UrlConfig {
+   function parseRouteFromUrl(url: URL): ParsedRoute {
      return {
-       locale: getSearchParam("lang"),
-       tileset: getSearchParam("t"),
-       myParam: getSearchParam("my_param"),
+       version,
+       mods,
+       locale: url.searchParams.get("lang"),
+       tileset: url.searchParams.get("t"),
+       myParam: url.searchParams.get("my_param"),
+       target,
      };
    }
    ```
 
-3. Add select handler using `updateQueryParam()`:
+2. Read it from `getRoute()` or `$page.route` in components:
+
+   ```typescript
+   const myParam = getRoute().myParam;
+   ```
+
+3. Add a select handler using `updateQueryParam()`:
 
    ```typescript
    on:change={(e) => {
@@ -485,7 +487,7 @@ export type InitialAppState = {
 
 ### Adding SPA Navigation to a New Page Type
 
-1. Update `parseRoute()` to handle the new path pattern (if needed)
+1. Update `getRoute()` to handle the new path pattern (if needed)
 
 2. Ensure links use the standard format:
 
@@ -509,7 +511,11 @@ Or build complete URLs with query params:
 <script>
   import { buildUrl, getCurrentVersionSlug } from "./routing";
 
-  $: itemUrl = buildUrl(getCurrentVersionSlug(), { type: "item", id: item.id }, "");
+  $: itemUrl = buildUrl(getCurrentVersionSlug(), {
+    kind: "item",
+    type: "item",
+    id: item.id,
+  });
 </script>
 
 <a href="{itemUrl}">
@@ -520,11 +526,11 @@ Or build complete URLs with query params:
 ### Check URL Parsing
 
 ```typescript
-import { parseRoute } from "./routing";
+import { getRoute } from "./routing";
 
 // In browser console
-parseRoute();
-// { version: "stable", item: { type: "item", id: "rock" }, search: "" }
+getRoute();
+// { version: "stable", mods: [], target: { kind: "item", type: "item", id: "rock" } }
 ```
 
 ### Verify Version Resolution
@@ -538,11 +544,10 @@ getCurrentVersionSlug(); // "stable", "nightly", or build number
 ### Inspect State
 
 ```typescript
-// Check current path segments (internal function, but accessible via parseRoute)
-const route = parseRoute();
+// Check current path segments (internal function, but accessible via getRoute)
+const route = getRoute();
 console.log("Version:", route.version);
-console.log("Item:", route.item);
-console.log("Search:", route.search);
+console.log("Target:", route.target);
 
 // Check if version exists in builds
 builds?.find((b) => b.build_number === resolvedVersion);
@@ -562,13 +567,13 @@ Version XYZ not found in builds list, falling back to 2025-12-30.
 import { buildUrl } from "./routing";
 
 // Test special characters
-buildUrl("stable", null, "C++ test", null, null);
+buildUrl("stable", { kind: "search", query: "C++ test" });
 // Should encode to: /stable/search/C%2B%2B%20test
 
 // Verify round-trip
-const url = buildUrl("stable", null, "C++", null, null);
+const url = buildUrl("stable", { kind: "search", query: "C++" });
 // Navigate to URL, then:
-parseRoute().search; // Should be "C++" (correctly decoded)
+getRoute().target; // Should be { kind: "search", query: "C++" }
 ```
 
 ## Known Limitations

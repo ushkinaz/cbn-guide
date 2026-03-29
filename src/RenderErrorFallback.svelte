@@ -4,7 +4,7 @@ import { untrack } from "svelte";
 
 import type { CBNData } from "./data";
 import JsonView from "./JsonView.svelte";
-import { isSupportedType } from "./routing";
+import { isSupportedType } from "./supported-types";
 import type { SupportedTypes } from "./types";
 import { isDev } from "./utils/env";
 

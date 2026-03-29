@@ -11,12 +11,10 @@
  * - URL generation and manipulation
  */
 
-import { writable, type Readable } from "svelte/store";
+import { get, type Readable, writable } from "svelte/store";
 import { BUILDS_URL } from "./constants";
-import { debounce } from "./utils/debounce";
-import { metrics } from "./metrics";
-import { nowTimeStamp } from "./utils/perf";
 import { BASE_URL } from "./utils/env";
+import { debounce } from "./utils/debounce";
 
 // ============================================================================
 // Constants
@@ -29,6 +27,12 @@ export const LATEST_VERSION = "latest";
 // ============================================================================
 // Types
 // ============================================================================
+
+export type RouteTarget =
+  | { kind: "home" }
+  | { kind: "search"; query: string }
+  | { kind: "catalog"; type: string }
+  | { kind: "item"; type: string; id: string };
 
 /**
  * Build info type (mirrors JSON structure from builds.json)
@@ -45,18 +49,20 @@ export type BuildInfo = {
  */
 export type ParsedRoute = {
   version: string;
-  item: { type: string; id: string } | null;
-  search: string;
   mods: string[];
-};
-
-/**
- * URL configuration extracted from query parameters
- */
-export type UrlConfig = {
   locale: string | null;
   tileset: string | null;
+  target: RouteTarget;
 };
+
+type PageState = {
+  url: URL;
+  route: ParsedRoute;
+};
+
+export type BuildUrlOptions = Partial<
+  Pick<ParsedRoute, "locale" | "tileset" | "mods">
+>;
 
 /**
  * Result of routing initialization - essentially the initial application state
@@ -64,8 +70,10 @@ export type UrlConfig = {
 export type InitialAppState = {
   builds: BuildInfo[];
   resolvedVersion: string;
+  mods: string[];
+  locale: string | null;
   /**
-   * True when initializeRouting already triggered location.replace().
+   * `True` when initializeRouting already triggered location.replace().
    * App startup must stop in this case to avoid kicking off redundant data loads
    * while the browser is navigating to the corrected URL.
    */
@@ -121,45 +129,8 @@ function getPathSegmentsFromPath(pathname: string): string[] {
 }
 
 /**
- * Extract and decode path segments from the current URL
- *
- * @returns Array of decoded path segments
+ * Normalize the mods query parameter into a stable list.
  */
-function getPathSegments(): string[] {
-  return getPathSegmentsFromPath(location.pathname);
-}
-
-/**
- * Get the current version slug from URL
- * This is what components should use to build relative URLs
- */
-export function getCurrentVersionSlug(): string {
-  const segments = getPathSegments();
-  return segments[0] || STABLE_VERSION;
-}
-
-/**
- * Get the base path for the current version (e.g., "/cbn-guide/stable/")
- * Use this when building href strings in templates
- */
-export function getVersionedBasePath(): string {
-  return BASE_URL + getCurrentVersionSlug() + "/";
-}
-
-/**
- * Get current URL search params
- */
-function getSearchParams(): URLSearchParams {
-  return new URLSearchParams(location.search);
-}
-
-/**
- * Get a specific search param value
- */
-function getSearchParam(param: string): string | null {
-  return getSearchParams().get(param);
-}
-
 function normalizeMods(raw: string | null): string[] {
   if (!raw) return [];
   const normalized: string[] = [];
@@ -173,6 +144,41 @@ function normalizeMods(raw: string | null): string[] {
   return normalized;
 }
 
+function createRouteTarget(
+  type: string | undefined,
+  id: string | undefined,
+): RouteTarget {
+  if (type === "search") {
+    return { kind: "search", query: id ?? "" };
+  }
+
+  if (type) {
+    return id ? { kind: "item", type, id } : { kind: "catalog", type };
+  }
+
+  return { kind: "home" };
+}
+
+function parseRouteFromUrl(url: URL): ParsedRoute {
+  const segments = getPathSegmentsFromPath(url.pathname);
+
+  return {
+    version: segments[0] || STABLE_VERSION,
+    mods: normalizeMods(url.searchParams.get("mods")),
+    locale: url.searchParams.get("lang"),
+    tileset: url.searchParams.get("t"),
+    target: createRouteTarget(segments[1], segments[2]),
+  };
+}
+
+function readCurrentLocation(): PageState {
+  const url = new URL(location.href);
+  return {
+    url,
+    route: parseRouteFromUrl(url),
+  };
+}
+
 /**
  * Get build timestamp for sorting
  */
@@ -181,9 +187,22 @@ function getBuildTimestamp(build: BuildInfo): number {
   return Number.isNaN(ts) ? -Infinity : ts;
 }
 
+function compareBuildsDescending(left: BuildInfo, right: BuildInfo): number {
+  const leftTimestamp = getBuildTimestamp(left);
+  const rightTimestamp = getBuildTimestamp(right);
+
+  if (leftTimestamp !== rightTimestamp) {
+    return rightTimestamp - leftTimestamp;
+  }
+
+  return right.build_number.localeCompare(left.build_number, undefined, {
+    numeric: true,
+    sensitivity: "base",
+  });
+}
+
 /**
  * Pick the latest build matching a predicate
- * Uses O(n) algorithm instead of O(n log n) sorting
  */
 function pickLatestBuild(
   buildList: BuildInfo[],
@@ -196,9 +215,8 @@ function pickLatestBuild(
     if (!predicate(build)) continue;
     const ts = getBuildTimestamp(build);
     if (
-      ts > latestTimestamp ||
-      (ts === latestTimestamp &&
-        build.build_number > (latest?.build_number ?? ""))
+      !latest ||
+      (ts >= latestTimestamp && compareBuildsDescending(build, latest) < 0)
     ) {
       latestTimestamp = ts;
       latest = build;
@@ -223,7 +241,7 @@ function resolveVersionAlias(
 }
 
 /**
- * Get fallback version from builds list
+ * Get a fallback version from the builds list
  */
 function getFallbackVersion(
   builds: BuildInfo[],
@@ -251,15 +269,28 @@ function versionExists(builds: BuildInfo[], buildNumber: string): boolean {
 // State Management
 // ============================================================================
 
-type PageState = {
-  url: URL;
-  route: ParsedRoute;
-};
+function createPageStateFromLocation(): PageState {
+  if (typeof window === "undefined") {
+    return createEmptyPageState("http://localhost/");
+  }
 
-const _page = writable<PageState>({
-  url: new URL(location.href),
-  route: parseRoute(),
-});
+  return readCurrentLocation();
+}
+
+function createEmptyPageState(url: string): PageState {
+  return {
+    url: new URL(url),
+    route: {
+      version: STABLE_VERSION,
+      mods: [],
+      locale: null,
+      tileset: null,
+      target: { kind: "home" },
+    },
+  };
+}
+
+const _page = writable<PageState>(createPageStateFromLocation());
 
 /**
  * Global store representing the current page state (URL and parsed route).
@@ -271,10 +302,7 @@ export const page: Readable<PageState> = { subscribe: _page.subscribe };
  * Internal helper to update the page store
  */
 function updatePageState() {
-  _page.set({
-    url: new URL(location.href),
-    route: parseRoute(),
-  });
+  _page.set(createPageStateFromLocation());
 }
 
 /**
@@ -283,15 +311,7 @@ function updatePageState() {
  */
 export function _reset() {
   debouncedReplaceState.cancel();
-  _page.set({
-    url: new URL(
-      typeof window !== "undefined" ? location.href : "http://localhost/",
-    ),
-    route:
-      typeof window !== "undefined"
-        ? parseRoute()
-        : { version: STABLE_VERSION, item: null, search: "", mods: [] },
-  });
+  updatePageState();
 }
 
 // ============================================================================
@@ -299,85 +319,58 @@ export function _reset() {
 // ============================================================================
 
 /**
- * Parse the current URL and extract route information for the app
- * This determines what should be displayed based on the URL structure
+ * Gets the current URL and extract route information for the app
  *
- * @returns Object with version, item (for thing/catalog pages) or search query
+ * @returns Parsed route state from the synchronized page store
  */
-export function parseRoute(): ParsedRoute {
-  const segments = getPathSegments();
-  const version = segments[0] || STABLE_VERSION;
-  const type = segments[1];
-  const id = segments[2];
-  const mods = normalizeMods(getSearchParam("mods"));
-
-  if (type === "search") {
-    return {
-      version,
-      item: null,
-      search: id || "",
-      mods,
-    };
-  } else if (type) {
-    return {
-      version,
-      item: { type, id: id || "" },
-      search: "",
-      mods,
-    };
-  }
-
-  return {
-    version,
-    item: null,
-    search: "",
-    mods,
-  };
+export function getRoute(): ParsedRoute {
+  return get(_page).route;
 }
 
 /**
- * Extract configuration from URL query parameters
- * Centralizes all URL reading for app configuration
- *
- * @returns Object with locale and tileset from query params
+ * Get the current version slug from URL
+ * This is what components should use to build relative URLs
  */
-export function getUrlConfig(): UrlConfig {
-  return {
-    locale: getSearchParam("lang"),
-    tileset: getSearchParam("t"),
-  };
+export function getCurrentVersionSlug(): string {
+  return get(_page).route.version;
 }
 
 /**
- * Build a clean URL from route components
+ * Get the base path for the current version (e.g., "/stable/")
+ * Use this when building href strings in templates
+ */
+export function getVersionedBasePath(): string {
+  return BASE_URL + getCurrentVersionSlug() + "/";
+}
+
+/**
+ * Build a clean URL from a route target and query-backed routing options.
  */
 export function buildUrl(
   version: string,
-  item: { type: string; id: string } | null,
-  search: string,
-  locale: string | null = null,
-  tileset: string | null = null,
-  mods: string[] = [],
+  target: RouteTarget,
+  options: BuildUrlOptions = {},
 ): string {
+  const mods = options.mods ?? [];
   let path = BASE_URL + version + "/";
 
-  if (item) {
-    if (item.type && item.id) {
-      path += encodeURIComponent(item.type) + "/" + encodeURIComponent(item.id);
-    } else if (item.type) {
-      path += encodeURIComponent(item.type);
-    }
-  } else if (search) {
-    path += "search/" + encodeURIComponent(search);
+  if (target.kind === "catalog") {
+    path += encodeURIComponent(target.type);
+  } else if (target.kind === "item") {
+    path += `${encodeURIComponent(target.type)}/${encodeURIComponent(target.id)}`;
+  } else if (target.kind === "search") {
+    path += target.query
+      ? `search/${encodeURIComponent(target.query)}`
+      : "search";
   }
 
   // Always use URL class for consistent encoding/formatting
   const url = new URL(path, location.origin);
-  if (locale && locale !== "en") {
-    url.searchParams.set("lang", locale);
+  if (options.locale && options.locale !== "en") {
+    url.searchParams.set("lang", options.locale);
   }
-  if (tileset) {
-    url.searchParams.set("t", tileset);
+  if (options.tileset) {
+    url.searchParams.set("t", options.tileset);
   }
   if (mods.length > 0) {
     url.searchParams.set("mods", mods.join(","));
@@ -395,93 +388,80 @@ export function isSupportedVersion(buildNumber: string): boolean {
   return parseInt(major) > 0 || (parseInt(major) === 0 && parseInt(minor) >= 7);
 }
 
-import type { SupportedTypesWithMapped } from "./types";
-
-/**
- * Type guard to check if a string is a supported entity type
- */
-export function isSupportedType(
-  type: string,
-): type is keyof SupportedTypesWithMapped {
-  // This is a comprehensive list of all types mapped in data.ts
-  const supportedTypes = new Set([
-    "AMMO",
-    "ARMOR",
-    "BATTERY",
-    "BIONIC_ITEM",
-    "BOOK",
-    "COMESTIBLE",
-    "CONTAINER",
-    "ENGINE",
-    "GENERIC",
-    "GUN",
-    "GUNMOD",
-    "MAGAZINE",
-    "MONSTER",
-    "PET_ARMOR",
-    "TOOL",
-    "TOOLMOD",
-    "TOOL_ARMOR",
-    "WHEEL",
-    "city_building",
-    "construction",
-    "damage_type",
-    "fault",
-    "flag",
-    "item",
-    "item_group",
-    "json_flag",
-    "mapgen",
-    "material",
-    "monster",
-    "monstergroup",
-    "mutation",
-    "overmap_special",
-    "profession",
-    "recipe",
-    "requirement",
-    "skill",
-    "spell",
-    "technique",
-    "terrain",
-    "uncraft",
-    "vehicle",
-    "vehicle_part",
-    "trap",
-  ]);
-  return supportedTypes.has(type);
-}
-
 // ============================================================================
 // Action Utilities (Navigation & state change)
 // ============================================================================
+
+type HistoryMode = "push" | "replace";
+
+function navigateWithHistory(url: string, mode: HistoryMode): void {
+  if (mode === "push") {
+    history.pushState(null, "", url);
+  } else {
+    history.replaceState(null, "", url);
+  }
+  updatePageState();
+}
+
+function requiresHardNavigation(search: string): boolean {
+  if (!search) {
+    return false;
+  }
+
+  const searchParams = new URLSearchParams(search);
+  return searchParams.has("lang") || searchParams.has("mods");
+}
+
+function buildUrlInCurrentContext(target: RouteTarget): string {
+  const currentPageState = get(_page);
+  return buildUrl(currentPageState.route.version, target, {
+    locale: currentPageState.route.locale,
+    tileset: currentPageState.route.tileset,
+    mods: currentPageState.route.mods,
+  });
+}
+
+function updateCurrentQueryParam(
+  param: string,
+  value: string | null,
+  reload: boolean,
+): void {
+  debouncedReplaceState.cancel();
+
+  const url = new URL(get(_page).url);
+
+  if (value) {
+    url.searchParams.set(param, value);
+  } else {
+    url.searchParams.delete(param);
+  }
+
+  if (reload) {
+    location.href = url.toString();
+    return;
+  }
+
+  navigateWithHistory(url.toString(), "replace");
+}
 
 /**
  * Debounced version of history.replaceState for search input updates
  * Prevents excessive history updates during rapid typing
  */
 const debouncedReplaceState = debounce((url: string) => {
-  history.replaceState(null, "", url);
-  updatePageState();
+  navigateWithHistory(url, "replace");
 }, 400);
 
 /**
  * Update the URL to reflect a version change (causes full page reload)
  */
 export function changeVersion(newVersion: string): void {
-  const segments = getPathSegments();
-  if (segments.length === 0) {
-    segments.push(newVersion);
-  } else {
-    segments[0] = newVersion;
-  }
-
-  const newPath = BASE_URL + segments.join("/");
-  metrics.count("app.version.change", 1, {
-    from: getCurrentVersionSlug(),
-    to: newVersion,
+  const currentPageState = get(_page);
+  location.href = buildUrl(newVersion, currentPageState.route.target, {
+    locale: currentPageState.route.locale,
+    tileset: currentPageState.route.tileset,
+    mods: currentPageState.route.mods,
   });
-  location.href = newPath + location.search;
 }
 
 /**
@@ -489,25 +469,21 @@ export function changeVersion(newVersion: string): void {
  * Uses replaceState for search updates (no item), pushState when navigating from an item
  *
  * @param searchQuery - The search query string
- * @param currentItem - The current item being viewed (if any)
+ * @param currentTarget - The current target being viewed (if any)
  */
 export function updateSearchRoute(
   searchQuery: string,
-  currentItem: { type: string; id: string } | null,
+  currentTarget: RouteTarget,
 ): void {
-  const currentVer = getCurrentVersionSlug();
+  const nextTarget: RouteTarget = searchQuery
+    ? { kind: "search", query: searchQuery }
+    : { kind: "home" };
+  const fullUrl = buildUrlInCurrentContext(nextTarget);
+  const shouldPush =
+    currentTarget.kind === "catalog" || currentTarget.kind === "item";
 
-  // Construct a new path
-  let newPath = BASE_URL + currentVer + "/";
-  if (searchQuery) {
-    newPath += "search/" + encodeURIComponent(searchQuery);
-  }
-
-  const fullUrl = newPath + location.search;
-
-  if (currentItem) {
-    history.pushState(null, "", fullUrl);
-    updatePageState();
+  if (shouldPush) {
+    navigateWithHistory(fullUrl, "push");
   } else {
     debouncedReplaceState(fullUrl);
   }
@@ -517,13 +493,7 @@ export function updateSearchRoute(
  * Update URL query parameters and reload (for language and mod changes)
  */
 export function updateQueryParam(param: string, value: string | null): void {
-  const url = new URL(location.href);
-  if (value) {
-    url.searchParams.set(param, value);
-  } else {
-    url.searchParams.delete(param);
-  }
-  location.href = url.toString();
+  updateCurrentQueryParam(param, value, true);
 }
 
 /**
@@ -533,43 +503,17 @@ export function updateQueryParamNoReload(
   param: string,
   value: string | null,
 ): void {
-  const url = new URL(location.href);
-  if (value) {
-    url.searchParams.set(param, value);
-  } else {
-    url.searchParams.delete(param);
-  }
-  history.replaceState(null, "", url.toString());
-  updatePageState();
+  updateCurrentQueryParam(param, value, false);
 }
 
 /**
  * Navigate to a new route without affecting query params
  */
-export function navigateTo(
-  version: string,
-  item: { type: string; id: string } | null,
-  search: string,
-  pushToHistory: boolean = true,
-): void {
+export function navigateTo(target: RouteTarget): void {
   // Cancel any pending debounced URL updates - user is explicitly navigating
   debouncedReplaceState.cancel();
 
-  const url = buildUrl(
-    version,
-    item,
-    search,
-    getSearchParam("lang"),
-    getSearchParam("t"),
-    normalizeMods(getSearchParam("mods")),
-  );
-
-  if (pushToHistory) {
-    history.pushState(null, "", url);
-  } else {
-    history.replaceState(null, "", url);
-  }
-  updatePageState();
+  navigateWithHistory(buildUrlInCurrentContext(target), "push");
 }
 
 /**
@@ -596,10 +540,12 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
   // Check if this is an internal navigation
   if (anchor) {
     if (anchor.origin === location.origin && isPathUnderBase(anchor.pathname)) {
+      const currentPageState = get(_page);
+
       // Version-aware navigation check:
       // If the target version differs from the current version, do NOT intercept.
       // Changing version requires a full page reload to load new game data.
-      const currentVersion = getCurrentVersionSlug();
+      const currentVersion = currentPageState.route.version;
       const targetSegments = getPathSegmentsFromPath(anchor.pathname);
       const targetVersion = targetSegments[0] || STABLE_VERSION;
 
@@ -611,9 +557,13 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
       // Cancel pending debounced updates
       debouncedReplaceState.cancel();
       // Use anchor's query params if present, otherwise preserve current
-      const targetUrl = anchor.pathname + (anchor.search || location.search);
-      history.pushState(null, "", targetUrl);
-      updatePageState();
+      const targetUrl =
+        anchor.pathname + (anchor.search || currentPageState.url.search);
+      if (requiresHardNavigation(anchor.search)) {
+        location.assign(targetUrl);
+        return true;
+      }
+      navigateWithHistory(targetUrl, "push");
       return true;
     }
   }
@@ -649,10 +599,9 @@ if (typeof window !== "undefined") {
  * @throws Error if builds.json fails to load
  */
 export async function initializeRouting(): Promise<InitialAppState> {
-  const start = nowTimeStamp();
-
   // Ensure page state is synced at startup
   updatePageState();
+  const initialRoute = get(_page).route;
   const response = await fetch(BUILDS_URL);
   if (!response.ok) {
     throw new Error(
@@ -662,15 +611,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
   const builds: BuildInfo[] = await response.json();
 
   // Sort builds by date descending
-  builds.sort((a, b) => {
-    const tsA = getBuildTimestamp(a);
-    const tsB = getBuildTimestamp(b);
-    if (tsA !== tsB) return tsB - tsA;
-    return b.build_number.localeCompare(a.build_number, undefined, {
-      numeric: true,
-      sensitivity: "base",
-    });
-  });
+  builds.sort(compareBuildsDescending);
 
   const latestStableBuild = pickLatestBuild(
     builds,
@@ -687,7 +628,7 @@ export async function initializeRouting(): Promise<InitialAppState> {
     latestNightlyBuild,
   );
 
-  const requestedVersion = parseRoute().version;
+  const requestedVersion = initialRoute.version;
 
   let resolvedVersion =
     resolveVersionAlias(
@@ -696,11 +637,12 @@ export async function initializeRouting(): Promise<InitialAppState> {
       latestNightlyBuild,
     ) ?? fallbackVersion;
 
+  let redirected = false;
+
   // Version validation and automatic /stable/ prefixing
-  // If first segment isn't a valid version (stable/nightly/v0.9.1), prepend /stable/
+  // If the first segment isn't a valid version (stable/nightly/v0.9.1), prepend /stable/
   // This simple heuristic handles:
   // - Data type paths: /mutation/ID → /stable/mutation/ID
-  // - Future types: automatically works with new types
   // - Typos: /stabke/item → /stable/stabke/item (404 with clear error)
   if (!versionExists(builds, resolvedVersion)) {
     console.warn(
@@ -721,25 +663,17 @@ export async function initializeRouting(): Promise<InitialAppState> {
       BASE_URL + STABLE_VERSION + "/" + cleanRawPath + location.search;
     location.replace(newPath);
 
-    // Return early - page will reload with corrected URL
-    return {
-      builds,
-      resolvedVersion,
-      redirected: true,
-      latestStableBuild,
-      latestNightlyBuild,
-    };
+    // Return early - page will reload with the corrected URL
+    redirected = true;
   }
 
-  metrics.distribution("nav.init.duration_ms", nowTimeStamp() - start, {
-    unit: "millisecond",
-  });
-
   return {
-    builds,
-    resolvedVersion,
-    redirected: false,
-    latestStableBuild,
-    latestNightlyBuild,
+    builds: builds,
+    mods: initialRoute.mods,
+    resolvedVersion: resolvedVersion,
+    locale: initialRoute.locale,
+    latestStableBuild: latestStableBuild,
+    latestNightlyBuild: latestNightlyBuild,
+    redirected: redirected,
   };
 }

@@ -238,13 +238,10 @@ describe("App routing integration", () => {
   });
 
   test("loads compatible mod tileset chunk URLs for active mods", async () => {
+    setWindowLocation("stable/", "?mods=civilians&t=undead_people");
+
     render(App, {
       target: container,
-    });
-
-    await act(async () => {
-      setWindowLocation("stable/", "?mods=civilians&t=undead_people");
-      dispatchPopState();
     });
 
     await waitForDataLoad();

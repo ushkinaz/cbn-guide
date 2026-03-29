@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/browser";
-import { getCurrentVersionSlug, getUrlConfig, parseRoute } from "./routing";
+import { getRoute } from "./routing";
 import { isProd, RUNNING_MODE } from "./utils/env";
 
 /**
@@ -11,24 +11,25 @@ export type MetricAttributes = Record<string, string | number | boolean>;
  * Get common attributes that should be attached to every metric.
  */
 function getCommonAttributes(): MetricAttributes {
-  const { locale, tileset } = getUrlConfig();
-  const route = parseRoute();
+  const route = getRoute();
 
   const attrs: MetricAttributes = {
-    version: getCurrentVersionSlug(),
-    locale: locale || "en",
-    tileset: tileset || "default",
+    version: route.version,
+    locale: route.locale || "en",
+    tileset: route.tileset || "default",
     url_path: location.pathname,
     display_mode: RUNNING_MODE,
   };
 
   // Add route context if available
-  if (route.item) {
-    if (route.item.type) attrs.item_type = route.item.type;
-    if (route.item.id) attrs.item_id = route.item.id;
+  if (route.target.kind === "catalog" || route.target.kind === "item") {
+    attrs.item_type = route.target.type;
   }
-  if (route.search) {
-    attrs.search = route.search;
+  if (route.target.kind === "item") {
+    attrs.item_id = route.target.id;
+  }
+  if (route.target.kind === "search") {
+    attrs.search = route.target.query;
   }
 
   return attrs;
