@@ -192,6 +192,35 @@ describe("App routing integration", () => {
     expect(document.title.toLowerCase()).toMatch(/rock/);
   });
 
+  test("popstate clears tileset override when the query parameter is removed", async () => {
+    localStorage.setItem("cbn-guide:tileset", "retrodays");
+    setWindowLocation("stable/", "?t=undead_people");
+
+    render(App, {
+      target: container,
+    });
+
+    await waitForDataLoad();
+    await waitFor(() =>
+      expect(document.getElementById("tileset_select")).toBeTruthy(),
+    );
+    expect(
+      (document.getElementById("tileset_select") as HTMLSelectElement).value,
+    ).toBe("undead_people");
+
+    await act(async () => {
+      setWindowLocation("stable/");
+      dispatchPopState();
+    });
+
+    await waitForUiSettled();
+    await waitFor(() =>
+      expect(
+        (document.getElementById("tileset_select") as HTMLSelectElement).value,
+      ).toBe("retrodays"),
+    );
+  });
+
   test("renders search results when loading a search path directly", async () => {
     setWindowLocation("stable/search/rock");
 

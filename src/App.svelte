@@ -345,7 +345,12 @@ $effect(() => {
   const routeTileset = $page.route.tileset;
   if (routeTileset !== null && isValidTileset(routeTileset)) {
     tileset = routeTileset;
+    return;
   }
+
+  const fallbackTileset = loadTileset();
+  tileset = fallbackTileset;
+  saveTileset(fallbackTileset);
 });
 
 // React to tileset changes
