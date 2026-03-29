@@ -35,7 +35,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       // Mock progress store
       (globalThis as any).__isTesting__ = true;
 
-      await data.setVersion("latest", null, undefined, undefined, []);
+      await data.setVersion("latest", null, undefined, []);
 
       // This is where it might be throwing
       await expect(data.ensureModsLoaded()).resolves.not.toThrow();
@@ -81,7 +81,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
 
     try {
       (globalThis as any).__isTesting__ = true;
-      await data.setVersion("latest", null, undefined, undefined, []);
+      await data.setVersion("latest", null, undefined, []);
 
       // If this fails, then is404Error is too strict
       await expect(data.ensureModsLoaded()).resolves.not.toThrow();
@@ -130,7 +130,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
 
       // Requesting a mod that won't be found because all_mods.json is 404
       await expect(
-        data.setVersion("latest", null, undefined, undefined, ["some_mod"]),
+        data.setVersion("latest", null, undefined, ["some_mod"]),
       ).resolves.not.toThrow();
 
       const loaded = await new Promise<CBNData>((resolve) => {
@@ -176,7 +176,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       try {
         (globalThis as any).__isTesting__ = true;
         await expect(
-          data.setVersion("latest", null, undefined, undefined, ["some_mod"]),
+          data.setVersion("latest", null, undefined, ["some_mod"]),
         ).rejects.toThrow("Failed to load data after 3 attempts");
       } finally {
         globalThis.fetch = originalFetch;

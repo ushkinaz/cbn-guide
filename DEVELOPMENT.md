@@ -83,7 +83,7 @@ Useful companion docs:
 
 ```mermaid
 flowchart TD
-    URL["URL + query params"] --> Routing["src/routing.ts parseRoute()"]
+    URL["URL + query params"] --> Routing["src/routing.svelte.ts getRoute()"]
     Routing --> PageStore["page store"]
     PageStore --> App["src/App.svelte"]
     App --> Init["initializeRouting()"]
@@ -127,7 +127,7 @@ Use `$derived` for pure computed values with no side effects.
 
 Real examples:
 
-- `src/App.svelte`: `item` from `$page.route.item`
+- `src/App.svelte`: `item` from `getRouteItem($page.route.target)`
 - `src/SearchResults.svelte`: `results` and `matchingObjectsList`
 - `src/LimitedList.svelte`: `initialLimit` and `realLimit`
 
@@ -218,7 +218,7 @@ Avoid these:
 | File                         | Responsibility                                                                                           | Important side effects                                                                                                 |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `src/App.svelte`             | Bootstraps the app, holds long-lived UI state, chooses which top-level view to render                    | calls `initializeRouting()`, calls `data.setVersion(...)`, updates document metadata, syncs search, handles navigation |
-| `src/routing.ts`             | URL parsing, navigation helpers, version alias resolution, page store updates                            | uses `history.pushState`, `history.replaceState`, `location.href`, and `location.replace`                              |
+| `src/routing.svelte.ts`      | URL parsing, navigation helpers, version alias resolution, page store updates                            | uses `history.pushState`, `history.replaceState`, `location.href`, and `location.replace`                              |
 | `src/data.ts`                | Fetches and builds `CBNData`, handles locale fallback, mod loading, flattening, indexing, derived caches | fetches external JSON, resets gettext locale, replaces the global `data` store                                         |
 | `src/search-state.svelte.ts` | Search indexing and debounced result production                                                          | rebuilds index when `CBNData` changes, debounces search by `150ms` outside tests                                       |
 | `src/Thing.svelte`           | Renders a single object view                                                                             | sets `data` context once per mount                                                                                     |
@@ -230,12 +230,12 @@ Avoid these:
 
 | State                       | Type                  | Owner                        | Scope     | Notes                                           |
 | --------------------------- | --------------------- | ---------------------------- | --------- | ----------------------------------------------- |
-| `page`                      | readable Svelte store | `src/routing.ts`             | global    | mirrors `location.href` and parsed route        |
+| `page`                      | readable Svelte store | `src/routing.svelte.ts`      | global    | mirrors `location.href` and parsed route        |
 | `data`                      | writable Svelte store | `src/data.ts`                | global    | replaced wholesale when a new dataset is loaded |
 | `tileData`                  | store/helper module   | `src/tile-data.ts`           | global    | updated from `App.svelte` when tileset changes  |
 | `searchState`               | rune-based singleton  | `src/search-state.svelte.ts` | global    | owns debounced query results                    |
 | `search`                    | local rune state      | `src/App.svelte`             | shell     | synced from URL and user input                  |
-| `item`                      | `$derived`            | `src/App.svelte`             | shell     | projected from `$page.route.item`               |
+| `item`                      | `$derived`            | `src/App.svelte`             | shell     | projected from `$page.route.target` via helper  |
 | `builds`, `resolvedVersion` | local rune state      | `src/App.svelte`             | shell     | populated by `initializeRouting()`              |
 | `expanded`                  | local rune state      | `src/LimitedList.svelte`     | component | UI-only disclosure state                        |
 

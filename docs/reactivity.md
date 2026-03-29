@@ -40,7 +40,7 @@ Use for mutable local UI state:
 
 Use for pure computed values:
 
-- `App.svelte`: `item` from `$page.route.item`
+- `App.svelte`: `item` from `getRouteItem($page.route.target)`
 - `SearchResults.svelte`: `matchingObjectsList` from `$searchResults`
 - `LimitedList.svelte`: computed limits
 

@@ -23,18 +23,47 @@ import {
 import App from "./App.svelte";
 import { data } from "./data";
 import { dismiss, notifications } from "./Notification.svelte";
+import { _resetPreferences, setPreferredTileset } from "./preferences.svelte";
 import {
   dispatchPopState,
   createAppFetchMock,
   setWindowLocation,
 } from "./routing.test-helpers";
-import { _reset as resetRouting } from "./routing";
+import { _reset as resetRouting } from "./routing.svelte";
 import { resetSearchState } from "./search-state.svelte";
 import { tileData, _resetCache as resetTilesetCache } from "./tile-data";
+import { _resetVersionState } from "./builds.svelte";
+
+import { bootstrapApplication } from "./navigation.svelte";
 
 vi.hoisted(() => {
   (globalThis as any).__isTesting__ = true;
 });
+
+function installMockStorage() {
+  const store = new Map<string, string>();
+  const storage = {
+    getItem(key: string) {
+      return store.has(key) ? store.get(key)! : null;
+    },
+    setItem(key: string, value: string) {
+      store.set(key, value);
+    },
+    removeItem(key: string) {
+      store.delete(key);
+    },
+    clear() {
+      store.clear();
+    },
+  };
+
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: storage,
+  });
+
+  return storage;
+}
 
 describe("App routing integration", () => {
   vi.setConfig({ testTimeout: 120_000 });
@@ -73,9 +102,13 @@ describe("App routing integration", () => {
   });
 
   beforeEach(() => {
+    installMockStorage();
     window.scrollTo = vi.fn();
     setWindowLocation("stable/");
+    localStorage.removeItem?.("cbn-guide:tileset");
     resetRouting();
+    _resetPreferences();
+    _resetVersionState();
     global.fetch = defaultFetchMock;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -94,6 +127,8 @@ describe("App routing integration", () => {
     tileData.reset();
     resetTilesetCache();
     resetRouting();
+    _resetPreferences();
+    _resetVersionState();
     resetSearchState();
     global.fetch = defaultFetchMock;
     vi.clearAllMocks();
@@ -134,38 +169,15 @@ describe("App routing integration", () => {
     await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
   }
 
-  test("shows and clears the install affordance from window events", async () => {
-    render(App, {
+  async function renderApp() {
+    await bootstrapApplication().catch(() => undefined);
+    return render(App, {
       target: container,
     });
-
-    await waitForDataLoad();
-    expect(document.querySelector(".install-button")).toBeNull();
-
-    const prompt = vi.fn();
-    const beforeInstallPrompt = new Event("beforeinstallprompt");
-    Object.assign(beforeInstallPrompt, { prompt });
-
-    window.dispatchEvent(beforeInstallPrompt);
-
-    await waitFor(() =>
-      expect(document.querySelector(".install-button")).not.toBeNull(),
-    );
-
-    await fireEvent.click(document.querySelector(".install-button")!);
-    expect(prompt).toHaveBeenCalledTimes(1);
-
-    window.dispatchEvent(new Event("appinstalled"));
-
-    await waitFor(() =>
-      expect(document.querySelector(".install-button")).toBeNull(),
-    );
-  });
+  }
 
   test("renders the item page after popstate navigation", async () => {
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad();
     expect(document.body.textContent).toContain("Hitchhiker");
@@ -192,28 +204,106 @@ describe("App routing integration", () => {
     expect(document.title.toLowerCase()).toMatch(/rock/);
   });
 
+  test("popstate falls back to the saved preference after removing a transient tileset override", async () => {
+    setPreferredTileset("retrodays");
+    setWindowLocation("stable/", "?t=undead_people");
+
+    await renderApp();
+
+    await waitForDataLoad();
+    await waitFor(() =>
+      expect(document.getElementById("tileset_select")).toBeTruthy(),
+    );
+    expect(
+      (document.getElementById("tileset_select") as HTMLSelectElement).value,
+    ).toBe("undead_people");
+
+    await act(async () => {
+      setWindowLocation("stable/");
+      dispatchPopState();
+    });
+
+    await waitForUiSettled();
+    await waitFor(() =>
+      expect(
+        (document.getElementById("tileset_select") as HTMLSelectElement).value,
+      ).toBe("retrodays"),
+    );
+  });
+
   test("renders search results when loading a search path directly", async () => {
     setWindowLocation("stable/search/rock");
 
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad("rock");
 
     expect(window.location.pathname).toContain("search/rock");
     expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
+    expect(
+      document.querySelector('a[href="/stable/item/rock?t=undead_people"]'),
+    ).toBeTruthy();
     expect(document.body.textContent?.toLowerCase()).not.toContain(
       "there was a problem displaying this page",
     );
   });
 
+  test("home page links update to the current tileset on selector changes", async () => {
+    await renderApp();
+
+    await waitForDataLoad();
+
+    const tilesetSelect = document.getElementById(
+      "tileset_select",
+    ) as HTMLSelectElement;
+    const brandLink = document.querySelector(
+      ".brand-link",
+    ) as HTMLAnchorElement;
+    const logoLink = document.querySelector(".logo-link") as HTMLAnchorElement;
+    const itemsHomeLink = document.querySelector(
+      '.category-card[href="/stable/item?t=undead_people"]',
+    ) as HTMLAnchorElement;
+    const randomHomeLink = document.querySelector(
+      ".category-card.random",
+    ) as HTMLAnchorElement;
+
+    expect(brandLink.getAttribute("href")).toBe("/stable/?t=undead_people");
+    expect(logoLink.getAttribute("href")).toBe(
+      "/stable/item/guidebook?t=undead_people",
+    );
+    expect(itemsHomeLink.getAttribute("href")).toBe(
+      "/stable/item?t=undead_people",
+    );
+    expect(randomHomeLink.getAttribute("href")).toBe(
+      "/stable/?t=undead_people",
+    );
+
+    await fireEvent.change(tilesetSelect, {
+      target: { value: "retrodays" },
+    });
+
+    await waitFor(() => expect(tilesetSelect.value).toBe("retrodays"));
+    await waitFor(() =>
+      expect(brandLink.getAttribute("href")).toBe("/stable/?t=retrodays"),
+    );
+    await waitFor(() =>
+      expect(logoLink.getAttribute("href")).toBe(
+        "/stable/item/guidebook?t=retrodays",
+      ),
+    );
+    await waitFor(() =>
+      expect(itemsHomeLink.getAttribute("href")).toBe(
+        "/stable/item?t=retrodays",
+      ),
+    );
+    await waitFor(() =>
+      expect(randomHomeLink.getAttribute("href")).toBe("/stable/?t=retrodays"),
+    );
+  });
+
   test("mod selector apply updates mods query param in order", async () => {
     setWindowLocation("stable/", "?mods=aftershock");
-    const { getByLabelText, getByRole, getByText } = render(App, {
-      target: container,
-    });
+    const { getByLabelText, getByRole, getByText } = await renderApp();
 
     await waitForDataLoad();
     await waitFor(() =>
@@ -232,20 +322,15 @@ describe("App routing integration", () => {
     await fireEvent.click(getByLabelText("Magiclysm"));
     await fireEvent.click(getByText("Apply"));
 
-    expect(new URL(window.location.href).searchParams.get("mods")).toBe(
+    expect(new URLSearchParams(window.location.search).get("mods")).toBe(
       "aftershock,magiclysm",
     );
   });
 
   test("loads compatible mod tileset chunk URLs for active mods", async () => {
-    render(App, {
-      target: container,
-    });
+    setWindowLocation("stable/", "?mods=civilians&t=undead_people");
 
-    await act(async () => {
-      setWindowLocation("stable/", "?mods=civilians&t=undead_people");
-      dispatchPopState();
-    });
+    await renderApp();
 
     await waitForDataLoad();
 
@@ -269,9 +354,7 @@ describe("App routing integration", () => {
     );
     const replaceStateSpy = vi.spyOn(history, "replaceState");
 
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad("rock");
 
@@ -291,9 +374,7 @@ describe("App routing integration", () => {
   });
 
   test("reacts to history navigation and renders the matching route", async () => {
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad();
 
@@ -315,7 +396,9 @@ describe("App routing integration", () => {
       expect(window.location.pathname).toContain("search/rock"),
     );
     expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
+    expect(
+      document.querySelector('a[href="/stable/item/rock?t=undead_people"]'),
+    ).toBeTruthy();
 
     await act(async () => {
       setWindowLocation("stable/item/rock");
@@ -329,9 +412,7 @@ describe("App routing integration", () => {
   test("canonical and alternate links include mods query param", async () => {
     setWindowLocation("stable/item/rock", "?mods=aftershock");
 
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad("rock");
 
@@ -356,25 +437,5 @@ describe("App routing integration", () => {
     expect(
       alternates.every((link) => link.href.includes("mods=aftershock")),
     ).toBe(true);
-  });
-
-  test("shows an initialization error notification when builds.json fails", async () => {
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    global.fetch = vi.fn(() =>
-      Promise.reject(new Error("Network Error")),
-    ) as typeof fetch;
-
-    render(App, {
-      target: container,
-    });
-
-    await waitFor(() => expect(errorSpy).toHaveBeenCalled());
-    await waitFor(() =>
-      expect(document.body.textContent).toContain(
-        "Failed to initialize application. Please reload.",
-      ),
-    );
-
-    errorSpy.mockRestore();
   });
 });

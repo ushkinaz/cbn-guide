@@ -778,7 +778,7 @@ export function _resetCache() {
   mergedTilesetCache.clear();
 }
 
-export function isValidTileset(tilesetID: string | null) {
+export function isValidTileset(tilesetID?: string) {
   return TILESETS.some((t) => t.name === tilesetID);
 }
 
@@ -866,3 +866,14 @@ export const TILESETS: TilesetDefinition[] = [
   },
 ];
 export const DEFAULT_TILESET = TILESETS[0];
+
+export function resolveTileset(
+  preferredTileset: string,
+  routeTilesetParam?: string,
+): string {
+  if (routeTilesetParam && isValidTileset(routeTilesetParam)) {
+    return routeTilesetParam;
+  }
+
+  return preferredTileset;
+}

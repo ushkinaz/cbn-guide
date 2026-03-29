@@ -31,6 +31,9 @@ flowchart TB
         direction TB
         App[App.svelte]
         Router[Routing Module]
+        Navigation[Navigation Context]
+        Preferences[Preferences Store]
+        Versioning[Version Bootstrap]
         DataStore[CBNData Store]
         Components[UI Components]
         TileData[Tile Data]
@@ -50,10 +53,13 @@ flowchart TB
         Langs[Language Files]
     end
 
-    App --> Router
+    App --> Navigation
+    Navigation --> Router
+    Navigation --> Preferences
+    Navigation --> Versioning
     App --> DataStore
 
-    Router --> Builds
+    Versioning --> Builds
     DataStore --> GameData
     Components --> TileData
     TileData --> Tiles
@@ -132,7 +138,7 @@ flowchart TD
     subgraph Business["Business Logic Layer"]
         direction TB
         DataTS[data.ts]
-        RoutingTS[routing.ts]
+        RoutingTS[routing.svelte.ts]
         TileDataTS[tile-data.ts]
     end
 
@@ -156,17 +162,19 @@ flowchart TD
 sequenceDiagram
     participant Browser
     participant SW as Service Worker
+    participant Main as main.ts
     participant App as App.svelte
+    participant Builds as builds.svelte.ts
     participant Data as data.ts
     participant Ext as data.cataclysmbn-guide.com
 
     Browser->>App: Page Load
-    App->>App: Initialize Routing
-    App->>SW: fetch(builds.json)
+    Main->>Builds: initializeBuildsState(route)
+    Builds->>SW: fetch(builds.json)
     SW->>Ext: Network/Cache Request
-    Ext-->>App: BuildInfo[]
+    Ext-->>Builds: BuildInfo[]
 
-    App->>Data: setVersion(resolvedVersion)
+    App->>Data: setVersion(requestedVersion)
     Data->>SW: fetch(/data/version/all.json)
     SW->>Ext: Network/Cache Request
     Ext-->>Data: Raw game data (~30MB)
@@ -229,20 +237,24 @@ classDiagram
 
 ## Routing System
 
-The routing system manages state primarily via the URL, supporting both SPA navigation and hard reloads for version switches.
+The routing system is now layered: raw URL state lives in `routing.svelte.ts`,
+preferences live in `preferences.svelte.ts`, version bootstrap lives in
+`builds.svelte.ts`, and effective in-app link context lives in `navigation.svelte.ts`.
 
 ```mermaid
 flowchart TB
-    URL["/{version}/{type}/{id}"]
-    Resolve["Resolve Version/Alias"]
-    Nav{"Same Version?"}
-    Soft["SPA Navigate"]
+    URL["Raw URL Route"]
+    Prefs["Preferences"]
+    Version["Version State"]
+    Nav["Navigation Context"]
+    Soft["SPA Navigation"]
     Hard["Hard Reload"]
 
-    URL --> Resolve
-    Resolve --> Nav
-    Nav -->|Yes| Soft
-    Nav -->|No| Hard
+    URL --> Nav
+    Prefs --> Nav
+    Version --> Nav
+    Nav --> Soft
+    Nav --> Hard
 ```
 
 ## Development & Build Pipeline
@@ -287,8 +299,11 @@ cbn-guide/
 │   ├── App.svelte          # Main application component
 │   ├── data.ts             # CBNData class & utilities
 │   ├── i18n/               # Translation helpers split by runtime boundary
-│   ├── routing.ts          # URL routing logic
+│   ├── navigation.svelte.ts       # Effective navigation context and app link policy
+│   ├── preferences.svelte.ts      # Browser-persisted user preferences
+│   ├── routing.svelte.ts          # URL routing logic
 │   ├── tile-data.ts        # Tileset sprite management
+│   ├── builds.svelte.ts           # builds.json fetch + version alias resolution
 │   ├── assets/             # Static assets
 │   └── ...
 ├── public/

@@ -1,14 +1,14 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
-
 import { getContext, untrack } from "svelte";
+
+import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 import { CBNData } from "../../data";
-import { getVersionedBasePath } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
 import ItemLink from "../ItemLink.svelte";
-import { i18n, gameSingularName } from "../../i18n/gettext";
+import { gameSingularName, i18n } from "../../i18n/gettext";
+import { buildLinkTo } from "../../navigation.svelte";
 
 interface Props {
   requirement: RequirementData & { using?: Recipe["using"] };
@@ -29,6 +29,14 @@ let { tools, qualities } =
   direction === "craft"
     ? data.normalizeRequirements(requirement)
     : data.normalizeRequirementsForDisassembly(requirement);
+
+function furnLink(id: string): string {
+  return buildLinkTo({
+    kind: "item",
+    type: "furniture",
+    id,
+  });
+}
 </script>
 
 {#if qualities?.length || tools.length}
@@ -66,10 +74,7 @@ let { tools, qualities } =
             {#if i !== 0}{i18n.__(" OR ")}{/if}
             {#if count <= 0}
               {#if data.craftingPseudoItem(toolId)}
-                <a
-                  href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
-                    toolId,
-                  )}{location.search}"
+                <a href={furnLink(data.craftingPseudoItem(toolId)!)}
                   >{gameSingularName(data.byId("item", toolId))}</a>
               {:else}
                 <ItemLink type="item" id={toolId} showIcon={false} />
@@ -90,10 +95,7 @@ let { tools, qualities } =
                 slot0="item">
                 {#snippet _0()}
                   {#if data.craftingPseudoItem(toolId)}
-                    <a
-                      href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
-                        toolId,
-                      )}{location.search}"
+                    <a href={furnLink(data.craftingPseudoItem(toolId)!)}
                       >{gameSingularName(data.byId("item", toolId))}</a>
                   {:else}
                     <ItemLink type="item" id={toolId} showIcon={false} />

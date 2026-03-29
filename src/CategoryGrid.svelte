@@ -26,11 +26,7 @@ import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import vehicleIcon from "./assets/category-icons/vehicle.svg";
 import { t } from "@transifex/native";
 import { CBNData, data, mapType } from "./data";
-import {
-  getCurrentVersionSlug,
-  getVersionedBasePath,
-  navigateTo,
-} from "./routing";
+import { buildLinkTo, navigateTo } from "./navigation.svelte";
 import type { SupportedTypesWithMapped } from "./types";
 
 const categories = [
@@ -105,10 +101,18 @@ const randomizableItemTypes = new Set<keyof SupportedTypesWithMapped>([
 ]);
 const RANDOM_PICK_MAX_RETRIES = 30;
 const RANDOM_PICK_FALLBACK = { type: "item", id: "guidebook" } as const;
+let categoryHrefs = $derived.by(() => {
+  return Object.fromEntries(
+    categories.map((category) => [
+      category.href,
+      buildLinkTo({ kind: "catalog", type: category.href }),
+    ]),
+  ) as Record<(typeof categories)[number]["href"], string>;
+});
 
 /**
  * Selects a random game entity for the "Random Page" card.
- * Filters for types that are meaningful to browse randomly (items, monsters, etc).
+ * Filters for types that are meaningful to browse randomly (items, monsters, etc.)
  */
 async function getRandomPage() {
   const d = await new Promise<CBNData>((resolve) => {
@@ -137,7 +141,7 @@ async function getRandomPage() {
     ) as keyof SupportedTypesWithMapped;
     if (!randomizableItemTypes.has(mappedType)) continue;
 
-    // Verify candidate resolves in current mod set (e.g. blacklist/disabled monsters).
+    // Verify candidate resolves in the current mod set (e.g., blacklist/disabled monsters).
     if (!d.byIdMaybe(mappedType, candidate.id)) continue;
 
     return { type: mappedType, id: candidate.id };
@@ -153,20 +157,17 @@ async function openRandomPage(event: MouseEvent) {
   event.preventDefault();
   const r = await getRandomPage();
   const destination = r ?? RANDOM_PICK_FALLBACK;
-  navigateTo(
-    getCurrentVersionSlug(),
-    { type: destination.type, id: destination.id },
-    "",
-    true,
-  );
+  navigateTo({
+    kind: "item",
+    type: destination.type,
+    id: destination.id,
+  });
 }
 </script>
 
 <div class="category-grid">
   {#each categories as cat}
-    <a
-      href="{getVersionedBasePath()}{cat.href}{location.search}"
-      class="category-card">
+    <a href={categoryHrefs[cat.href]} class="category-card">
       <div class="icon-wrapper">
         <img
           src={cat.icon}
@@ -179,7 +180,7 @@ async function openRandomPage(event: MouseEvent) {
     </a>
   {/each}
   <a
-    href={`${getVersionedBasePath()}${location.search}`}
+    href={buildLinkTo({ kind: "home" })}
     class="category-card random"
     onclick={openRandomPage}>
     <div class="icon-wrapper">

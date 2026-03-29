@@ -542,7 +542,7 @@ describe("Detailed Locale Fallback Mechanism", () => {
     try {
       (globalThis as any).__isTesting__ = true;
       // We pass metadata that only 'uk' is available
-      await data.setVersion("latest", "uk_UA", undefined, ["uk"]);
+      await data.setVersion("latest", "uk_UA", ["uk"]);
 
       // Should NOT try uk_UA because it's not in the metadata
       expect(fetchCalls.some((url) => url.includes("lang/uk_UA.json"))).toBe(
@@ -579,7 +579,7 @@ describe("Detailed Locale Fallback Mechanism", () => {
     try {
       (globalThis as any).__isTesting__ = true;
       // Pass metadata that NO locales are available
-      await data.setVersion("latest", "zz_ZZ", undefined, []);
+      await data.setVersion("latest", "zz_ZZ", []);
 
       // Should not try ANY locale because none are in metadata
       expect(fetchCalls.some((url) => url.includes("lang/"))).toBe(false);
@@ -623,7 +623,7 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, undefined, []);
+      await data.setVersion("latest", null, undefined, []);
       const loaded = await getLoadedData();
       expect(fetchCalls.some((url) => url.includes("all_mods.json"))).toBe(
         false,
@@ -676,7 +676,7 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, undefined, []);
+      await data.setVersion("latest", null, undefined, []);
       const initial = await getLoadedData();
       expect(initial.mods).toBeNull();
       expect(initial.active_mods).toBeNull();
@@ -742,7 +742,7 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, undefined, []);
+      await data.setVersion("latest", null, undefined, []);
       await Promise.all([data.ensureModsLoaded(), data.ensureModsLoaded()]);
       expect(allModsFetchCount).toBe(1);
     } finally {
@@ -811,7 +811,7 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, undefined, [
+      await data.setVersion("latest", null, undefined, [
         "bn",
         "unknown",
         "magiclysm",
@@ -874,9 +874,7 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, undefined, [
-        "aftershock",
-      ]);
+      await data.setVersion("latest", null, undefined, ["aftershock"]);
       const loaded = await getLoadedData();
       expect(loaded.mods?.[0]?.name).toBe("Aftershock");
       expect(loaded.mods?.[0]?.description).toBe("Line 1 tagged Line 2");
@@ -915,9 +913,7 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, undefined, [
-        "aftershock",
-      ]);
+      await data.setVersion("latest", null, undefined, ["aftershock"]);
       const loaded = await getLoadedData();
       expect(loaded.mods).toEqual([]);
       expect(loaded.active_mods).toEqual([]);
@@ -953,7 +949,7 @@ describe("Mod Data Loading", () => {
 
     try {
       await expect(
-        data.setVersion("latest", null, undefined, undefined, ["aftershock"]),
+        data.setVersion("latest", null, undefined, ["aftershock"]),
       ).rejects.toThrow("Invalid all_mods.json");
     } finally {
       globalThis.fetch = originalFetch;

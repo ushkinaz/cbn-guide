@@ -2,12 +2,7 @@
 import * as Sentry from "@sentry/browser";
 import Thing from "./Thing.svelte";
 import { type CBNData, data, mapType, prewarmDerivedCaches } from "./data";
-import {
-  DEFAULT_TILESET,
-  isValidTileset,
-  tileData,
-  TILESETS,
-} from "./tile-data";
+import { tileData, TILESETS } from "./tile-data";
 import SearchResults from "./SearchResults.svelte";
 import Catalog from "./Catalog.svelte";
 import ModSelector from "./ModSelector.svelte";
@@ -19,28 +14,30 @@ import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import { buildMetaDescription } from "./seo";
 import {
-  type BuildInfo,
-  buildUrl,
+  buildLinkTo,
+  changeLanguage,
+  changeMods,
+  changeTileset,
   changeVersion,
-  getCurrentVersionSlug,
-  getUrlConfig,
-  getVersionedBasePath,
-  handleInternalNavigation,
-  type InitialAppState,
-  initializeRouting,
-  isSupportedType,
-  isSupportedVersion,
   navigateTo,
-  NIGHTLY_VERSION,
-  page,
-  STABLE_VERSION,
-  updateQueryParam,
-  updateQueryParamNoReload,
+  navigation,
   updateSearchRoute,
-} from "./routing";
+} from "./navigation.svelte";
+import {
+  buildURL,
+  handleInternalNavigation,
+  navigateToURL,
+} from "./routing.svelte";
+import {
+  type BuildInfo,
+  buildsState,
+  isSupportedVersion,
+  NIGHTLY_VERSION,
+  STABLE_VERSION,
+} from "./builds.svelte";
 
 import { metrics } from "./metrics";
-import { mark, nowTimeStamp } from "./utils/perf";
+import { nowTimeStamp } from "./utils/perf";
 import { searchState } from "./search-state.svelte";
 
 import Logo from "./Logo.svelte";
@@ -54,6 +51,8 @@ import Notification, { notify } from "./Notification.svelte";
 import RenderErrorFallback from "./RenderErrorFallback.svelte";
 
 import { gameSingularName } from "./i18n/gettext";
+import { isSupportedType } from "./supported-types";
+import { DEFAULT_LOCALE } from "./i18n/ui-locale";
 
 let scrollY = $state(0);
 
@@ -104,106 +103,122 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-let item: { type: string; id: string } | null = $derived($page.route.item);
-let search: string = $state("");
+let item: { type: string; id: string } | null = $derived.by(() => {
+  const target = navigation.target;
+  if (target.kind === "catalog") {
+    return { type: target.type, id: "" };
+  }
+  if (target.kind === "item") {
+    return { type: target.type, id: target.id };
+  }
+  return null;
+});
 
-// Track URL changes for navigation detection
+let routeSearchQuery: string = $derived.by(() => {
+  return navigation.target.kind === "search" ? navigation.target.query : "";
+});
+
+let search: string = $state("");
 let previousUrl: string | undefined = undefined;
 let previousPathname: string | undefined = undefined;
 let previousRouteSearch: string | undefined = undefined;
 
-// Sync search and scroll on URL changes (navigation).
-// IMPORTANT: Only update 'search' if it differs from page store to preserve user input
-// while typing. This prevents the reactive statement from overwriting partial queries.
-$effect(() => {
-  if ($page.url.href !== previousUrl) {
-    const currentPathname = $page.url.pathname;
-    const currentRouteSearch = $page.route.search;
-
-    // On initial load OR URL changed - sync search (only if different)
-    if (
-      currentRouteSearch !== previousRouteSearch &&
-      search !== currentRouteSearch
-    ) {
-      search = currentRouteSearch;
-    }
-
-    if (
-      previousUrl !== undefined &&
-      (currentPathname !== previousPathname ||
-        currentRouteSearch !== previousRouteSearch)
-    ) {
-      // This is a navigation event (not initial load), scroll to top
-      window.scrollTo(0, 0);
-    }
-
-    previousUrl = $page.url.href;
-    previousPathname = currentPathname;
-    previousRouteSearch = currentRouteSearch;
-  }
-});
-
-let builds: BuildInfo[] | null = $state(null);
-
-const requestedVersion = $page.route.version;
-let resolvedVersion = $state(STABLE_VERSION);
-const isBranchAlias =
-  requestedVersion === STABLE_VERSION || requestedVersion === NIGHTLY_VERSION;
-
-let latestStableBuild: BuildInfo | undefined = $state();
-let latestNightlyBuild: BuildInfo | undefined = $state();
+let builds: BuildInfo[] | null = $derived(buildsState.current?.builds ?? null);
+let requestedVersion = $derived(navigation.buildRequestedVersion);
+let resolvedVersion = $derived(navigation.buildResolvedVersion);
+let latestStableBuild: BuildInfo | undefined = $derived(
+  buildsState.current?.latestStableBuild,
+);
+let latestNightlyBuild: BuildInfo | undefined = $derived(
+  buildsState.current?.latestNightlyBuild,
+);
 let prewarmScheduledFor: CBNData | null = null;
+let lastDataLoadKey: string | null = $state(null);
+let translationWarningKey: string | null = $state(null);
 
-function updateSentryRoutingContext(params: {
-  requestedVersion: string;
-  resolvedVersion?: string;
-}): void {
-  Sentry.setTag("requestedVersion", params.requestedVersion);
-  if (params.resolvedVersion) {
-    Sentry.setTag("resolvedVersion", params.resolvedVersion);
+function updateSentryContext(resolvedVersion?: string): void {
+  if (resolvedVersion) {
+    Sentry.setTag("resolvedVersion", resolvedVersion);
   }
   Sentry.setContext("routing", {
-    requestedVersion: params.requestedVersion,
-    resolvedVersion: params.resolvedVersion,
+    resolvedVersion: resolvedVersion,
   });
 }
 
-updateSentryRoutingContext({ requestedVersion });
+$effect(() => {
+  const currentUrl = navigation.url.href;
+  const currentRouteSearch = routeSearchQuery;
 
-// Initialize routing and fetch builds
-const appStart = nowTimeStamp();
-const p = mark("app-routing-start");
-void initializeRouting()
-  .then(async (result: InitialAppState) => {
-    builds = result.builds;
-    resolvedVersion = result.resolvedVersion;
-    updateSentryRoutingContext({
-      requestedVersion,
-      resolvedVersion: result.resolvedVersion,
-    });
-    latestStableBuild = result.latestStableBuild;
-    latestNightlyBuild = result.latestNightlyBuild;
-    if (result.redirected) {
-      // initializeRouting already called location.replace() for an invalid URL.
-      // Stop startup here so we don't start data loading right before navigation.
-      return;
+  if (currentUrl !== previousUrl) {
+    if (search !== currentRouteSearch) {
+      search = currentRouteSearch;
     }
-    const requestedModsFromUrl = [...$page.route.mods];
 
+    previousUrl = currentUrl;
+  }
+});
+
+//Force scroll to top on route change
+$effect(() => {
+  const currentPathname = navigation.url.pathname;
+  const currentRouteSearch = routeSearchQuery;
+
+  if (
+    previousPathname !== undefined &&
+    (currentPathname !== previousPathname ||
+      currentRouteSearch !== previousRouteSearch)
+  ) {
+    window.scrollTo(0, 0);
+  }
+
+  previousPathname = currentPathname;
+  previousRouteSearch = currentRouteSearch;
+});
+
+$effect(() => {
+  updateSentryContext(navigation.buildResolvedVersion);
+});
+
+$effect(() => {
+  const builds = buildsState.current?.builds;
+  const requestedVersion = navigation.buildRequestedVersion;
+  const resolvedVersion = navigation.buildResolvedVersion;
+  const requestedLocale = navigation.locale;
+  const requestedMods = navigation.mods;
+  const routeTarget = navigation.target;
+  const effectiveTileset = navigation.tileset;
+
+  if (!builds || !resolvedVersion) {
+    return;
+  }
+
+  const requestedStateKey = JSON.stringify({
+    resolvedVersion,
+    requestedVersion,
+    requestedLocale: requestedLocale ?? "",
+    requestedMods,
+  });
+  if (requestedStateKey === lastDataLoadKey) {
+    return;
+  }
+
+  lastDataLoadKey = requestedStateKey;
+  const dataLoadStart = nowTimeStamp();
+
+  void (async () => {
     try {
       await data.setVersion(
-        resolvedVersion,
-        localeParam,
-        isBranchAlias ? requestedVersion : undefined,
-        builds.find((b) => b.build_number === resolvedVersion)?.langs,
-        requestedModsFromUrl,
+        requestedVersion,
+        requestedLocale,
+        builds.find((build) => build.build_number === resolvedVersion)?.langs,
+        requestedMods,
       );
-    } catch (e) {
-      console.warn("Failed to set version", e);
+    } catch (error) {
+      console.warn("Failed to set version", error);
       notify(
         t(
           "Failed to load data for {version}. Please select a different version from the footer.",
-          { version: resolvedVersion },
+          { version: requestedVersion },
         ),
         "error",
       );
@@ -212,17 +227,28 @@ void initializeRouting()
 
     if ($data) {
       const resolvedMods = $data.active_mods ?? [];
-      if (!arraysEqual(requestedModsFromUrl, resolvedMods)) {
-        const removedMods = requestedModsFromUrl.filter(
+      lastDataLoadKey = JSON.stringify({
+        resolvedVersion,
+        requestedVersion,
+        requestedLocale: requestedLocale ?? "",
+        requestedMods: resolvedMods,
+      });
+
+      if (!arraysEqual(requestedMods, resolvedMods)) {
+        const removedMods = requestedMods.filter(
           (modId) => !resolvedMods.includes(modId),
         );
-        updateQueryParamNoReload(
-          "mods",
-          resolvedMods.length > 0 ? resolvedMods.join(",") : null,
+        navigateToURL(
+          buildURL(requestedVersion, routeTarget, {
+            localeParam: requestedLocale,
+            tilesetParam: effectiveTileset,
+            modsParam: resolvedMods,
+          }),
+          "replace",
         );
         if (removedMods.length > 0) {
           notify(
-            t("Ignored unknown mods from URL: {mods}.", {
+            t("Unknown mods ignored: {mods}.", {
               mods: removedMods.join(", "),
               _context: URL_MODS_CONTEXT,
             }),
@@ -230,69 +256,44 @@ void initializeRouting()
           );
         }
       }
+
+      if (
+        $data.requested_locale !== $data.effective_locale &&
+        $data.requested_locale !== DEFAULT_LOCALE
+      ) {
+        const warningKey = [
+          $data.build_number,
+          $data.requested_locale,
+          $data.effective_locale,
+        ].join(":");
+        if (warningKey !== translationWarningKey) {
+          translationWarningKey = warningKey;
+          const from = getLanguageName($data.requested_locale);
+          const to = getLanguageName($data.effective_locale);
+          notify(
+            t(
+              "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
+              {
+                build_number: $data.build_number,
+                requested_lang: from,
+                resolved_lang: to,
+              },
+            ),
+            "warn",
+          );
+        }
+      }
     }
 
-    if (
-      $data &&
-      $data.requested_locale !== $data.effective_locale &&
-      $data.requested_locale !== "en"
-    ) {
-      const build_number = $data.build_number;
-      const from = getLanguageName($data.requested_locale);
-      const to = getLanguageName($data.effective_locale);
-      notify(
-        t(
-          "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
-          {
-            build_number: build_number,
-            requested_lang: from,
-            resolved_lang: to,
-          },
-        ),
-        "warn",
-      );
-    }
-    metrics.distribution("data.load.duration_ms", nowTimeStamp() - appStart, {
-      unit: "millisecond",
-    });
-  })
-  .catch((e) => {
-    Sentry.captureException(e);
-    console.error("Failed to initialize app.", e);
-    notify(t("Failed to initialize application. Please reload."), "error");
-  })
-  .finally(() => {
-    p.finish();
-  });
-
-const urlConfig = getUrlConfig();
-const localeParam = urlConfig.locale;
-const tilesetParam = urlConfig.tileset;
-
-function loadTileset(): string {
-  try {
-    const tilesetIDStorage =
-      localStorage.getItem("cbn-guide:tileset") || DEFAULT_TILESET.name;
-    if (isValidTileset(tilesetIDStorage)) {
-      return tilesetIDStorage;
-    }
-  } catch (e) {
-    /* swallow security errors, which can happen when in incognito mode */
-  }
-  return DEFAULT_TILESET.name;
-}
-
-function saveTileset(tileset: string | null) {
-  try {
-    if (isValidTileset(tileset)) {
-      localStorage.setItem("cbn-guide:tileset", tileset!);
-    } else {
-      localStorage.removeItem("cbn-guide:tileset");
-    }
-  } catch (e) {
-    /* swallow security errors, which can happen when in incognito mode */
-  }
-}
+    metrics.distribution(
+      "data.load.duration_ms",
+      nowTimeStamp() - dataLoadStart,
+      {
+        unit: "millisecond",
+      },
+    );
+  })();
+});
 
 function setMetaDescription(value: string) {
   const meta = document.querySelector('meta[name="description"]');
@@ -318,17 +319,12 @@ function setOgTitle(value: string) {
   document.head.appendChild(created);
 }
 
-let tileset: string = $state(
-  (isValidTileset(tilesetParam) ? tilesetParam : null) ?? loadTileset(),
-);
-
-// React to tileset changes
 $effect(() => {
-  tileData.setTileset($data, tileset);
+  tileData.setTileset($data, navigation.tileset);
 });
 
 function formatTitle(pageTitle: string | null = null): string {
-  if (RUNNING_MODE !== "browser") {
+  if (RUNNING_MODE === "pwa") {
     return pageTitle ?? "";
   }
   return pageTitle ? `${pageTitle} | ${UI_GUIDE_NAME}` : UI_GUIDE_NAME;
@@ -362,8 +358,8 @@ $effect(() => {
         guide: UI_GUIDE_NAME,
         _context: PAGE_DESCRIPTION_CONTEXT,
       });
-    } else if ($page.route.search) {
-      const searchQuery = $page.route.search;
+    } else if (routeSearchQuery) {
+      const searchQuery = routeSearchQuery;
       document.title = formatTitle(
         `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${searchQuery}`,
       );
@@ -398,7 +394,7 @@ $effect(() => {
 });
 
 const handleSearchInput = () => {
-  updateSearchRoute(search, $page.route.item);
+  updateSearchRoute(navigation.target, search);
 };
 
 const executeSearchAction = () => {
@@ -408,11 +404,11 @@ const executeSearchAction = () => {
   const firstResult = searchState.firstResult;
   if (firstResult) {
     metrics.count("search.result.open", 1, { method: "enter_key" });
-    navigateTo(
-      getCurrentVersionSlug(),
-      { type: mapType(firstResult.type), id: firstResult.id },
-      "",
-    );
+    navigateTo({
+      kind: "item",
+      type: mapType(firstResult.type),
+      id: firstResult.id,
+    });
   }
 };
 
@@ -454,10 +450,7 @@ function applyMods(selectedMods: string[]): void {
   // Changing mods triggers a full page reload to ensure data consistency.
   isModSelectorOpen = false;
   metrics.gauge("data.mods.count", selectedMods.length);
-  updateQueryParam(
-    "mods",
-    selectedMods.length > 0 ? selectedMods.join(",") : null,
-  );
+  changeMods(selectedMods);
 }
 
 function handleNavigation(event: MouseEvent) {
@@ -470,7 +463,6 @@ function handleNavigation(event: MouseEvent) {
     });
   }
 
-  // Just call handleInternalNavigation; page store updates automatically
   handleInternalNavigation(event);
 }
 
@@ -498,17 +490,17 @@ function onItemBoundaryError(boundaryError: unknown): void {
     boundaryError instanceof Error
       ? boundaryError
       : new Error(String(boundaryError));
-  const routeItem = $page.route.item;
+  const routeItem = item;
   metrics.count("app.error.catch", 1, {
     type: routeItem?.type ?? "shell",
     id: routeItem?.id ?? "none",
   });
   const context = {
     route: {
-      version: $page.route.version,
+      version: navigation.buildRequestedVersion,
       type: routeItem?.type,
       id: routeItem?.id,
-      search: $page.route.search,
+      search: routeSearchQuery,
     },
   };
   console.error(error, context);
@@ -540,16 +532,14 @@ function getLanguageName(code: string) {
   }
   return code;
 }
-
 let canonicalUrl = $derived(
-  buildUrl(
-    STABLE_VERSION,
-    $page.route.item,
-    $page.route.search,
-    localeParam,
-    null,
-    $page.route.mods,
-  ),
+  new URL(
+    buildURL(STABLE_VERSION, navigation.target, {
+      localeParam: navigation.locale,
+      modsParam: navigation.mods,
+    }),
+    location.origin,
+  ).toString(),
 );
 </script>
 
@@ -571,14 +561,13 @@ let canonicalUrl = $derived(
         <link
           rel="alternate"
           hreflang={lang.replace("_", "-")}
-          href={buildUrl(
-            getCurrentVersionSlug(),
-            $page.route.item,
-            $page.route.search,
-            lang,
-            null,
-            $page.route.mods,
-          )} />
+          href={new URL(
+            buildURL(navigation.buildRequestedVersion, navigation.target, {
+              localeParam: lang,
+              modsParam: navigation.mods,
+            }),
+            location.origin,
+          ).toString()} />
       {/each}
     {/if}
   {/if}
@@ -593,7 +582,7 @@ let canonicalUrl = $derived(
   <nav>
     <div class="title">
       <a
-        href={getVersionedBasePath() + location.search}
+        href={buildLinkTo({ kind: "home" })}
         class="brand-link"
         onclick={() => (search = "")}
         ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow">HHG</span
@@ -667,14 +656,14 @@ let canonicalUrl = $derived(
         disabled={!$data}
         aria-busy={isModSelectorLoading || !$data}
         aria-label={t("Mods ({count} active)", {
-          count: $page.route.mods.length,
+          count: navigation.mods.length,
         })}>
         <span class="mods-button-inner">
           <span
             class="mods-button-normal"
             class:loading-hidden={isModSelectorLoading || !$data}>
             <span class="mods-label">{t("Mods")}</span>
-            <span class="mods-count">[{String($page.route.mods.length)}]</span>
+            <span class="mods-count">[{String(navigation.mods.length)}]</span>
           </span>
           <span
             class="mods-button-loading"
@@ -695,7 +684,7 @@ let canonicalUrl = $derived(
   open={isModSelectorOpen}
   mods={$data?.mods ?? []}
   rawModsJson={$data?.raw_mods_json ?? {}}
-  selectedModIds={$page.route.mods}
+  selectedModIds={navigation.mods}
   loading={isModSelectorLoading}
   errorMessage={modSelectorError}
   onclose={closeModSelector}
@@ -853,7 +842,10 @@ let canonicalUrl = $derived(
             value={requestedVersion}
             onchange={(e) => {
               const v = e.currentTarget.value;
-              metrics.count("ui.version.change", 1, { v });
+              metrics.count("ui.version.change", 1, {
+                from: navigation.buildRequestedVersion,
+                to: v,
+              });
               changeVersion(v);
             }}>
             <optgroup
@@ -891,12 +883,11 @@ let canonicalUrl = $derived(
       <select
         id="tileset_select"
         aria-label={t("Tileset")}
-        value={tileset}
+        value={navigation.tileset}
         onchange={(e) => {
-          tileset = e.currentTarget.value ?? "";
-          saveTileset(tileset);
-          updateQueryParamNoReload("t", tileset);
-          metrics.count("ui.tileset.change", 1, { tileset });
+          const nextTileset = e.currentTarget.value ?? "";
+          changeTileset(nextTileset);
+          metrics.count("ui.tileset.change", 1, { tileset: nextTileset });
         }}>
         {#each TILESETS as { name, displayName }}
           <option value={name}>{displayName}</option>
@@ -909,12 +900,12 @@ let canonicalUrl = $derived(
         <select
           id="language_select"
           aria-label={t("Language", { _context: LANGUAGE_SELECTOR_CONTEXT })}
-          value={$data?.effective_locale || localeParam || "en"}
+          value={$data?.effective_locale ?? navigation.locale}
           onchange={(e) => {
             const lang = e.currentTarget.value;
-            updateQueryParam("lang", lang === "en" ? null : lang);
+            changeLanguage(lang);
           }}>
-          <option value="en">English</option>
+          <option value={DEFAULT_LOCALE}>English</option>
           {#each [...(builds.find((b) => b.build_number === build_number)?.langs ?? [])].sort( (a, b) => getLanguageName(a).localeCompare(getLanguageName(b)), ) as lang}
             <option value={lang}>{getLanguageName(lang)}</option>
           {/each}

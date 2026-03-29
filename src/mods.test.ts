@@ -69,10 +69,7 @@ describe("Mod merge ordering", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, undefined, [
-        "mod_b",
-        "mod_a",
-      ]);
+      await data.setVersion("latest", null, undefined, ["mod_b", "mod_a"]);
       const loaded = await getLoadedData();
       const order = loaded
         .all()

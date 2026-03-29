@@ -2,21 +2,21 @@ import { zaraz } from "zaraz-ts";
 import * as Sentry from "@sentry/browser";
 import { eventFiltersIntegration } from "@sentry/browser";
 import { registerSW } from "virtual:pwa-register";
+import { t, tx } from "@transifex/native";
+import { mount } from "svelte";
 import "./assets/fonts.css";
 import App from "./App.svelte";
+import { STABLE_VERSION } from "./builds.svelte";
 import { isProd, RUNNING_MODE } from "./utils/env";
-import { tx } from "@transifex/native";
-import { mount } from "svelte";
+import { notify } from "./Notification.svelte";
+import { bootstrapApplication } from "./navigation.svelte";
+import { buildURL, navigateToURL } from "./routing.svelte";
 
 tx.init({
   token: __TRANSIFEX_TOKEN__,
 });
 
-const releaseID = __RELEASE_ID__;
-
 if (isProd) {
-  let running_mode = RUNNING_MODE;
-
   // Check metrics opt-out flag (defensive for puppeteer/restricted browsers)
   let metricsDisabled = false;
   try {
@@ -26,8 +26,8 @@ if (isProd) {
     // localStorage unavailable (puppeteer, incognito, etc.) - default to enabled
   }
 
-  zaraz.set("release_id", releaseID, { scope: "session" });
-  zaraz.set("running_mode", running_mode, { scope: "session" });
+  zaraz.set("release_id", __RELEASE_ID__, { scope: "session" });
+  zaraz.set("running_mode", RUNNING_MODE, { scope: "session" });
 
   Sentry.init({
     dsn: __SENTRY_DSN__,
@@ -70,75 +70,20 @@ registerSW({
   },
 });
 
-const url = new URL(location.href);
+void bootstrapApplication()
+  .then(() => {
+    console.log(`Application state initialized.`);
+    start();
+  })
+  .catch((error) => {
+    console.error("Failed to bootstrap application state.", error);
+    Sentry.captureException(error);
+    navigateToURL(buildURL(STABLE_VERSION, { kind: "home" }), "replace");
+    start();
+    notify(t("Failed to initialize application. Please reload."), "error");
+  });
 
-/**
- * Hardcoded locale mappings for Transifex.
- * Maps game data locales (with region codes) to Transifex locale codes (language-only).
- * This ensures proper translation loading for regional variants.
- */
-const LOCALE_TO_TRANSIFEX: Record<string, string> = {
-  es_AR: "es",
-  it_IT: "it",
-  pl_PL: "pl",
-  ru_RU: "ru",
-  uk_UA: "uk",
-};
-
-/**
- * Build a locale fallback chain for Transifex lookup.
- *
- * Strategy:
- * 1. Try known hardcoded mappings first (e.g., es_AR → es)
- * 2. Try the original locale value as-is
- * 3. Try language-only locale (strip region code: es_AR → es)
- *
- * @param locale - The locale string to resolve (e.g., "es_AR", "ru_RU")
- * @returns Array of locale candidates to try in order
- */
-function getTransifexLocaleCandidates(locale: string): string[] {
-  const candidates: string[] = [];
-  const mapped = LOCALE_TO_TRANSIFEX[locale];
-  if (mapped) {
-    candidates.push(mapped);
-  }
-  candidates.push(locale);
-
-  const languageOnly = locale.split(/[_-]/u)[0];
-  if (languageOnly && !candidates.includes(languageOnly)) {
-    candidates.push(languageOnly);
-  }
-  return candidates;
-}
-
-/**
- * Attempt to set the Transifex locale with fallback support.
- *
- * Tries each locale candidate in sequence until one succeeds.
- * If all candidates fail, silently ignores the error (keeping the default locale).
- *
- * @param locale - The requested locale string
- */
-async function setLocaleWithFallback(locale: string): Promise<void> {
-  const candidates = getTransifexLocaleCandidates(locale);
-  let chain = Promise.reject<void>(new Error("start locale chain"));
-  for (const candidate of candidates) {
-    chain = chain.catch(() => tx.setCurrentLocale(candidate));
-  }
-  try {
-    await chain;
-  } catch {
-    // All candidates failed; keep default locale
-  }
-}
-
-const locale = url.searchParams.get("lang");
-if (locale) {
-  setLocaleWithFallback(locale).then(start, start);
-} else {
-  start();
-}
-function start() {
+function start(): void {
   mount(App, {
     target: document.body,
   });

@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { vi } from "vitest";
-import type { BuildInfo } from "./routing";
 import { BASE_URL } from "./utils/env";
+import type { BuildInfo } from "./builds.svelte";
 
 type TestDataJson = {
   build_number: string;
@@ -235,20 +235,36 @@ export function setWindowLocation(path: string, search = ""): void {
   const normalizedPath = path.replace(/^\/+/, "");
   const pathname = `${baseUrl}${normalizedPath}`;
   const origin = "http://localhost:3000";
+  let currentUrl = new URL(`${origin}${pathname}${search}`);
 
   Object.defineProperty(window, "location", {
     configurable: true,
     writable: true,
     value: {
-      href: `${origin}${pathname}${search}`,
       origin,
-      pathname,
-      search,
+      get href() {
+        return currentUrl.toString();
+      },
+      set href(next: string) {
+        currentUrl = new URL(next, origin);
+      },
+      get pathname() {
+        return currentUrl.pathname;
+      },
+      set pathname(next: string) {
+        currentUrl = new URL(next + currentUrl.search, origin);
+      },
+      get search() {
+        return currentUrl.search;
+      },
+      set search(next: string) {
+        currentUrl = new URL(currentUrl.pathname + next, origin);
+      },
+      assign(next: string | URL) {
+        this.href = next.toString();
+      },
       replace(next: string | URL) {
-        const url = new URL(next.toString(), origin);
-        this.href = url.toString();
-        this.pathname = url.pathname;
-        this.search = url.search;
+        this.href = next.toString();
       },
       toString() {
         return this.href;

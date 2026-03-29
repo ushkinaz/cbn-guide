@@ -2786,7 +2786,6 @@ export const data = {
   async setVersion(
     version: string,
     locale: string | null,
-    versionSlug?: string,
     availableLangs?: string[],
     activeMods: string[] = [],
   ) {
@@ -2805,10 +2804,9 @@ export const data = {
       loadProgressStore.set(received > 0 ? [received, total] : null);
     };
     updateProgress();
-    const urlVersion = versionSlug ?? version;
     const dataJson = await retry(
       () =>
-        fetchJson(urlVersion, (receivedBytes, totalBytes) => {
+        fetchJson(version, (receivedBytes, totalBytes) => {
           totals[0] = totalBytes;
           receiveds[0] = receivedBytes;
           updateProgress();
@@ -2893,7 +2891,7 @@ export const data = {
 
     if (requestedActiveMods.length > 0) {
       const parsedMods = await loadParsedModsJson(
-        urlVersion,
+        version,
         (receivedBytes, totalBytes) => {
           totals[3] = totalBytes;
           receiveds[3] = receivedBytes;
@@ -2924,7 +2922,7 @@ export const data = {
       mergedData,
       dataJson.build_number,
       dataJson.release,
-      urlVersion,
+      version,
       effective_locale,
       locale || "en",
       mods,
