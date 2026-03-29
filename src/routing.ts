@@ -159,7 +159,8 @@ function createRouteTarget(
   return { kind: "home" };
 }
 
-function parseRouteFromUrl(url: URL): ParsedRoute {
+function parseRouteFromUrl(urlString: string): ParsedRoute {
+  const url = new URL(urlString);
   const segments = getPathSegmentsFromPath(url.pathname);
 
   return {
@@ -171,11 +172,11 @@ function parseRouteFromUrl(url: URL): ParsedRoute {
   };
 }
 
-function readCurrentLocation(): PageState {
-  const url = new URL(location.href);
+function createPageState(urlString: string): PageState {
+  const url = new URL(urlString);
   return {
     url,
-    route: parseRouteFromUrl(url),
+    route: parseRouteFromUrl(url.toString()),
   };
 }
 
@@ -274,7 +275,7 @@ function createPageStateFromLocation(): PageState {
     return createEmptyPageState("http://localhost/");
   }
 
-  return readCurrentLocation();
+  return createPageState(location.href);
 }
 
 function createEmptyPageState(url: string): PageState {
@@ -336,11 +337,19 @@ export function getCurrentVersionSlug(): string {
 }
 
 /**
- * Get the base path for the current version (e.g., "/stable/")
- * Use this when building href strings in templates
+ * Build a relative href for a route target in the current routing context.
  */
-export function getVersionedBasePath(): string {
-  return BASE_URL + getCurrentVersionSlug() + "/";
+export function buildLinkTo(target: RouteTarget): string {
+  const pageState = get(_page);
+  const url = new URL(
+    buildUrl(pageState.route.version, target, {
+      locale: pageState.route.locale,
+      tileset: pageState.route.tileset,
+      mods: pageState.route.mods,
+    }),
+  );
+
+  return `${url.pathname}${url.search}`;
 }
 
 /**
@@ -403,22 +412,22 @@ function navigateWithHistory(url: string, mode: HistoryMode): void {
   updatePageState();
 }
 
-function requiresHardNavigation(search: string): boolean {
-  if (!search) {
-    return false;
-  }
-
-  const searchParams = new URLSearchParams(search);
-  return searchParams.has("lang") || searchParams.has("mods");
+function sameOrderedStrings(left: string[], right: string[]): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
 }
 
-function buildUrlInCurrentContext(target: RouteTarget): string {
-  const currentPageState = get(_page);
-  return buildUrl(currentPageState.route.version, target, {
-    locale: currentPageState.route.locale,
-    tileset: currentPageState.route.tileset,
-    mods: currentPageState.route.mods,
-  });
+function requiresHardNavigation(
+  currentPageState: PageState,
+  newPageState: PageState,
+): boolean {
+  return (
+    currentPageState.route.version !== newPageState.route.version ||
+    currentPageState.route.locale !== newPageState.route.locale ||
+    !sameOrderedStrings(currentPageState.route.mods, newPageState.route.mods)
+  );
 }
 
 function updateCurrentQueryParam(
@@ -478,7 +487,7 @@ export function updateSearchRoute(
   const nextTarget: RouteTarget = searchQuery
     ? { kind: "search", query: searchQuery }
     : { kind: "home" };
-  const fullUrl = buildUrlInCurrentContext(nextTarget);
+  const fullUrl = buildLinkTo(nextTarget);
   const shouldPush =
     currentTarget.kind === "catalog" || currentTarget.kind === "item";
 
@@ -513,7 +522,7 @@ export function navigateTo(target: RouteTarget): void {
   // Cancel any pending debounced URL updates - user is explicitly navigating
   debouncedReplaceState.cancel();
 
-  navigateWithHistory(buildUrlInCurrentContext(target), "push");
+  navigateWithHistory(buildLinkTo(target), "push");
 }
 
 /**
@@ -541,28 +550,15 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
   if (anchor) {
     if (anchor.origin === location.origin && isPathUnderBase(anchor.pathname)) {
       const currentPageState = get(_page);
-
-      // Version-aware navigation check:
-      // If the target version differs from the current version, do NOT intercept.
-      // Changing version requires a full page reload to load new game data.
-      const currentVersion = currentPageState.route.version;
-      const targetSegments = getPathSegmentsFromPath(anchor.pathname);
-      const targetVersion = targetSegments[0] || STABLE_VERSION;
-
-      if (targetVersion !== currentVersion) {
+      const newPageState = createPageState(anchor.href);
+      if (requiresHardNavigation(currentPageState, newPageState)) {
         return false;
       }
 
+      const targetUrl = `${anchor.pathname}${anchor.search}`;
       event.preventDefault();
       // Cancel pending debounced updates
       debouncedReplaceState.cancel();
-      // Use anchor's query params if present, otherwise preserve current
-      const targetUrl =
-        anchor.pathname + (anchor.search || currentPageState.url.search);
-      if (requiresHardNavigation(anchor.search)) {
-        location.assign(targetUrl);
-        return true;
-      }
       navigateWithHistory(targetUrl, "push");
       return true;
     }

@@ -4,7 +4,7 @@ import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../../data";
-import { getVersionedBasePath } from "../../routing";
+import { buildLinkTo } from "../../routing";
 
 import type { Recipe, RequirementData } from "../../types";
 import ItemLink from "../ItemLink.svelte";
@@ -67,10 +67,11 @@ let { tools, qualities } =
             {#if count <= 0}
               {#if data.craftingPseudoItem(toolId)}
                 <a
-                  href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
-                    toolId,
-                  )}{location.search}"
-                  >{gameSingularName(data.byId("item", toolId))}</a>
+                  href={buildLinkTo({
+                    kind: "item",
+                    type: "furniture",
+                    id: data.craftingPseudoItem(toolId)!,
+                  })}>{gameSingularName(data.byId("item", toolId))}</a>
               {:else}
                 <ItemLink type="item" id={toolId} showIcon={false} />
               {/if}
@@ -91,10 +92,11 @@ let { tools, qualities } =
                 {#snippet _0()}
                   {#if data.craftingPseudoItem(toolId)}
                     <a
-                      href="{getVersionedBasePath()}furniture/{data.craftingPseudoItem(
-                        toolId,
-                      )}{location.search}"
-                      >{gameSingularName(data.byId("item", toolId))}</a>
+                      href={buildLinkTo({
+                        kind: "item",
+                        type: "furniture",
+                        id: data.craftingPseudoItem(toolId)!,
+                      })}>{gameSingularName(data.byId("item", toolId))}</a>
                   {:else}
                     <ItemLink type="item" id={toolId} showIcon={false} />
                   {/if}

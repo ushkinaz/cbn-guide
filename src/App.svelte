@@ -19,11 +19,11 @@ import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import { buildMetaDescription } from "./seo";
 import {
+  buildLinkTo,
   type BuildInfo,
   buildUrl,
   changeVersion,
   getCurrentVersionSlug,
-  getVersionedBasePath,
   handleInternalNavigation,
   type InitialAppState,
   initializeRouting,
@@ -611,7 +611,7 @@ let canonicalUrl = $derived(
   <nav>
     <div class="title">
       <a
-        href={getVersionedBasePath() + location.search}
+        href={buildLinkTo({ kind: "home" })}
         class="brand-link"
         onclick={() => (search = "")}
         ><span class="wide">{UI_GUIDE_NAME}</span><span class="narrow">HHG</span

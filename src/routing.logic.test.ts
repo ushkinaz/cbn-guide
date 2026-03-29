@@ -15,6 +15,7 @@ import {
 } from "vitest";
 import {
   _reset as resetRouting,
+  buildLinkTo,
   buildUrl,
   getCurrentVersionSlug,
   handleInternalNavigation,
@@ -69,31 +70,6 @@ function mockLocationReplace() {
     },
     get replaceUrl() {
       return replaceUrl;
-    },
-  };
-}
-
-function mockLocationAssign() {
-  const originalAssign = window.location.assign;
-  let assignUrl = "";
-  const assignSpy = vi.fn((next: string | URL) => {
-    assignUrl = next.toString();
-    const url = new URL(assignUrl, window.location.origin);
-    window.location.pathname = url.pathname;
-    window.location.search = url.search;
-    window.location.href = url.toString();
-  });
-
-  delete (window.location as { assign?: unknown }).assign;
-  window.location.assign = assignSpy as typeof window.location.assign;
-
-  return {
-    assignSpy,
-    restore() {
-      window.location.assign = originalAssign;
-    },
-    get assignUrl() {
-      return assignUrl;
     },
   };
 }
@@ -168,6 +144,27 @@ describe("Routing logic", () => {
         id: "rock",
       });
       expect(url).not.toContain("mods=");
+    });
+
+    test("buildHrefInCurrentContext preserves current routing context", () => {
+      setWindowLocation(
+        "stable/item/rock",
+        "?lang=ru_RU&t=retro&mods=aftershock",
+      );
+      resetRouting();
+
+      expect(buildLinkTo({ kind: "catalog", type: "monster" })).toBe(
+        "/stable/monster?lang=ru_RU&t=retro&mods=aftershock",
+      );
+    });
+
+    test("buildHrefInCurrentContext omits default locale and empty mods", () => {
+      setWindowLocation("stable/item/rock", "?lang=en");
+      resetRouting();
+
+      expect(buildLinkTo({ kind: "item", type: "item", id: "rock" })).toBe(
+        "/stable/item/rock",
+      );
     });
 
     test("mods query param round-trips through buildUrl and parseRoute", () => {
@@ -330,7 +327,7 @@ describe("Routing logic", () => {
       expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
-    test("handleInternalNavigation intercepts same-version links and preserves current query", () => {
+    test("handleInternalNavigation intercepts same-state links", () => {
       setWindowLocation("stable/search/rock", "?mods=aftershock");
       resetRouting();
       vi.spyOn(history, "pushState").mockImplementation((_, __, url) => {
@@ -341,7 +338,7 @@ describe("Routing logic", () => {
       });
 
       const anchor = document.createElement("a");
-      anchor.href = "http://localhost:3000/stable/item/rock";
+      anchor.href = "http://localhost:3000/stable/item/rock?mods=aftershock";
       Object.defineProperty(anchor, "origin", {
         value: "http://localhost:3000",
       });
@@ -349,7 +346,7 @@ describe("Routing logic", () => {
         value: "/stable/item/rock",
       });
       Object.defineProperty(anchor, "search", {
-        value: "",
+        value: "?mods=aftershock",
       });
 
       const event = {
@@ -380,11 +377,52 @@ describe("Routing logic", () => {
       expect(get(page).url.search).toContain("mods=aftershock");
     });
 
-    test("handleInternalNavigation hard reloads links that set lang or mods", () => {
+    test("handleInternalNavigation does not intercept links that change lang or mods", () => {
       setWindowLocation("stable/item/guide");
       resetRouting();
       const pushStateSpy = vi.spyOn(history, "pushState");
-      const locationAssign = mockLocationAssign();
+
+      const anchor = document.createElement("a");
+      anchor.href = "http://localhost:3000/stable/?lang=uk&mods=inna";
+      Object.defineProperty(anchor, "origin", {
+        value: "http://localhost:3000",
+      });
+      Object.defineProperty(anchor, "pathname", {
+        value: "/stable/",
+      });
+      Object.defineProperty(anchor, "search", {
+        value: "?lang=uk&mods=inna",
+      });
+
+      const event = {
+        target: {
+          closest: () => anchor,
+        },
+        preventDefault: vi.fn(),
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        button: 0,
+        defaultPrevented: false,
+      } as unknown as MouseEvent;
+
+      expect(handleInternalNavigation(event)).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
+      expect(pushStateSpy).not.toHaveBeenCalled();
+    });
+
+    test("handleInternalNavigation keeps SPA navigation when lang and mods are unchanged", () => {
+      setWindowLocation("stable/item/guide", "?lang=uk&mods=inna");
+      resetRouting();
+      const pushStateSpy = vi
+        .spyOn(history, "pushState")
+        .mockImplementation((_, __, url) => {
+          const nextUrl = new URL(String(url), window.location.origin);
+          window.location.pathname = nextUrl.pathname;
+          window.location.search = nextUrl.search;
+          window.location.href = nextUrl.toString();
+        });
 
       const anchor = document.createElement("a");
       anchor.href = "http://localhost:3000/stable/?lang=uk&mods=inna";
@@ -413,12 +451,44 @@ describe("Routing logic", () => {
 
       expect(handleInternalNavigation(event)).toBe(true);
       expect(event.preventDefault).toHaveBeenCalledTimes(1);
+      expect(pushStateSpy).toHaveBeenCalledOnce();
+      expect(window.location.pathname).toBe("/stable/");
+      expect(window.location.search).toBe("?lang=uk&mods=inna");
+    });
+
+    test("handleInternalNavigation does not intercept links to a different version", () => {
+      setWindowLocation("stable/item/guide", "?lang=uk&mods=inna");
+      resetRouting();
+      const pushStateSpy = vi.spyOn(history, "pushState");
+
+      const anchor = document.createElement("a");
+      anchor.href = "http://localhost:3000/v0.8/item/guide?lang=uk&mods=inna";
+      Object.defineProperty(anchor, "origin", {
+        value: "http://localhost:3000",
+      });
+      Object.defineProperty(anchor, "pathname", {
+        value: "/v0.8/item/guide",
+      });
+      Object.defineProperty(anchor, "search", {
+        value: "?lang=uk&mods=inna",
+      });
+
+      const event = {
+        target: {
+          closest: () => anchor,
+        },
+        preventDefault: vi.fn(),
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        button: 0,
+        defaultPrevented: false,
+      } as unknown as MouseEvent;
+
+      expect(handleInternalNavigation(event)).toBe(false);
+      expect(event.preventDefault).not.toHaveBeenCalled();
       expect(pushStateSpy).not.toHaveBeenCalled();
-      expect(locationAssign.assignSpy).toHaveBeenCalledWith(
-        "/stable/?lang=uk&mods=inna",
-      );
-      expect(locationAssign.assignUrl).toBe("/stable/?lang=uk&mods=inna");
-      locationAssign.restore();
     });
 
     test("page store updates on popstate events", () => {

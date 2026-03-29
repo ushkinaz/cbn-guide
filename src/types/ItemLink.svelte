@@ -1,7 +1,7 @@
 <script lang="ts">
 import { getContext } from "svelte";
 import { CBNData, countsByCharges, omsName } from "../data";
-import { getVersionedBasePath, page } from "../routing";
+import { buildLinkTo, page } from "../routing";
 import type { SupportedTypesWithMapped } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
@@ -102,11 +102,10 @@ let iconItem = $derived(
     : null,
 );
 // Use $page.url to trigger updates when the URL changes
-let href = $derived(
-  `${getVersionedBasePath()}${type}/${id}${
-    $page.url.search || location.search
-  }`,
-);
+let href = $derived.by(() => {
+  $page.url.search;
+  return buildLinkTo({ kind: "item", type, id });
+});
 </script>
 
 <span class="item-link" class:item-link--count={count != null}>

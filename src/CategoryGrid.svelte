@@ -26,7 +26,7 @@ import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 import vehicleIcon from "./assets/category-icons/vehicle.svg";
 import { t } from "@transifex/native";
 import { CBNData, data, mapType } from "./data";
-import { getVersionedBasePath, navigateTo } from "./routing";
+import { buildLinkTo, navigateTo } from "./routing";
 import type { SupportedTypesWithMapped } from "./types";
 
 const categories = [
@@ -160,7 +160,7 @@ async function openRandomPage(event: MouseEvent) {
 <div class="category-grid">
   {#each categories as cat}
     <a
-      href="{getVersionedBasePath()}{cat.href}{location.search}"
+      href={buildLinkTo({ kind: "catalog", type: cat.href })}
       class="category-card">
       <div class="icon-wrapper">
         <img
@@ -174,7 +174,7 @@ async function openRandomPage(event: MouseEvent) {
     </a>
   {/each}
   <a
-    href={`${getVersionedBasePath()}${location.search}`}
+    href={buildLinkTo({ kind: "home" })}
     class="category-card random"
     onclick={openRandomPage}>
     <div class="icon-wrapper">
