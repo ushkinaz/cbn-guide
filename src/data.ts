@@ -2,13 +2,22 @@
  * Core data layer for Cataclysm: Bright Nights game data.
  *
  * ARCHITECTURE:
- * - **Singleton pattern**: CBNData instantiated ONCE per page load, never mutates
- * - **Full page reload**: Version/language/tileset/mod changes trigger location.href reload (see routing.md, ADR-002)
- * - **Incremental Mod Resolution**: Mods are resolved via top-to-bottom unfurling during flattening (see ADR-003)
- * - **Immutable after construction**: All data frozen after initial load (~30MB, 30K+ objects)
- * - **Caching**: Maps/WeakMaps never need invalidation - data lifetime = page lifetime
+ * - **Singleton pattern**: `CBNData` is instantiated once per loaded data context
+ * - **Data identity changes reload**: Build version, locale, and active mods
+ *   replace the dataset with a full navigation because they point at different
+ *   payloads (see `docs/routing.md`, ADR-002)
+ * - **Display preferences stay soft**: Tileset changes are presentation-only and
+ *   are handled by SPA navigation without rebuilding the data singleton
+ * - **Incremental Mod Resolution**: Mods are resolved via top-to-bottom
+ *   unfurling during flattening (see ADR-003)
+ * - **Immutable after construction**: All data is frozen after initial load
+ *   (~30MB, 30K+ objects)
+ * - **Caching**: Maps and WeakMaps never need invalidation because their
+ *   lifetime matches the published data instance
  *
- * This design is intentional - changing versions or mods requires loading completely different JSON.
+ * This split is intentional: route changes that select different source data
+ * rebuild the singleton, while display-only navigation keeps the existing
+ * instance alive.
  */
 import { writable } from "svelte/store";
 import * as perf from "./utils/perf";
