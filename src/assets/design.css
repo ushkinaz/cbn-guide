@@ -283,3 +283,26 @@ h1:first-child {
 pre {
   white-space: pre-wrap;
 }
+
+/* 1990s BBS Aesthetic */
+body.bbs-mode {
+  --cata-color-black: #000000 !important;
+  --cata-color-white: #00ff00 !important;
+  --cata-color-gray: #008800 !important;
+  --cata-color-cyan: #00ff00 !important;
+
+  background-color: #000000 !important;
+  color: #00ff00 !important;
+  font-family: "UnifontSubset", monospace !important;
+  text-transform: uppercase !important;
+}
+
+body.bbs-mode * {
+  font-family: inherit !important;
+}
+
+body.bbs-mode section {
+  border: 1px solid #00ff00;
+  background: none;
+  box-shadow: none;
+}

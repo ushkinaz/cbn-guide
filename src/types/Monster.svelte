@@ -94,6 +94,8 @@ function difficultyDescription(diff: number): {
     className: "difficulty-fatal",
   };
 }
+const now = new Date();
+const isAprilFools = now.getMonth() === 3 && now.getDate() === 1;
 
 function difficultyInfo(mon: Monster): {
   value: number;
@@ -102,6 +104,11 @@ function difficultyInfo(mon: Monster): {
 } {
   const value = difficulty(mon);
   const { text, className } = difficultyDescription(value);
+
+  if (isAprilFools && mon.id.toLocaleLowerCase().includes("mi_go")) {
+    return { value: 0, text: "Friendly", className: "difficulty-minimal" };
+  }
+
   return { value, text, className };
 }
 

@@ -2,7 +2,7 @@
 import { getVersionedBasePath } from "./routing";
 
 // https://patorjk.com/software/taag/#p=display&f=Terrace&t=Don%27t%0APanic%21&x=none&v=4&h=0&w=80&we=false
-const asciiArt = `
+let asciiArt = `
 ░███████                         ░██    ░██
 ░██   ░██                        ░██    ░██
 ░██    ░██  ░███████  ░████████  ░██ ░████████
@@ -21,13 +21,50 @@ const asciiArt = `
 ░██         ░██   ░██  ░██    ░██ ░██░██    ░██
 ░██          ░█████░██ ░██    ░██ ░██ ░███████  ░██
 `;
+
+const now = new Date();
+const isAprilFools = now.getMonth() === 3 && now.getDate() === 1;
+if (isAprilFools) {
+  asciiArt = `
+ ▄▄       ▄▄  ▄▄▄▄▄▄▄▄▄▄▄               ▄▄▄▄▄▄▄▄▄▄▄  ▄▄▄▄▄▄▄▄▄▄▄
+▐░░▌     ▐░░▌▐░░░░░░░░░░░▌             ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
+▐░▌░▌   ▐░▐░▌ ▀▀▀▀█░█▀▀▀▀              ▐░█▀▀▀▀▀▀▀▀▀ ▐░█▀▀▀▀▀▀▀█░▌
+▐░▌▐░▌ ▐░▌▐░▌     ▐░▌                  ▐░▌          ▐░▌       ▐░▌
+▐░▌ ▐░▐░▌ ▐░▌     ▐░▌      ▄▄▄▄▄▄▄▄▄▄▄ ▐░▌ ▄▄▄▄▄▄▄▄ ▐░▌       ▐░▌
+▐░▌  ▐░▌  ▐░▌     ▐░▌     ▐░░░░░░░░░░░▌▐░▌▐░░░░░░░░▌▐░▌       ▐░▌
+▐░▌   ▀   ▐░▌     ▐░▌      ▀▀▀▀▀▀▀▀▀▀▀ ▐░▌ ▀▀▀▀▀▀█░▌▐░▌       ▐░▌
+▐░▌       ▐░▌     ▐░▌                  ▐░▌       ▐░▌▐░▌       ▐░▌
+▐░▌       ▐░▌ ▄▄▄▄█░█▄▄▄▄              ▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌
+▐░▌       ▐░▌▐░░░░░░░░░░░▌             ▐░░░░░░░░░░░▌▐░░░░░░░░░░░▌
+ ▀         ▀  ▀▀▀▀▀▀▀▀▀▀▀               ▀▀▀▀▀▀▀▀▀▀▀  ▀▀▀▀▀▀▀▀▀▀▀
+
+ ▄▄▄▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄▄   ▄▄▄▄▄▄▄▄▄▄▄
+▐░░░░░░░░░░▌ ▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌
+▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀▀▀
+▐░▌       ▐░▌▐░▌       ▐░▌▐░▌
+▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄▄▄
+▐░░░░░░░░░░▌ ▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌
+▐░█▀▀▀▀▀▀▀█░▌▐░█▀▀▀▀▀▀▀█░▌ ▀▀▀▀▀▀▀▀▀█░▌
+▐░▌       ▐░▌▐░▌       ▐░▌          ▐░▌
+▐░█▄▄▄▄▄▄▄█░▌▐░█▄▄▄▄▄▄▄█░▌ ▄▄▄▄▄▄▄▄▄█░▌
+▐░░░░░░░░░░▌ ▐░░░░░░░░░░▌ ▐░░░░░░░░░░░▌
+ ▀▀▀▀▀▀▀▀▀▀   ▀▀▀▀▀▀▀▀▀▀   ▀▀▀▀▀▀▀▀▀▀▀`;
+}
 </script>
 
-<a href="{getVersionedBasePath()}item/guidebook" class="logo-link">
-  <aside class="ascii-art-container large">
-    <pre class="ascii-art">{asciiArt}</pre>
-  </aside>
-</a>
+{#if isAprilFools}
+  <a href="{getVersionedBasePath()}monster/mon_mi_go" class="logo-link">
+    <aside class="ascii-art-container large">
+      <pre class="ascii-art">{asciiArt}</pre>
+    </aside>
+  </a>
+{:else}
+  <a href="{getVersionedBasePath()}item/guidebook" class="logo-link">
+    <aside class="ascii-art-container large">
+      <pre class="ascii-art">{asciiArt}</pre>
+    </aside>
+  </a>
+{/if}
 
 <style>
 .ascii-art {

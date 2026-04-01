@@ -24,6 +24,8 @@ import terrainIcon from "./assets/category-icons/terrain.svg";
 import vehiclePartsIcon from "./assets/category-icons/vehicle-parts.svg";
 //https://game-icons.net/1x1/skoll/apc.html
 import vehicleIcon from "./assets/category-icons/vehicle.svg";
+import alienIcon from "./assets/category-icons/mi-go.svg";
+import toiletIcon from "./assets/category-icons/toilet.svg";
 import { t } from "@transifex/native";
 import { CBNData, data, mapType } from "./data";
 import {
@@ -33,7 +35,7 @@ import {
 } from "./routing";
 import type { SupportedTypesWithMapped } from "./types";
 
-const categories = [
+let categories = [
   {
     label: t("Items"),
     href: "item",
@@ -90,6 +92,52 @@ const categories = [
     icon: achievementsIcon,
   },
 ];
+const now = new Date();
+const isAprilFools = now.getMonth() === 3 && now.getDate() === 1;
+if (isAprilFools) {
+  categories = [
+    {
+      label: t("Items"),
+      href: "item/migo_bio_gun",
+      icon: alienIcon,
+    },
+    {
+      label: t("Monsters"),
+      href: "monster/mon_mi_go",
+      icon: alienIcon,
+    },
+    {
+      label: t("Furniture"),
+      href: "furniture/f_alien_tendril",
+      icon: alienIcon,
+    },
+    {
+      label: t("Terrain"),
+      href: "terrain/t_wall_resin_cage",
+      icon: alienIcon,
+    },
+    {
+      label: t("Vehicles"),
+      href: "trap/tr_portal",
+      icon: alienIcon,
+    },
+    {
+      label: t("Mutations"),
+      href: "item/bone_human",
+      icon: alienIcon,
+    },
+    {
+      label: t("Achievements"),
+      href: "item/blood_tainted",
+      icon: alienIcon,
+    },
+    {
+      label: t("Random"),
+      href: "mon/mon_skibidi_toilet",
+      icon: toiletIcon,
+    },
+  ];
+}
 
 const randomizableItemTypes = new Set<keyof SupportedTypesWithMapped>([
   "item",
@@ -178,20 +226,6 @@ async function openRandomPage(event: MouseEvent) {
       <span class="label">{cat.label}</span>
     </a>
   {/each}
-  <a
-    href={`${getVersionedBasePath()}${location.search}`}
-    class="category-card random"
-    onclick={openRandomPage}>
-    <div class="icon-wrapper">
-      <img
-        src={randomIcon}
-        alt={t("Random Page")}
-        class="category-icon"
-        loading="eager"
-        decoding="async" />
-    </div>
-    <span class="label">{t("Random Page")}</span>
-  </a>
 </div>
 
 <style>

@@ -1,7 +1,7 @@
 export const GUIDE_NAME =
   "The Hitchhiker's Guide to the Cataclysm: Bright Nights";
 
-export const UI_GUIDE_NAME = "Cataclysm: Bright Nights Guide";
+export const UI_GUIDE_NAME = "Cataclysm: The True Guide";
 
 export const CANONICAL_URL = "https://cataclysmbn-guide.com";
 

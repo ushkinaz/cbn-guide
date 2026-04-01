@@ -551,6 +551,21 @@ let canonicalUrl = $derived(
     $page.route.mods,
   ),
 );
+
+const now = new Date();
+const isAprilFools = now.getMonth() === 3 && now.getDate() === 1;
+
+function bodyClasses(node: HTMLBodyElement): { destroy: () => void } {
+  if (isAprilFools) {
+    node.classList.add("bbs-mode");
+  }
+
+  return {
+    destroy() {
+      node.classList.remove("bbs-mode");
+    },
+  };
+}
 </script>
 
 <svelte:window
@@ -559,6 +574,8 @@ let canonicalUrl = $derived(
   onbeforeinstallprompt={handleBeforeInstallPrompt}
   onappinstalled={handleAppInstalled}
   bind:scrollY />
+
+<svelte:body use:bodyClasses />
 
 <svelte:head>
   {#if builds}
@@ -741,7 +758,7 @@ let canonicalUrl = $derived(
             >{t("NAME", { _context: INTRO_DASHBOARD_CONTEXT })}</span>
           <h1 class="guide-title">
             <span class="spec-value"
-              >{t("The Hitchhiker's Guide", {
+              >{t("The Mi-Go Guide", {
                 _context: INTRO_DASHBOARD_CONTEXT,
               })}
             </span>
