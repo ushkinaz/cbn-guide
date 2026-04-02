@@ -112,26 +112,40 @@ export function _resetVersionState(): void {
   buildsState.current = undefined;
 }
 
-export function resolveBuildVersion(
+export function tryResolveBuildVersion(
   version: string,
-  buildsState?: BuildsState,
-): string {
-  if (!buildsState) {
+  builds?: BuildsState,
+): string | undefined {
+  if (!builds) {
     return version;
   }
 
   let resolvedVersion = version;
-  let latestStableBuild = buildsState.latestStableBuild;
-  let latestNightlyBuild = buildsState.latestNightlyBuild;
+  let latestStableBuild = builds.latestStableBuild;
+  let latestNightlyBuild = builds.latestNightlyBuild;
 
   if (resolvedVersion === STABLE_VERSION)
     resolvedVersion = latestStableBuild.build_number;
   if (resolvedVersion === NIGHTLY_VERSION || resolvedVersion === LATEST_VERSION)
     resolvedVersion = latestNightlyBuild.build_number;
 
-  if (!versionExists(buildsState.builds, resolvedVersion)) {
-    console.warn(`Version "${resolvedVersion}" not found`);
+  if (!versionExists(builds.builds, resolvedVersion)) {
+    return undefined;
+  }
+
+  return resolvedVersion;
+}
+
+export function resolveBuildVersion(
+  version: string,
+  buildsState?: BuildsState,
+): string {
+  const resolvedVersion = tryResolveBuildVersion(version, buildsState);
+
+  if (!resolvedVersion) {
+    console.warn(`Version "${version}" not found`);
     throw new Error(`Failed to resolve version: ${version}`);
   }
+
   return resolvedVersion;
 }

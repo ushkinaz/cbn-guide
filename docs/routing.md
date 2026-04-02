@@ -34,6 +34,7 @@ Search uses the same shape as the rest of the app: the search query lives in the
 Owns:
 
 - parsing the current URL into route state
+- canonicalizing malformed version URLs once build metadata is available
 - building URLs from navigation targets
 - keeping browser history and route state in sync
 - deciding whether an internal click can stay inside the SPA
@@ -112,9 +113,11 @@ sequenceDiagram
 
 Startup establishes routing context before the app mounts so the shell renders with the correct build, locale, tileset, and mods from the beginning.
 
+Once build metadata is available, the route intake path canonicalizes malformed version URLs before the rest of the app consumes them. Missing or invalid version segments are rewritten to the nightly route form with `history.replaceState`, while the bare home URL remains untouched.
+
 ### Failure Handling
 
-If bootstrap fails, the app reports the failure, resets navigation to the home route, and mounts the shell so the user gets a visible error instead of a silent blank state.
+If bootstrap fails for reasons such as build metadata fetch errors, the app reports the failure, resets navigation to the home route, and mounts the shell so the user gets a visible error instead of a silent blank state.
 
 ## Navigation Rules
 
@@ -204,7 +207,7 @@ Choose the navigation transport by intent:
 ## Limitations and Edge Cases
 
 - Version aliases depend on build metadata. Until that metadata is available, the app only knows the requested version, not the resolved concrete build.
-- Invalid requested builds surface as bootstrap failures.
+- Malformed version URLs are canonicalized after build metadata loads, so invalid or missing version segments do not surface as user-facing bootstrap failures.
 - The app does not persist locale or mods as browser preferences.
 - The route layer is browser-oriented state, so server-side initialization uses a safe placeholder URL.
 - History synchronization is global, so the routing module installs exactly one popstate listener.

@@ -5,7 +5,14 @@
  */
 
 import { BASE_URL } from "./utils/env";
-import { STABLE_VERSION } from "./builds.svelte";
+import {
+  buildsState,
+  NIGHTLY_VERSION,
+  STABLE_VERSION,
+  tryResolveBuildVersion,
+  type BuildsState,
+} from "./builds.svelte";
+import { isSupportedType } from "./supported-types";
 import { debounce } from "./utils/debounce";
 
 export type RouteTarget =
@@ -111,6 +118,68 @@ function createRouteTarget(
   }
 
   return { kind: "home" };
+}
+
+function isRouteHeadSegment(segment: string | undefined): boolean {
+  return (
+    segment === "search" || (segment !== undefined && isSupportedType(segment))
+  );
+}
+
+function buildPathnameFromSegments(segments: string[]): string {
+  const basePath = BASE_URL.endsWith("/") ? BASE_URL : `${BASE_URL}/`;
+
+  if (segments.length === 0) {
+    return basePath;
+  }
+
+  const encodedPath = segments.map(encodeURIComponent).join("/");
+  return segments.length === 1
+    ? `${basePath}${encodedPath}/`
+    : `${basePath}${encodedPath}`;
+}
+
+function buildRelativeURL(url: URL, segments: string[]): string {
+  return buildPathnameFromSegments(segments) + url.search + url.hash;
+}
+
+/**
+ * Canonicalize malformed version routes once build metadata is available.
+ *
+ * Rewrites missing-version deep links such as `/monster/zombie` to
+ * `/nightly/monster/zombie`, and rewrites invalid explicit versions such as
+ * `/bogus/monster/zombie` to `/nightly/monster/zombie`.
+ *
+ * The bare home route remains untouched, and any existing query string or hash
+ * fragment is preserved in the returned URL.
+ *
+ * @param urlInput - Browser URL to inspect and potentially canonicalize
+ * @param builds - Loaded build metadata used to validate version slugs
+ * @returns Canonical relative URL when a rewrite is needed, otherwise `null`
+ */
+export function canonicalizeMalformedVersionURL(
+  urlInput: string,
+  builds: BuildsState,
+): string | null {
+  const url = new URL(urlInput, location.origin);
+  const segments = getPathSegmentsFromPath(url.pathname);
+
+  if (segments.length === 0) {
+    return null;
+  }
+
+  const [firstSegment, ...restSegments] = segments;
+  if (tryResolveBuildVersion(firstSegment, builds) !== undefined) {
+    return null;
+  }
+
+  const rewrittenSegments = isRouteHeadSegment(firstSegment)
+    ? [NIGHTLY_VERSION, ...segments]
+    : [NIGHTLY_VERSION, ...restSegments];
+  const canonicalURL = buildRelativeURL(url, rewrittenSegments);
+  const currentURL = url.pathname + url.search + url.hash;
+
+  return canonicalURL === currentURL ? null : canonicalURL;
 }
 
 export function parseRoute(urlInput: string): URLRoute {
@@ -306,6 +375,16 @@ if (typeof window !== "undefined") {
     window.removeEventListener("popstate", win.__routing_popstate_handler__);
   }
   win.__routing_popstate_handler__ = () => {
+    if (buildsState.current) {
+      const canonicalURL = canonicalizeMalformedVersionURL(
+        location.href,
+        buildsState.current,
+      );
+      if (canonicalURL) {
+        navigateToURL(canonicalURL, "replace");
+        return;
+      }
+    }
     updatePageState();
   };
   window.addEventListener("popstate", win.__routing_popstate_handler__);

@@ -6,6 +6,7 @@ import {
 } from "./preferences.svelte";
 import {
   buildURL,
+  canonicalizeMalformedVersionURL,
   initializeRouting,
   navigateToURL,
   page,
@@ -149,9 +150,17 @@ export function changeMods(mods: string[]): void {
 }
 
 export async function bootstrapApplication(): Promise<void> {
-  const route = initializeRouting();
+  initializeRouting();
   initializePreferences();
   const versionState = await initializeBuildsState();
-  resolveBuildVersion(route.versionSlug, versionState);
-  await initializeUILocale(route.localeParam);
+
+  const canonicalURL = canonicalizeMalformedVersionURL(
+    location.href,
+    versionState,
+  );
+  if (canonicalURL) {
+    navigateToURL(canonicalURL, "replace");
+  }
+
+  await initializeUILocale(page.route.localeParam);
 }

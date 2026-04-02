@@ -2,16 +2,31 @@
  * @vitest-environment happy-dom
  */
 
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import {
   _reset as resetRouting,
   buildURL,
+  canonicalizeMalformedVersionURL,
   handleInternalNavigation,
   page,
   parseRoute,
 } from "./routing.svelte";
-import { dispatchPopState, setWindowLocation } from "./routing.test-helpers";
+import {
+  createBuildsFetchMock,
+  dispatchPopState,
+  setWindowLocation,
+} from "./routing.test-helpers";
 import { BASE_URL } from "./utils/env";
+import { _resetVersionState, initializeBuildsState } from "./builds.svelte";
 
 function toRelativePath(url: string): string {
   const builtUrl = new URL(url, window.location.origin);
@@ -21,16 +36,32 @@ function toRelativePath(url: string): string {
 }
 
 describe("routing URL logic", () => {
+  let originalFetch: typeof global.fetch;
+  let defaultFetchMock: typeof fetch;
+
+  beforeAll(() => {
+    originalFetch = global.fetch;
+    defaultFetchMock = createBuildsFetchMock();
+  });
+
   beforeEach(() => {
+    global.fetch = defaultFetchMock;
     window.scrollTo = vi.fn();
     setWindowLocation("stable/");
     resetRouting();
+    _resetVersionState();
   });
 
   afterEach(() => {
+    global.fetch = defaultFetchMock;
     resetRouting();
+    _resetVersionState();
     vi.restoreAllMocks();
     vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    global.fetch = originalFetch;
   });
 
   describe("parseRoute and buildURL", () => {
@@ -140,6 +171,37 @@ describe("routing URL logic", () => {
         kind: "catalog",
         type: "item",
       });
+    });
+  });
+
+  describe("malformed version URL canonicalization", () => {
+    test.each([
+      ["http://localhost/monster/zombie", "/nightly/monster/zombie"],
+      ["http://localhost/item", "/nightly/item"],
+      ["http://localhost/search/rock", "/nightly/search/rock"],
+    ])("canonicalizes missing version route %s", async (input, expected) => {
+      const state = await initializeBuildsState();
+
+      expect(canonicalizeMalformedVersionURL(input, state)).toBe(expected);
+    });
+
+    test("canonicalizes invalid explicit versions and preserves query and hash", async () => {
+      const state = await initializeBuildsState();
+
+      expect(
+        canonicalizeMalformedVersionURL(
+          "http://localhost/bad/item/rock?lang=ru_RU&t=retrodays&mods=aftershock#lore",
+          state,
+        ),
+      ).toBe("/nightly/item/rock?lang=ru_RU&t=retrodays&mods=aftershock#lore");
+    });
+
+    test("keeps the bare home URL untouched", async () => {
+      const state = await initializeBuildsState();
+
+      expect(
+        canonicalizeMalformedVersionURL("http://localhost/", state),
+      ).toBeNull();
     });
   });
 

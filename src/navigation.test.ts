@@ -195,12 +195,34 @@ describe("navigation", () => {
     expect(replaceStateSpy).toHaveBeenCalledOnce();
   });
 
-  test("bootstrapApplication rejects invalid requested versions before mount", async () => {
-    setWindowLocation("bogus/item/rock");
-    resetRouting();
-
-    await expect(bootstrapApplication()).rejects.toThrow(
-      "Failed to resolve version: bogus",
+  test("bootstrapApplication canonicalizes invalid requested versions before mount", async () => {
+    setWindowLocation(
+      "bogus/item/rock",
+      "?lang=ru_RU&t=retrodays&mods=aftershock",
     );
+    resetRouting();
+    const replaceStateSpy = vi
+      .spyOn(history, "replaceState")
+      .mockImplementation((_, __, url) => {
+        const nextUrl = new URL(String(url), window.location.origin);
+        window.location.pathname = nextUrl.pathname;
+        window.location.search = nextUrl.search;
+        window.location.href = nextUrl.toString();
+      });
+
+    await expect(bootstrapApplication()).resolves.toBeUndefined();
+
+    expect(replaceStateSpy).toHaveBeenCalledWith(
+      null,
+      "",
+      "/nightly/item/rock?lang=ru_RU&t=retrodays&mods=aftershock",
+    );
+    expect(page.route).toMatchObject({
+      versionSlug: "nightly",
+      localeParam: "ru_RU",
+      tilesetParam: "retrodays",
+      modsParam: ["aftershock"],
+      target: { kind: "item", type: "item", id: "rock" },
+    });
   });
 });
