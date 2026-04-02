@@ -18,3 +18,4 @@ An Architecture Decision Record captures an important architectural decision mad
 - [ADR-003](ADR-003_mod_resolution_path.md) - Mod Resolution Path
 - [ADR-004](ADR-004_mod_provenance.md) - Mod Provenance and Data Origin Tracking
 - [ADR-005](ADR-005_data_inheritance.md) - Robust Inheritance: Migrations and Self-Copy Handling
+- [ADR-006](ADR-006_layered_navigation_bootstrap_and_page_metadata.md) - Layered Navigation Bootstrap and Page Metadata

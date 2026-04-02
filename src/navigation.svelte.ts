@@ -30,6 +30,9 @@ type NavigationContext = {
   target: RouteTarget;
 };
 
+// ARCHITECTURE: Follows ADR-006 (Layered Navigation Bootstrap and Page Metadata).
+// This read model combines raw route state, preferences, and build metadata so
+// the rest of the UI does not need to re-derive effective navigation rules.
 export const navigation: NavigationContext = {
   get url(): URL {
     return page.url;
