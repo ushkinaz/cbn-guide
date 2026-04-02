@@ -165,7 +165,7 @@ $effect(() => {
 });
 
 $effect(() => {
-  const builds = buildsState.current?.builds;
+  const currentBuilds = buildsState.current?.builds;
   const requestedVersion = navigation.buildRequestedVersion;
   const resolvedVersion = navigation.buildResolvedVersion;
   const requestedLocale = navigation.locale;
@@ -173,14 +173,14 @@ $effect(() => {
   const routeTarget = navigation.target;
   const effectiveTileset = navigation.tileset;
 
-  if (!builds || !resolvedVersion) {
+  if (!currentBuilds || !resolvedVersion) {
     return;
   }
 
   const requestedStateKey = JSON.stringify({
-    resolvedVersion,
     requestedVersion,
-    requestedLocale: requestedLocale ?? "",
+    resolvedVersion,
+    requestedLocale: requestedLocale,
     requestedMods,
   });
   if (requestedStateKey === lastDataLoadKey) {
@@ -195,7 +195,8 @@ $effect(() => {
       await data.setVersion(
         requestedVersion,
         requestedLocale,
-        builds.find((build) => build.build_number === resolvedVersion)?.langs,
+        currentBuilds.find((build) => build.build_number === resolvedVersion)
+          ?.langs,
         requestedMods,
       );
     } catch (error) {
@@ -213,9 +214,9 @@ $effect(() => {
     if ($data) {
       const resolvedMods = $data.active_mods ?? [];
       lastDataLoadKey = JSON.stringify({
-        resolvedVersion,
         requestedVersion,
-        requestedLocale: requestedLocale ?? "",
+        resolvedVersion,
+        requestedLocale: requestedLocale,
         requestedMods: resolvedMods,
       });
 
