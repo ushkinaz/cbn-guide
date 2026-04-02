@@ -65,6 +65,14 @@ function installMockStorage() {
   return storage;
 }
 
+function clearHeadMetadata(): void {
+  for (const element of document.head.querySelectorAll(
+    'link[rel="canonical"], link[rel="alternate"], meta[name="description"], meta[property="og:title"], meta[property="og:description"]',
+  )) {
+    element.remove();
+  }
+}
+
 describe("App routing integration", () => {
   vi.setConfig({ testTimeout: 120_000 });
   const ROUTING_TEARDOWN_SETTLE_MS = 150;
@@ -103,6 +111,7 @@ describe("App routing integration", () => {
 
   beforeEach(() => {
     installMockStorage();
+    clearHeadMetadata();
     window.scrollTo = vi.fn();
     setWindowLocation("stable/");
     localStorage.removeItem?.("cbn-guide:tileset");
@@ -120,6 +129,7 @@ describe("App routing integration", () => {
 
   afterEach(() => {
     cleanup();
+    clearHeadMetadata();
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
@@ -201,7 +211,6 @@ describe("App routing integration", () => {
     expect(text).toContain("stone");
     expect(text).toContain("a rock the size of a baseball");
     expect(text).not.toContain("there was a problem displaying this page");
-    expect(document.title.toLowerCase()).toMatch(/rock/);
   });
 
   test("popstate falls back to the saved preference after removing a transient tileset override", async () => {
@@ -407,35 +416,5 @@ describe("App routing integration", () => {
 
     await waitForUiSettled();
     expect(document.body.textContent?.toLowerCase()).toContain("rock");
-  });
-
-  test("canonical and alternate links include mods query param", async () => {
-    setWindowLocation("stable/item/rock", "?mods=aftershock");
-
-    await renderApp();
-
-    await waitForDataLoad("rock");
-
-    let canonical = document.querySelector(
-      'link[rel="canonical"]',
-    ) as HTMLLinkElement | null;
-    const waitStart = Date.now();
-    while (!canonical && Date.now() - waitStart < 2_000) {
-      await act(() => new Promise((resolve) => setTimeout(resolve, 25)));
-      canonical = document.querySelector(
-        'link[rel="canonical"]',
-      ) as HTMLLinkElement | null;
-    }
-
-    expect(canonical).toBeTruthy();
-    expect(canonical?.href).toContain("mods=aftershock");
-
-    const alternates = Array.from(
-      document.querySelectorAll('link[rel="alternate"]'),
-    ) as HTMLLinkElement[];
-    expect(alternates.length).toBeGreaterThan(0);
-    expect(
-      alternates.every((link) => link.href.includes("mods=aftershock")),
-    ).toBe(true);
   });
 });

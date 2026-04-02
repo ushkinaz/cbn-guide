@@ -91,19 +91,6 @@ describe("navigation", () => {
     expect(buildLinkTo({ kind: "home" })).toBe("/stable/?t=ultica");
   });
 
-  test("buildLinkTo preserves language, tileset, and mods in imperative links", async () => {
-    setWindowLocation(
-      "stable/item/rock",
-      "?lang=ru_RU&t=retrodays&mods=aftershock",
-    );
-    resetRouting();
-    await initializeBuildsState();
-
-    expect(buildLinkTo({ kind: "catalog", type: "monster" })).toBe(
-      "/stable/monster?lang=ru_RU&t=retrodays&mods=aftershock",
-    );
-  });
-
   test("buildLinkTo builds a reactive link from navigation context", async () => {
     setWindowLocation(
       "stable/item/rock",

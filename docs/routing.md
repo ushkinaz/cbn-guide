@@ -157,11 +157,11 @@ This is especially important for tileset, because the effective display choice m
 
 ### Canonical Links
 
-Canonical metadata links are generated in [`src/App.svelte`](../src/App.svelte) and intentionally omit tileset. They describe content identity, not display preference.
+Canonical metadata links are generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte) and intentionally omit tileset. They describe content identity, not display preference.
 
 ### Alternate-Language Links
 
-Alternate-language metadata links are also generated in [`src/App.svelte`](../src/App.svelte). They vary locale while keeping the same content target and mod context, and they also omit tileset.
+Alternate-language metadata links are also generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte). They vary locale while keeping the same content target and mod context, and they also omit tileset.
 
 ## Implementation Details
 

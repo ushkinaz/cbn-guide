@@ -12,7 +12,6 @@ import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
 import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
-import { buildMetaDescription } from "./seo";
 import {
   buildLinkTo,
   changeLanguage,
@@ -45,13 +44,12 @@ import CategoryGrid from "./CategoryGrid.svelte";
 import Loading from "./Loading.svelte";
 import Spinner from "./Spinner.svelte";
 import { fade } from "svelte/transition";
-import { isNext, isTesting, RUNNING_MODE } from "./utils/env";
+import { isNext, isTesting } from "./utils/env";
 import MigoWarning from "./MigoWarning.svelte";
 import Notification, { notify } from "./Notification.svelte";
 import RenderErrorFallback from "./RenderErrorFallback.svelte";
+import PageMeta from "./PageMeta.svelte";
 
-import { gameSingularName } from "./i18n/gettext";
-import { isSupportedType } from "./supported-types";
 import { DEFAULT_LOCALE } from "./i18n/ui-locale";
 
 let scrollY = $state(0);
@@ -59,8 +57,6 @@ let scrollY = $state(0);
 const SEARCH_UI_CONTEXT = "Search UI";
 const PWA_INSTALL_CONTEXT = "PWA Install";
 const VERSION_SELECTOR_CONTEXT = "Version Selector";
-const SEARCH_RESULTS_CONTEXT = "Search Results";
-const PAGE_DESCRIPTION_CONTEXT = "Page description";
 const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
 const URL_MODS_CONTEXT = "URL mods";
@@ -103,20 +99,9 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-let item: { type: string; id: string } | null = $derived.by(() => {
-  const target = navigation.target;
-  if (target.kind === "catalog") {
-    return { type: target.type, id: "" };
-  }
-  if (target.kind === "item") {
-    return { type: target.type, id: target.id };
-  }
-  return null;
-});
-
-let routeSearchQuery: string = $derived.by(() => {
+function routeSearchQuery(): string {
   return navigation.target.kind === "search" ? navigation.target.query : "";
-});
+}
 
 let search: string = $state("");
 let previousUrl: string | undefined = undefined;
@@ -147,7 +132,7 @@ function updateSentryContext(resolvedVersion?: string): void {
 
 $effect(() => {
   const currentUrl = navigation.url.href;
-  const currentRouteSearch = routeSearchQuery;
+  const currentRouteSearch = routeSearchQuery();
 
   if (currentUrl !== previousUrl) {
     if (search !== currentRouteSearch) {
@@ -161,7 +146,7 @@ $effect(() => {
 //Force scroll to top on route change
 $effect(() => {
   const currentPathname = navigation.url.pathname;
-  const currentRouteSearch = routeSearchQuery;
+  const currentRouteSearch = routeSearchQuery();
 
   if (
     previousPathname !== undefined &&
@@ -295,91 +280,8 @@ $effect(() => {
   })();
 });
 
-function setMetaDescription(value: string) {
-  const meta = document.querySelector('meta[name="description"]');
-  if (meta) {
-    meta.setAttribute("content", value);
-    return;
-  }
-  const created = document.createElement("meta");
-  created.name = "description";
-  created.content = value;
-  document.head.appendChild(created);
-}
-
-function setOgTitle(value: string) {
-  const ogTitle = document.querySelector('meta[property="og:title"]');
-  if (ogTitle) {
-    ogTitle.setAttribute("content", value);
-    return;
-  }
-  const created = document.createElement("meta");
-  created.setAttribute("property", "og:title");
-  created.content = value;
-  document.head.appendChild(created);
-}
-
 $effect(() => {
   tileData.setTileset($data, navigation.tileset);
-});
-
-function formatTitle(pageTitle: string | null = null): string {
-  if (RUNNING_MODE === "pwa") {
-    return pageTitle ?? "";
-  }
-  return pageTitle ? `${pageTitle} | ${UI_GUIDE_NAME}` : UI_GUIDE_NAME;
-}
-
-const defaultMetaDescription = t(
-  "{guide} data reference for Cataclysm: Bright Nights.",
-  {
-    guide: UI_GUIDE_NAME,
-  },
-);
-
-let metaDescription = $state(defaultMetaDescription);
-
-$effect(() => {
-  try {
-    if (
-      item &&
-      item.id &&
-      $data &&
-      isSupportedType(item.type) &&
-      $data.byIdMaybe(item.type, item.id)
-    ) {
-      const it = $data.byId(item.type, item.id);
-      document.title = formatTitle(gameSingularName(it));
-      metaDescription = buildMetaDescription(it);
-    } else if (item && !item.id && item.type) {
-      document.title = formatTitle(item.type);
-      metaDescription = t("{type} catalog in {guide}.", {
-        type: item.type,
-        guide: UI_GUIDE_NAME,
-        _context: PAGE_DESCRIPTION_CONTEXT,
-      });
-    } else if (routeSearchQuery) {
-      const searchQuery = routeSearchQuery;
-      document.title = formatTitle(
-        `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${searchQuery}`,
-      );
-      metaDescription = t("Search {guide} for {query}.", {
-        guide: UI_GUIDE_NAME,
-        query: searchQuery,
-        _context: PAGE_DESCRIPTION_CONTEXT,
-      });
-    } else {
-      document.title = formatTitle();
-      metaDescription = defaultMetaDescription;
-    }
-  } catch (error: unknown) {
-    console.warn("Failed to build page metadata", error);
-    document.title = formatTitle();
-    metaDescription = defaultMetaDescription;
-  }
-
-  setOgTitle(document.title);
-  if (metaDescription) setMetaDescription(metaDescription);
 });
 
 $effect(() => {
@@ -490,17 +392,23 @@ function onItemBoundaryError(boundaryError: unknown): void {
     boundaryError instanceof Error
       ? boundaryError
       : new Error(String(boundaryError));
-  const routeItem = item;
+  const target = navigation.target;
   metrics.count("app.error.catch", 1, {
-    type: routeItem?.type ?? "shell",
-    id: routeItem?.id ?? "none",
+    type:
+      target.kind === "catalog" || target.kind === "item"
+        ? target.type
+        : "shell",
+    id: target.kind === "item" ? target.id : "none",
   });
   const context = {
     route: {
       version: navigation.buildRequestedVersion,
-      type: routeItem?.type,
-      id: routeItem?.id,
-      search: routeSearchQuery,
+      type:
+        target.kind === "catalog" || target.kind === "item"
+          ? target.type
+          : undefined,
+      id: target.kind === "item" ? target.id : undefined,
+      search: routeSearchQuery() || undefined,
     },
   };
   console.error(error, context);
@@ -532,15 +440,6 @@ function getLanguageName(code: string) {
   }
   return code;
 }
-let canonicalUrl = $derived(
-  new URL(
-    buildURL(STABLE_VERSION, navigation.target, {
-      localeParam: navigation.locale,
-      modsParam: navigation.mods,
-    }),
-    location.origin,
-  ).toString(),
-);
 </script>
 
 <svelte:window
@@ -550,28 +449,7 @@ let canonicalUrl = $derived(
   onappinstalled={handleAppInstalled}
   bind:scrollY />
 
-<svelte:head>
-  {#if builds}
-    <link rel="canonical" href={canonicalUrl} />
-    {@const currentBuild = builds.find(
-      (b) => b.build_number === resolvedVersion,
-    )}
-    {#if currentBuild}
-      {#each [...(currentBuild.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
-        <link
-          rel="alternate"
-          hreflang={lang.replace("_", "-")}
-          href={new URL(
-            buildURL(navigation.buildRequestedVersion, navigation.target, {
-              localeParam: lang,
-              modsParam: navigation.mods,
-            }),
-            location.origin,
-          ).toString()} />
-      {/each}
-    {/if}
-  {/if}
-</svelte:head>
+<PageMeta />
 
 <Notification />
 {#if isNext}
@@ -691,17 +569,22 @@ let canonicalUrl = $derived(
   onapply={(mods) => applyMods(mods)} />
 
 <main>
-  {#if item}
+  {#if navigation.target.kind === "catalog" || navigation.target.kind === "item"}
     {#if $data}
-      {#key item}
+      {#key navigation.target}
         <svelte:boundary onerror={onItemBoundaryError}>
-          {#if item.id}
-            <Thing {item} data={$data} />
+          {#if navigation.target.kind === "item"}
+            <Thing item={navigation.target} data={$data} />
           {:else}
-            <Catalog type={item.type} data={$data} />
+            <Catalog type={navigation.target.type} data={$data} />
           {/if}
           {#snippet failed(e)}
-            <RenderErrorFallback data={$data} error={e} {item} />
+            <RenderErrorFallback
+              data={$data}
+              error={e}
+              item={navigation.target.kind === "item"
+                ? navigation.target
+                : null} />
           {/snippet}
         </svelte:boundary>
       {/key}

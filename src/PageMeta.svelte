@@ -1,3 +1,10 @@
+<script lang="ts">
+import { t } from "@transifex/native";
+import { isSupportedType } from "./supported-types";
+import { gameSingular, gameSingularName } from "./i18n/gettext";
+import { RUNNING_MODE } from "./utils/env";
+import { UI_GUIDE_NAME } from "./constants";
+import { buildURL } from "./routing.svelte";
 import { data } from "./data";
 import type {
   ArmorSlot,
@@ -7,13 +14,101 @@ import type {
   ItemBasicInfo,
   SupportedTypeMapped,
   SupportedTypes,
+  SupportedTypesWithMapped,
   Trap,
   VehiclePart,
 } from "./types";
-import { get } from "svelte/store";
-import { cleanText, formatDisplayValue, formatNumeric } from "./utils/format";
 import { asArray } from "./utils/collections";
-import { gameSingular, gameSingularName } from "./i18n/gettext";
+import { cleanText, formatDisplayValue, formatNumeric } from "./utils/format";
+import { type BuildInfo, buildsState, STABLE_VERSION } from "./builds.svelte";
+import { navigation } from "./navigation.svelte";
+import { translateType } from "./i18n/transifex-static";
+import { onMount } from "svelte";
+
+const PAGE_DESCRIPTION_CONTEXT = "Page description";
+const SEARCH_RESULTS_CONTEXT = "Search Results";
+
+let builds: BuildInfo[] | null = $derived(buildsState.current?.builds ?? null);
+
+let canonicalUrl = $derived(
+  new URL(
+    buildURL(STABLE_VERSION, navigation.target, {
+      localeParam: navigation.locale,
+      modsParam: navigation.mods,
+    }),
+    location.origin,
+  ).toString(),
+);
+
+function formatTitle(pageTitle: string | null = null): string {
+  if (RUNNING_MODE === "pwa") {
+    return pageTitle ?? "";
+  }
+  return pageTitle ? `${pageTitle} | ${UI_GUIDE_NAME}` : UI_GUIDE_NAME;
+}
+
+const defaultMetaDescription = t(
+  "{guide} data reference for Cataclysm: Bright Nights.",
+  { guide: UI_GUIDE_NAME },
+);
+
+let title = $derived.by((): string => {
+  const target = navigation.target;
+  try {
+    if (
+      $data &&
+      target.kind === "item" &&
+      isSupportedType(target.type) &&
+      $data.byIdMaybe(target.type, target.id)
+    ) {
+      const it = $data.byId(target.type, target.id);
+      return formatTitle(gameSingularName(it));
+    } else if (target.kind === "catalog") {
+      return formatTitle(
+        translateType(target.type as keyof SupportedTypesWithMapped),
+      );
+    } else if (target.kind === "search") {
+      return formatTitle(
+        `${t("Search:", { _context: SEARCH_RESULTS_CONTEXT })} ${target.query}`,
+      );
+    }
+    return formatTitle();
+  } catch (error: unknown) {
+    console.warn("Failed to build page title", error);
+    return formatTitle();
+  }
+});
+
+let description = $derived.by((): string => {
+  const target = navigation.target;
+  try {
+    if (
+      target.kind === "item" &&
+      $data &&
+      isSupportedType(target.type) &&
+      $data.byIdMaybe(target.type, target.id)
+    ) {
+      const it = $data.byId(target.type, target.id);
+      return buildMetaDescription(it);
+    } else if (target.kind === "catalog") {
+      return t("{type} catalog in {guide}.", {
+        type: translateType(target.type as keyof SupportedTypesWithMapped),
+        guide: UI_GUIDE_NAME,
+        _context: PAGE_DESCRIPTION_CONTEXT,
+      });
+    } else if (target.kind === "search") {
+      return t("Search {guide} for {query}.", {
+        guide: UI_GUIDE_NAME,
+        query: target.query,
+        _context: PAGE_DESCRIPTION_CONTEXT,
+      });
+    }
+    return defaultMetaDescription;
+  } catch (error: unknown) {
+    console.warn("Failed to build page description", error);
+    return defaultMetaDescription;
+  }
+});
 
 const MAX_DESCRIPTION_LENGTH = 160;
 const TRIM_DESCRIPTION_LENGTH = 155;
@@ -40,11 +135,10 @@ const formatFlags = (flags?: string | string[]): string | null => {
 const formatQualities = (qualities?: [string, number][]): string | null => {
   if (!qualities || qualities.length === 0) return null;
 
-  const cbnData = get(data);
   const formatted = qualities
     .slice(0, 5)
     .map(([id, level]) => {
-      const quality = cbnData?.byIdMaybe("tool_quality", id);
+      const quality = $data?.byIdMaybe("tool_quality", id);
       const resolvedName = quality ? gameSingularName(quality) : undefined;
       const safeName = resolvedName ?? id;
       if (!safeName) return null;
@@ -104,7 +198,7 @@ const statsForMonster = (item: SupportedTypes["MONSTER"]): string[] => {
 
 const statsForAmmo = (item: SupportedTypes["AMMO"]): string[] => {
   const stats: string[] = [];
-  const ammo_type = get(data)?.byIdMaybe("ammunition_type", item.ammo_type);
+  const ammo_type = $data?.byIdMaybe("ammunition_type", item.ammo_type);
   if (ammo_type?.name) stats.push(gameSingular(ammo_type.name));
 
   if (item.range) stats.push(formatStat("rng", item.range));
@@ -120,7 +214,7 @@ const statsForAmmo = (item: SupportedTypes["AMMO"]): string[] => {
 
 const statsForMagazine = (item: SupportedTypes["MAGAZINE"]): string[] => {
   const stats: string[] = [];
-  const ammo_type = get(data)?.byIdMaybe(
+  const ammo_type = $data?.byIdMaybe(
     "ammunition_type",
     asArray(item.ammo_type)[0],
   );
@@ -133,7 +227,7 @@ const statsForGun = (item: SupportedTypes["GUN"]): string[] => {
   const stats: string[] = [];
   if (item.skill != null) stats.push(item.skill);
   if (item.ammo != null && typeof item.ammo == "string") {
-    const ammo_type = get(data)?.byIdMaybe("ammunition_type", item.ammo);
+    const ammo_type = $data?.byIdMaybe("ammunition_type", item.ammo);
     if (ammo_type?.name)
       stats.push(formatStat("ammo", gameSingular(ammo_type.name)));
   }
@@ -252,7 +346,7 @@ const buildKeyStats = (item: SupportedTypeMapped): string[] => {
  * Generates a concise meta-description for a game entity.
  * Synchronized with a document title and optimized for SEO.
  */
-export const buildMetaDescription = (item: SupportedTypeMapped): string => {
+export function buildMetaDescription(item: SupportedTypeMapped): string {
   const typeLabel = gameSingular(typeLabelForItem(item));
   const keyStats = buildKeyStats(item);
   const statsText = formatStatList(keyStats);
@@ -283,4 +377,39 @@ export const buildMetaDescription = (item: SupportedTypeMapped): string => {
   }
 
   return description;
-};
+}
+
+onMount(() => {
+  const defaultTitle = document.getElementById("default-title");
+  defaultTitle?.remove();
+
+  const defaultDescription = document.getElementById("default-description");
+  defaultDescription?.remove();
+});
+</script>
+
+<svelte:head>
+  <title>{title}</title>
+  <meta content={title} property="og:title" />
+  <meta content={description} name="description" property="og:description" />
+  {#if builds}
+    <link rel="canonical" href={canonicalUrl} />
+    {@const currentBuild = builds.find(
+      (b) => b.build_number === navigation.buildResolvedVersion,
+    )}
+    {#if currentBuild}
+      {#each [...(currentBuild.langs ?? [])].sort( (a, b) => a.localeCompare(b), ) as lang}
+        <link
+          rel="alternate"
+          hreflang={lang.replace("_", "-")}
+          href={new URL(
+            buildURL(navigation.buildRequestedVersion, navigation.target, {
+              localeParam: lang,
+              modsParam: navigation.mods,
+            }),
+            location.origin,
+          ).toString()} />
+      {/each}
+    {/if}
+  {/if}
+</svelte:head>
