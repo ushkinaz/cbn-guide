@@ -95,7 +95,7 @@ function arraysEqual(a: string[], b: string[]): boolean {
   return true;
 }
 
-function scrollToTop() {
+function scrollToTop(): void {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -143,7 +143,7 @@ $effect(() => {
   }
 });
 
-//Force scroll to top on route change
+// Force scroll to top when navigation changes the visible route.
 $effect(() => {
   const currentPathname = navigation.url.pathname;
   const currentRouteSearch = routeSearchQuery();
@@ -356,7 +356,7 @@ function applyMods(selectedMods: string[]): void {
   changeMods(selectedMods);
 }
 
-function handleNavigation(event: MouseEvent) {
+function handleNavigation(event: MouseEvent): void {
   const target = event.target as HTMLElement;
   const link = target.closest("a");
   if (link && link.hostname !== window.location.hostname) {
@@ -381,7 +381,7 @@ function handleAppInstalled(): void {
 function handleBeforeInstallPrompt(e: Event): void {
   deferredPrompt = e as BeforeInstallPromptEvent;
 }
-function maybeFocusSearch(e: KeyboardEvent) {
+function maybeFocusSearch(e: KeyboardEvent): void {
   if (e.key === "/" && document.activeElement?.id !== "search") {
     document.getElementById("search")?.focus();
     e.preventDefault();
@@ -423,7 +423,7 @@ function onItemBoundaryError(boundaryError: unknown): void {
  * Uses Intl.DisplayNames to auto-generate names without hardcoded lists.
  * Falls back to English or the raw code if strict native naming fails.
  */
-function getLanguageName(code: string) {
+function getLanguageName(code: string): string {
   const bcp47 = code.replace(/_/, "-");
   try {
     if (Intl?.DisplayNames) {

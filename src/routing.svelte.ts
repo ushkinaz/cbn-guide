@@ -239,7 +239,7 @@ function updatePageState(): PageState {
  * Test helper: reset singleton store and module state between app mounts in routing tests.
  * @internal
  */
-export function _reset() {
+export function _reset(): void {
   debouncedReplaceState.cancel();
   updatePageState();
 }

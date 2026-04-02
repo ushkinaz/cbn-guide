@@ -264,6 +264,18 @@ flowchart TB
     Nav --> Hard
 ```
 
+[`src/App.svelte`](../src/App.svelte) sits immediately downstream from that layered routing system. The shell does not parse URLs or persist preferences itself. It reacts to the effective navigation context by loading data, syncing search state, updating tiles, and rendering route-keyed content.
+
+## Navigation State Ownership
+
+| State                        | Primary owner                                               | Why it lives there                                                                                  |
+| :--------------------------- | :---------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| Requested route              | [`src/routing.svelte.ts`](../src/routing.svelte.ts)         | The browser URL and history stack are the only honest source for route identity.                    |
+| Preferred tileset            | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Tileset is a display preference that survives across sessions.                                      |
+| Resolved build metadata      | [`src/builds.svelte.ts`](../src/builds.svelte.ts)           | Alias resolution and build validation depend on fetched `builds.json`, not on route parsing alone.  |
+| Effective navigation context | [`src/navigation.svelte.ts`](../src/navigation.svelte.ts)   | The UI needs one coherent read model instead of scattered route, preference, and bootstrap lookups. |
+| Loaded game data             | [`src/data.ts`](../src/data.ts)                             | The dataset is application data that reacts to navigation, not navigation state itself.             |
+
 ## Development & Build Pipeline
 
 ```mermaid

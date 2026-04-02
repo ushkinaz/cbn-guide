@@ -68,6 +68,7 @@ Owns:
 - the effective navigation context used by the UI
 - default link generation for normal in-app movement
 - user actions that represent navigation intent, such as changing build, locale, tileset, or mods
+- bootstrap sequencing that combines routing, preferences, build metadata, and UI locale before mount
 
 ### `src/i18n/ui-locale.ts`
 
@@ -93,6 +94,13 @@ The navigation system works with four kinds of state:
 
 That separation matters because the app should preserve what the user is actually viewing, not just what happens to be written literally in the address bar.
 
+| State kind                   | Owner                                                       | Lifetime             | Notes                                                                                       |
+| :--------------------------- | :---------------------------------------------------------- | :------------------- | :------------------------------------------------------------------------------------------ |
+| Raw route state              | [`src/routing.svelte.ts`](../src/routing.svelte.ts)         | Browser session      | Mirrors the current URL and history entry.                                                  |
+| Persisted preference state   | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Across sessions      | Currently stores the preferred tileset only.                                                |
+| Bootstrap metadata           | [`src/builds.svelte.ts`](../src/builds.svelte.ts)           | Per page load        | Resolves aliases like `stable` and `nightly` into concrete builds.                          |
+| Effective navigation context | [`src/navigation.svelte.ts`](../src/navigation.svelte.ts)   | Derived at read time | Combines route state, preferences, and build metadata into the values the UI actually uses. |
+
 ## Startup Sequence
 
 ```mermaid
@@ -101,12 +109,14 @@ sequenceDiagram
     participant Route as routing.svelte.ts
     participant Prefs as preferences.svelte.ts
     participant Builds as builds.svelte.ts
+    participant Nav as navigation.svelte.ts
     participant I18n as i18n/ui-locale.ts
     participant App as App.svelte
 
     Main->>Route: initialize route state
     Main->>Prefs: load browser preferences
     Main->>Builds: load build metadata
+    Main->>Nav: canonicalize malformed version URLs
     Main->>I18n: apply UI locale
     Main->>App: mount app
 ```
@@ -114,6 +124,13 @@ sequenceDiagram
 Startup establishes routing context before the app mounts so the shell renders with the correct build, locale, tileset, and mods from the beginning.
 
 Once build metadata is available, the route intake path canonicalizes malformed version URLs before the rest of the app consumes them. Missing or invalid version segments are rewritten to the nightly route form with `history.replaceState`, while the bare home URL remains untouched.
+
+The ordering is intentional:
+
+1. Routing initializes first so the app can read the literal request immediately.
+2. Preferences initialize before link generation so tileset-aware links use the effective display choice from the first render.
+3. Build metadata resolves aliases and validates malformed version segments before the shell renders from derived navigation state.
+4. UI locale selection happens after route parsing, because the locale parameter belongs to the route rather than to persisted preferences.
 
 ### Failure Handling
 
@@ -175,6 +192,8 @@ Routing does not load game data directly. The app shell reacts to effective navi
 If the requested mod set contains unknown mods, the app normalizes the URL to the valid set and shows a warning. This keeps the route shareable and honest without leaving the UI in an ambiguous state.
 
 If the requested locale is unavailable for the selected data build, the app falls back to the available locale and notifies the user.
+
+The app shell tracks the last requested data context so repeated reactive runs do not reload the same dataset. Once data arrives, the shell may still rewrite the URL if the effective mod set differs from the requested one.
 
 ### Internal Navigation Interception
 

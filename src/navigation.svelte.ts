@@ -149,6 +149,13 @@ export function changeMods(mods: string[]): void {
   );
 }
 
+/**
+ * Initializes the navigation prerequisites before the app shell mounts.
+ *
+ * Routing and preferences are available synchronously, build metadata is loaded
+ * asynchronously, malformed version URLs are canonicalized once version aliases
+ * can be resolved, and the UI locale is applied before the first render.
+ */
 export async function bootstrapApplication(): Promise<void> {
   initializeRouting();
   initializePreferences();
