@@ -23,16 +23,6 @@ export function groupBy<T>(
   return map;
 }
 
-export function uniq<T>(things: T[], id: (a: T) => any = (a) => a): T[] {
-  const seen = new Set();
-  const result: T[] = [];
-  for (const thing of things) {
-    const thingId = id(thing);
-    if (!seen.has(thingId)) result.push(thing);
-    seen.add(thingId);
-  }
-  return result;
-}
 export function asArray<T>(value: T | T[] | undefined | null): T[] {
   if (value == null) {
     return [];

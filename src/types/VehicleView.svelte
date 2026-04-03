@@ -9,10 +9,7 @@ import type { Vehicle, VehiclePart } from "../types";
 import {
   resolveTileLayerUrl,
   tileData,
-  type TilesetData,
   findTileOrLooksLike,
-  type TileInfo,
-  type TilePosition,
 } from "../tile-data";
 import { t } from "@transifex/native";
 

@@ -11,9 +11,6 @@ import { isTesting } from "./utils/env";
 const searchDebounceMs = isTesting ? 0 : 150;
 
 type SearchResultsSubscriber = (value: SearchResultsMap | null) => void;
-
-export type SearchState = ReturnType<typeof createSearchState>;
-
 /**
  * Creates a reactive search state that manages search data, query, debounced result computation, and subscriptions.
  *
@@ -79,12 +76,6 @@ export function createSearchState() {
 
     performDebouncedSearch(state.query, lastIndex, state.data);
   }
-
-  function setData(data: CBNData | null): void {
-    state.data = data;
-    syncState();
-  }
-
   function setQuery(query: string): void {
     state.query = query;
     syncState();
@@ -108,15 +99,6 @@ export function createSearchState() {
     state.query = "";
     publish(null);
   }
-
-  function subscribeResults(run: SearchResultsSubscriber): () => void {
-    run(state.results);
-    subscribers.add(run);
-    return () => {
-      subscribers.delete(run);
-    };
-  }
-
   function firstResult(): SearchResult["item"] | null {
     if (!state.results || state.results.size === 0) {
       return null;
@@ -138,12 +120,10 @@ export function createSearchState() {
     get firstResult(): SearchResult["item"] | null {
       return firstResult();
     },
-    setData,
     setQuery,
     sync,
     flush,
     reset,
-    subscribeResults,
   };
 }
 

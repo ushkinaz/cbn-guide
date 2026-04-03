@@ -8,8 +8,6 @@ import type { Recipe } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
 import ItemLink from "./ItemLink.svelte";
 
-import { i18n } from "../i18n/gettext";
-
 interface Props {
   recipe: Recipe;
   showResult?: boolean;
@@ -73,34 +71,6 @@ const writtenIn = Array.isArray(recipe.book_learn)
       ([k, v]) => [k, v.skill_level],
     );
 writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
-
-const activityLevels = {
-  SLEEP_EXERCISE: 0.85,
-  NO_EXERCISE: 1.0,
-  LIGHT_EXERCISE: 2.0,
-  fake: 4.0,
-  MODERATE_EXERCISE: 4.0,
-  BRISK_EXERCISE: 6.0,
-  ACTIVE_EXERCISE: 8.0,
-  EXTRA_EXERCISE: 10.0,
-};
-
-//TODO: Transifex extraction only recognizes direct t("...") keys; replace t(activityLevelName(...)) with literal keys.
-function activityLevelName(level: number) {
-  const activity_descriptions = [
-    "None",
-    "Light",
-    "Moderate",
-    "Brisk",
-    "Active",
-    "Extreme",
-  ];
-  // Activity levels are 1, 2, 4, 6, 8, 10
-  // So we can easily cut them in half and round down for an index
-  const idx = Math.floor(level / 2);
-
-  return i18n.pgettext("activity description", activity_descriptions[idx]);
-}
 </script>
 
 <section class="recipe">

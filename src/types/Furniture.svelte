@@ -10,7 +10,7 @@ import TerFurnActivity from "./TerFurnActivity.svelte";
 import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
 import LimitedList from "../LimitedList.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
-import { gameSingular, gameSingularName } from "../i18n/gettext";
+import { gameSingular } from "../i18n/gettext";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";

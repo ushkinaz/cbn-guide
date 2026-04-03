@@ -5,7 +5,7 @@ import { getContext, untrack } from "svelte";
 import { CBNData, parseMass, parseVolume } from "../../data";
 import type { Item } from "../../types";
 import ItemLink from "../ItemLink.svelte";
-import { gameSingular, gameSingularName } from "../../i18n/gettext";
+import { gameSingular } from "../../i18n/gettext";
 
 let data = getContext<CBNData>("data");
 interface Props {
