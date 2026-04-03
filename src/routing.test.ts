@@ -141,6 +141,7 @@ describe("App routing integration", () => {
     _resetBuildsState();
     _resetSearchState();
     global.fetch = defaultFetchMock;
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
