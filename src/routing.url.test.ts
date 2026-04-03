@@ -29,11 +29,62 @@ import {
 import { BASE_URL } from "./utils/env";
 import { _resetBuildsState, initializeBuildsState } from "./builds.svelte";
 
+type NavigationEventOptions = {
+  defaultPrevented?: boolean;
+  metaKey?: boolean;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+  button?: number;
+};
+
 function toRelativePath(url: string): string {
   const builtUrl = new URL(url, window.location.origin);
   return builtUrl.pathname.startsWith(BASE_URL)
     ? builtUrl.pathname.slice(BASE_URL.length)
     : builtUrl.pathname.slice(1);
+}
+
+function syncWindowLocation(url: string | URL): void {
+  const nextUrl = new URL(String(url), window.location.origin);
+  window.location.pathname = nextUrl.pathname;
+  window.location.search = nextUrl.search;
+  window.location.href = nextUrl.toString();
+}
+
+function createAnchor(url: string): HTMLAnchorElement {
+  const nextUrl = new URL(url, window.location.origin);
+  const anchor = document.createElement("a");
+  const child = document.createElement("span");
+  anchor.appendChild(child);
+  anchor.href = nextUrl.toString();
+  Object.defineProperty(anchor, "origin", {
+    value: nextUrl.origin,
+  });
+  Object.defineProperty(anchor, "pathname", {
+    value: nextUrl.pathname,
+  });
+  Object.defineProperty(anchor, "search", {
+    value: nextUrl.search,
+  });
+  return anchor;
+}
+
+function createNavigationEvent(
+  anchor: HTMLAnchorElement,
+  options: NavigationEventOptions = {},
+): MouseEvent & { preventDefault: ReturnType<typeof vi.fn> } {
+  const target = anchor.firstElementChild as HTMLElement;
+  return {
+    target,
+    preventDefault: vi.fn(),
+    metaKey: options.metaKey ?? false,
+    ctrlKey: options.ctrlKey ?? false,
+    shiftKey: options.shiftKey ?? false,
+    altKey: options.altKey ?? false,
+    button: options.button ?? 0,
+    defaultPrevented: options.defaultPrevented ?? false,
+  } as unknown as MouseEvent & { preventDefault: ReturnType<typeof vi.fn> };
 }
 
 describe("routing URL logic", () => {
@@ -223,27 +274,8 @@ describe("routing URL logic", () => {
 
   describe("internal navigation interception", () => {
     test("ignores modified clicks", () => {
-      const anchor = document.createElement("a");
-      anchor.href = "http://localhost:3000/stable/item/rock";
-      Object.defineProperty(anchor, "origin", {
-        value: "http://localhost:3000",
-      });
-      Object.defineProperty(anchor, "pathname", {
-        value: "/stable/item/rock",
-      });
-
-      const event = {
-        target: {
-          closest: () => anchor,
-        },
-        preventDefault: vi.fn(),
-        metaKey: true,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        button: 0,
-        defaultPrevented: false,
-      } as unknown as MouseEvent;
+      const anchor = createAnchor("http://localhost:3000/stable/item/rock");
+      const event = createNavigationEvent(anchor, { metaKey: true });
 
       expect(handleInternalNavigation(event)).toBe(false);
       expect(event.preventDefault).not.toHaveBeenCalled();
@@ -253,36 +285,13 @@ describe("routing URL logic", () => {
       setWindowLocation("stable/search/rock", "?mods=aftershock");
       _resetRouting();
       vi.spyOn(history, "pushState").mockImplementation((_, __, url) => {
-        const nextUrl = new URL(String(url), window.location.origin);
-        window.location.pathname = nextUrl.pathname;
-        window.location.search = nextUrl.search;
-        window.location.href = nextUrl.toString();
+        syncWindowLocation(String(url));
       });
 
-      const anchor = document.createElement("a");
-      anchor.href = "http://localhost:3000/stable/item/rock?mods=aftershock";
-      Object.defineProperty(anchor, "origin", {
-        value: "http://localhost:3000",
-      });
-      Object.defineProperty(anchor, "pathname", {
-        value: "/stable/item/rock",
-      });
-      Object.defineProperty(anchor, "search", {
-        value: "?mods=aftershock",
-      });
-
-      const event = {
-        target: {
-          closest: () => anchor,
-        },
-        preventDefault: vi.fn(),
-        metaKey: false,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        button: 0,
-        defaultPrevented: false,
-      } as unknown as MouseEvent;
+      const anchor = createAnchor(
+        "http://localhost:3000/stable/item/rock?mods=aftershock",
+      );
+      const event = createNavigationEvent(anchor);
 
       expect(handleInternalNavigation(event)).toBe(true);
       expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -303,30 +312,10 @@ describe("routing URL logic", () => {
       _resetRouting();
       const pushStateSpy = vi.spyOn(history, "pushState");
 
-      const anchor = document.createElement("a");
-      anchor.href = "http://localhost:3000/stable/?lang=uk&mods=inna";
-      Object.defineProperty(anchor, "origin", {
-        value: "http://localhost:3000",
-      });
-      Object.defineProperty(anchor, "pathname", {
-        value: "/stable/",
-      });
-      Object.defineProperty(anchor, "search", {
-        value: "?lang=uk&mods=inna",
-      });
-
-      const event = {
-        target: {
-          closest: () => anchor,
-        },
-        preventDefault: vi.fn(),
-        metaKey: false,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        button: 0,
-        defaultPrevented: false,
-      } as unknown as MouseEvent;
+      const anchor = createAnchor(
+        "http://localhost:3000/stable/?lang=uk&mods=inna",
+      );
+      const event = createNavigationEvent(anchor);
 
       expect(handleInternalNavigation(event)).toBe(false);
       expect(event.preventDefault).not.toHaveBeenCalled();
@@ -339,36 +328,13 @@ describe("routing URL logic", () => {
       const pushStateSpy = vi
         .spyOn(history, "pushState")
         .mockImplementation((_, __, url) => {
-          const nextUrl = new URL(String(url), window.location.origin);
-          window.location.pathname = nextUrl.pathname;
-          window.location.search = nextUrl.search;
-          window.location.href = nextUrl.toString();
+          syncWindowLocation(String(url));
         });
 
-      const anchor = document.createElement("a");
-      anchor.href = "http://localhost:3000/stable/?lang=uk&mods=inna";
-      Object.defineProperty(anchor, "origin", {
-        value: "http://localhost:3000",
-      });
-      Object.defineProperty(anchor, "pathname", {
-        value: "/stable/",
-      });
-      Object.defineProperty(anchor, "search", {
-        value: "?lang=uk&mods=inna",
-      });
-
-      const event = {
-        target: {
-          closest: () => anchor,
-        },
-        preventDefault: vi.fn(),
-        metaKey: false,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        button: 0,
-        defaultPrevented: false,
-      } as unknown as MouseEvent;
+      const anchor = createAnchor(
+        "http://localhost:3000/stable/?lang=uk&mods=inna",
+      );
+      const event = createNavigationEvent(anchor);
 
       expect(handleInternalNavigation(event)).toBe(true);
       expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -383,37 +349,13 @@ describe("routing URL logic", () => {
       const pushStateSpy = vi
         .spyOn(history, "pushState")
         .mockImplementation((_, __, url) => {
-          const nextUrl = new URL(String(url), window.location.origin);
-          window.location.pathname = nextUrl.pathname;
-          window.location.search = nextUrl.search;
-          window.location.href = nextUrl.toString();
+          syncWindowLocation(String(url));
         });
 
-      const anchor = document.createElement("a");
-      anchor.href =
-        "http://localhost:3000/stable/?lang=uk&mods=inna&t=undead_people";
-      Object.defineProperty(anchor, "origin", {
-        value: "http://localhost:3000",
-      });
-      Object.defineProperty(anchor, "pathname", {
-        value: "/stable/",
-      });
-      Object.defineProperty(anchor, "search", {
-        value: "?lang=uk&mods=inna&t=undead_people",
-      });
-
-      const event = {
-        target: {
-          closest: () => anchor,
-        },
-        preventDefault: vi.fn(),
-        metaKey: false,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        button: 0,
-        defaultPrevented: false,
-      } as unknown as MouseEvent;
+      const anchor = createAnchor(
+        "http://localhost:3000/stable/?lang=uk&mods=inna&t=undead_people",
+      );
+      const event = createNavigationEvent(anchor);
 
       expect(handleInternalNavigation(event)).toBe(true);
       expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -426,30 +368,10 @@ describe("routing URL logic", () => {
       _resetRouting();
       const pushStateSpy = vi.spyOn(history, "pushState");
 
-      const anchor = document.createElement("a");
-      anchor.href = "http://localhost:3000/v0.8/item/guide?lang=uk&mods=inna";
-      Object.defineProperty(anchor, "origin", {
-        value: "http://localhost:3000",
-      });
-      Object.defineProperty(anchor, "pathname", {
-        value: "/v0.8/item/guide",
-      });
-      Object.defineProperty(anchor, "search", {
-        value: "?lang=uk&mods=inna",
-      });
-
-      const event = {
-        target: {
-          closest: () => anchor,
-        },
-        preventDefault: vi.fn(),
-        metaKey: false,
-        ctrlKey: false,
-        shiftKey: false,
-        altKey: false,
-        button: 0,
-        defaultPrevented: false,
-      } as unknown as MouseEvent;
+      const anchor = createAnchor(
+        "http://localhost:3000/v0.8/item/guide?lang=uk&mods=inna",
+      );
+      const event = createNavigationEvent(anchor);
 
       expect(handleInternalNavigation(event)).toBe(false);
       expect(event.preventDefault).not.toHaveBeenCalled();

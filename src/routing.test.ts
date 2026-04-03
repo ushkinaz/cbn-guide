@@ -7,6 +7,7 @@ import {
   cleanup,
   fireEvent,
   render,
+  screen,
   waitFor,
 } from "@testing-library/svelte";
 import { get } from "svelte/store";
@@ -74,7 +75,6 @@ function clearHeadMetadata(): void {
 }
 
 describe("App routing integration", () => {
-  vi.setConfig({ testTimeout: 120_000 });
   const ROUTING_TEARDOWN_SETTLE_MS = 150;
   let originalFetch: typeof global.fetch;
   let originalImage: typeof global.Image;
@@ -176,8 +176,14 @@ describe("App routing integration", () => {
     });
   }
 
-  async function waitForUiSettled() {
-    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+  function expectVisibleText(text: string | RegExp): void {
+    if (typeof text === "string") {
+      expect(screen.getAllByText(new RegExp(text, "i")).length).toBeGreaterThan(
+        0,
+      );
+      return;
+    }
+    expect(screen.getAllByText(text).length).toBeGreaterThan(0);
   }
 
   async function renderApp() {
@@ -199,19 +205,14 @@ describe("App routing integration", () => {
     });
 
     await waitForDataLoad("rock");
-    await waitForUiSettled();
-
-    const text = (
-      document.body.innerText ||
-      document.body.textContent ||
-      ""
-    ).toLowerCase();
     expect(window.location.pathname).toContain("item/rock");
-    expect(text).toMatch(/rock/);
-    expect(text).toContain("ammunition");
-    expect(text).toContain("stone");
-    expect(text).toContain("a rock the size of a baseball");
-    expect(text).not.toContain("there was a problem displaying this page");
+    expectVisibleText(/rock/i);
+    expectVisibleText(/ammunition/i);
+    expectVisibleText(/stone/i);
+    expectVisibleText(/a rock the size of a baseball/i);
+    expect(
+      screen.queryByText(/there was a problem displaying this page/i),
+    ).toBe(null);
   });
 
   test("popstate falls back to the saved preference after removing a transient tileset override", async () => {
@@ -233,7 +234,6 @@ describe("App routing integration", () => {
       dispatchPopState();
     });
 
-    await waitForUiSettled();
     await waitFor(() =>
       expect(
         (document.getElementById("tileset_select") as HTMLSelectElement).value,
@@ -249,11 +249,13 @@ describe("App routing integration", () => {
     await waitForDataLoad("rock");
 
     expect(window.location.pathname).toContain("search/rock");
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
-    expect(document.body.textContent?.toLowerCase()).not.toContain(
-      "there was a problem displaying this page",
-    );
+    expectVisibleText(/rock/i);
+    expect(
+      screen.getByRole("link", { name: /rock/i }).getAttribute("href"),
+    ).toBe("/stable/item/rock");
+    expect(
+      screen.queryByText(/there was a problem displaying this page/i),
+    ).toBe(null);
   });
 
   test("home page links update to the current tileset on selector changes", async () => {
@@ -385,28 +387,33 @@ describe("App routing integration", () => {
       dispatchPopState();
     });
 
-    await waitForUiSettled();
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+    });
 
     await act(async () => {
       setWindowLocation("stable/search/rock");
       dispatchPopState();
     });
 
-    await waitForUiSettled();
     await waitFor(() =>
       expect(window.location.pathname).toContain("search/rock"),
     );
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+      expect(
+        screen.getByRole("link", { name: /rock/i }).getAttribute("href"),
+      ).toBe("/stable/item/rock");
+    });
 
     await act(async () => {
       setWindowLocation("stable/item/rock");
       dispatchPopState();
     });
 
-    await waitForUiSettled();
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+    });
   });
 
   test("canonicalizes malformed popstate version URLs with replaceState", async () => {
@@ -427,7 +434,6 @@ describe("App routing integration", () => {
       dispatchPopState();
     });
 
-    await waitForUiSettled();
     await waitFor(() =>
       expect(window.location.pathname).toBe("/nightly/item/rock"),
     );
@@ -436,7 +442,9 @@ describe("App routing integration", () => {
       "",
       "/nightly/item/rock?mods=aftershock",
     );
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+    });
     replaceStateSpy.mockRestore();
   });
 });
