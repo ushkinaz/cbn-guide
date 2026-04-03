@@ -391,7 +391,8 @@ onMount(() => {
 <svelte:head>
   <title>{title}</title>
   <meta content={title} property="og:title" />
-  <meta content={description} name="description" property="og:description" />
+  <meta content={description} property="og:description" />
+  <meta content={description} name="description" />
   {#if builds}
     <link rel="canonical" href={canonicalUrl} />
     {@const currentBuild = builds.find(
