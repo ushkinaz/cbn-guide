@@ -180,7 +180,7 @@ describe("App routing integration", () => {
   }
 
   async function renderApp() {
-    await bootstrapApplication().catch(() => undefined);
+    await bootstrapApplication();
     return render(App, {
       target: container,
     });
