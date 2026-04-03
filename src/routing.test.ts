@@ -249,9 +249,7 @@ describe("App routing integration", () => {
 
     expect(window.location.pathname).toContain("search/rock");
     expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(
-      document.querySelector('a[href="/stable/item/rock?t=undead_people"]'),
-    ).toBeTruthy();
+    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
     expect(document.body.textContent?.toLowerCase()).not.toContain(
       "there was a problem displaying this page",
     );
@@ -270,22 +268,16 @@ describe("App routing integration", () => {
     ) as HTMLAnchorElement;
     const logoLink = document.querySelector(".logo-link") as HTMLAnchorElement;
     const itemsHomeLink = document.querySelector(
-      '.category-card[href="/stable/item?t=undead_people"]',
+      '.category-card[href="/stable/item"]',
     ) as HTMLAnchorElement;
     const randomHomeLink = document.querySelector(
       ".category-card.random",
     ) as HTMLAnchorElement;
 
-    expect(brandLink.getAttribute("href")).toBe("/stable/?t=undead_people");
-    expect(logoLink.getAttribute("href")).toBe(
-      "/stable/item/guidebook?t=undead_people",
-    );
-    expect(itemsHomeLink.getAttribute("href")).toBe(
-      "/stable/item?t=undead_people",
-    );
-    expect(randomHomeLink.getAttribute("href")).toBe(
-      "/stable/?t=undead_people",
-    );
+    expect(brandLink.getAttribute("href")).toBe("/stable/");
+    expect(logoLink.getAttribute("href")).toBe("/stable/item/guidebook");
+    expect(itemsHomeLink.getAttribute("href")).toBe("/stable/item");
+    expect(randomHomeLink.getAttribute("href")).toBe("/stable/");
 
     await fireEvent.change(tilesetSelect, {
       target: { value: "retrodays" },
@@ -405,9 +397,7 @@ describe("App routing integration", () => {
       expect(window.location.pathname).toContain("search/rock"),
     );
     expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(
-      document.querySelector('a[href="/stable/item/rock?t=undead_people"]'),
-    ).toBeTruthy();
+    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
 
     await act(async () => {
       setWindowLocation("stable/item/rock");

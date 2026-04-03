@@ -21,9 +21,11 @@ The key design point is that not every navigation fact belongs to the URL in the
 ```
 
 - The path identifies the requested build and target page.
-- `lang` selects the UI and game-data locale.
-- `t` selects an explicit tileset override.
+- `lang` selects the UI and game-data locale when an explicit non-default locale is requested.
+- `t` selects an explicit tileset override when the effective tileset differs from the default tileset.
 - `mods` selects the active mod set.
+- Default in-app links omit `lang` when the locale is `en`.
+- Default in-app links omit `t` when the tileset is the default tileset.
 
 Search uses the same shape as the rest of the app: the search query lives in the path, while locale, tileset, and mods remain query-backed context.
 
@@ -174,15 +176,17 @@ Default links preserve:
 - the current effective tileset
 - the current mods
 
-This is especially important for tileset, because the effective display choice may come from browser preferences even when the URL does not carry an explicit tileset parameter.
+Preserve here means preserving effective navigation context, not serializing every default value literally into the URL.
+
+This is especially important for tileset, because the effective display choice may come from browser preferences even when the URL does not carry an explicit tileset parameter. The default link policy therefore keeps non-default overrides explicit, while allowing default locale and default tileset to collapse out of the generated URL.
 
 ### Canonical Links
 
-Canonical metadata links are generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte) and intentionally omit tileset. They describe content identity, not display preference.
+Canonical metadata links are generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte) and intentionally omit tileset. They also omit the locale parameter when it is the default locale. They describe content identity, not display preference.
 
 ### Alternate-Language Links
 
-Alternate-language metadata links are also generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte). They vary locale while keeping the same content target and mod context, and they also omit tileset.
+Alternate-language metadata links are also generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte). They vary locale while keeping the same content target and mod context, and they also omit tileset. The alternate link for the default locale omits the locale query parameter for the same reason.
 
 ## Implementation Details
 

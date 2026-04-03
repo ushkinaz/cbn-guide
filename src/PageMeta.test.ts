@@ -179,6 +179,32 @@ describe("PageMeta", () => {
     ).toBe(true);
   });
 
+  test("omits default locale and default tileset from canonical and english alternate links", async () => {
+    setWindowLocation(
+      "stable/item/rock",
+      "?lang=en&t=undead_people&mods=aftershock",
+    );
+    resetRouting();
+    render(PageMeta);
+
+    await waitFor(() => {
+      expect(
+        document.querySelector('link[rel="canonical"]')?.getAttribute("href"),
+      ).toBe("http://localhost:3000/stable/item/rock?mods=aftershock");
+    });
+
+    expect(
+      document
+        .querySelector('link[rel="alternate"][hreflang="en"]')
+        ?.getAttribute("href"),
+    ).toBe("http://localhost:3000/stable/item/rock?mods=aftershock");
+    expect(
+      document
+        .querySelector('link[rel="alternate"][hreflang="ru-RU"]')
+        ?.getAttribute("href"),
+    ).toBe("http://localhost:3000/stable/item/rock?lang=ru_RU&mods=aftershock");
+  });
+
   test("monster description includes primary stats and secondary info", () => {
     const buildMetaDescription = descriptionBuilder();
     const monster: MockThing = {

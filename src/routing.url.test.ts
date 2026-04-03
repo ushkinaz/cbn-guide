@@ -117,6 +117,17 @@ describe("routing URL logic", () => {
       expect(url).not.toContain("mods=");
     });
 
+    test("buildURL omits default locale and default tileset", () => {
+      const url = buildURL(
+        "stable",
+        { kind: "item", type: "item", id: "rock" },
+        "en",
+        "undead_people",
+      );
+
+      expect(url).toBe("/stable/item/rock");
+    });
+
     test("mods round-trip through buildURL and parseRoute", () => {
       const url = buildURL(
         "stable",

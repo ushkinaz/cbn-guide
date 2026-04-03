@@ -104,13 +104,13 @@ describe("navigation", () => {
     );
   });
 
-  test("buildLinkTo omits the default locale and empty mods", async () => {
-    setWindowLocation("stable/item/rock", "?lang=en");
+  test("buildLinkTo omits default locale, default tileset, and empty mods", async () => {
+    setWindowLocation("stable/item/rock", "?lang=en&t=undead_people");
     resetRouting();
     await initializeBuildsState();
 
     expect(buildLinkTo({ kind: "item", type: "item", id: "rock" })).toBe(
-      "/stable/item/rock?t=undead_people",
+      "/stable/item/rock",
     );
   });
 
