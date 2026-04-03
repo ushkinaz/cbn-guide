@@ -17,6 +17,7 @@ import {
   buildURL,
   canonicalizeMalformedVersionURL,
   handleInternalNavigation,
+  initializeRouting,
   page,
   parseRoute,
 } from "./routing.svelte";
@@ -458,6 +459,8 @@ describe("routing URL logic", () => {
 
   describe("page store synchronization", () => {
     test("updates the page store on popstate events", () => {
+      initializeRouting();
+
       setWindowLocation("stable/item/rock");
       dispatchPopState();
 
@@ -485,12 +488,33 @@ describe("routing URL logic", () => {
     });
 
     test("keeps the exported page object stable across popstate updates", () => {
+      initializeRouting();
       const initialPage = page;
 
       setWindowLocation("stable/item/rock");
       dispatchPopState();
 
       expect(page).toBe(initialPage);
+      expect(page.route.target).toEqual({
+        kind: "item",
+        type: "item",
+        id: "rock",
+      });
+    });
+
+    test("does not handle popstate until routing is initialized after reset", () => {
+      setWindowLocation("stable/item/rock");
+      dispatchPopState();
+
+      expect(page.route.target).toEqual({
+        kind: "home",
+      });
+
+      initializeRouting();
+
+      setWindowLocation("stable/item/rock");
+      dispatchPopState();
+
       expect(page.route.target).toEqual({
         kind: "item",
         type: "item",

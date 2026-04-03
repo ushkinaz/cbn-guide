@@ -7,10 +7,10 @@
 import { BASE_URL } from "./utils/env";
 import {
   buildsState,
+  type BuildsState,
   NIGHTLY_VERSION,
   STABLE_VERSION,
   tryResolveBuildVersion,
-  type BuildsState,
 } from "./builds.svelte";
 import { isSupportedType } from "./supported-types";
 import { debounce } from "./utils/debounce";
@@ -229,6 +229,8 @@ function createEmptyPageState(url: string): PageState {
 }
 
 export const page = $state<PageState>(createPageStateFromLocation());
+let popstateHandler: (() => void) | undefined;
+let isRoutingInitialized = false;
 
 function updatePageState(): PageState {
   const nextPageState = createPageStateFromLocation();
@@ -237,23 +239,47 @@ function updatePageState(): PageState {
   return page;
 }
 
+function ensurePopstateHandlerInstalled(): void {
+  if (isRoutingInitialized || typeof window === "undefined") {
+    return;
+  }
+
+  popstateHandler = () => {
+    if (buildsState.current) {
+      const canonicalURL = canonicalizeMalformedVersionURL(
+        location.href,
+        buildsState.current,
+      );
+      if (canonicalURL) {
+        navigateToURL(canonicalURL, "replace");
+        return;
+      }
+    }
+    updatePageState();
+  };
+
+  window.addEventListener("popstate", popstateHandler);
+  isRoutingInitialized = true;
+}
+
 /**
  * Test helper: reset singleton store and module state between app mounts in routing tests.
  * @internal
  */
 export function _reset(): void {
   debouncedReplaceState.cancel();
-  if (typeof window !== "undefined") {
-    const win = window as any;
-    if (win.__routing_popstate_handler__) {
-      window.removeEventListener("popstate", win.__routing_popstate_handler__);
-      delete win.__routing_popstate_handler__;
-    }
+  if (typeof window !== "undefined" && popstateHandler) {
+    window.removeEventListener("popstate", popstateHandler);
   }
+  popstateHandler = undefined;
+  isRoutingInitialized = false;
   updatePageState();
 }
 
 export function initializeRouting(): URLRoute {
+  if (typeof window !== "undefined") {
+    ensurePopstateHandlerInstalled();
+  }
   return updatePageState().route;
 }
 
@@ -377,26 +403,4 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
   }
 
   return false;
-}
-
-// Listen for popstate events (browser back/forward)
-if (typeof window !== "undefined") {
-  const win = window as any;
-  if (win.__routing_popstate_handler__) {
-    window.removeEventListener("popstate", win.__routing_popstate_handler__);
-  }
-  win.__routing_popstate_handler__ = () => {
-    if (buildsState.current) {
-      const canonicalURL = canonicalizeMalformedVersionURL(
-        location.href,
-        buildsState.current,
-      );
-      if (canonicalURL) {
-        navigateToURL(canonicalURL, "replace");
-        return;
-      }
-    }
-    updatePageState();
-  };
-  window.addEventListener("popstate", win.__routing_popstate_handler__);
 }
