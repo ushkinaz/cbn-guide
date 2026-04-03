@@ -106,19 +106,20 @@ That separation matters because the app should preserve what the user is actuall
 ```mermaid
 sequenceDiagram
     participant Main as main.ts
+    participant Nav as navigation.svelte.ts
     participant Route as routing.svelte.ts
     participant Prefs as preferences.svelte.ts
     participant Builds as builds.svelte.ts
-    participant Nav as navigation.svelte.ts
     participant I18n as i18n/ui-locale.ts
     participant App as App.svelte
 
-    Main->>Route: initialize route state
-    Main->>Prefs: load browser preferences
-    Main->>Builds: load build metadata
-    Main->>Nav: canonicalize malformed version URLs
-    Main->>I18n: apply UI locale
-    Main->>App: mount app
+    Main->>Nav: bootstrapApplication()
+    Nav->>Route: initializeRouting()
+    Nav->>Prefs: initializePreferences()
+    Nav->>Builds: initializeBuildsState()
+    Nav->>I18n: initializeUILocale(route.localeParam)
+    Nav-->>Main: ready
+    Main->>App: mount(App)
 ```
 
 Startup establishes routing context before the app mounts so the shell renders with the correct build, locale, tileset, and mods from the beginning.

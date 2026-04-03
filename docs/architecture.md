@@ -163,6 +163,7 @@ sequenceDiagram
     participant Browser
     participant SW as Service Worker
     participant Main as main.ts
+    participant Navigation as navigation.svelte.ts
     participant Route as routing.svelte.ts
     participant Prefs as preferences.svelte.ts
     participant Builds as builds.svelte.ts
@@ -172,13 +173,15 @@ sequenceDiagram
     participant Ext as data.cataclysmbn-guide.com
 
     Browser->>Main: Page Load
-    Main->>Route: initializeRouting()
-    Main->>Prefs: initializePreferences()
-    Main->>Builds: initializeBuildsState()
+    Main->>Navigation: bootstrapApplication()
+    Navigation->>Route: initializeRouting()
+    Navigation->>Prefs: initializePreferences()
+    Navigation->>Builds: initializeBuildsState()
     Builds->>SW: fetch(builds.json)
     SW->>Ext: Network/Cache Request
     Ext-->>Builds: BuildInfo[]
-    Main->>I18n: initializeUILocale(route.localeParam)
+    Navigation->>I18n: initializeUILocale(route.localeParam)
+    Navigation-->>Main: ready
     Main->>App: mount(App)
 
     App->>Data: setVersion(requestedVersion)
