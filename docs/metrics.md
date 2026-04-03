@@ -169,7 +169,7 @@ it("tracks feature usage", () => {
 
 ## Current Usage
 
-- `src/routing.ts`: Version switches, routing init time, build number
+- `src/routing.svelte.ts`: Version switches, routing init time, build number
 - `src/search.ts`: Search no-results rate
 
 ## When to Add a Metric

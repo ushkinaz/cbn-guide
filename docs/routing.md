@@ -1,590 +1,246 @@
 # Routing Architecture
 
-This document describes the routing and navigation architecture of the cbn-guide application.
+This document describes how navigation state is organized in the application and how that state moves between the URL, browser preferences, bootstrap metadata, and the app shell.
 
 ## Overview
 
-The application uses a **hybrid routing approach**:
+Routing is split across a few distinct layers:
 
-- **Full page reloads** for version, language, and tileset changes
-- **SPA (Single Page Application) navigation** for browsing items, searching, and catalog navigation
-- **Smart path correction** for legacy or incomplete URLs (e.g., `/item/rock` → `/stable/item/rock`)
+- [`src/routing.svelte.ts`](../src/routing.svelte.ts) owns the raw address bar, history integration, and internal SPA navigation.
+- [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) owns browser-persisted display preferences.
+- [`src/builds.svelte.ts`](../src/builds.svelte.ts) owns build metadata and version alias resolution.
+- [`src/navigation.svelte.ts`](../src/navigation.svelte.ts) exposes the effective navigation context used by the UI and by normal in-app links.
+- [`src/App.svelte`](../src/App.svelte) renders from that effective context and reacts to navigation changes by loading data, updating metadata, and showing user-facing warnings.
 
-### Key Principles
+The key design point is that not every navigation fact belongs to the URL in the same way. Build version, locale, and mods determine which data is loaded. Tileset is primarily a display choice, but it can still be overridden by the URL when a link needs to be shareable and explicit.
 
-- **URL as single source of truth**: No separate state store for routing
-- **Functional design**: Pure functions for URL parsing and construction
-- **Type safe**: Full TypeScript coverage with exported types
+## URL Shape
 
-## URL Structure
-
-```
+```text
 /{version}/{type?}/{id?}?lang={locale}&t={tileset}&mods={mods}
 ```
 
-### Path Segments
+- The path identifies the requested build and target page.
+- `lang` selects the UI and game-data locale when an explicit non-default locale is requested.
+- `t` selects an explicit tileset override when the effective tileset differs from the default tileset.
+- `mods` selects the active mod set.
+- Default in-app links omit `lang` when the locale is `en`.
+- Default in-app links omit `t` when the tileset is the default tileset.
 
-1. **`{version}`** (required): Version identifier
-   - Can be an alias: `"stable"`, `"nightly"`, or `"latest"`
-   - Or a specific build number: `"2025-12-30"`, `"v1.0.0"`, etc.
-   - Default: `"stable"`
+Search uses the same shape as the rest of the app: the search query lives in the path, while locale, tileset, and mods remain query-backed context.
 
-2. **`{type}`** (optional): Object type
-   - Examples: `"item"`, `"recipe"`, `"monster"`, etc.
-   - When present without `{id}`, shows catalog view for that type
-   - When omitted, shows home page
-   - Special case: `"search"` indicates search mode
+## Ownership Model
 
-3. **`{id}`** (optional): Object identifier
-   - Examples: `"rock"`, `"genome_sampler"`, etc.
-   - Requires `{type}` to be present
-   - When `{type}` is `"search"`, this is the search query
-   - **Encoding**: Uses standard `encodeURIComponent` (spaces as `%20`, `+` as `%2B`)
+### `src/routing.svelte.ts`
 
-### Query Parameters
+Owns:
 
-- **`lang`**: Language code (e.g., `"en"`, `"ru_RU"`, `"zh_CN"`)
-  - Default: `"en"` (English)
-  - Omitted from URL when set to English
-  - **Triggers full page reload** when changed
+- parsing the current URL into route state
+- canonicalizing malformed version URLs once build metadata is available
+- building URLs from navigation targets
+- keeping browser history and route state in sync
+- deciding whether an internal click can stay inside the SPA
 
-- **`t`**: Tileset identifier (e.g., `"BrownLikeBears"`, `"UltimateCataclysm"`)
-  - Default: `"-"` (ASCII mode)
-  - Stored in localStorage as `"cbn-guide:tileset"`
-  - **Triggers full page reload** when changed
-  - Resolution Priority:
-    1. URL Parameter (`?t=`)
-    2. `localStorage`
-    3. Default (ASCII)
+Does not own:
 
-- **`mods`**: Comma-separated list of active mod IDs (e.g., `"dda,aftershock"`)
-  - Parsed into a `string[]` by `parseRoute()`
-  - URL remains the strict source-of-truth for active mods
+- browser persistence
+- build metadata
+- display preference fallback
+- default link policy for the rest of the app
 
-## Navigation Types
+### `src/preferences.svelte.ts`
 
-### 1. Full Page Reload (Hard Navigation)
+Owns:
 
-**When it happens:**
+- persisted display preferences
+- validation and fallback of persisted preference values
 
-- User changes version in the version selector
-- User changes language in the language selector
-- User changes tileset in the tileset selector
+### `src/builds.svelte.ts`
 
-**Rationale:**
+Owns:
 
-- **Version changes**: Require loading completely different data files (`all.json` is ~30MB+)
-- **Language changes**: Require reloading all translated content (e.g., requesting `lang/ru.json`)
-- **Tileset changes**: Require reloading tileset asset URLs
+- fetching build metadata
+- resolving version aliases such as `stable` and `nightly`
+- validating that the requested build can be resolved
 
-**Side effects:**
+### `src/navigation.svelte.ts`
 
-- Component is destroyed and recreated
-- All initialization logic runs again:
-  - `initializeRouting()` executes
-  - `data.setVersion()` is called
-  - Page re-renders from scratch
+Owns:
 
-### 2. SPA Navigation (Soft Navigation)
+- the effective navigation context used by the UI
+- default link generation for normal in-app movement
+- user actions that represent navigation intent, such as changing build, locale, tileset, or mods
+- bootstrap sequencing that combines routing, preferences, build metadata, and UI locale before mount
 
-**When it happens:**
+### `src/i18n/ui-locale.ts`
 
-- User clicks internal links to items, recipes, monsters, etc.
-- User performs searches
-- User uses browser back/forward buttons
-- User navigates catalogs
+Owns:
 
-**Rationale:**
+- locale fallback for UI translations before mount
 
-- Fast navigation without reloading data
-- Preserves loaded game data in memory
-- Better user experience
+### `src/main.ts`
 
-## Initialization Flow
+Owns:
+
+- startup sequencing
+- bootstrap failure handling
+
+## State Model
+
+The navigation system works with four kinds of state:
+
+- raw route state from the browser URL
+- persisted browser preferences
+- build metadata needed to resolve version aliases
+- effective app navigation context used by rendering and by normal internal links
+
+That separation matters because the app should preserve what the user is actually viewing, not just what happens to be written literally in the address bar.
+
+| State kind                   | Owner                                                       | Lifetime             | Notes                                                                                       |
+| :--------------------------- | :---------------------------------------------------------- | :------------------- | :------------------------------------------------------------------------------------------ |
+| Raw route state              | [`src/routing.svelte.ts`](../src/routing.svelte.ts)         | Browser session      | Mirrors the current URL and history entry.                                                  |
+| Persisted preference state   | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Across sessions      | Currently stores the preferred tileset only.                                                |
+| Bootstrap metadata           | [`src/builds.svelte.ts`](../src/builds.svelte.ts)           | Per page load        | Resolves aliases like `stable` and `nightly` into concrete builds.                          |
+| Effective navigation context | [`src/navigation.svelte.ts`](../src/navigation.svelte.ts)   | Derived at read time | Combines route state, preferences, and build metadata into the values the UI actually uses. |
+
+## Startup Sequence
 
 ```mermaid
 sequenceDiagram
+    participant Main as main.ts
+    participant Nav as navigation.svelte.ts
+    participant Route as routing.svelte.ts
+    participant Prefs as preferences.svelte.ts
+    participant Builds as builds.svelte.ts
+    participant I18n as i18n/ui-locale.ts
     participant App as App.svelte
-    participant Init as initializeRouting()
-    participant Builds as builds.json
-    participant Data as data.setVersion()
 
-    App->>Init: Call initializeRouting()
-    Init->>Builds: fetch(BUILDS_URL)
-    Builds-->>Init: BuildInfo[]
-
-    Init->>Init: pickLatestBuild(stable) [O(n)]
-    Init->>Init: pickLatestBuild(nightly) [O(n)]
-    Init->>Init: parseRoute().version
-    Init->>Init: resolveVersionAlias()
-
-    alt Version exists
-        Init-->>App: Return InitialAppState
-    else Version not found
-        Note over Init: e.g. /item/rock or /typo/item
-        Init->>Init: location.replace(/stable/...)
-        Note over Init: Full Page Reload
-    end
-
-    App->>Data: data.setVersion(resolvedVersion)
+    Main->>Nav: bootstrapApplication()
+    Nav->>Route: initializeRouting()
+    Nav->>Prefs: initializePreferences()
+    Nav->>Builds: initializeBuildsState()
+    Nav->>I18n: initializeUILocale(route.localeParam)
+    Nav-->>Main: ready
+    Main->>App: mount(App)
 ```
 
-## URL Parsing and Routing
-
-```mermaid
-graph TD
-    Start[URL: /stable/item/rock] --> Parse[parseRoute]
-
-    Parse --> GetSeg[getPathSegments]
-    GetSeg --> Decode[decodeURIComponent on each segment]
-    Decode --> Segments["['stable', 'item', 'rock']"]
+Startup establishes routing context before the app mounts so the shell renders with the correct build, locale, tileset, and mods from the beginning.
 
-    Segments --> Check{type === 'search'?}
-    Check -->|Yes| SearchRoute["{ version, item: null, search: id }"]
-    Check -->|No| CheckItem{type exists?}
+Once build metadata is available, the route intake path canonicalizes malformed version URLs before the rest of the app consumes them. Missing or invalid version segments are rewritten to the nightly route form with `history.replaceState`, while the bare home URL remains untouched.
 
-    CheckItem -->|Yes| ItemRoute["{ version, item: {type, id}, search: '' }"]
-    CheckItem -->|No| HomeRoute["{ version, item: null, search: '' }"]
+The ordering is intentional:
 
-    SearchRoute --> Return[ParsedRoute]
-    ItemRoute --> Return
-    HomeRoute --> Return
-```
+1. Routing initializes first so the app can read the literal request immediately.
+2. Preferences initialize before link generation so tileset-aware links use the effective display choice from the first render.
+3. Build metadata resolves aliases and validates malformed version segments before the shell renders from derived navigation state.
+4. UI locale selection happens after route parsing, because the locale parameter belongs to the route rather than to persisted preferences.
 
-## State Management
+### Failure Handling
 
-### Component State (`src/App.svelte`)
+If bootstrap fails for reasons such as build metadata fetch errors, the app reports the failure, resets navigation to the home route, and mounts the shell so the user gets a visible error instead of a silent blank state.
 
-| Variable             | Purpose                       | Scope     | Source                |
-| -------------------- | ----------------------------- | --------- | --------------------- |
-| `resolvedVersion`    | Current resolved build number | Component | `initializeRouting()` |
-| `requestedVersion`   | Version slug from URL         | Component | `parseRoute()`        |
-| `builds`             | List of available builds      | Component | `initializeRouting()` |
-| `latestStableBuild`  | Latest stable build info      | Component | `initializeRouting()` |
-| `latestNightlyBuild` | Latest nightly build info     | Component | `initializeRouting()` |
-| `item`               | Currently displayed item      | Component | `parseRoute()`        |
-| `search`             | Current search query          | Component | `parseRoute()`        |
-| `tileset`            | Current tileset ID            | Component | `getUrlConfig()`      |
-| `locale`             | Current language code         | Component | `getUrlConfig()`      |
+## Navigation Rules
 
-### Svelte Stores (`src/data.ts`)
+### Soft Navigation
 
-| Store  | Type                        | Purpose              |
-| ------ | --------------------------- | -------------------- |
-| `data` | `Writable<CBNData \| null>` | Main game data store |
+SPA navigation is allowed when the loaded data context stays the same:
 
-### localStorage
+- build version
+- locale
+- mods
 
-| Key                   | Value             | Purpose                           |
-| --------------------- | ----------------- | --------------------------------- |
-| `"cbn-guide:tileset"` | Tileset ID string | Remember user's preferred tileset |
+The notable exception is tileset. Changing tileset stays inside the SPA because it changes presentation, not the underlying data payload.
 
-## Version Resolution
+### Hard Navigation
 
-The version resolution follows this priority:
+Full reloads are used when navigation changes the data context:
 
-1. **Parse URL** to get requested version slug
-2. **Resolve alias** (if applicable):
-   - `"stable"` → Latest stable build number
-   - `"nightly"` or `"latest"` → Latest nightly build number
-   - Other values → Pass through as-is
-3. **Validate** resolved version exists in builds list
-4. **Correction (Prepend `/stable/`)**:
-   - If the version looks valid (e.g. `v0.9`), stay (let it error out later or handle as offline)
-   - If the segment is NOT a known version, assumes it is a legacy path or data type
-   - **ACTION**: Prepend `/stable/` to the current path and force a full page reload
-   - Example: `/item/rock` → `/stable/item/rock`
-5. **Fallback** (only if everything fails):
-   - Use latest stable build, OR
-   - Use latest nightly build, OR
-   - Use first available build, OR
-   - "Grinch-v1.0"
+- build version
+- locale
+- mods
 
-## API Reference
+### Search Navigation
 
-### Exported Functions
+Search behaves like ordinary app navigation, but it is optimized for frequent updates while typing. Entering search from a detail or catalog page creates a real history step. Refining an already active search rewrites the current entry instead of filling the history stack with transient intermediate states.
 
-#### Read Operations
+## Link Generation Policy
 
-##### `parseRoute(): ParsedRoute`
+### Default In-App Links
 
-Parses the current URL and extracts route information.
+Use [`src/navigation.svelte.ts`](../src/navigation.svelte.ts) for ordinary app links.
 
-**Returns:**
+Default links preserve:
 
-```typescript
-{
-  version: string;        // Version slug from URL
-  item: {                 // null if search or home
-    type: string;
-    id: string;
-  } | null;
-  search: string;         // Empty string if not search
-  mods: string[];         // Normalized from ?mods=
-}
-```
+- the current requested build
+- the current locale
+- the current effective tileset
+- the current mods
 
-**Example:**
+Preserve here means preserving effective navigation context, not serializing every default value literally into the URL.
 
-```typescript
-// URL: /stable/item/rock?mods=dda,aftershock
-parseRoute(); // { version: "stable", item: { type: "item", id: "rock" }, search: "", mods: ["dda", "aftershock"] }
+This is especially important for tileset, because the effective display choice may come from browser preferences even when the URL does not carry an explicit tileset parameter. The default link policy therefore keeps non-default overrides explicit, while allowing default locale and default tileset to collapse out of the generated URL.
 
-// URL: /nightly/search/C%2B%2B
-parseRoute(); // { version: "nightly", item: null, search: "C++", mods: [] }
-```
+### Canonical Links
 
-##### `getUrlConfig(): UrlConfig`
+Canonical metadata links are generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte) and intentionally omit tileset. They also omit the locale parameter when it is the default locale. They describe content identity, not display preference.
 
-Extracts configuration from URL query parameters.
+### Alternate-Language Links
 
-**Returns:**
+Alternate-language metadata links are also generated in [`src/PageMeta.svelte`](../src/PageMeta.svelte). They vary locale while keeping the same content target and mod context, and they also omit tileset. The alternate link for the default locale omits the locale query parameter for the same reason.
 
-```typescript
-{
-  locale: string | null; // ?lang= parameter
-  tileset: string | null; // ?t= parameter
-}
-```
+## Implementation Details
 
-##### `getCurrentVersionSlug(): string`
+### Data Loading
 
-Gets the current version slug from URL (for building relative URLs).
+Routing does not load game data directly. The app shell reacts to effective navigation changes and requests the corresponding dataset.
 
-**Returns:** Version string from first path segment, or `"stable"` as default
+If the requested mod set contains unknown mods, the app normalizes the URL to the valid set and shows a warning. This keeps the route shareable and honest without leaving the UI in an ambiguous state.
 
-**Example:**
+If the requested locale is unavailable for the selected data build, the app falls back to the available locale and notifies the user.
 
-```typescript
-// URL: /nightly/item/rock
-getCurrentVersionSlug(); // "nightly"
+The app shell tracks the last requested data context so repeated reactive runs do not reload the same dataset. Once data arrives, the shell may still rewrite the URL if the effective mod set differs from the requested one.
 
-// URL: /
-getCurrentVersionSlug(); // "stable"
-```
+### Internal Navigation Interception
 
-##### `getVersionedBasePath(): string`
-
-Gets the base path for the current version.
-
-**Returns:** Base path string (e.g., `"/cbn-guide/stable/"`)
-
-**Usage:** Building href strings in templates
-
-```svelte
-<a href="{getVersionedBasePath()}item/rock">Rock</a>
-```
-
-##### `isSupportedVersion(buildNumber: string): boolean`
-
-Checks if a build number is v0.7.0 or later.
-
-**Example:**
-
-```typescript
-isSupportedVersion("v0.7.0"); // true
-isSupportedVersion("v0.6.5"); // false
-isSupportedVersion("2025-12-30"); // true (assumes recent = supported)
-```
-
-#### Build Operations
-
-##### `buildUrl(version, item, search, locale?, tileset?, mods?): string`
-
-Builds a complete URL from route components.
-
-**Parameters:**
-
-- `version: string` - Version slug or build number
-- `item: { type: string; id: string } | null` - Item to navigate to
-- `search: string` - Search query
-- `locale?: string | null` - Language code (omit for English)
-- `tileset?: string | null` - Tileset ID
-- `mods?: string[]` - Active mod IDs to persist in URL
-
-**Returns:** Complete URL string
-
-**Example:**
-
-```typescript
-buildUrl("stable", { type: "item", id: "rock" }, "");
-// "http://localhost:3000/cbn-guide/stable/item/rock"
-
-buildUrl("nightly", null, "C++", "ru_RU", "UltimateCataclysm");
-// "http://localhost:3000/cbn-guide/nightly/search/C%2B%2B?lang=ru_RU&t=UltimateCataclysm"
-
-buildUrl("stable", { type: "item", id: "rock" }, "", null, null, [
-  "aftershock",
-]);
-// "http://localhost:3000/cbn-guide/stable/item/rock?mods=aftershock"
-```
-
-#### Navigation Operations
-
-##### `navigateTo(version, item, search, pushToHistory?): void`
-
-Programmatically navigates to a new route while preserving query parameters.
-
-**Parameters:**
-
-- `version: string` - Version slug to navigate to
-- `item: { type: string; id: string } | null` - Item to navigate to (null for home/search)
-- `search: string` - Search query (empty string if not searching)
-- `pushToHistory?: boolean` - Whether to push to history (default: true) or replace current entry
-
-**Behavior:**
-
-- Uses `history.pushState` (or `replaceState`) for SPA navigation
-- Preserves current `lang`, `t`, and `mods` query parameters
-- Cancels any pending debounced URL updates
-- Updates browser history without triggering page reload
-- Updates the `page` store to reflect new route
-
-**Example:**
-
-```typescript
-import { navigateTo, getCurrentVersionSlug } from "./routing";
-
-// Navigate to an item
-navigateTo(getCurrentVersionSlug(), { type: "item", id: "fire_ax" }, "");
-
-// Navigate to search results
-navigateTo(getCurrentVersionSlug(), null, "zombie");
-
-// Replace current history entry instead of pushing
-navigateTo(
-  getCurrentVersionSlug(),
-  { type: "monster", id: "mon_zombie" },
-  "",
-  false,
-);
-```
-
-**Use Cases:**
-
-- Programmatic navigation from search (e.g., Enter key handler)
-- Custom navigation logic in components
-- Navigating from external triggers (e.g., keyboard shortcuts)
-
-##### `updateSearchRoute(searchQuery, currentItem): void`
-
-Updates the URL to reflect a search query.
-
-**Behavior:**
-
-- Uses `pushState` when navigating from an item
-- Uses debounced `replaceState` (400ms trailing) when typing in search box
-- Cancellation-aware: explicit navigation cancels pending updates
-
-##### `changeVersion(newVersion: string): void`
-
-Changes version and triggers full page reload.
-
-**Side effect:** `location.href` assignment → full page reload
-
-##### `updateQueryParam(param: string, value: string | null): void`
-
-Updates a query parameter and triggers full page reload.
-
-**Rationale:** Changing `lang` or `t` requires reloading data/assets
-
-**Side effect:** `location.href` assignment → full page reload
-
-##### `handleInternalNavigation(event: MouseEvent): boolean`
-
-Handles click events to intercept internal navigation.
-
-**Returns:** `true` if navigation was handled, `false` otherwise
-
-#### Initialization
-
-##### `initializeRouting(): Promise<InitialAppState>`
-
-Initializes routing by fetching builds and resolving the requested version.
-
-**Returns:**
-
-```typescript
-{
-  builds: BuildInfo[];
-  resolvedVersion: string;
-  latestStableBuild?: BuildInfo;
-  latestNightlyBuild?: BuildInfo;
-}
-```
-
-**Process:**
-
-1. Fetches `builds.json`
-2. Finds latest stable and nightly builds (O(n) linear scan)
-3. Resolves version alias from URL
-4. Validates version exists
-5. Redirects to fallback if needed
-
-**Throws:** Error if builds.json fails to load
-
-### Types
-
-```typescript
-export type BuildInfo = {
-  build_number: string;
-  prerelease: boolean;
-  created_at: string;
-  langs?: string[];
-};
-
-export type ParsedRoute = {
-  version: string;
-  item: { type: string; id: string } | null;
-  search: string;
-  mods: string[];
-};
-
-export type UrlConfig = {
-  locale: string | null;
-  tileset: string | null;
-};
-
-export type InitialAppState = {
-  builds: BuildInfo[];
-  resolvedVersion: string;
-  latestStableBuild?: BuildInfo;
-  latestNightlyBuild?: BuildInfo;
-};
-```
+Internal link clicks stay inside the SPA only when the destination keeps the same data context. If a click would require different data, the browser performs a normal navigation instead.
 
 ## Common Patterns
 
-### Adding a New Query Parameter
+### Add a New Query Parameter
 
-1. Extract parameter in component initialization:
+1. Decide whether it is route state, browser preference, or derived app context.
+2. Add it to the appropriate owner instead of letting multiple modules infer it independently.
+3. Decide whether changing it should stay in the SPA or force a reload.
+4. Update default link generation only if ordinary in-app links should preserve it.
+5. Add routing tests that cover parsing, serialization, and navigation behavior.
 
-   ```typescript
-   const myParam = getUrlConfig().myParam; // Add to UrlConfig type
-   ```
+### Add a New Route Target
 
-2. Update `getUrlConfig()` to include it:
+1. Extend the route parser and URL builder.
+2. Teach the app shell how to render the new target.
+3. Add round-trip tests so the route can be parsed from the URL and written back without changing meaning.
 
-   ```typescript
-   export function getUrlConfig(): UrlConfig {
-     return {
-       locale: getSearchParam("lang"),
-       tileset: getSearchParam("t"),
-       myParam: getSearchParam("my_param"),
-     };
-   }
-   ```
+### Add a New Navigation Action
 
-3. Add select handler using `updateQueryParam()`:
+Choose the navigation transport by intent:
 
-   ```typescript
-   on:change={(e) => {
-     updateQueryParam("my_param", e.currentTarget.value);
-   }}
-   ```
+- use SPA navigation when the user is moving within the same loaded dataset
+- use URL replacement when the user is refining transient state such as an active search
+- use a full reload when the requested dataset changes
 
-### Adding SPA Navigation to a New Page Type
+## Limitations and Edge Cases
 
-1. Update `parseRoute()` to handle the new path pattern (if needed)
+- Version aliases depend on build metadata. Until that metadata is available, the app only knows the requested version, not the resolved concrete build.
+- Malformed version URLs are canonicalized after build metadata loads, so invalid or missing version segments do not surface as user-facing bootstrap failures.
+- The app does not persist locale or mods as browser preferences.
+- The route layer is browser-oriented state, so server-side initialization uses a safe placeholder URL.
+- History synchronization is global, so the routing module installs exactly one popstate listener.
 
-2. Ensure links use the standard format:
+## Relevant Tests
 
-   ```svelte
-   <a href="{getVersionedBasePath()}my_new_type/{id}">
-   ```
-
-3. The existing `handleInternalNavigation()` will automatically intercept these links
-
-### Building Dynamic Links
-
-Use helper functions for building URLs:
-
-```svelte
-<a href="{getVersionedBasePath()}item/{item.id}">
-```
-
-Or build complete URLs with query params:
-
-```svelte
-<script>
-  import { buildUrl, getCurrentVersionSlug } from "./routing";
-
-  $: itemUrl = buildUrl(getCurrentVersionSlug(), { type: "item", id: item.id }, "");
-</script>
-
-<a href="{itemUrl}">
-```
-
-## Debugging Tips
-
-### Check URL Parsing
-
-```typescript
-import { parseRoute } from "./routing";
-
-// In browser console
-parseRoute();
-// { version: "stable", item: { type: "item", id: "rock" }, search: "" }
-```
-
-### Verify Version Resolution
-
-```typescript
-import { getCurrentVersionSlug } from "./routing";
-
-getCurrentVersionSlug(); // "stable", "nightly", or build number
-```
-
-### Inspect State
-
-```typescript
-// Check current path segments (internal function, but accessible via parseRoute)
-const route = parseRoute();
-console.log("Version:", route.version);
-console.log("Item:", route.item);
-console.log("Search:", route.search);
-
-// Check if version exists in builds
-builds?.find((b) => b.build_number === resolvedVersion);
-```
-
-### Watch for Fallbacks
-
-Check console for warnings:
-
-```
-Version XYZ not found in builds list, falling back to 2025-12-30.
-```
-
-### Test URL Encoding
-
-```typescript
-import { buildUrl } from "./routing";
-
-// Test special characters
-buildUrl("stable", null, "C++ test", null, null);
-// Should encode to: /stable/search/C%2B%2B%20test
-
-// Verify round-trip
-const url = buildUrl("stable", null, "C++", null, null);
-// Navigate to URL, then:
-parseRoute().search; // Should be "C++" (correctly decoded)
-```
-
-## Known Limitations
-
-1. **Search in URL**: Search queries are in the path (`/search/{query}`) rather than query params for cleaner URLs. Special characters are properly encoded with `encodeURIComponent`.
-
-## Related Documentation
-
-- [Reactivity Guide](./reactivity.md) — Route-driven remounting and where `$:` matters
-
-2. **Error handling**: When builds.json fails to load, app shows error in console with TODO to notify user visually.
-
-3. **Version fallback**: Uses hardcoded `"Grinch-v1.0"` as ultimate fallback. This is an unlikely edge case (totally offline with no builds).
-
-## Future Improvements
-
-- [ ] Visual error notification when builds.json fails to load
-- [ ] User notification when falling back to different version
-- [ ] Add loading states during version transitions
+- [`src/routing.url.test.ts`](../src/routing.url.test.ts): route parsing, URL building, internal navigation interception, and history synchronization
+- [`src/navigation.test.ts`](../src/navigation.test.ts): effective link context, tileset behavior, and search navigation
+- [`src/builds.svelte.test.ts`](../src/builds.svelte.test.ts): build metadata loading and version resolution
+- [`src/preferences.svelte.test.ts`](../src/preferences.svelte.test.ts): preference validation and storage fallback
+- [`src/i18n/ui-locale.test.ts`](../src/i18n/ui-locale.test.ts): UI locale fallback behavior
+- [`src/routing.test.ts`](../src/routing.test.ts): app-level integration across navigation, canonical metadata, mod normalization, and tileset-sensitive links

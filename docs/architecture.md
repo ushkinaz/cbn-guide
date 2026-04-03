@@ -31,6 +31,9 @@ flowchart TB
         direction TB
         App[App.svelte]
         Router[Routing Module]
+        Navigation[Navigation Context]
+        Preferences[Preferences Store]
+        Versioning[Version Bootstrap]
         DataStore[CBNData Store]
         Components[UI Components]
         TileData[Tile Data]
@@ -50,10 +53,13 @@ flowchart TB
         Langs[Language Files]
     end
 
-    App --> Router
+    App --> Navigation
+    Navigation --> Router
+    Navigation --> Preferences
+    Navigation --> Versioning
     App --> DataStore
 
-    Router --> Builds
+    Versioning --> Builds
     DataStore --> GameData
     Components --> TileData
     TileData --> Tiles
@@ -132,7 +138,7 @@ flowchart TD
     subgraph Business["Business Logic Layer"]
         direction TB
         DataTS[data.ts]
-        RoutingTS[routing.ts]
+        RoutingTS[routing.svelte.ts]
         TileDataTS[tile-data.ts]
     end
 
@@ -156,17 +162,29 @@ flowchart TD
 sequenceDiagram
     participant Browser
     participant SW as Service Worker
+    participant Main as main.ts
+    participant Navigation as navigation.svelte.ts
+    participant Route as routing.svelte.ts
+    participant Prefs as preferences.svelte.ts
+    participant Builds as builds.svelte.ts
+    participant I18n as i18n/ui-locale.ts
     participant App as App.svelte
     participant Data as data.ts
     participant Ext as data.cataclysmbn-guide.com
 
-    Browser->>App: Page Load
-    App->>App: Initialize Routing
-    App->>SW: fetch(builds.json)
+    Browser->>Main: Page Load
+    Main->>Navigation: bootstrapApplication()
+    Navigation->>Route: initializeRouting()
+    Navigation->>Prefs: initializePreferences()
+    Navigation->>Builds: initializeBuildsState()
+    Builds->>SW: fetch(builds.json)
     SW->>Ext: Network/Cache Request
-    Ext-->>App: BuildInfo[]
+    Ext-->>Builds: BuildInfo[]
+    Navigation->>I18n: initializeUILocale(route.localeParam)
+    Navigation-->>Main: ready
+    Main->>App: mount(App)
 
-    App->>Data: setVersion(resolvedVersion)
+    App->>Data: setVersion(requestedVersion)
     Data->>SW: fetch(/data/version/all.json)
     SW->>Ext: Network/Cache Request
     Ext-->>Data: Raw game data (~30MB)
@@ -229,21 +247,37 @@ classDiagram
 
 ## Routing System
 
-The routing system manages state primarily via the URL, supporting both SPA navigation and hard reloads for version switches.
+The routing system is now layered: raw URL state lives in `routing.svelte.ts`,
+preferences live in `preferences.svelte.ts`, version bootstrap lives in
+`builds.svelte.ts`, and effective in-app link context lives in `navigation.svelte.ts`.
 
 ```mermaid
 flowchart TB
-    URL["/{version}/{type}/{id}"]
-    Resolve["Resolve Version/Alias"]
-    Nav{"Same Version?"}
-    Soft["SPA Navigate"]
+    URL["Raw URL Route"]
+    Prefs["Preferences"]
+    Version["Version State"]
+    Nav["Navigation Context"]
+    Soft["SPA Navigation"]
     Hard["Hard Reload"]
 
-    URL --> Resolve
-    Resolve --> Nav
-    Nav -->|Yes| Soft
-    Nav -->|No| Hard
+    URL --> Nav
+    Prefs --> Nav
+    Version --> Nav
+    Nav --> Soft
+    Nav --> Hard
 ```
+
+[`src/App.svelte`](../src/App.svelte) sits immediately downstream from that layered routing system. The shell does not parse URLs or persist preferences itself. It reacts to the effective navigation context by loading data, syncing search state, updating tiles, and rendering route-keyed content.
+
+## Navigation State Ownership
+
+| State                        | Primary owner                                               | Why it lives there                                                                                  |
+| :--------------------------- | :---------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| Requested route              | [`src/routing.svelte.ts`](../src/routing.svelte.ts)         | The browser URL and history stack are the only honest source for route identity.                    |
+| Preferred tileset            | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Tileset is a display preference that survives across sessions.                                      |
+| Resolved build metadata      | [`src/builds.svelte.ts`](../src/builds.svelte.ts)           | Alias resolution and build validation depend on fetched `builds.json`, not on route parsing alone.  |
+| Effective navigation context | [`src/navigation.svelte.ts`](../src/navigation.svelte.ts)   | The UI needs one coherent read model instead of scattered route, preference, and bootstrap lookups. |
+| Loaded game data             | [`src/data.ts`](../src/data.ts)                             | The dataset is application data that reacts to navigation, not navigation state itself.             |
 
 ## Development & Build Pipeline
 
@@ -287,8 +321,11 @@ cbn-guide/
 │   ├── App.svelte          # Main application component
 │   ├── data.ts             # CBNData class & utilities
 │   ├── i18n/               # Translation helpers split by runtime boundary
-│   ├── routing.ts          # URL routing logic
+│   ├── navigation.svelte.ts       # Effective navigation context and app link policy
+│   ├── preferences.svelte.ts      # Browser-persisted user preferences
+│   ├── routing.svelte.ts          # URL routing logic
 │   ├── tile-data.ts        # Tileset sprite management
+│   ├── builds.svelte.ts           # builds.json fetch + version alias resolution
 │   ├── assets/             # Static assets
 │   └── ...
 ├── public/

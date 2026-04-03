@@ -99,7 +99,7 @@ rg -n 'setTimeout|setInterval|addEventListener|AbortController|listen\\(|watch\\
 Repo-specific reset points already worth checking:
 
 ```bash
-rg -n '_reset\\(|reset\\(' src/data.ts src/search.ts src/routing.ts src/tile-data.ts
+rg -n '_reset\\(|reset\\(' src/data.ts src/search.ts src/routing.svelte.ts src/tile-data.ts
 ```
 
 ## Fixture Inspection

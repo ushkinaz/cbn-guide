@@ -62,6 +62,6 @@ At initialization, the app builds one data stream by appending selected mod data
 
 ## References
 
-- `src/routing.ts`
+- `src/routing.svelte.ts`
 - `src/App.svelte`
 - `src/data.ts`

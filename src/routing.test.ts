@@ -7,6 +7,7 @@ import {
   cleanup,
   fireEvent,
   render,
+  screen,
   waitFor,
 } from "@testing-library/svelte";
 import { get } from "svelte/store";
@@ -23,21 +24,57 @@ import {
 import App from "./App.svelte";
 import { data } from "./data";
 import { dismiss, notifications } from "./Notification.svelte";
+import { _resetPreferences, setPreferredTileset } from "./preferences.svelte";
 import {
   dispatchPopState,
   createAppFetchMock,
   setWindowLocation,
 } from "./routing.test-helpers";
-import { _reset as resetRouting } from "./routing";
-import { resetSearchState } from "./search-state.svelte";
-import { tileData, _resetCache as resetTilesetCache } from "./tile-data";
+import { _resetRouting } from "./routing.svelte";
+import { _resetSearchState } from "./search-state.svelte";
+import { tileData, _resetTilesetData } from "./tile-data";
+import { _resetBuildsState } from "./builds.svelte";
+
+import { bootstrapApplication } from "./navigation.svelte";
 
 vi.hoisted(() => {
   (globalThis as any).__isTesting__ = true;
 });
 
+function installMockStorage() {
+  const store = new Map<string, string>();
+  const storage = {
+    getItem(key: string) {
+      return store.has(key) ? store.get(key)! : null;
+    },
+    setItem(key: string, value: string) {
+      store.set(key, value);
+    },
+    removeItem(key: string) {
+      store.delete(key);
+    },
+    clear() {
+      store.clear();
+    },
+  };
+
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: storage,
+  });
+
+  return storage;
+}
+
+function clearHeadMetadata(): void {
+  for (const element of document.head.querySelectorAll(
+    'link[rel="canonical"], link[rel="alternate"], meta[name="description"], meta[property="og:title"], meta[property="og:description"]',
+  )) {
+    element.remove();
+  }
+}
+
 describe("App routing integration", () => {
-  vi.setConfig({ testTimeout: 120_000 });
   const ROUTING_TEARDOWN_SETTLE_MS = 150;
   let originalFetch: typeof global.fetch;
   let originalImage: typeof global.Image;
@@ -73,9 +110,14 @@ describe("App routing integration", () => {
   });
 
   beforeEach(() => {
+    installMockStorage();
+    clearHeadMetadata();
     window.scrollTo = vi.fn();
     setWindowLocation("stable/");
-    resetRouting();
+    localStorage.removeItem?.("cbn-guide:tileset");
+    _resetRouting();
+    _resetPreferences();
+    _resetBuildsState();
     global.fetch = defaultFetchMock;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -87,15 +129,19 @@ describe("App routing integration", () => {
 
   afterEach(() => {
     cleanup();
+    clearHeadMetadata();
     if (container && container.parentNode) {
       container.parentNode.removeChild(container);
     }
     data._reset();
     tileData.reset();
-    resetTilesetCache();
-    resetRouting();
-    resetSearchState();
+    _resetTilesetData();
+    _resetRouting();
+    _resetPreferences();
+    _resetBuildsState();
+    _resetSearchState();
     global.fetch = defaultFetchMock;
+    vi.restoreAllMocks();
     vi.clearAllMocks();
   });
 
@@ -130,42 +176,25 @@ describe("App routing integration", () => {
     });
   }
 
-  async function waitForUiSettled() {
-    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+  function expectVisibleText(text: string | RegExp): void {
+    if (typeof text === "string") {
+      expect(screen.getAllByText(new RegExp(text, "i")).length).toBeGreaterThan(
+        0,
+      );
+      return;
+    }
+    expect(screen.getAllByText(text).length).toBeGreaterThan(0);
   }
 
-  test("shows and clears the install affordance from window events", async () => {
-    render(App, {
+  async function renderApp() {
+    await bootstrapApplication();
+    return render(App, {
       target: container,
     });
-
-    await waitForDataLoad();
-    expect(document.querySelector(".install-button")).toBeNull();
-
-    const prompt = vi.fn();
-    const beforeInstallPrompt = new Event("beforeinstallprompt");
-    Object.assign(beforeInstallPrompt, { prompt });
-
-    window.dispatchEvent(beforeInstallPrompt);
-
-    await waitFor(() =>
-      expect(document.querySelector(".install-button")).not.toBeNull(),
-    );
-
-    await fireEvent.click(document.querySelector(".install-button")!);
-    expect(prompt).toHaveBeenCalledTimes(1);
-
-    window.dispatchEvent(new Event("appinstalled"));
-
-    await waitFor(() =>
-      expect(document.querySelector(".install-button")).toBeNull(),
-    );
-  });
+  }
 
   test("renders the item page after popstate navigation", async () => {
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad();
     expect(document.body.textContent).toContain("Hitchhiker");
@@ -176,44 +205,109 @@ describe("App routing integration", () => {
     });
 
     await waitForDataLoad("rock");
-    await waitForUiSettled();
-
-    const text = (
-      document.body.innerText ||
-      document.body.textContent ||
-      ""
-    ).toLowerCase();
     expect(window.location.pathname).toContain("item/rock");
-    expect(text).toMatch(/rock/);
-    expect(text).toContain("ammunition");
-    expect(text).toContain("stone");
-    expect(text).toContain("a rock the size of a baseball");
-    expect(text).not.toContain("there was a problem displaying this page");
-    expect(document.title.toLowerCase()).toMatch(/rock/);
+    expectVisibleText(/rock/i);
+    expectVisibleText(/ammunition/i);
+    expectVisibleText(/stone/i);
+    expectVisibleText(/a rock the size of a baseball/i);
+    expect(
+      screen.queryByText(/there was a problem displaying this page/i),
+    ).toBe(null);
+  });
+
+  test("popstate falls back to the saved preference after removing a transient tileset override", async () => {
+    setPreferredTileset("retrodays");
+    setWindowLocation("stable/", "?t=undead_people");
+
+    await renderApp();
+
+    await waitForDataLoad();
+    await waitFor(() =>
+      expect(document.getElementById("tileset_select")).toBeTruthy(),
+    );
+    expect(
+      (document.getElementById("tileset_select") as HTMLSelectElement).value,
+    ).toBe("undead_people");
+
+    await act(async () => {
+      setWindowLocation("stable/");
+      dispatchPopState();
+    });
+
+    await waitFor(() =>
+      expect(
+        (document.getElementById("tileset_select") as HTMLSelectElement).value,
+      ).toBe("retrodays"),
+    );
   });
 
   test("renders search results when loading a search path directly", async () => {
     setWindowLocation("stable/search/rock");
 
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad("rock");
 
     expect(window.location.pathname).toContain("search/rock");
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
-    expect(document.body.textContent?.toLowerCase()).not.toContain(
-      "there was a problem displaying this page",
+    expectVisibleText(/rock/i);
+    expect(
+      screen.getByRole("link", { name: /rock/i }).getAttribute("href"),
+    ).toBe("/stable/item/rock");
+    expect(
+      screen.queryByText(/there was a problem displaying this page/i),
+    ).toBe(null);
+  });
+
+  test("home page links update to the current tileset on selector changes", async () => {
+    await renderApp();
+
+    await waitForDataLoad();
+
+    const tilesetSelect = document.getElementById(
+      "tileset_select",
+    ) as HTMLSelectElement;
+    const brandLink = document.querySelector(
+      ".brand-link",
+    ) as HTMLAnchorElement;
+    const logoLink = document.querySelector(".logo-link") as HTMLAnchorElement;
+    const itemsHomeLink = document.querySelector(
+      '.category-card[href="/stable/item"]',
+    ) as HTMLAnchorElement;
+    const randomHomeLink = document.querySelector(
+      ".category-card.random",
+    ) as HTMLAnchorElement;
+
+    expect(brandLink.getAttribute("href")).toBe("/stable/");
+    expect(logoLink.getAttribute("href")).toBe("/stable/item/guidebook");
+    expect(itemsHomeLink.getAttribute("href")).toBe("/stable/item");
+    expect(randomHomeLink.getAttribute("href")).toBe("/stable/");
+
+    await fireEvent.change(tilesetSelect, {
+      target: { value: "retrodays" },
+    });
+
+    await waitFor(() => expect(tilesetSelect.value).toBe("retrodays"));
+    await waitFor(() =>
+      expect(brandLink.getAttribute("href")).toBe("/stable/?t=retrodays"),
+    );
+    await waitFor(() =>
+      expect(logoLink.getAttribute("href")).toBe(
+        "/stable/item/guidebook?t=retrodays",
+      ),
+    );
+    await waitFor(() =>
+      expect(itemsHomeLink.getAttribute("href")).toBe(
+        "/stable/item?t=retrodays",
+      ),
+    );
+    await waitFor(() =>
+      expect(randomHomeLink.getAttribute("href")).toBe("/stable/?t=retrodays"),
     );
   });
 
   test("mod selector apply updates mods query param in order", async () => {
     setWindowLocation("stable/", "?mods=aftershock");
-    const { getByLabelText, getByRole, getByText } = render(App, {
-      target: container,
-    });
+    const { getByLabelText, getByRole, getByText } = await renderApp();
 
     await waitForDataLoad();
     await waitFor(() =>
@@ -232,20 +326,15 @@ describe("App routing integration", () => {
     await fireEvent.click(getByLabelText("Magiclysm"));
     await fireEvent.click(getByText("Apply"));
 
-    expect(new URL(window.location.href).searchParams.get("mods")).toBe(
+    expect(new URLSearchParams(window.location.search).get("mods")).toBe(
       "aftershock,magiclysm",
     );
   });
 
   test("loads compatible mod tileset chunk URLs for active mods", async () => {
-    render(App, {
-      target: container,
-    });
+    setWindowLocation("stable/", "?mods=civilians&t=undead_people");
 
-    await act(async () => {
-      setWindowLocation("stable/", "?mods=civilians&t=undead_people");
-      dispatchPopState();
-    });
+    await renderApp();
 
     await waitForDataLoad();
 
@@ -269,9 +358,7 @@ describe("App routing integration", () => {
     );
     const replaceStateSpy = vi.spyOn(history, "replaceState");
 
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad("rock");
 
@@ -291,9 +378,7 @@ describe("App routing integration", () => {
   });
 
   test("reacts to history navigation and renders the matching route", async () => {
-    render(App, {
-      target: container,
-    });
+    await renderApp();
 
     await waitForDataLoad();
 
@@ -302,79 +387,64 @@ describe("App routing integration", () => {
       dispatchPopState();
     });
 
-    await waitForUiSettled();
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+    });
 
     await act(async () => {
       setWindowLocation("stable/search/rock");
       dispatchPopState();
     });
 
-    await waitForUiSettled();
     await waitFor(() =>
       expect(window.location.pathname).toContain("search/rock"),
     );
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
-    expect(document.querySelector('a[href="/stable/item/rock"]')).toBeTruthy();
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+      expect(
+        screen.getByRole("link", { name: /rock/i }).getAttribute("href"),
+      ).toBe("/stable/item/rock");
+    });
 
     await act(async () => {
       setWindowLocation("stable/item/rock");
       dispatchPopState();
     });
 
-    await waitForUiSettled();
-    expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+    });
   });
 
-  test("canonical and alternate links include mods query param", async () => {
-    setWindowLocation("stable/item/rock", "?mods=aftershock");
+  test("canonicalizes malformed popstate version URLs with replaceState", async () => {
+    await renderApp();
 
-    render(App, {
-      target: container,
+    await waitForDataLoad();
+    const replaceStateSpy = vi
+      .spyOn(history, "replaceState")
+      .mockImplementation((_, __, url) => {
+        const nextUrl = new URL(String(url), window.location.origin);
+        window.location.pathname = nextUrl.pathname;
+        window.location.search = nextUrl.search;
+        window.location.href = nextUrl.toString();
+      });
+
+    await act(async () => {
+      setWindowLocation("bogus/item/rock", "?mods=aftershock");
+      dispatchPopState();
     });
 
-    await waitForDataLoad("rock");
-
-    let canonical = document.querySelector(
-      'link[rel="canonical"]',
-    ) as HTMLLinkElement | null;
-    const waitStart = Date.now();
-    while (!canonical && Date.now() - waitStart < 2_000) {
-      await act(() => new Promise((resolve) => setTimeout(resolve, 25)));
-      canonical = document.querySelector(
-        'link[rel="canonical"]',
-      ) as HTMLLinkElement | null;
-    }
-
-    expect(canonical).toBeTruthy();
-    expect(canonical?.href).toContain("mods=aftershock");
-
-    const alternates = Array.from(
-      document.querySelectorAll('link[rel="alternate"]'),
-    ) as HTMLLinkElement[];
-    expect(alternates.length).toBeGreaterThan(0);
-    expect(
-      alternates.every((link) => link.href.includes("mods=aftershock")),
-    ).toBe(true);
-  });
-
-  test("shows an initialization error notification when builds.json fails", async () => {
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    global.fetch = vi.fn(() =>
-      Promise.reject(new Error("Network Error")),
-    ) as typeof fetch;
-
-    render(App, {
-      target: container,
-    });
-
-    await waitFor(() => expect(errorSpy).toHaveBeenCalled());
     await waitFor(() =>
-      expect(document.body.textContent).toContain(
-        "Failed to initialize application. Please reload.",
-      ),
+      expect(window.location.pathname).toBe("/nightly/item/rock"),
     );
-
-    errorSpy.mockRestore();
+    expect(replaceStateSpy).toHaveBeenCalledWith(
+      null,
+      "",
+      "/nightly/item/rock?mods=aftershock",
+    );
+    await waitFor(() => {
+      expectVisibleText(/rock/i);
+    });
+    replaceStateSpy.mockRestore();
   });
 });

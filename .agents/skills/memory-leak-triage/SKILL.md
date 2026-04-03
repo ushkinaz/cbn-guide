@@ -29,7 +29,7 @@ Read [memory-debug-commands.md](references/memory-debug-commands.md) for exact c
 
 ## Repo-Specific Hotspots
 
-- `src/data.ts`, `src/search.ts`, `src/routing.ts`, and `src/tile-data.ts` contain long-lived state. Check whether `_reset()` or `reset()` exists and whether tests call it.
+- `src/data.ts`, `src/search.ts`, `src/routing.svelte.ts`, and `src/tile-data.ts` contain long-lived state. Check whether `_reset()` or `reset()` exists and whether tests call it.
 - `src/all.*.test.ts` and generated `src/__mod_tests__/**` are intentionally heavy. Failures here often come from worker pressure or huge DOM/data allocations.
 - happy-dom render tests can look like leaks when components mount too many rows or cards. Treat DOM cardinality as a suspect.
 - `_test/all.json` and `_test/all_mods.json` are large fixtures. Repeated parsing or cloning can dominate memory even without a leak. Never grep `_test/all.json`; use `jq`.
