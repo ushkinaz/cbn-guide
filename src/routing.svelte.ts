@@ -210,10 +210,6 @@ function createPageState(urlInput: string): PageState {
 // ============================================================================
 
 function createPageStateFromLocation(): PageState {
-  if (typeof window === "undefined") {
-    return createEmptyPageState("http://localhost/");
-  }
-
   return createPageState(location.href);
 }
 
@@ -277,9 +273,7 @@ export function _resetRouting(): void {
 }
 
 export function initializeRouting(): URLRoute {
-  if (typeof window !== "undefined") {
-    ensurePopstateHandlerInstalled();
-  }
+  ensurePopstateHandlerInstalled();
   return updatePageState().route;
 }
 
