@@ -111,7 +111,7 @@ export async function initializeBuildsState(): Promise<BuildsState> {
 /**
  * @internal
  */
-export function _resetVersionState(): void {
+export function _resetBuildsState(): void {
   buildsState.current = undefined;
 }
 

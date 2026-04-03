@@ -26,12 +26,12 @@ import {
   navigation,
   updateSearchRoute,
 } from "./navigation.svelte";
-import { _reset as resetRouting, page } from "./routing.svelte";
+import { _resetRouting, page } from "./routing.svelte";
 import {
   createBuildsFetchMock,
   setWindowLocation,
 } from "./routing.test-helpers";
-import { _resetVersionState, initializeBuildsState } from "./builds.svelte";
+import { _resetBuildsState, initializeBuildsState } from "./builds.svelte";
 
 describe("navigation", () => {
   let originalFetch: typeof global.fetch;
@@ -44,17 +44,17 @@ describe("navigation", () => {
 
   beforeEach(() => {
     setWindowLocation("stable/");
-    resetRouting();
+    _resetRouting();
     _resetPreferences();
-    _resetVersionState();
+    _resetBuildsState();
     localStorage.removeItem?.("cbn-guide:tileset");
     global.fetch = defaultFetchMock;
   });
 
   afterEach(() => {
-    resetRouting();
+    _resetRouting();
     _resetPreferences();
-    _resetVersionState();
+    _resetBuildsState();
     global.fetch = defaultFetchMock;
     vi.restoreAllMocks();
     vi.clearAllMocks();
@@ -79,7 +79,7 @@ describe("navigation", () => {
   test("uses a valid URL tileset override transiently without persisting it", async () => {
     setPreferredTileset("retrodays");
     setWindowLocation("stable/item/rock", "?t=ultica");
-    resetRouting();
+    _resetRouting();
     await initializeBuildsState();
 
     expect(navigation).toMatchObject({
@@ -96,7 +96,7 @@ describe("navigation", () => {
       "stable/item/rock",
       "?lang=ru_RU&t=retrodays&mods=aftershock",
     );
-    resetRouting();
+    _resetRouting();
     await initializeBuildsState();
 
     expect(buildLinkTo({ kind: "catalog", type: "monster" })).toBe(
@@ -106,7 +106,7 @@ describe("navigation", () => {
 
   test("buildLinkTo omits default locale, default tileset, and empty mods", async () => {
     setWindowLocation("stable/item/rock", "?lang=en&t=undead_people");
-    resetRouting();
+    _resetRouting();
     await initializeBuildsState();
 
     expect(buildLinkTo({ kind: "item", type: "item", id: "rock" })).toBe(
@@ -116,7 +116,7 @@ describe("navigation", () => {
 
   test("navigateTo preserves the current mods query param and updates the page store", async () => {
     setWindowLocation("stable/", "?mods=aftershock,magiclysm");
-    resetRouting();
+    _resetRouting();
     await initializeBuildsState();
     vi.spyOn(history, "pushState").mockImplementation((_, __, url) => {
       const nextUrl = new URL(String(url), window.location.origin);
@@ -142,7 +142,7 @@ describe("navigation", () => {
       "stable/item/rock",
       "?lang=en&t=retrodays&mods= aftershock , ,magiclysm,aftershock,bn ",
     );
-    resetRouting();
+    _resetRouting();
     await initializeBuildsState();
     vi.spyOn(history, "pushState").mockImplementation((_, __, url) => {
       const nextUrl = new URL(String(url), window.location.origin);
@@ -200,7 +200,7 @@ describe("navigation", () => {
       "bogus/item/rock",
       "?lang=ru_RU&t=retrodays&mods=aftershock",
     );
-    resetRouting();
+    _resetRouting();
     const replaceStateSpy = vi
       .spyOn(history, "replaceState")
       .mockImplementation((_, __, url) => {

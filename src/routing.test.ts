@@ -29,10 +29,10 @@ import {
   createAppFetchMock,
   setWindowLocation,
 } from "./routing.test-helpers";
-import { _reset as resetRouting } from "./routing.svelte";
+import { _resetRouting } from "./routing.svelte";
 import { resetSearchState } from "./search-state.svelte";
 import { tileData, _resetCache as resetTilesetCache } from "./tile-data";
-import { _resetVersionState } from "./builds.svelte";
+import { _resetBuildsState } from "./builds.svelte";
 
 import { bootstrapApplication } from "./navigation.svelte";
 
@@ -115,9 +115,9 @@ describe("App routing integration", () => {
     window.scrollTo = vi.fn();
     setWindowLocation("stable/");
     localStorage.removeItem?.("cbn-guide:tileset");
-    resetRouting();
+    _resetRouting();
     _resetPreferences();
-    _resetVersionState();
+    _resetBuildsState();
     global.fetch = defaultFetchMock;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -136,9 +136,9 @@ describe("App routing integration", () => {
     data._reset();
     tileData.reset();
     resetTilesetCache();
-    resetRouting();
+    _resetRouting();
     _resetPreferences();
-    _resetVersionState();
+    _resetBuildsState();
     resetSearchState();
     global.fetch = defaultFetchMock;
     vi.clearAllMocks();

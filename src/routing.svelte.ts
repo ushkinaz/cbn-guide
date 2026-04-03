@@ -266,7 +266,7 @@ function ensurePopstateHandlerInstalled(): void {
  * Test helper: reset singleton store and module state between app mounts in routing tests.
  * @internal
  */
-export function _reset(): void {
+export function _resetRouting(): void {
   debouncedReplaceState.cancel();
   if (typeof window !== "undefined" && popstateHandler) {
     window.removeEventListener("popstate", popstateHandler);

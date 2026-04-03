@@ -8,11 +8,11 @@ import PageMeta from "./PageMeta.svelte";
 import { data } from "./data";
 import {
   buildsState,
-  _resetVersionState,
+  _resetBuildsState,
   type BuildInfo,
 } from "./builds.svelte";
 import { UI_GUIDE_NAME } from "./constants";
-import { _reset as resetRouting } from "./routing.svelte";
+import { _resetRouting } from "./routing.svelte";
 import { setWindowLocation } from "./routing.test-helpers";
 
 type MockThing = {
@@ -69,7 +69,7 @@ function setBuildState(
 
 function renderPageMeta(path = "stable/") {
   setWindowLocation(path);
-  resetRouting();
+  _resetRouting();
   return render(PageMeta);
 }
 
@@ -82,8 +82,8 @@ describe("PageMeta", () => {
   beforeEach(() => {
     clearHeadMetadata();
     setWindowLocation("stable/");
-    resetRouting();
-    _resetVersionState();
+    _resetRouting();
+    _resetBuildsState();
     data._reset();
     setBuildState();
   });
@@ -91,8 +91,8 @@ describe("PageMeta", () => {
   afterEach(() => {
     cleanup();
     clearHeadMetadata();
-    resetRouting();
-    _resetVersionState();
+    _resetRouting();
+    _resetBuildsState();
     data._reset();
     vi.restoreAllMocks();
   });
@@ -159,7 +159,7 @@ describe("PageMeta", () => {
 
   test("renders canonical and alternate links with current mods", async () => {
     setWindowLocation("stable/item/rock", "?mods=aftershock");
-    resetRouting();
+    _resetRouting();
     render(PageMeta);
 
     await waitFor(() => {
@@ -184,7 +184,7 @@ describe("PageMeta", () => {
       "stable/item/rock",
       "?lang=en&t=undead_people&mods=aftershock",
     );
-    resetRouting();
+    _resetRouting();
     render(PageMeta);
 
     await waitFor(() => {

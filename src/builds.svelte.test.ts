@@ -13,7 +13,7 @@ import {
   vi,
 } from "vitest";
 import {
-  _resetVersionState,
+  _resetBuildsState,
   buildsState,
   initializeBuildsState,
   isSupportedVersion,
@@ -48,12 +48,12 @@ describe("builds bootstrap", () => {
 
   beforeEach(() => {
     global.fetch = defaultFetchMock;
-    _resetVersionState();
+    _resetBuildsState();
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
-    _resetVersionState();
+    _resetBuildsState();
     vi.restoreAllMocks();
     vi.clearAllMocks();
   });

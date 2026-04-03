@@ -13,7 +13,7 @@ import {
   vi,
 } from "vitest";
 import {
-  _reset as resetRouting,
+  _resetRouting,
   buildURL,
   canonicalizeMalformedVersionURL,
   handleInternalNavigation,
@@ -27,7 +27,7 @@ import {
   setWindowLocation,
 } from "./routing.test-helpers";
 import { BASE_URL } from "./utils/env";
-import { _resetVersionState, initializeBuildsState } from "./builds.svelte";
+import { _resetBuildsState, initializeBuildsState } from "./builds.svelte";
 
 function toRelativePath(url: string): string {
   const builtUrl = new URL(url, window.location.origin);
@@ -49,14 +49,14 @@ describe("routing URL logic", () => {
     global.fetch = defaultFetchMock;
     window.scrollTo = vi.fn();
     setWindowLocation("stable/");
-    resetRouting();
-    _resetVersionState();
+    _resetRouting();
+    _resetBuildsState();
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
-    resetRouting();
-    _resetVersionState();
+    _resetRouting();
+    _resetBuildsState();
     vi.restoreAllMocks();
     vi.clearAllMocks();
   });
@@ -251,7 +251,7 @@ describe("routing URL logic", () => {
 
     test("intercepts links when raw route identity stays soft-navigable", () => {
       setWindowLocation("stable/search/rock", "?mods=aftershock");
-      resetRouting();
+      _resetRouting();
       vi.spyOn(history, "pushState").mockImplementation((_, __, url) => {
         const nextUrl = new URL(String(url), window.location.origin);
         window.location.pathname = nextUrl.pathname;
@@ -300,7 +300,7 @@ describe("routing URL logic", () => {
 
     test("does not intercept links that change locale or mods", () => {
       setWindowLocation("stable/item/guide");
-      resetRouting();
+      _resetRouting();
       const pushStateSpy = vi.spyOn(history, "pushState");
 
       const anchor = document.createElement("a");
@@ -335,7 +335,7 @@ describe("routing URL logic", () => {
 
     test("keeps SPA navigation when lang and mods are unchanged", () => {
       setWindowLocation("stable/item/guide", "?lang=uk&mods=inna");
-      resetRouting();
+      _resetRouting();
       const pushStateSpy = vi
         .spyOn(history, "pushState")
         .mockImplementation((_, __, url) => {
@@ -379,7 +379,7 @@ describe("routing URL logic", () => {
 
     test("keeps SPA navigation when only the tileset changes", () => {
       setWindowLocation("stable/item/guide", "?lang=uk&mods=inna&t=retrodays");
-      resetRouting();
+      _resetRouting();
       const pushStateSpy = vi
         .spyOn(history, "pushState")
         .mockImplementation((_, __, url) => {
@@ -423,7 +423,7 @@ describe("routing URL logic", () => {
 
     test("does not intercept links to a different version", () => {
       setWindowLocation("stable/item/guide", "?lang=uk&mods=inna");
-      resetRouting();
+      _resetRouting();
       const pushStateSpy = vi.spyOn(history, "pushState");
 
       const anchor = document.createElement("a");
