@@ -50,9 +50,14 @@ let color = $derived(
 );
 
 function typeHasTile(item: any): boolean {
-  return ["item", "monster", "terrain", "furniture", "vehicle_part"].includes(
-    mapType(item.type),
-  );
+  return [
+    "item",
+    "monster",
+    "terrain",
+    "furniture",
+    "vehicle_part",
+    "trap",
+  ].includes(mapType(item.type));
 }
 
 function colorFromBgcolor(

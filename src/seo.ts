@@ -7,6 +7,7 @@ import type {
   ItemBasicInfo,
   SupportedTypeMapped,
   SupportedTypes,
+  Trap,
   VehiclePart,
 } from "./types";
 import { get } from "svelte/store";
@@ -204,6 +205,14 @@ const descriptionForItem = (item: SupportedTypeMapped): string => {
   return cleanText(desc);
 };
 
+const statsForTrap = (item: Trap): string[] => {
+  const stats: string[] = [];
+  if (item.visibility != null) stats.push(formatStat("vis", item.visibility));
+  if (item.avoidance != null) stats.push(formatStat("avoid", item.avoidance));
+  if (item.difficulty != null) stats.push(formatStat("diff", item.difficulty));
+  return stats;
+};
+
 const statsRenderers: Partial<{
   [K in keyof SupportedTypes]: (item: SupportedTypes[K]) => string[];
 }> = {
@@ -225,6 +234,7 @@ const statsRenderers: Partial<{
   TOOL_ARMOR: statsForArmor,
   WHEEL: statsForGeneric,
   furniture: statsForFurniture,
+  trap: statsForTrap,
   vehicle_part: statsForVehiclePart,
 };
 

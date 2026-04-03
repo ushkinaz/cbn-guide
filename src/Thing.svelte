@@ -21,6 +21,7 @@ import MutationCategory from "./types/MutationCategory.svelte";
 import MutationType from "./types/MutationType.svelte";
 import Vehicle from "./types/Vehicle.svelte";
 import Terrain from "./types/Terrain.svelte";
+import Trap from "./types/Trap.svelte";
 import WeaponCategory from "./types/WeaponCategory.svelte";
 import ConstructionGroup from "./types/ConstructionGroup.svelte";
 import Achievement from "./types/Achievement.svelte";
@@ -103,6 +104,7 @@ const displays: Record<string, Component<any>> = {
   mutation_type: MutationType,
   vehicle: Vehicle,
   terrain: Terrain,
+  trap: Trap,
   weapon_category: WeaponCategory,
   construction_group: ConstructionGroup,
   achievement: Achievement,

@@ -44,6 +44,7 @@ const ENTITY_TYPES = [
   "monster",
   "terrain",
   "furniture",
+  "trap",
   "vehicle_part",
   "mutation",
   "martial_art",

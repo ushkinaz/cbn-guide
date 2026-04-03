@@ -121,6 +121,7 @@ ul.comma-separated.and > li:last-child:not(:first-child)::before {
 dl {
   display: grid;
   grid-template-columns: max-content auto;
+  align-items: baseline;
   line-height: 1.4;
 }
 dt {

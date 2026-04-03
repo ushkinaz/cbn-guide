@@ -447,6 +447,7 @@ export function isSupportedType(
     "uncraft",
     "vehicle",
     "vehicle_part",
+    "trap",
   ]);
   return supportedTypes.has(type);
 }
