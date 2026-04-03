@@ -241,6 +241,13 @@ function updatePageState(): PageState {
  */
 export function _reset(): void {
   debouncedReplaceState.cancel();
+  if (typeof window !== "undefined") {
+    const win = window as any;
+    if (win.__routing_popstate_handler__) {
+      window.removeEventListener("popstate", win.__routing_popstate_handler__);
+      delete win.__routing_popstate_handler__;
+    }
+  }
   updatePageState();
 }
 
