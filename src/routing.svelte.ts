@@ -68,6 +68,17 @@ function isPathUnderBase(pathname: string): boolean {
   );
 }
 
+function decodeSegmentSafe(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch (error: unknown) {
+    if (error instanceof URIError) {
+      return segment;
+    }
+    throw error;
+  }
+}
+
 /**
  * Extract and decode path segments from a given pathname
  *
@@ -84,7 +95,7 @@ function getPathSegmentsFromPath(pathname: string): string[] {
   const cleanPath = path.startsWith("/") ? path.slice(1) : path;
   if (!cleanPath) return [];
   // filter(Boolean) removes empty segments from double slashes
-  return cleanPath.split("/").filter(Boolean).map(decodeURIComponent);
+  return cleanPath.split("/").filter(Boolean).map(decodeSegmentSafe);
 }
 
 /**
