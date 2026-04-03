@@ -205,7 +205,7 @@ describe("PageMeta", () => {
     ).toBe("http://localhost:3000/stable/item/rock?lang=ru_RU&mods=aftershock");
   });
 
-  test("monster description includes primary stats and secondary info", () => {
+  test("monster description includes primary stats", () => {
     const buildMetaDescription = descriptionBuilder();
     const monster: MockThing = {
       type: "MONSTER",
@@ -357,7 +357,7 @@ describe("PageMeta", () => {
     expect(desc).toContain("ap 2");
   });
 
-  test("armor description includes protection values before mobility", () => {
+  test("armor description includes encumbrance before coverage", () => {
     const buildMetaDescription = descriptionBuilder();
     const armor: MockThing = {
       type: "ARMOR",
@@ -376,7 +376,7 @@ describe("PageMeta", () => {
     expect(buildMetaDescription(armor)).toBe("Armor: enc 12 & cov 90.");
   });
 
-  test("furniture description uses durability and flags", () => {
+  test("furniture description uses coverage and flags", () => {
     const buildMetaDescription = descriptionBuilder();
     const furniture: MockThing = {
       type: "furniture",
@@ -432,7 +432,7 @@ describe("PageMeta", () => {
     );
   });
 
-  test("cleans color tags and newlines from names", () => {
+  test("generic description omits names with color tags and newlines", () => {
     const buildMetaDescription = descriptionBuilder();
     const item: MockThing = {
       type: "GENERIC",
