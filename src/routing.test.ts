@@ -446,5 +446,6 @@ describe("App routing integration", () => {
       "/nightly/item/rock?mods=aftershock",
     );
     expect(document.body.textContent?.toLowerCase()).toContain("rock");
+    replaceStateSpy.mockRestore();
   });
 });
