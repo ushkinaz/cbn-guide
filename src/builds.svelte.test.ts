@@ -52,7 +52,7 @@ describe("builds bootstrap", () => {
   });
 
   afterEach(() => {
-    global.fetch = defaultFetchMock;
+    global.fetch = originalFetch;
     _resetVersionState();
     vi.restoreAllMocks();
     vi.clearAllMocks();
