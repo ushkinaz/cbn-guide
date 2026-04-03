@@ -99,7 +99,9 @@ describe("routing URL logic", () => {
       const url = buildURL(
         "stable",
         { kind: "item", type: "item", id: "rock" },
-        { modsParam: ["aftershock", "magiclysm"] },
+        undefined,
+        undefined,
+        ["aftershock", "magiclysm"],
       );
 
       expect(url).toContain("mods=aftershock%2Cmagiclysm");
@@ -119,7 +121,9 @@ describe("routing URL logic", () => {
       const url = buildURL(
         "stable",
         { kind: "search", query: "test query" },
-        { modsParam: ["aftershock", "magiclysm"] },
+        undefined,
+        undefined,
+        ["aftershock", "magiclysm"],
       );
 
       expect(parseRoute(url)).toMatchObject({

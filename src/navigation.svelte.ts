@@ -65,11 +65,13 @@ export const navigation: NavigationContext = {
  * @param target
  */
 export function buildLinkTo(target: RouteTarget): string {
-  return buildURL(navigation.buildRequestedVersion, target, {
-    localeParam: navigation.locale,
-    tilesetParam: navigation.tileset,
-    modsParam: navigation.mods,
-  });
+  return buildURL(
+    navigation.buildRequestedVersion,
+    target,
+    navigation.locale,
+    navigation.tileset,
+    navigation.mods,
+  );
 }
 
 export function navigateTo(target: RouteTarget): void {
@@ -102,11 +104,13 @@ export function updateSearchRoute(
 export function changeTileset(tileset: string): void {
   if (setPreferredTileset(tileset)) {
     navigateToURL(
-      buildURL(navigation.buildRequestedVersion, navigation.target, {
-        localeParam: navigation.locale,
-        tilesetParam: tileset,
-        modsParam: navigation.mods,
-      }),
+      buildURL(
+        navigation.buildRequestedVersion,
+        navigation.target,
+        navigation.locale,
+        tileset,
+        navigation.mods,
+      ),
       "replace",
     );
   }
@@ -120,11 +124,9 @@ export function changeLanguage(locale: string): void {
   location.href = buildURL(
     navigation.buildRequestedVersion,
     navigation.target,
-    {
-      localeParam: locale,
-      tilesetParam: navigation.tileset,
-      modsParam: navigation.mods,
-    },
+    locale,
+    navigation.tileset,
+    navigation.mods,
   );
 }
 
@@ -133,22 +135,22 @@ export function changeLanguage(locale: string): void {
  * @param buildVersion
  */
 export function changeVersion(buildVersion: string): void {
-  location.href = buildURL(buildVersion, navigation.target, {
-    localeParam: navigation.locale,
-    tilesetParam: navigation.tileset,
-    modsParam: navigation.mods,
-  });
+  location.href = buildURL(
+    buildVersion,
+    navigation.target,
+    navigation.locale,
+    navigation.tileset,
+    navigation.mods,
+  );
 }
 
 export function changeMods(mods: string[]): void {
   location.href = buildURL(
     navigation.buildRequestedVersion,
     navigation.target,
-    {
-      localeParam: navigation.locale,
-      tilesetParam: navigation.tileset,
-      modsParam: mods,
-    },
+    navigation.locale,
+    navigation.tileset,
+    mods,
   );
 }
 

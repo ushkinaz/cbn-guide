@@ -32,10 +32,13 @@ let builds: BuildInfo[] | null = $derived(buildsState.current?.builds ?? null);
 
 let canonicalUrl = $derived(
   new URL(
-    buildURL(STABLE_VERSION, navigation.target, {
-      localeParam: navigation.locale,
-      modsParam: navigation.mods,
-    }),
+    buildURL(
+      STABLE_VERSION,
+      navigation.target,
+      navigation.locale,
+      undefined,
+      navigation.mods,
+    ),
     location.origin,
   ).toString(),
 );
@@ -404,10 +407,13 @@ onMount(() => {
           rel="alternate"
           hreflang={lang.replace("_", "-")}
           href={new URL(
-            buildURL(navigation.buildRequestedVersion, navigation.target, {
-              localeParam: lang,
-              modsParam: navigation.mods,
-            }),
+            buildURL(
+              navigation.buildRequestedVersion,
+              navigation.target,
+              lang,
+              undefined,
+              navigation.mods,
+            ),
             location.origin,
           ).toString()} />
       {/each}

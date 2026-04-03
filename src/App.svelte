@@ -225,11 +225,13 @@ $effect(() => {
           (modId) => !resolvedMods.includes(modId),
         );
         navigateToURL(
-          buildURL(requestedVersion, routeTarget, {
-            localeParam: requestedLocale,
-            tilesetParam: effectiveTileset,
-            modsParam: resolvedMods,
-          }),
+          buildURL(
+            requestedVersion,
+            routeTarget,
+            requestedLocale,
+            effectiveTileset,
+            resolvedMods,
+          ),
           "replace",
         );
         if (removedMods.length > 0) {

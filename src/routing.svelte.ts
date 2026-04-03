@@ -14,6 +14,8 @@ import {
 } from "./builds.svelte";
 import { isSupportedType } from "./supported-types";
 import { debounce } from "./utils/debounce";
+import { DEFAULT_LOCALE } from "./i18n/ui-locale";
+import { DEFAULT_TILESET } from "./tile-data";
 
 export type RouteTarget =
   | { kind: "home" }
@@ -38,10 +40,6 @@ type PageState = {
   url: URL;
   route: URLRoute;
 };
-
-export type BuildURLOptions = Partial<
-  Pick<URLRoute, "localeParam" | "tilesetParam" | "modsParam">
->;
 
 // ============================================================================
 // Internal Helper Functions
@@ -182,15 +180,19 @@ export function canonicalizeMalformedVersionURL(
   return canonicalURL === currentURL ? null : canonicalURL;
 }
 
+const LOCALE_PARAM_NAME = "lang";
+const TILESET_PARAM_NAME = "t";
+const MODS_PARAM_NAME = "mods";
+
 export function parseRoute(urlInput: string): URLRoute {
   const url = new URL(urlInput, location.origin);
   const segments = getPathSegmentsFromPath(url.pathname);
 
   return {
     versionSlug: segments[0] || STABLE_VERSION,
-    modsParam: normalizeMods(url.searchParams.get("mods")),
-    localeParam: url.searchParams.get("lang") || undefined,
-    tilesetParam: url.searchParams.get("t") || undefined,
+    modsParam: normalizeMods(url.searchParams.get(MODS_PARAM_NAME)),
+    localeParam: url.searchParams.get(LOCALE_PARAM_NAME) || undefined,
+    tilesetParam: url.searchParams.get(TILESET_PARAM_NAME) || undefined,
     target: createRouteTarget(segments[1], segments[2]),
   };
 }
@@ -261,9 +263,11 @@ export function initializeRouting(): URLRoute {
 export function buildURL(
   versionSlug: string,
   target: RouteTarget,
-  options: BuildURLOptions = {},
+  localeParam: string | undefined = undefined,
+  tilesetParam: string | undefined = undefined,
+  modsParam: string[] = [],
 ): string {
-  const mods = normalizeMods((options.modsParam ?? []).join(","));
+  const mods = normalizeMods((modsParam ?? []).join(","));
   let path = BASE_URL + versionSlug + "/";
 
   if (target.kind === "catalog") {
@@ -277,14 +281,14 @@ export function buildURL(
   }
 
   const url = new URL(path, location.origin);
-  if (options.localeParam && options.localeParam !== "en") {
-    url.searchParams.set("lang", options.localeParam);
+  if (localeParam && localeParam !== DEFAULT_LOCALE) {
+    url.searchParams.set(LOCALE_PARAM_NAME, localeParam);
   }
-  if (options.tilesetParam) {
-    url.searchParams.set("t", options.tilesetParam);
+  if (tilesetParam && tilesetParam !== DEFAULT_TILESET.name) {
+    url.searchParams.set(TILESET_PARAM_NAME, tilesetParam);
   }
   if (mods.length > 0) {
-    url.searchParams.set("mods", mods.join(","));
+    url.searchParams.set(MODS_PARAM_NAME, mods.join(","));
   }
   return url.pathname + url.search;
 }
