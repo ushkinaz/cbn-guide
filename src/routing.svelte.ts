@@ -212,18 +212,6 @@ function createPageState(urlInput: string): PageState {
 function createPageStateFromLocation(): PageState {
   return createPageState(location.href);
 }
-
-function createEmptyPageState(url: string): PageState {
-  return {
-    url: new URL(url),
-    route: {
-      versionSlug: STABLE_VERSION,
-      modsParam: [],
-      target: { kind: "home" },
-    },
-  };
-}
-
 export const page = $state<PageState>(createPageStateFromLocation());
 let popstateHandler: (() => void) | undefined;
 let isRoutingInitialized = false;
