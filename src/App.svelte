@@ -200,7 +200,18 @@ $effect(() => {
         requestedMods,
       );
     } catch (error) {
-      console.warn("Failed to set version", error);
+      const context = {
+        dataLoad: {
+          requestedVersion,
+          resolvedVersion,
+          requestedLocale,
+          requestedMods,
+        },
+      };
+      console.warn("Failed to set version", error, context);
+      Sentry.captureException(error, {
+        contexts: context,
+      });
       notify(
         t(
           "Failed to load data for {version}. Please select a different version from the footer.",
@@ -406,12 +417,7 @@ function onItemBoundaryError(boundaryError: unknown): void {
   const context = {
     route: {
       version: navigation.buildRequestedVersion,
-      type:
-        target.kind === "catalog" || target.kind === "item"
-          ? target.type
-          : undefined,
-      id: target.kind === "item" ? target.id : undefined,
-      search: routeSearchQuery() || undefined,
+      target: target,
     },
   };
   console.error(error, context);
