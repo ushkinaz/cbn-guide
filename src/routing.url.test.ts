@@ -53,7 +53,7 @@ describe("routing URL logic", () => {
   });
 
   afterEach(() => {
-    global.fetch = defaultFetchMock;
+    global.fetch = originalFetch;
     resetRouting();
     _resetVersionState();
     vi.restoreAllMocks();
