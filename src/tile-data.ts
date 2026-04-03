@@ -771,9 +771,9 @@ export const tileData = {
 
 /**
  * Test helper: reset module cache state between app mounts in routing tests.
- * @internal
+ * @internal test-only
  */
-export function _resetCache() {
+export function _resetTilesetData() {
   baseTilesetCache.clear();
   mergedTilesetCache.clear();
 }

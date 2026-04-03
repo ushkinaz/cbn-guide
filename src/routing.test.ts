@@ -30,8 +30,8 @@ import {
   setWindowLocation,
 } from "./routing.test-helpers";
 import { _resetRouting } from "./routing.svelte";
-import { resetSearchState } from "./search-state.svelte";
-import { tileData, _resetCache as resetTilesetCache } from "./tile-data";
+import { _resetSearchState } from "./search-state.svelte";
+import { tileData, _resetTilesetData } from "./tile-data";
 import { _resetBuildsState } from "./builds.svelte";
 
 import { bootstrapApplication } from "./navigation.svelte";
@@ -135,11 +135,11 @@ describe("App routing integration", () => {
     }
     data._reset();
     tileData.reset();
-    resetTilesetCache();
+    _resetTilesetData();
     _resetRouting();
     _resetPreferences();
     _resetBuildsState();
-    resetSearchState();
+    _resetSearchState();
     global.fetch = defaultFetchMock;
     vi.clearAllMocks();
   });

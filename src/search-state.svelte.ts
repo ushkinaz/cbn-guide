@@ -150,10 +150,11 @@ export function createSearchState() {
 export const searchState = createSearchState();
 
 /**
- * Reset the global search state to its initial, empty condition.
+ * Test helper: reset the global search state to its initial, empty condition.
  *
  * Clears stored data and query, cancels any pending debounced searches, and publishes `null` results to subscribers.
+ * @internal test-only
  */
-export function resetSearchState(): void {
+export function _resetSearchState(): void {
   searchState.reset();
 }

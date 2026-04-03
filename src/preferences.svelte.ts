@@ -70,9 +70,10 @@ export function setPreferredTileset(tileset: string): boolean {
 }
 
 /**
- * @internal
- * Test-only helper that resets `preferredTileset` to the default value
+ *
+ * Test helper: resets `preferredTileset` to the default value
  * (`defaultPreferences.preferredTileset`). Does not touch localStorage.
+ * @internal test-only
  */
 export function _resetPreferences(): void {
   preferences.preferredTileset = defaultPreferences.preferredTileset;

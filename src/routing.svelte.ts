@@ -260,7 +260,7 @@ function ensurePopstateHandlerInstalled(): void {
 
 /**
  * Test helper: reset singleton store and module state between app mounts in routing tests.
- * @internal
+ * @internal test-only
  */
 export function _resetRouting(): void {
   debouncedReplaceState.cancel();

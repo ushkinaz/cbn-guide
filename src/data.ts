@@ -2943,7 +2943,7 @@ export const data = {
   /**
    * `_reset`: resetting singleton store state between test app mounts.
    * Side effects: clearing _hasSetVersion, _currentData, _ensureModsLoadedPromise and calling set(null).
-   *
+   * @internal
    * @returns {void}
    */
   _reset(): void {

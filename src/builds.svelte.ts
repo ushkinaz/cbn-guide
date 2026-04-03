@@ -109,7 +109,8 @@ export async function initializeBuildsState(): Promise<BuildsState> {
 }
 
 /**
- * @internal
+ * Test helper: resets `buildsState` to an empty state.
+ * @internal test-only
  */
 export function _resetBuildsState(): void {
   buildsState.current = undefined;
