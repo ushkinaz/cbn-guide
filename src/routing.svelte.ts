@@ -275,7 +275,7 @@ export function buildURL(
   tilesetParam: string | undefined = undefined,
   modsParam: string[] = [],
 ): string {
-  const mods = normalizeMods((modsParam ?? []).join(","));
+  const mods = normalizeMods(modsParam.join(","));
   let path = BASE_URL + versionSlug + "/";
 
   if (target.kind === "catalog") {
