@@ -388,7 +388,7 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
         return false;
       }
 
-      const targetURL = `${anchor.pathname}${anchor.search}`;
+      const targetURL = `${anchor.pathname}${anchor.search}${anchor.hash}`;
       event.preventDefault();
       navigateToURL(targetURL, "push");
       return true;
