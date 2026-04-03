@@ -72,7 +72,6 @@ registerSW({
 
 void bootstrapApplication()
   .then(() => {
-    console.log(`Application state initialized.`);
     start();
   })
   .catch((error) => {
