@@ -26,6 +26,7 @@ import {
   buildURL,
   handleInternalNavigation,
   navigateToURL,
+  type RouteTarget,
 } from "./routing.svelte";
 import {
   type BuildInfo,
@@ -164,6 +165,133 @@ $effect(() => {
   updateSentryContext(navigation.buildResolvedVersion);
 });
 
+/**
+ * Loads game data for the given version/locale/mods combination.
+ * Handles the setVersion call, Sentry capture, and user notification on error.
+ * @returns `true` when data was loaded successfully, `false` on error.
+ */
+async function loadDataForVersion(
+  requestedVersion: string,
+  requestedLocale: string,
+  resolvedVersionBuild: { langs?: string[] } | undefined,
+  requestedMods: string[],
+  resolvedVersion: string,
+  dataLoadStart: number,
+): Promise<boolean> {
+  try {
+    await data.setVersion(
+      requestedVersion,
+      requestedLocale,
+      resolvedVersionBuild?.langs,
+      requestedMods,
+    );
+  } catch (error) {
+    const context = {
+      dataLoad: {
+        requestedVersion,
+        resolvedVersion,
+        requestedLocale,
+        requestedMods,
+      },
+    };
+    console.warn("Failed to set version", error, context);
+    Sentry.captureException(error, {
+      contexts: context,
+    });
+    notify(
+      t(
+        "Failed to load data for {version}. Please select a different version from the footer.",
+        { version: requestedVersion },
+      ),
+      "error",
+    );
+    return false;
+  }
+
+  metrics.distribution(
+    "data.load.duration_ms",
+    nowTimeStamp() - dataLoadStart,
+    { unit: "millisecond" },
+  );
+  return true;
+}
+
+/**
+ * Reconciles the requested mods against what the data layer actually resolved.
+ * When the sets differ it navigates to a corrected URL and notifies the user.
+ * @returns The updated `lastDataLoadKey` string when reconciliation happened,
+ *          or `null` when no change was needed.
+ */
+function reconcileMods(
+  requestedVersion: string,
+  requestedMods: string[],
+  resolvedMods: string[],
+  requestedLocale: string,
+  effectiveTileset: string,
+  routeTarget: RouteTarget,
+  resolvedVersion: string,
+): string | null {
+  if (arraysEqual(requestedMods, resolvedMods)) {
+    return null;
+  }
+
+  const removedMods = requestedMods.filter(
+    (modId) => !resolvedMods.includes(modId),
+  );
+  navigateToURL(
+    buildURL(
+      requestedVersion,
+      routeTarget,
+      requestedLocale,
+      effectiveTileset,
+      resolvedMods,
+    ),
+    "replace",
+  );
+  if (removedMods.length > 0) {
+    notify(
+      t("Unknown mods ignored: {mods}.", {
+        mods: removedMods.join(", "),
+        _context: URL_MODS_CONTEXT,
+      }),
+      "warn",
+    );
+  }
+
+  return JSON.stringify({
+    requestedVersion,
+    resolvedVersion,
+    requestedLocale,
+    requestedMods: resolvedMods,
+  });
+}
+
+/**
+ * Shows a one-time warning notification when the data layer fell back to a
+ * different locale than the user requested.
+ */
+function warnOnLocaleFallback(cbnData: CBNData): void {
+  if (
+    cbnData.requested_locale === cbnData.effective_locale ||
+    cbnData.requested_locale === DEFAULT_LOCALE
+  ) {
+    return;
+  }
+  const from = getLanguageName(cbnData.requested_locale);
+  const to = getLanguageName(cbnData.effective_locale);
+  notify(
+    t(
+      'Translation for "{requested_lang}" missing in {build_number}. Using "{resolved_lang}".',
+      {
+        build_number: cbnData.build_number,
+        requested_lang: from,
+        resolved_lang: to,
+      },
+    ),
+    "warn",
+  );
+}
+
 $effect(() => {
   const currentBuilds = buildsState.current?.builds;
   const requestedVersion = navigation.buildRequestedVersion;
@@ -180,7 +308,7 @@ $effect(() => {
   const requestedStateKey = JSON.stringify({
     requestedVersion,
     resolvedVersion,
-    requestedLocale: requestedLocale,
+    requestedLocale,
     requestedMods,
   });
   if (requestedStateKey === lastDataLoadKey) {
@@ -191,106 +319,36 @@ $effect(() => {
   const dataLoadStart = nowTimeStamp();
 
   void (async () => {
-    try {
-      await data.setVersion(
-        requestedVersion,
-        requestedLocale,
-        currentBuilds.find((build) => build.build_number === resolvedVersion)
-          ?.langs,
-        requestedMods,
-      );
-    } catch (error) {
-      const context = {
-        dataLoad: {
-          requestedVersion,
-          resolvedVersion,
-          requestedLocale,
-          requestedMods,
-        },
-      };
-      console.warn("Failed to set version", error, context);
-      Sentry.captureException(error, {
-        contexts: context,
-      });
-      notify(
-        t(
-          "Failed to load data for {version}. Please select a different version from the footer.",
-          { version: requestedVersion },
-        ),
-        "error",
-      );
-      return;
-    }
+    const resolvedVersionBuild = currentBuilds.find(
+      (build) => build.build_number === resolvedVersion,
+    );
+    const loaded = await loadDataForVersion(
+      requestedVersion,
+      requestedLocale,
+      resolvedVersionBuild,
+      requestedMods,
+      resolvedVersion,
+      dataLoadStart,
+    );
+    if (!loaded) return;
 
     if ($data) {
       const resolvedMods = $data.active_mods ?? [];
-      lastDataLoadKey = JSON.stringify({
+      const reconciledKey = reconcileMods(
         requestedVersion,
+        requestedMods,
+        resolvedMods,
+        requestedLocale,
+        effectiveTileset,
+        routeTarget,
         resolvedVersion,
-        requestedLocale: requestedLocale,
-        requestedMods: resolvedMods,
-      });
-
-      if (!arraysEqual(requestedMods, resolvedMods)) {
-        const removedMods = requestedMods.filter(
-          (modId) => !resolvedMods.includes(modId),
-        );
-        navigateToURL(
-          buildURL(
-            requestedVersion,
-            routeTarget,
-            requestedLocale,
-            effectiveTileset,
-            resolvedMods,
-          ),
-          "replace",
-        );
-        if (removedMods.length > 0) {
-          notify(
-            t("Unknown mods ignored: {mods}.", {
-              mods: removedMods.join(", "),
-              _context: URL_MODS_CONTEXT,
-            }),
-            "warn",
-          );
-        }
+      );
+      if (reconciledKey !== null) {
+        lastDataLoadKey = reconciledKey;
       }
 
-      if (
-        $data.requested_locale !== $data.effective_locale &&
-        $data.requested_locale !== DEFAULT_LOCALE
-      ) {
-        const warningKey = [
-          $data.build_number,
-          $data.requested_locale,
-          $data.effective_locale,
-        ].join(":");
-        if (warningKey !== translationWarningKey) {
-          translationWarningKey = warningKey;
-          const from = getLanguageName($data.requested_locale);
-          const to = getLanguageName($data.effective_locale);
-          notify(
-            t(
-              "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
-              {
-                build_number: $data.build_number,
-                requested_lang: from,
-                resolved_lang: to,
-              },
-            ),
-            "warn",
-          );
-        }
-      }
+      warnOnLocaleFallback($data);
     }
-
-    metrics.distribution(
-      "data.load.duration_ms",
-      nowTimeStamp() - dataLoadStart,
-      {
-        unit: "millisecond",
-      },
-    );
   })();
 });
 
