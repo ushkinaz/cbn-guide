@@ -10,22 +10,21 @@ import { isTesting } from "./utils/env";
 
 const searchDebounceMs = isTesting ? 0 : 150;
 
-type SearchResultsSubscriber = (value: SearchResultsMap | null) => void;
 /**
- * Creates a reactive search state that manages search data, query, debounced result computation, and subscriptions.
+ * Creates a reactive search state that manages search data, query, and debounced result computation.
  *
- * The returned object exposes the current query, latest search results, and the first result (if any), and provides methods to update data and query, synchronize both at once, flush pending debounced work, reset state, and subscribe to result changes.
+ * The returned object exposes the current query, latest search results, and the first result
+ * (if any), and provides methods to update data and query, synchronize both at once, flush
+ * pending debounced work, and reset state.
  *
  * @returns An object with:
  *  - `query`: getter for the current search query string
  *  - `results`: getter for the current SearchResultsMap or `null`
  *  - `firstResult`: getter for the first search result item or `null`
- *  - `setData(data)`: set the searchable data (or `null`)
  *  - `setQuery(query)`: set the search query
  *  - `sync(query, data)`: set both query and data, then synchronize results
  *  - `flush()`: immediately run any pending debounced search
  *  - `reset()`: clear data, query, index, and published results
- *  - `subscribeResults(run)`: subscribe to results updates; returns an unsubscribe function
  */
 export function createSearchState() {
   const state = $state({
@@ -36,14 +35,6 @@ export function createSearchState() {
 
   let lastData: CBNData | null = null;
   let lastIndex: SearchTarget[] = [];
-  const subscribers = new Set<SearchResultsSubscriber>();
-
-  function publish(results: SearchResultsMap | null): void {
-    state.results = results;
-    for (const subscriber of subscribers) {
-      subscriber(results);
-    }
-  }
 
   function updateResults(
     query: string,
@@ -51,7 +42,7 @@ export function createSearchState() {
     data: CBNData,
   ): void {
     const shouldSearch = query.length >= 2 || cjkRegex.test(query);
-    publish(shouldSearch ? performSearch(query, index, data) : null);
+    state.results = shouldSearch ? performSearch(query, index, data) : null;
   }
 
   const performDebouncedSearch = debounce(updateResults, searchDebounceMs);
@@ -59,7 +50,7 @@ export function createSearchState() {
   function syncState(): void {
     if (!state.data) {
       performDebouncedSearch.cancel();
-      publish(null);
+      state.results = null;
       return;
     }
 
@@ -70,7 +61,7 @@ export function createSearchState() {
 
     if (!state.query) {
       performDebouncedSearch.cancel();
-      publish(null);
+      state.results = null;
       return;
     }
 
@@ -97,7 +88,7 @@ export function createSearchState() {
     lastIndex = [];
     state.data = null;
     state.query = "";
-    publish(null);
+    state.results = null;
   }
   function firstResult(): SearchResult["item"] | null {
     if (!state.results || state.results.size === 0) {
@@ -132,7 +123,7 @@ export const searchState = createSearchState();
 /**
  * Test helper: reset the global search state to its initial, empty condition.
  *
- * Clears stored data and query, cancels any pending debounced searches, and publishes `null` results to subscribers.
+ * Clears stored data and query, cancels any pending debounced searches, and resets results to `null`.
  * @internal test-only
  */
 export function _resetSearchState(): void {
