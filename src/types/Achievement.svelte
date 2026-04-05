@@ -6,7 +6,11 @@ import { getContext, untrack } from "svelte";
 import { CBNData } from "../data";
 import type { Achievement } from "../types";
 import ItemLink from "./ItemLink.svelte";
-import { gamePlural, gameSingular, gameSingularName } from "../i18n/gettext";
+import {
+  gamePlural,
+  gameSingular,
+  gameSingularName,
+} from "../i18n/game-locale";
 
 interface Props {
   item: Achievement;

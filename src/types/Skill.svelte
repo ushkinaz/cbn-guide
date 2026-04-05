@@ -8,7 +8,7 @@ import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
 import ItemLink from "./ItemLink.svelte";
-import { byName, gameSingular, gameSingularName } from "../i18n/gettext";
+import { byName, gameSingular, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
   item: Skill;

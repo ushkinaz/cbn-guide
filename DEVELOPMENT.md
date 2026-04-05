@@ -464,7 +464,7 @@ Use routing helpers instead of touching history directly from random components.
 ### Add user-facing text
 
 - Use `t` from `@transifex/native` for UI strings
-- Use `src/i18n/gettext.ts` for game-data translations
+- Use `src/i18n/game-locale.ts` for game-data translations
 - Keep extraction constraints in mind: literal `t("...")` strings are safest
 
 ### Add or change architectural behavior

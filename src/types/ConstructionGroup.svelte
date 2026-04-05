@@ -4,7 +4,7 @@ import { CBNData } from "../data";
 import type { ConstructionGroup } from "../types";
 import Construction from "./Construction.svelte";
 
-import { gameSingularName } from "../i18n/gettext";
+import { gameSingularName } from "../i18n/game-locale";
 
 interface Props {
   item: ConstructionGroup;

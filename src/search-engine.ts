@@ -3,7 +3,7 @@ import { type CBNData, mapType } from "./data";
 import type { SupportedTypeMapped, SupportedTypesWithMapped } from "./types";
 import { metrics } from "./metrics";
 import { nowTimeStamp } from "./utils/perf";
-import { i18n, gameSingularName } from "./i18n/gettext";
+import { i18n, gameSingularName } from "./i18n/game-locale";
 
 export const SEARCHABLE_TYPES = new Set<keyof SupportedTypesWithMapped>([
   "item",

@@ -5,7 +5,7 @@ import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import { getConstructionPrerequisites } from "../construction";
-import { gameSingularName } from "../../i18n/gettext";
+import { gameSingularName } from "../../i18n/game-locale";
 
 interface Props {
   item_id: string;

@@ -63,7 +63,7 @@ import { HttpError, isNotFoundError } from "./utils/http-errors";
 import { yieldUntilIdle } from "./utils/idle";
 import { retry } from "./utils/retry";
 import { asArray } from "./utils/collections";
-import { byName, i18n, resetI18n, gameSingularName } from "./i18n/gettext";
+import { byName, i18n, resetI18n, gameSingularName } from "./i18n/game-locale";
 
 export { formatKg, formatL, formatPercent } from "./utils/format";
 

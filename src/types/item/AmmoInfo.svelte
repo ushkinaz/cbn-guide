@@ -6,7 +6,7 @@ import ItemLink from "../ItemLink.svelte";
 import { getContext, untrack } from "svelte";
 import CompatibleItems from "./CompatibleItems.svelte";
 
-import { gameSingularName } from "../../i18n/gettext";
+import { gameSingularName } from "../../i18n/game-locale";
 
 interface Props {
   item: AmmoSlot;

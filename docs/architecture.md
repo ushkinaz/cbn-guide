@@ -121,7 +121,7 @@ For local development and testing, scripts are used to fetch data snapshots:
 
 The application uses two translation layers with different runtime constraints:
 
-- `src/i18n/gettext.ts`: Shared, Node-safe runtime translation for game data loaded from external JSON. This module is used by the app, tests, and Node scripts that import `src/data.ts`.
+- `src/i18n/game-locale.ts`: Shared, Node-safe runtime translation for game data loaded from external JSON. This module is used by the app, tests, and Node scripts that import `src/data.ts`.
 - `src/i18n/transifex-static.ts`: Browser-facing helpers for static UI labels that must remain literal `t("...")` calls for Transifex extraction. These helpers are intentionally isolated from shared Node-safe modules.
 
 ## Application Layers

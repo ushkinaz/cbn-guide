@@ -7,7 +7,7 @@ import { CBNData } from "../data";
 import type { MutationCategory } from "../types";
 import MutationList from "./MutationList.svelte";
 import ItemLink from "./ItemLink.svelte";
-import { byName, gameSingularName } from "../i18n/gettext";
+import { byName, gameSingularName } from "../i18n/game-locale";
 
 let data = getContext<CBNData>("data");
 const _context = "Mutation";

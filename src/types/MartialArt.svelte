@@ -9,7 +9,7 @@ import Technique from "./Technique.svelte";
 import BonusContainer from "./BonusContainer.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
 import { t } from "@transifex/native";
-import { i18n, gameSingular, gameSingularName } from "../i18n/gettext";
+import { i18n, gameSingular, gameSingularName } from "../i18n/game-locale";
 
 const data = getContext<CBNData>("data");
 

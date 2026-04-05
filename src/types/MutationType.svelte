@@ -7,7 +7,7 @@ import { CBNData } from "../data";
 import type { MutationType } from "../types";
 import MutationList from "./MutationList.svelte";
 
-import { gameSingularName } from "../i18n/gettext";
+import { gameSingularName } from "../i18n/game-locale";
 
 interface Props {
   item: MutationType;

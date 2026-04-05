@@ -5,7 +5,7 @@ import LimitedList from "../../LimitedList.svelte";
 import ItemLink from "../ItemLink.svelte";
 import { t } from "@transifex/native";
 
-import { byName } from "../../i18n/gettext";
+import { byName } from "../../i18n/game-locale";
 
 interface Props {
   item_id: string;

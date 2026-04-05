@@ -4,7 +4,7 @@ import { getContext, untrack } from "svelte";
 import type { UseFunction } from "../types";
 import ItemLink from "./ItemLink.svelte";
 import { t } from "@transifex/native";
-import { gameSingular, gameSingularName } from "../i18n/gettext";
+import { gameSingular, gameSingularName } from "../i18n/game-locale";
 
 const data = getContext<CBNData>("data");
 

@@ -103,7 +103,7 @@ Test matrix:
 
 ## Project-Specific Rules
 
-- i18n: use `t` from `@transifex/native` for all user-facing text. Use `gettext` module for game-internal text.
+- i18n: use `t` from `@transifex/native` for all user-facing text. Use `game-locale` module for game-internal text.
 - Truth: `_test/all.json` is the compiled data blob (~30MB)
 - NEVER grep the whole file: Use `jq` to filter
 

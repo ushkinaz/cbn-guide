@@ -8,7 +8,12 @@ import type { MartialArtBuff, Technique } from "../types";
 import BonusContainer from "./BonusContainer.svelte";
 import ItemLink from "./ItemLink.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
-import { byName, i18n, gameSingular, gameSingularName } from "../i18n/gettext";
+import {
+  byName,
+  i18n,
+  gameSingular,
+  gameSingularName,
+} from "../i18n/game-locale";
 
 interface Props {
   item: Technique;

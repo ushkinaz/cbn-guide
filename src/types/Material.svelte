@@ -7,7 +7,7 @@ import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Material } from "../types";
 import ItemLink from "./ItemLink.svelte";
-import { byName, gameSingularName } from "../i18n/gettext";
+import { byName, gameSingularName } from "../i18n/game-locale";
 
 const data = getContext<CBNData>("data");
 
