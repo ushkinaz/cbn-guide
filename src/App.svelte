@@ -333,7 +333,7 @@ $effect(() => {
     if (!loaded) return;
 
     if ($data) {
-      const resolvedMods = $data.active_mods ?? [];
+      const resolvedMods = $data.active_mods;
       const reconciledKey = reconcileMods(
         requestedVersion,
         requestedMods,
@@ -394,26 +394,11 @@ const handleSearchKeydown = (e: KeyboardEvent) => {
 };
 
 let isModSelectorOpen = $state(false);
-let isModSelectorLoading = $state(false);
-let modSelectorError: string | null = $state(null);
 
 async function openModSelector(): Promise<void> {
   if (!$data) return;
   metrics.count("ui.modal.open", 1, { widget_id: "mod_selector" });
-
-  modSelectorError = null;
   isModSelectorOpen = true;
-  if ($data.mods !== null) return;
-
-  isModSelectorLoading = true;
-  try {
-    await data.ensureModsLoaded();
-  } catch (e) {
-    console.warn("Failed to load mods.", e);
-    modSelectorError = t("Failed to load mods. Please reload.");
-  } finally {
-    isModSelectorLoading = false;
-  }
 }
 
 function closeModSelector(): void {
@@ -599,21 +584,19 @@ function getLanguageName(code: string): string {
         type="button"
         onclick={openModSelector}
         disabled={!$data}
-        aria-busy={isModSelectorLoading || !$data}
+        aria-busy={!$data}
         aria-label={t("Mods ({count} active)", {
           count: navigation.mods.length,
         })}>
         <span class="mods-button-inner">
-          <span
-            class="mods-button-normal"
-            class:loading-hidden={isModSelectorLoading || !$data}>
+          <span class="mods-button-normal" class:loading-hidden={!$data}>
             <span class="mods-label">{t("Mods")}</span>
             <span class="mods-count">[{String(navigation.mods.length)}]</span>
           </span>
           <span
             class="mods-button-loading"
-            class:active={isModSelectorLoading || !$data}
-            aria-hidden={!(isModSelectorLoading || !$data)}>
+            class:active={!$data}
+            aria-hidden={$data !== null}>
             <Spinner size={18} position="center" bounce={3} />
             <span class="mods-loading-label">
               {t("MODS", { _context: "Mods button" })}
@@ -630,8 +613,6 @@ function getLanguageName(code: string): string {
   mods={$data?.mods ?? []}
   rawModsJson={$data?.raw_mods_json ?? {}}
   selectedModIds={navigation.mods}
-  loading={isModSelectorLoading}
-  errorMessage={modSelectorError}
   onclose={closeModSelector}
   onapply={(mods) => applyMods(mods)} />
 

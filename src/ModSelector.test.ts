@@ -68,8 +68,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
-      loading: false,
-      errorMessage: null,
     });
 
     expect(getByText("content")).toBeTruthy();
@@ -90,8 +88,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
-      loading: false,
-      errorMessage: null,
       onclose: onClose,
       onapply: onApply,
     });
@@ -111,8 +107,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
-      loading: false,
-      errorMessage: null,
       onapply: onApply,
     });
 
@@ -139,8 +133,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: [],
-      loading: false,
-      errorMessage: null,
       onapply: onApply,
     });
 
@@ -164,8 +156,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: ["aftershock"],
-      loading: false,
-      errorMessage: null,
       onapply: onApply,
     });
 
@@ -182,8 +172,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: [],
-      loading: false,
-      errorMessage: null,
       onapply: onApply,
     });
 
@@ -218,8 +206,6 @@ describe("ModSelector", () => {
       mods: modsWithStats,
       rawModsJson,
       selectedModIds: [],
-      loading: false,
-      errorMessage: null,
     });
 
     expect(getByText("items:")).toBeTruthy();
@@ -236,8 +222,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: [],
-      loading: false,
-      errorMessage: null,
     });
 
     await waitFor(() =>
@@ -248,8 +232,6 @@ describe("ModSelector", () => {
       open: false,
       mods: testMods,
       selectedModIds: [],
-      loading: false,
-      errorMessage: null,
     });
 
     await waitFor(() =>
@@ -262,8 +244,6 @@ describe("ModSelector", () => {
       open: true,
       mods: testMods,
       selectedModIds: [],
-      loading: false,
-      errorMessage: null,
     });
 
     await waitFor(() =>

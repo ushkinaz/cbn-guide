@@ -281,12 +281,12 @@ export class CBNData {
   effective_locale: string;
   /** Locale originally requested by the user */
   requested_locale: string;
-  /** Ordered non-core mod metadata. null means metadata wasn't fetched yet. */
-  mods: ModInfo[] | null;
-  /** Ordered active non-core mod ids. null means metadata wasn't fetched yet. */
-  active_mods: string[] | null;
-  /** Full all_mods.json payload keyed by mod id. null means metadata wasn't fetched yet. */
-  raw_mods_json: Record<string, ModData> | null;
+  /** Ordered non-core mod metadata. */
+  mods: ModInfo[];
+  /** Ordered active non-core mod ids. */
+  active_mods: string[];
+  /** Full all_mods.json payload keyed by mod id. */
+  raw_mods_json: Record<string, ModData>;
 
   /**
    * @param raw Raw game data objects
@@ -295,9 +295,9 @@ export class CBNData {
    * @param fetching_version Original version slug or alias used for fetching
    * @param effective_locale Locale actually loaded after fallback resolution
    * @param requested_locale Locale originally requested by the user
-   * @param mods Ordered non-core mod metadata, or `null` if not loaded
-   * @param active_mods Ordered non-core active mod ids, or `null` if not loaded
-   * @param raw_mods_json Full parsed mod payload keyed by mod id, or `null` if not loaded
+   * @param mods Ordered non-core mod metadata
+   * @param active_mods Ordered non-core active mod ids
+   * @param raw_mods_json Full parsed mod payload keyed by mod id
    */
   constructor(
     raw: any[],
@@ -306,9 +306,9 @@ export class CBNData {
     fetching_version?: string,
     effective_locale: string = "en",
     requested_locale: string = "en",
-    mods: ModInfo[] | null = null,
-    active_mods: string[] | null = null,
-    raw_mods_json: Record<string, ModData> | null = null,
+    mods: ModInfo[] = [],
+    active_mods: string[] = [],
+    raw_mods_json: Record<string, ModData> = {},
   ) {
     const p = perf.mark("CBNData.constructor");
 
@@ -873,7 +873,7 @@ export class CBNData {
   ): ModInfo[] {
     const activeMods = this.active_mods;
     const rawModsJson = this.raw_mods_json;
-    if (!activeMods || !rawModsJson) return [];
+    if (activeMods.length === 0) return [];
 
     const directMods: ModInfo[] = [];
     for (const modId of activeMods) {
@@ -945,12 +945,6 @@ export class CBNData {
       merged.push(mod);
     }
     return merged;
-  }
-
-  /** Clears memoized provenance caches when mod metadata changes. */
-  _clearModProvenanceCaches(): void {
-    this._directModsByTypeByIdCache.clear();
-    this._contributingModsByTypeByIdCache.clear();
   }
 
   /**
@@ -2720,16 +2714,6 @@ async function loadParsedModsJson(
   }
 }
 
-function applyLoadedModsMetadata(
-  targetData: CBNData,
-  parsedMods: ParsedModsJson | null,
-): void {
-  targetData.mods = parsedMods?.mods ?? [];
-  targetData.active_mods = targetData.active_mods ?? [];
-  targetData.raw_mods_json = parsedMods?.raw ?? {};
-  targetData._clearModProvenanceCaches();
-}
-
 const loadProgressStore = writable<[number, number] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 /**
@@ -2744,10 +2728,6 @@ let _hasSetVersion = false;
  * This remains `null` until `setVersion()` finishes successfully.
  */
 let _currentData: CBNData | null = null;
-/**
- * Deduplicates concurrent `ensureModsLoaded()` calls for the same base instance.
- */
-let _ensureModsLoadedPromise: Promise<void> | null = null;
 /**
  * Monotonic generation token used to invalidate stale async work.
  *
@@ -2794,7 +2774,6 @@ export const data = {
     _hasSetVersion = true;
     const generationToken = ++_generationToken;
 
-    _ensureModsLoadedPromise = null;
     let totals = [0, 0, 0, 0];
     let receiveds = [0, 0, 0, 0];
     const updateProgress = () => {
@@ -2804,92 +2783,91 @@ export const data = {
       loadProgressStore.set(received > 0 ? [received, total] : null);
     };
     updateProgress();
-    const dataJson = await retry(
-      () =>
-        fetchJson(version, (receivedBytes, totalBytes) => {
-          totals[0] = totalBytes;
-          receiveds[0] = receivedBytes;
-          updateProgress();
-        }),
-      {
-        finalErrorMessage:
-          "Failed to load data after 3 attempts. Please check your internet connection and try refreshing the page.",
-      },
-    );
+    try {
+      const dataJson = await retry(
+        () =>
+          fetchJson(version, (receivedBytes, totalBytes) => {
+            totals[0] = totalBytes;
+            receiveds[0] = receivedBytes;
+            updateProgress();
+          }),
+        {
+          finalErrorMessage:
+            "Failed to load data after 3 attempts. Please check your internet connection and try refreshing the page.",
+        },
+      );
 
-    if (generationToken !== _generationToken) return;
+      if (generationToken !== _generationToken) return;
 
-    let localeJson: any = null;
-    let pinyinNameJson: any = null;
-    let effective_locale = "en";
+      let localeJson: any = null;
+      let pinyinNameJson: any = null;
+      let effective_locale = "en";
 
-    if (locale && locale !== "en") {
-      const loadLocale = async (loc: string, index: number) => {
-        return retry(
-          () =>
-            fetchLocaleJson(version, loc, (receivedBytes, totalBytes) => {
-              totals[index] = totalBytes;
-              receiveds[index] = receivedBytes;
-              updateProgress();
-            }),
-          {
-            finalErrorMessage:
-              "Failed to load locale after 3 attempts. Please check your internet connection and try refreshing the page.",
-          },
-        );
-      };
+      if (locale && locale !== "en") {
+        const loadLocale = async (loc: string, index: number) => {
+          return retry(
+            () =>
+              fetchLocaleJson(version, loc, (receivedBytes, totalBytes) => {
+                totals[index] = totalBytes;
+                receiveds[index] = receivedBytes;
+                updateProgress();
+              }),
+            {
+              finalErrorMessage:
+                "Failed to load locale after 3 attempts. Please check your internet connection and try refreshing the page.",
+            },
+          );
+        };
 
-      // Determine the best available locale using metadata if provided.
-      // Strategy:
-      // 1. Exact match (e.g. "ru_RU" -> "ru_RU")
-      // 2. Base language match (e.g. "ru_RU" -> "ru")
-      // 3. Fallback to requested locale (letting it fail later if truly missing)
-      let targetLocale: string | null = null;
-      if (availableLangs) {
-        if (availableLangs.includes(locale)) {
-          targetLocale = locale;
-        } else {
-          const partialLocale = locale.split("_")[0];
-          if (availableLangs.includes(partialLocale)) {
-            targetLocale = partialLocale;
-          }
-        }
-      } else {
-        // Fallback for cases where metadata is missing (e.g. tests)
-        targetLocale = locale;
-      }
-
-      if (targetLocale) {
-        try {
-          localeJson = await loadLocale(targetLocale, 1);
-          if (generationToken !== _generationToken) return;
-          effective_locale = targetLocale;
-          if (targetLocale.startsWith("zh_")) {
-            try {
-              pinyinNameJson = await loadLocale(targetLocale + "_pinyin", 2);
-              if (generationToken !== _generationToken) return;
-            } catch (e) {
-              console.warn(`Failed to load pinyin for ${targetLocale}`, e);
+        // Determine the best available locale using metadata if provided.
+        // Strategy:
+        // 1. Exact match (e.g. "ru_RU" -> "ru_RU")
+        // 2. Base language match (e.g. "ru_RU" -> "ru")
+        // 3. Fallback to requested locale (letting it fail later if truly missing)
+        let targetLocale: string | null = null;
+        if (availableLangs) {
+          if (availableLangs.includes(locale)) {
+            targetLocale = locale;
+          } else {
+            const partialLocale = locale.split("_")[0];
+            if (availableLangs.includes(partialLocale)) {
+              targetLocale = partialLocale;
             }
           }
-        } catch (e) {
-          console.warn(
-            `Failed to load locale ${targetLocale}, falling back to English:`,
-            e,
-          );
-          if (generationToken !== _generationToken) return;
-          effective_locale = "en";
+        } else {
+          // Fallback for cases where metadata is missing (e.g. tests)
+          targetLocale = locale;
+        }
+
+        if (targetLocale) {
+          try {
+            localeJson = await loadLocale(targetLocale, 1);
+            if (generationToken !== _generationToken) return;
+            effective_locale = targetLocale;
+            if (targetLocale.startsWith("zh_")) {
+              try {
+                pinyinNameJson = await loadLocale(targetLocale + "_pinyin", 2);
+                if (generationToken !== _generationToken) return;
+              } catch (e) {
+                console.warn(`Failed to load pinyin for ${targetLocale}`, e);
+              }
+            }
+          } catch (e) {
+            console.warn(
+              `Failed to load locale ${targetLocale}, falling back to English:`,
+              e,
+            );
+            if (generationToken !== _generationToken) return;
+            effective_locale = "en";
+          }
         }
       }
-    }
 
-    let mods: ModInfo[] | null = null;
-    let filteredActiveMods: string[] | null = null;
-    let rawModsJson: Record<string, ModData> | null = null;
-    let mergedData = dataJson.data;
-    const requestedActiveMods = activeMods.filter((modId) => modId !== "bn");
-
-    if (requestedActiveMods.length > 0) {
+      let mods: ModInfo[] = [];
+      let filteredActiveMods: string[] = [];
+      let rawModsJson: Record<string, ModData> = {};
+      let mergedData = dataJson.data;
+      const requestedActiveMods = activeMods.filter((modId) => modId !== "bn");
       const parsedMods = await loadParsedModsJson(
         version,
         (receivedBytes, totalBytes) => {
@@ -2911,38 +2889,38 @@ export const data = {
           parsedMods.byId,
           filteredActiveMods,
         );
-      } else {
-        mods = [];
-        filteredActiveMods = [];
-        rawModsJson = {};
+      }
+
+      const instance = new CBNData(
+        mergedData,
+        dataJson.build_number,
+        dataJson.release,
+        version,
+        effective_locale,
+        locale || "en",
+        mods,
+        filteredActiveMods,
+        rawModsJson,
+      );
+      try {
+        if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
+      } catch (e) {
+        console.warn("Failed to apply locale JSON:", e);
+        instance.effective_locale = "en";
+        resetI18n(instance.effective_locale);
+      }
+      if (generationToken !== _generationToken) return;
+      _currentData = instance;
+      set(instance);
+    } finally {
+      if (generationToken === _generationToken) {
+        loadProgressStore.set(null);
       }
     }
-
-    const instance = new CBNData(
-      mergedData,
-      dataJson.build_number,
-      dataJson.release,
-      version,
-      effective_locale,
-      locale || "en",
-      mods,
-      filteredActiveMods,
-      rawModsJson,
-    );
-    try {
-      if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
-    } catch (e) {
-      console.warn("Failed to apply locale JSON:", e);
-      instance.effective_locale = "en";
-      resetI18n(instance.effective_locale);
-    }
-    if (generationToken !== _generationToken) return;
-    _currentData = instance;
-    set(instance);
   },
   /**
    * `_reset`: resetting singleton store state between test app mounts.
-   * Side effects: clearing _hasSetVersion, _currentData, _ensureModsLoadedPromise and calling set(null).
+   * Side effects: clearing _hasSetVersion, _currentData, and calling set(null).
    * @internal
    * @returns {void}
    */
@@ -2950,44 +2928,9 @@ export const data = {
     _generationToken++;
     _hasSetVersion = false;
     _currentData = null;
-    _ensureModsLoadedPromise = null;
     loadProgressStore.set(null);
     resetI18n();
     set(null);
-  },
-  async ensureModsLoaded() {
-    const startData = _currentData;
-    if (!startData || startData.mods !== null) return;
-
-    if (_ensureModsLoadedPromise) {
-      await _ensureModsLoadedPromise;
-      return;
-    }
-
-    _ensureModsLoadedPromise = (async () => {
-      const modsVersion = startData.fetching_version ?? startData.build_number;
-      if (!modsVersion) {
-        if (_currentData !== startData) return;
-        applyLoadedModsMetadata(startData, null);
-        _currentData = startData;
-        set(startData);
-        return;
-      }
-
-      const parsedMods = await loadParsedModsJson(modsVersion, () => {});
-      if (_currentData !== startData) return;
-      applyLoadedModsMetadata(startData, parsedMods);
-
-      if (_currentData !== startData) return;
-      _currentData = startData;
-      set(startData);
-    })();
-
-    try {
-      await _ensureModsLoadedPromise;
-    } finally {
-      _ensureModsLoadedPromise = null;
-    }
   },
 };
 

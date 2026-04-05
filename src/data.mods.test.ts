@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { data, CBNData } from "./data";
 
 describe("Reproduction: all_mods.json 404 should be silent", () => {
-  test("ensureModsLoaded should not throw on 404 for all_mods.json", async () => {
+  test("setVersion should not throw on 404 for all_mods.json without selected mods", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -35,14 +35,13 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       // Mock progress store
       (globalThis as any).__isTesting__ = true;
 
-      await data.setVersion("latest", null, undefined, []);
-
-      // This is where it might be throwing
-      await expect(data.ensureModsLoaded()).resolves.not.toThrow();
+      await expect(
+        data.setVersion("latest", null, undefined, []),
+      ).resolves.not.toThrow();
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
-          if (v && v.mods !== null) resolve(v);
+          if (v) resolve(v);
         });
       });
 
@@ -57,7 +56,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
     }
   });
 
-  test("ensureModsLoaded should not throw on 'HTTP 404' for all_mods.json", async () => {
+  test("setVersion should not throw on 'HTTP 404' for all_mods.json without selected mods", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -81,14 +80,13 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
 
     try {
       (globalThis as any).__isTesting__ = true;
-      await data.setVersion("latest", null, undefined, []);
-
-      // If this fails, then is404Error is too strict
-      await expect(data.ensureModsLoaded()).resolves.not.toThrow();
+      await expect(
+        data.setVersion("latest", null, undefined, []),
+      ).resolves.not.toThrow();
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
-          if (v && v.mods !== null) resolve(v);
+          if (v) resolve(v);
         });
       });
 
