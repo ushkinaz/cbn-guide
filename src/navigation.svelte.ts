@@ -7,20 +7,22 @@ import {
 } from "./preferences.svelte";
 import {
   buildURL,
-  canonicalizeMalformedVersionURL,
   initializeRouting,
   navigateToURL,
   page,
   replaceURLDebounced,
+  resolveVersionedPath,
   type RouteTarget,
 } from "./routing.svelte";
 import {
   buildsState,
+  type BuildsState,
   initializeBuildsState,
   resolveBuildVersion,
 } from "./builds.svelte";
 import { initializeUILocale } from "./i18n/ui-locale";
 import { DEFAULT_LOCALE } from "./constants";
+import { BASE_URL } from "./utils/env";
 
 type NavigationContext = {
   url: URL;
@@ -157,6 +159,69 @@ export function changeMods(mods: string[]): void {
   );
 }
 
+function stripBaseFromPathname(pathname: string): string {
+  const baseNoSlash = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
+
+  if (pathname === baseNoSlash) return "/";
+  if (pathname.startsWith(BASE_URL)) return pathname.slice(BASE_URL.length - 1);
+  if (pathname.startsWith(baseNoSlash + "/"))
+    return pathname.slice(baseNoSlash.length);
+  return pathname;
+}
+
+function hasVersionlessHomePath(pathname: string): boolean {
+  const path = stripBaseFromPathname(pathname);
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  return cleanPath.length === 0;
+}
+
+function buildCanonicalBootstrapURL(
+  urlInput: string,
+  builds: BuildsState,
+): string {
+  const currentURL = new URL(urlInput, location.origin);
+
+  const canonicalPath = resolveVersionedPath(currentURL.pathname, builds);
+
+  const canonicalMods =
+    page.route.modsParam.length > 0
+      ? page.route.modsParam
+      : (preferences.defaultMods ?? []);
+
+  const canonicalLocale = page.route.localeParam;
+
+  const canonicalTileset = resolveTileset(
+    preferences.preferredTileset,
+    page.route.tilesetParam,
+  );
+
+  const builtCanonicalURL = new URL(
+    buildURL(
+      canonicalPath.versionSlug,
+      canonicalPath.target,
+      canonicalLocale,
+      canonicalTileset,
+      canonicalMods,
+    ),
+    location.origin,
+  );
+
+  // Preserve the root home route shape while still normalizing query-backed context.
+  if (
+    hasVersionlessHomePath(currentURL.pathname) &&
+    canonicalPath.target.kind === "home"
+  ) {
+    builtCanonicalURL.pathname = currentURL.pathname;
+  }
+
+  builtCanonicalURL.hash = currentURL.hash;
+  return (
+    builtCanonicalURL.pathname +
+    builtCanonicalURL.search +
+    builtCanonicalURL.hash
+  );
+}
+
 /**
  * Initializes the navigation prerequisites before the app shell mounts.
  *
@@ -167,29 +232,11 @@ export function changeMods(mods: string[]): void {
 export async function bootstrapApplication(): Promise<void> {
   initializeRouting();
   initializePreferences();
-
-  if (
-    page.route.modsParam.length === 0 &&
-    preferences.defaultMods !== null &&
-    preferences.defaultMods.length > 0
-  ) {
-    const urlWithMods = buildURL(
-      page.route.versionSlug,
-      page.route.target,
-      page.route.localeParam,
-      page.route.tilesetParam,
-      preferences.defaultMods,
-    );
-    navigateToURL(urlWithMods, "replace");
-  }
-
   const versionState = await initializeBuildsState();
+  const canonicalURL = buildCanonicalBootstrapURL(location.href, versionState);
+  const currentURL = location.pathname + location.search + location.hash;
 
-  const canonicalURL = canonicalizeMalformedVersionURL(
-    location.href,
-    versionState,
-  );
-  if (canonicalURL) {
+  if (canonicalURL !== currentURL) {
     navigateToURL(canonicalURL, "replace");
   }
 

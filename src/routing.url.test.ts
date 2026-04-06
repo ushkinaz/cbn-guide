@@ -15,11 +15,11 @@ import {
 import {
   _resetRouting,
   buildURL,
-  canonicalizeMalformedVersionURL,
   handleInternalNavigation,
   initializeRouting,
   page,
   parseRoute,
+  resolveVersionedPath,
 } from "./routing.svelte";
 import {
   createBuildsFetchMock,
@@ -242,33 +242,49 @@ describe("routing URL logic", () => {
   });
 
   describe("malformed version URL canonicalization", () => {
-    test.each([
-      ["http://localhost/monster/zombie", "/nightly/monster/zombie"],
-      ["http://localhost/item", "/nightly/item"],
-      ["http://localhost/search/rock", "/nightly/search/rock"],
-    ])("canonicalizes missing version route %s", async (input, expected) => {
+    test("resolves an intact versioned path without rewriting it", async () => {
       const state = await initializeBuildsState();
 
-      expect(canonicalizeMalformedVersionURL(input, state)).toBe(expected);
+      expect(resolveVersionedPath("/stable/item/rock", state)).toEqual({
+        versionSlug: "stable",
+        target: { kind: "item", type: "item", id: "rock" },
+      });
     });
 
-    test("canonicalizes invalid explicit versions and preserves query and hash", async () => {
+    test("resolves missing-version deep links by correcting only the path", async () => {
       const state = await initializeBuildsState();
 
-      expect(
-        canonicalizeMalformedVersionURL(
-          "http://localhost/bad/item/rock?lang=ru_RU&t=retrodays&mods=aftershock#lore",
-          state,
-        ),
-      ).toBe("/nightly/item/rock?lang=ru_RU&t=retrodays&mods=aftershock#lore");
+      expect(resolveVersionedPath("/monster/zombie", state)).toEqual({
+        versionSlug: "nightly",
+        target: { kind: "item", type: "monster", id: "zombie" },
+      });
+    });
+
+    test("resolves missing-version catalog links", async () => {
+      const state = await initializeBuildsState();
+
+      expect(resolveVersionedPath("/monster", state)).toEqual({
+        versionSlug: "nightly",
+        target: { kind: "catalog", type: "monster" },
+      });
+    });
+
+    test("resolves missing-version search links", async () => {
+      const state = await initializeBuildsState();
+
+      expect(resolveVersionedPath("/search/answer", state)).toEqual({
+        versionSlug: "nightly",
+        target: { kind: "search", query: "answer" },
+      });
     });
 
     test("keeps the bare home URL untouched", async () => {
       const state = await initializeBuildsState();
 
-      expect(
-        canonicalizeMalformedVersionURL("http://localhost/", state),
-      ).toBeNull();
+      expect(resolveVersionedPath("/", state)).toEqual({
+        versionSlug: "stable",
+        target: { kind: "home" },
+      });
     });
   });
 
