@@ -84,7 +84,7 @@ export function resolveLocale(
  */
 export function applyLocaleJSON(
   localeJSON: unknown,
-  pinyinJSON: unknown | null,
+  pinyinJSON: unknown,
   locale: string,
 ): void {
   if (
