@@ -2,6 +2,7 @@ import { resolveTileset } from "./tile-data";
 import {
   initializePreferences,
   preferences,
+  setDefaultMods,
   setPreferredTileset,
 } from "./preferences.svelte";
 import {
@@ -146,6 +147,7 @@ export function changeVersion(buildVersion: string): void {
 }
 
 export function changeMods(mods: string[]): void {
+  setDefaultMods(mods);
   location.href = buildURL(
     navigation.buildRequestedVersion,
     navigation.target,
@@ -165,6 +167,22 @@ export function changeMods(mods: string[]): void {
 export async function bootstrapApplication(): Promise<void> {
   initializeRouting();
   initializePreferences();
+
+  if (
+    page.route.modsParam.length === 0 &&
+    preferences.defaultMods !== null &&
+    preferences.defaultMods.length > 0
+  ) {
+    const urlWithMods = buildURL(
+      page.route.versionSlug,
+      page.route.target,
+      page.route.localeParam,
+      page.route.tilesetParam,
+      preferences.defaultMods,
+    );
+    navigateToURL(urlWithMods, "replace");
+  }
+
   const versionState = await initializeBuildsState();
 
   const canonicalURL = canonicalizeMalformedVersionURL(

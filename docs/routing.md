@@ -99,7 +99,7 @@ That separation matters because the app should preserve what the user is actuall
 | State kind                   | Owner                                                       | Lifetime             | Notes                                                                                       |
 | :--------------------------- | :---------------------------------------------------------- | :------------------- | :------------------------------------------------------------------------------------------ |
 | Raw route state              | [`src/routing.svelte.ts`](../src/routing.svelte.ts)         | Browser session      | Mirrors the current URL and history entry.                                                  |
-| Persisted preference state   | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Across sessions      | Currently stores the preferred tileset only.                                                |
+| Persisted preference state   | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Across sessions      | Stores the preferred tileset and an optional default mod preset.                            |
 | Bootstrap metadata           | [`src/builds.svelte.ts`](../src/builds.svelte.ts)           | Per page load        | Resolves aliases like `stable` and `nightly` into concrete builds.                          |
 | Effective navigation context | [`src/navigation.svelte.ts`](../src/navigation.svelte.ts)   | Derived at read time | Combines route state, preferences, and build metadata into the values the UI actually uses. |
 
@@ -232,7 +232,7 @@ Choose the navigation transport by intent:
 
 - Version aliases depend on build metadata. Until that metadata is available, the app only knows the requested version, not the resolved concrete build.
 - Malformed version URLs are canonicalized after build metadata loads, so invalid or missing version segments do not surface as user-facing bootstrap failures.
-- The app does not persist locale or mods as browser preferences.
+- The app does not persist locale as a browser preference. Mods can be persisted as a default preset via `preferences.svelte.ts`.
 - The route layer is browser-oriented state, so server-side initialization uses a safe placeholder URL.
 - History synchronization is global, so the routing module installs exactly one popstate listener.
 
