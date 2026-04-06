@@ -48,6 +48,7 @@ describe("navigation", () => {
     _resetPreferences();
     _resetBuildsState();
     localStorage.removeItem?.("cbn-guide:tileset");
+    localStorage.removeItem?.("cbn-guide:default-mods");
     global.fetch = defaultFetchMock;
   });
 
@@ -87,6 +88,7 @@ describe("navigation", () => {
     });
     expect(preferences).toEqual({
       preferredTileset: "retrodays",
+      defaultMods: null,
     });
     expect(buildLinkTo({ kind: "home" })).toBe("/stable/?t=ultica");
   });
@@ -190,6 +192,7 @@ describe("navigation", () => {
     expect(navigation.tileset).toBe("retrodays");
     expect(preferences).toEqual({
       preferredTileset: "retrodays",
+      defaultMods: null,
     });
     expect(window.location.search).toContain("t=retrodays");
     expect(replaceStateSpy).toHaveBeenCalledOnce();
@@ -224,5 +227,66 @@ describe("navigation", () => {
       modsParam: ["aftershock"],
       target: { kind: "item", type: "item", id: "rock" },
     });
+  });
+
+  test("bootstrap injects saved mods into bare URL", async () => {
+    localStorage.setItem(
+      "cbn-guide:default-mods",
+      JSON.stringify(["aftershock"]),
+    );
+    setWindowLocation("stable/");
+    _resetRouting();
+    const replaceStateSpy = vi
+      .spyOn(history, "replaceState")
+      .mockImplementation((_, __, url) => {
+        const nextUrl = new URL(String(url), window.location.origin);
+        window.location.pathname = nextUrl.pathname;
+        window.location.search = nextUrl.search;
+        window.location.href = nextUrl.toString();
+      });
+
+    await bootstrapApplication();
+
+    expect(replaceStateSpy).toHaveBeenCalledWith(
+      null,
+      "",
+      "/stable/?mods=aftershock",
+    );
+    expect(page.route.modsParam).toEqual(["aftershock"]);
+  });
+
+  test("bootstrap does not inject when URL already has mods", async () => {
+    localStorage.setItem(
+      "cbn-guide:default-mods",
+      JSON.stringify(["magiclysm"]),
+    );
+    setWindowLocation("stable/", "?mods=aftershock");
+    _resetRouting();
+    const replaceStateSpy = vi.spyOn(history, "replaceState");
+
+    await bootstrapApplication();
+
+    expect(replaceStateSpy).not.toHaveBeenCalledWith(
+      null,
+      "",
+      expect.stringContaining("magiclysm"),
+    );
+    expect(page.route.modsParam).toEqual(["aftershock"]);
+  });
+
+  test("bootstrap does not inject when no preset saved", async () => {
+    localStorage.removeItem("cbn-guide:default-mods");
+    setWindowLocation("stable/");
+    _resetRouting();
+    const replaceStateSpy = vi.spyOn(history, "replaceState");
+
+    await bootstrapApplication();
+
+    expect(replaceStateSpy).not.toHaveBeenCalledWith(
+      null,
+      "",
+      expect.stringContaining("mods="),
+    );
+    expect(page.route.modsParam).toEqual([]);
   });
 });
