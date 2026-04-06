@@ -289,4 +289,37 @@ describe("navigation", () => {
     );
     expect(page.route.modsParam).toEqual([]);
   });
+
+  test("bootstrap canonicalizes version and saved preferences with one replaceState", async () => {
+    localStorage.setItem("cbn-guide:tileset", "retrodays");
+    localStorage.setItem(
+      "cbn-guide:default-mods",
+      JSON.stringify(["aftershock"]),
+    );
+    setWindowLocation("bogus/item/rock");
+    _resetRouting();
+    const replaceStateSpy = vi
+      .spyOn(history, "replaceState")
+      .mockImplementation((_, __, url) => {
+        const nextUrl = new URL(String(url), window.location.origin);
+        window.location.pathname = nextUrl.pathname;
+        window.location.search = nextUrl.search;
+        window.location.href = nextUrl.toString();
+      });
+
+    await bootstrapApplication();
+
+    expect(replaceStateSpy).toHaveBeenCalledOnce();
+    expect(replaceStateSpy).toHaveBeenCalledWith(
+      null,
+      "",
+      "/nightly/item/rock?t=retrodays&mods=aftershock",
+    );
+    expect(page.route).toMatchObject({
+      versionSlug: "nightly",
+      tilesetParam: "retrodays",
+      modsParam: ["aftershock"],
+      target: { kind: "item", type: "item", id: "rock" },
+    });
+  });
 });

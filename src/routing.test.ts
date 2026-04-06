@@ -389,36 +389,4 @@ describe("App routing integration", () => {
       expectVisibleText(/rock/i);
     });
   });
-
-  test("canonicalizes malformed popstate version URLs with replaceState", async () => {
-    await renderApp();
-
-    await waitForDataLoad();
-    const replaceStateSpy = vi
-      .spyOn(history, "replaceState")
-      .mockImplementation((_, __, url) => {
-        const nextUrl = new URL(String(url), window.location.origin);
-        window.location.pathname = nextUrl.pathname;
-        window.location.search = nextUrl.search;
-        window.location.href = nextUrl.toString();
-      });
-
-    await act(async () => {
-      setWindowLocation("bogus/item/rock", "?mods=aftershock");
-      dispatchPopState();
-    });
-
-    await waitFor(() =>
-      expect(window.location.pathname).toBe("/nightly/item/rock"),
-    );
-    expect(replaceStateSpy).toHaveBeenCalledWith(
-      null,
-      "",
-      "/nightly/item/rock?mods=aftershock",
-    );
-    await waitFor(() => {
-      expectVisibleText(/rock/i);
-    });
-    replaceStateSpy.mockRestore();
-  });
 });
