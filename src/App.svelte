@@ -10,7 +10,7 @@ import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
-import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
+import { DEFAULT_LOCALE, GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import {
   buildLinkTo,
@@ -46,7 +46,6 @@ import Notification, { notify } from "./Notification.svelte";
 import RenderErrorFallback from "./RenderErrorFallback.svelte";
 import PageMeta from "./PageMeta.svelte";
 
-import { DEFAULT_LOCALE } from "./i18n/ui-locale";
 import { resolveLocale } from "./i18n/game-locale";
 
 let scrollY = $state(0);

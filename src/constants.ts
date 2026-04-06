@@ -20,3 +20,4 @@ export const getDataJsonUrl = (version: string, path: string): string =>
 export const GAME_REPO_PATH = "cataclysmbn/Cataclysm-BN";
 
 export const GAME_REPO_URL = `https://github.com/${GAME_REPO_PATH}`;
+export const DEFAULT_LOCALE = "en";

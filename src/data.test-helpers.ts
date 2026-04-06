@@ -1,6 +1,6 @@
 import { CBNData } from "./data";
-import { DEFAULT_LOCALE } from "./i18n/ui-locale";
 import type { ModData } from "./types";
+import { DEFAULT_LOCALE } from "./constants";
 
 type TestCBNDataOptions = {
   buildVersion?: string;

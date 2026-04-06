@@ -13,7 +13,8 @@
 import type { Translation } from "../types";
 import makeI18n, { type Gettext } from "gettext.js";
 import { stripColorTags } from "../utils/format";
-import { DEFAULT_LOCALE } from "./ui-locale";
+
+import { DEFAULT_LOCALE } from "../constants";
 
 const needsPlural = [
   "AMMO",

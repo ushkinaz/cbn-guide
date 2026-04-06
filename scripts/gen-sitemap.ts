@@ -21,7 +21,6 @@ import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
-
 import { BUILDS_URL, CANONICAL_URL, getDataJsonUrl } from "../src/constants";
 import { CBNData } from "../src/data";
 
@@ -114,9 +113,18 @@ async function loadData(): Promise<{
     await downloadFile(url, localAllJson);
   }
 
-  const { data, build_number, release } = await readJson(localAllJson);
+  const { data, build_number } = await readJson(localAllJson);
   return {
-    gameData: new CBNData(data, build_number, release),
+    gameData: new CBNData(
+      data,
+      build_number,
+      version,
+      "en",
+      undefined,
+      undefined,
+      [],
+      {},
+    ),
     version: version,
     releaseDate: selectedBuild.created_at.split("T")[0],
   };

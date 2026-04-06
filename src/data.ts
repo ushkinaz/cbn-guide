@@ -67,7 +67,8 @@ import {
   applyLocaleJson,
 } from "./i18n/game-locale";
 import { loadRawDataset } from "./data-loader";
-import { DEFAULT_LOCALE } from "./i18n/ui-locale";
+
+import { DEFAULT_LOCALE } from "./constants";
 
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
