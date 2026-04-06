@@ -13,8 +13,8 @@ import {
 
 function fakeData(overrides: Partial<CBNData>): CBNData {
   return {
-    active_mods: [],
-    raw_mods_json: {},
+    activeMods: [],
+    rawModsJSON: {},
     ...overrides,
   } as unknown as CBNData;
 }
