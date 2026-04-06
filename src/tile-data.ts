@@ -346,10 +346,10 @@ function getCachedBaseTileset(url: string): Promise<NonNullable<TilesetData>> {
 }
 
 export function collectActiveModTilesets(
-  data: Pick<CBNData, "active_mods" | "raw_mods_json">,
+  data: Pick<CBNData, "activeMods" | "rawModsJSON">,
 ): ModTilesetContribution[] {
-  const activeMods = data.active_mods ?? [];
-  const rawMods = data.raw_mods_json ?? {};
+  const activeMods = data.activeMods ?? [];
+  const rawMods = data.rawModsJSON ?? {};
   const result: ModTilesetContribution[] = [];
 
   for (const modId of activeMods) {
@@ -436,12 +436,12 @@ function getMergeCacheKey(
   version: string,
   tileset: TilesetDefinition,
   aliases: Set<string>,
-  data: Pick<CBNData, "active_mods" | "raw_mods_json">,
+  data: Pick<CBNData, "activeMods" | "rawModsJSON">,
 ): string {
-  const activeMods = (data.active_mods ?? []).join(",");
+  const activeMods = (data.activeMods ?? []).join(",");
   const aliasSignature = [...aliases].sort().join(",");
-  const modsLoaded = data.raw_mods_json
-    ? `loaded:${Object.keys(data.raw_mods_json).length}`
+  const modsLoaded = data.rawModsJSON
+    ? `loaded:${Object.keys(data.rawModsJSON).length}`
     : "loaded:none";
   return `${version}|${tileset.path ?? "ascii"}|${activeMods}|${aliasSignature}|${modsLoaded}`;
 }
@@ -729,8 +729,8 @@ export const tileData = {
     const tileset =
       TILESETS.find((entry) => entry.name === tilesetName) ?? DEFAULT_TILESET;
 
-    if (data?.build_number && tileset.path !== null) {
-      const version = data.fetching_version ?? data.build_number;
+    if (data?.buildVersion && tileset.path !== null) {
+      const version = data.fetchVersion ?? data.buildVersion;
       loadMergedTileset(data, version, tileset)
         .then((loaded) => {
           if (requestToken !== _requestToken) return;
@@ -742,12 +742,12 @@ export const tileData = {
           const extra = {
             tileset: tileset.name,
             version,
-            active_mods: data.active_mods ?? [],
+            active_mods: data.activeMods ?? [],
           };
           Sentry.withScope((scope) => {
             scope.setTag("tileset", tileset.name);
             scope.setExtra("version", version);
-            scope.setExtra("active_mods", data.active_mods ?? []);
+            scope.setExtra("active_mods", data.activeMods ?? []);
             scope.setExtra("tileset_error", err);
             Sentry.captureException(err);
           });

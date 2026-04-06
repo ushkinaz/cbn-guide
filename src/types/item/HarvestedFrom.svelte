@@ -6,7 +6,7 @@ import ItemLink from "../ItemLink.svelte";
 import type { Furniture, Terrain } from "../../types";
 import { t } from "@transifex/native";
 
-import { byName } from "../../i18n/gettext";
+import { byName } from "../../i18n/game-locale";
 
 interface Props {
   item_id: string;

@@ -1,10 +1,11 @@
 import { expect, test } from "vitest";
 import { CBNData } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 import { createSearchState } from "./search-state.svelte";
 
 test("search state flushes debounced results and tracks first result", () => {
   const searchState = createSearchState();
-  const data = new CBNData([
+  const data = makeTestCBNData([
     { type: "BOOK", id: "opal", name: "opal", symbol: "*" },
     { type: "MONSTER", id: "opossum", name: "opossum", symbol: "d" },
   ]);
@@ -24,7 +25,7 @@ test("search state flushes debounced results and tracks first result", () => {
 
 test("search state reset clears reactive state", () => {
   const searchState = createSearchState();
-  const data = new CBNData([
+  const data = makeTestCBNData([
     { type: "MONSTER", id: "zombie", name: "zombie", symbol: "Z" },
   ]);
 
@@ -39,7 +40,7 @@ test("search state reset clears reactive state", () => {
 
 test("search state clears results when query or data becomes empty", () => {
   const searchState = createSearchState();
-  const data = new CBNData([
+  const data = makeTestCBNData([
     { type: "BOOK", id: "opal", name: "opal", symbol: "*" },
   ]);
 

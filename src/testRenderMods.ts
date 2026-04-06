@@ -12,6 +12,7 @@ import {
 import * as fs from "fs";
 
 import { CBNData, mapType } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 import type { ModInfo } from "./types";
 import Thing from "./Thing.svelte";
 import {
@@ -118,7 +119,7 @@ export function makeModRenderTests(modId: string): void {
         mergedData.push(...depData);
       }
     }
-    return new CBNData(mergedData);
+    return makeTestCBNData(mergedData);
   };
 
   const allModObjects: ModObjectCase[] = modSubset.flatMap(([modId, mod]) =>

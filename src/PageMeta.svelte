@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import { isSupportedType } from "./supported-types";
-import { gameSingular, gameSingularName } from "./i18n/gettext";
+import { gameSingular, gameSingularName } from "./i18n/game-locale";
 import { RUNNING_MODE } from "./utils/env";
 import { UI_GUIDE_NAME } from "./constants";
 import { buildURL } from "./routing.svelte";

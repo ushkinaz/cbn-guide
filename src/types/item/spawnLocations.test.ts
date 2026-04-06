@@ -14,10 +14,11 @@ import {
   repeatChance,
 } from "./spawnLocations";
 import { CBNData } from "../../data";
+import { makeTestCBNData } from "../../data.test-helpers";
 import type { ItemGroupData, Mapgen } from "../../types";
 import { describe, expect, it } from "vitest";
 
-const emptyData = new CBNData([]);
+const emptyData = makeTestCBNData([]);
 
 describe("collection()", () => {
   it("returns nothing given no items", () => {
@@ -86,7 +87,7 @@ describe("parseItemGroup()", () => {
     );
   });
   it("repeat 2", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -103,7 +104,7 @@ describe("parseItemGroup()", () => {
 
 describe("lootForOmt()", () => {
   it("skips lua mapgen entries when computing weighted loot", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -133,12 +134,12 @@ describe("lootForOmt()", () => {
 
 describe("parsePalette()", () => {
   it("perses empty palette", () => {
-    const got = parsePalette(new CBNData([]), {});
+    const got = parsePalette(makeTestCBNData([]), {});
     expect(got).toStrictEqual(new Map());
   });
 
   it("knows about .items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -160,7 +161,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about arrays in .items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "gr0",
         type: "item_group",
@@ -186,7 +187,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about chance in .items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -208,7 +209,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about repeat in .items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -227,7 +228,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows anout .palettes", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "palette",
         id: "fake_palette",
@@ -252,7 +253,7 @@ describe("parsePalette()", () => {
     );
   });
   it("parses inline item group", () => {
-    const data = new CBNData([]);
+    const data = makeTestCBNData([]);
     const rawPalette = {
       items: {
         X: {
@@ -270,7 +271,7 @@ describe("parsePalette()", () => {
     );
   });
   it("parses inline item collections", () => {
-    const data = new CBNData([]);
+    const data = makeTestCBNData([]);
     const rawPalette = {
       items: {
         X: {
@@ -284,7 +285,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .item", () => {
-    const data = new CBNData([]);
+    const data = makeTestCBNData([]);
     const rawPalette = {
       item: {
         X: { item: "i0", chance: 50, repeat: 2 },
@@ -306,7 +307,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .sealed_item.[].items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -332,7 +333,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .sealed_item | .[].items | {repeat, chance}", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -356,7 +357,7 @@ describe("parsePalette()", () => {
     );
   });
   it("knows about .sealed_item | .[].item", () => {
-    const data = new CBNData([]);
+    const data = makeTestCBNData([]);
     const rawPalette = {
       sealed_item: {
         X: {
@@ -392,7 +393,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about .mapping entries with items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         id: "fake_item_group",
         type: "item_group",
@@ -416,7 +417,7 @@ describe("parsePalette()", () => {
   });
 
   it("knows about .mapping entries with item", () => {
-    const data = new CBNData([]);
+    const data = makeTestCBNData([]);
     const rawPalette = {
       mapping: {
         Y: {
@@ -435,7 +436,7 @@ describe("parsePalette()", () => {
   });
 
   it("merges mapping entries from referenced palettes", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "palette",
         id: "referenced_palette",
@@ -488,7 +489,7 @@ describe("repeatChance()", () => {
 
 describe("loot", () => {
   it("place_items accepts direct item ids", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -506,7 +507,7 @@ describe("loot", () => {
   });
 
   it("place_loot", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -554,7 +555,7 @@ describe("loot", () => {
   });
 
   it("place_loot item respects repeat", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -576,7 +577,7 @@ describe("loot", () => {
   });
 
   it("handles overmap specials with no mapgens", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "overmap_special",
         id: "test_special",
@@ -595,7 +596,7 @@ describe("loot", () => {
   });
 
   it("place_item respects amount", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -617,7 +618,7 @@ describe("loot", () => {
   });
 
   it("symbol item mapping respects amount", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -639,7 +640,7 @@ describe("loot", () => {
   });
 
   it("mapping.item respects amount", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -663,7 +664,7 @@ describe("loot", () => {
 
 describe("terrain", () => {
   it("fills with fill_ter when rows are missing", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -678,7 +679,7 @@ describe("terrain", () => {
   });
 
   it("uses mapgensize when rows are missing", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -699,7 +700,7 @@ describe("terrain", () => {
 
 describe("nested mapgen", () => {
   it("reads place_nested", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -730,7 +731,7 @@ describe("nested mapgen", () => {
   });
 
   it("reads place_nested else_chunks fallback", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -768,7 +769,7 @@ describe("nested mapgen", () => {
   });
 
   it("handles chunk weights", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -821,7 +822,7 @@ describe("nested mapgen", () => {
   });
 
   it("handles repeat", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -872,7 +873,7 @@ describe("nested mapgen", () => {
           },
         }) as Mapgen,
     );
-    const data = new CBNData(chain);
+    const data = makeTestCBNData(chain);
     const loot = await getLootForMapgen(data, data.byType("mapgen")[0]);
     expect([...loot.entries()]).toEqual([
       ["deep_item", { prob: 1, expected: 1 }],
@@ -880,7 +881,7 @@ describe("nested mapgen", () => {
   });
 
   it("reads nested", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -916,7 +917,7 @@ describe("nested mapgen", () => {
 
 describe("furniture", () => {
   it("furniture", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -935,7 +936,7 @@ describe("furniture", () => {
   });
 
   it("place_furniture", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -952,7 +953,7 @@ describe("furniture", () => {
   });
 
   it("place_furniture repeat", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -969,7 +970,7 @@ describe("furniture", () => {
   });
 
   it("place_furniture repeat range", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -991,7 +992,7 @@ describe("furniture", () => {
 
 describe("mapping", () => {
   it("includes mapping items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1015,7 +1016,7 @@ describe("mapping", () => {
   });
 
   it("includes mapping furniture", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1033,7 +1034,7 @@ describe("mapping", () => {
   });
 
   it("includes mapping terrain and respects fill_ter", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1053,7 +1054,7 @@ describe("mapping", () => {
   });
 
   it("inherits furniture mapping from referenced palettes", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "palette",
         id: "furniture_palette",
@@ -1076,7 +1077,7 @@ describe("mapping", () => {
   });
 
   it("inherits terrain mapping from referenced palettes", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "palette",
         id: "terrain_palette",
@@ -1099,7 +1100,7 @@ describe("mapping", () => {
   });
 
   it("set furniture", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1128,7 +1129,7 @@ describe("mapping", () => {
 
 describe("terrain", () => {
   it("set terrain", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1155,7 +1156,7 @@ describe("terrain", () => {
   });
 
   it("place_loot respects ammo and magazine", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1194,7 +1195,7 @@ describe("terrain", () => {
   });
 
   it("items mapping respects ammo and magazine", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1220,7 +1221,7 @@ describe("terrain", () => {
   });
 
   it("counts fill_ter correctly when rows are missing", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1237,7 +1238,7 @@ describe("terrain", () => {
   });
 
   it("treats conditional nested chunks as conditional (averages chunks and else_chunks)", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1284,7 +1285,7 @@ describe("terrain", () => {
   });
 
   it("handles conditional nested chunks with only chunks", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1321,7 +1322,7 @@ describe("terrain", () => {
 
 describe("parsePlaceMappingAlternative", () => {
   it("sums probabilities for repeated items (weighted choice)", () => {
-    const data = new CBNData([]);
+    const data = makeTestCBNData([]);
     // ["t_grass", "t_grass", "t_grass", "t_grass", "t_dirt"]
     // total = 5, t_grass weight = 4, t_dirt weight = 1
     // expected: t_grass prob = 0.8, t_dirt prob = 0.2
@@ -1342,7 +1343,7 @@ describe("parsePlaceMappingAlternative", () => {
 
 describe("parameters", () => {
   it("resolves parameters without fallback using default distribution", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",
@@ -1374,7 +1375,7 @@ describe("parameters", () => {
 
 describe("chance > 100", () => {
   it("handles chance > 100 in place_loot", async () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "mapgen",
         method: "json",

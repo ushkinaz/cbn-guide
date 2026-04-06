@@ -1,5 +1,5 @@
 import { tx } from "@transifex/native";
-export const DEFAULT_LOCALE = "en";
+
 const KNOWN_LOCALE_FALLBACKS: Record<string, string> = {
   es_AR: "es",
   it_IT: "it",

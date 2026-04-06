@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import { describe, expect, test } from "vitest";
 import { CBNData, data, normalizeDamageInstance } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 
 describe("Mod merge ordering", () => {
   async function getLoadedData(): Promise<CBNData> {
@@ -69,7 +70,7 @@ describe("Mod merge ordering", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, ["mod_b", "mod_a"]);
+      await data.loadData("latest", "en", ["mod_b", "mod_a"]);
       const loaded = await getLoadedData();
       const order = loaded
         .all()
@@ -88,7 +89,7 @@ describe("Mod merge ordering", () => {
 
 describe("copy-from self-looking override chain", () => {
   test("resolves Base -> Mod A -> Mod B when id and copy-from are identical", () => {
-    const testData = new CBNData([
+    const testData = makeTestCBNData([
       {
         type: "GENERIC",
         id: "cattlefodder",
@@ -126,7 +127,7 @@ describe("DinoMod regressions", () => {
       fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
     ) as Record<string, { data: unknown[] }>;
     const merged = [...coreJson.data, ...modsJson.DinoMod.data];
-    const loaded = new CBNData(merged);
+    const loaded = makeTestCBNData(merged);
     const monster = loaded.byId("monster", "mon_ztegosaurus_brute");
     const meleeDamage = normalizeDamageInstance(monster.melee_damage ?? []);
     expect(meleeDamage.length).toBeGreaterThan(0);
@@ -148,7 +149,7 @@ describe("DinoMod regressions", () => {
       fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
     ) as Record<string, { data: unknown[] }>;
     const merged = [...coreJson.data, ...modsJson.DinoMod.data];
-    const loaded = new CBNData(merged);
+    const loaded = makeTestCBNData(merged);
     const mutation = loaded.byId("mutation", "RUMINANT");
 
     expect(Array.isArray(mutation.category)).toBe(true);

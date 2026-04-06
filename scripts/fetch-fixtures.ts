@@ -20,7 +20,7 @@ import * as crypto from "crypto";
 import * as url from "url";
 import * as path from "path";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
-import { getDataJsonUrl } from "../src/constants";
+import { getDataJSONUrl } from "../src/constants";
 
 const envHttpProxyAgent = new EnvHttpProxyAgent();
 setGlobalDispatcher(envHttpProxyAgent);
@@ -110,7 +110,7 @@ async function fetchFile(url: string, destPath: string): Promise<void> {
 
   try {
     if (fetchAll) {
-      const url = getDataJsonUrl(targetVersion, "all.json");
+      const url = getDataJSONUrl(targetVersion, "all.json");
       console.log(`Fetching all.json from ${targetVersion}...`);
       await fetchFile(url, allJsonPath);
       newMeta.sha = await computeSha(allJsonPath);
@@ -124,7 +124,7 @@ async function fetchFile(url: string, destPath: string): Promise<void> {
     }
 
     if (fetchMods) {
-      const url = getDataJsonUrl(targetVersion, "all_mods.json");
+      const url = getDataJSONUrl(targetVersion, "all_mods.json");
       console.log(`Fetching all_mods.json from ${targetVersion}...`);
       await fetchFile(url, allModsJsonPath);
       newMeta.modsSha = await computeSha(allModsJsonPath);

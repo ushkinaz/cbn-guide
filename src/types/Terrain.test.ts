@@ -5,11 +5,12 @@ import { render } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import WithData from "../WithData.svelte";
 import { CBNData } from "../data";
+import { makeTestCBNData } from "../data.test-helpers";
 import Terrain from "./Terrain.svelte";
 
 describe("Terrain", () => {
   it("shows the terrain deconstruction result target", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "terrain",
         id: "t_test_wall",
@@ -45,7 +46,7 @@ describe("Terrain", () => {
   });
 
   it("shows deconstruction methods and required tools for advanced terrain removal", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "construction_group",
         id: "advanced_object_deconstruction",

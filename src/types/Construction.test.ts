@@ -5,11 +5,12 @@ import { render } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import WithData from "../WithData.svelte";
 import { CBNData } from "../data";
+import { makeTestCBNData } from "../data.test-helpers";
 import Construction from "./Construction.svelte";
 
 describe("Construction", () => {
   it("renders furniture prerequisites and null furniture results", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "construction_group",
         id: "advanced_object_deconstruction",
@@ -48,7 +49,7 @@ describe("Construction", () => {
   });
 
   it("renders terrain prerequisites and furniture results without prefix inference", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "construction_group",
         id: "build_beaded_door",

@@ -12,7 +12,7 @@ import {
 } from "./construction";
 import ItemLink from "./ItemLink.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
-import { i18n, gameSingular, gameSingularName } from "../i18n/gettext";
+import { i18n, gameSingular, gameSingularName } from "../i18n/game-locale";
 
 const data = getContext<CBNData>("data");
 const _context = "Construction";
@@ -162,5 +162,5 @@ if (construction.pre_flags)
       {gameSingular(construction.pre_note)}
     </p>
   {/if}
-  <JsonView obj={construction} buildNumber={data.build_number} />
+  <JsonView obj={construction} buildNumber={data.buildVersion} />
 </section>

@@ -57,13 +57,18 @@ import {
   lootByOMSAppearance,
   terrainByOMSAppearance,
 } from "./types/item/spawnLocations";
-import { getDataJsonUrl } from "./constants";
 import { cleanText, formatKg, formatL } from "./utils/format";
-import { HttpError, isNotFoundError } from "./utils/http-errors";
 import { yieldUntilIdle } from "./utils/idle";
-import { retry } from "./utils/retry";
 import { asArray } from "./utils/collections";
-import { byName, i18n, resetI18n, gameSingularName } from "./i18n/gettext";
+import {
+  byName,
+  resetI18n,
+  gameSingularName,
+  applyLocaleJSON,
+} from "./i18n/game-locale";
+import { loadRawDataset } from "./data-loader";
+
+import { DEFAULT_LOCALE } from "./constants";
 
 export { formatKg, formatL, formatPercent } from "./utils/format";
 
@@ -243,20 +248,6 @@ export class CBNData {
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
-  /** Memoized direct touching mods keyed by mapped type + provenance key. */
-  _directModsByTypeByIdCache: Map<
-    keyof SupportedTypesWithMapped,
-    Map<string, ModInfo[]>
-  > = new Map();
-  /**
-   * Memoized contributing mods for concrete objects keyed by mapped type + id.
-   * Unlike `_directModsByTypeByIdCache`, this includes all mods in the resolved
-   * `copy-from` chain (parents first, then current object).
-   */
-  _contributingModsByTypeByIdCache: Map<
-    keyof SupportedTypesWithMapped,
-    Map<string, ModInfo[]>
-  > = new Map();
   /**
    * Precomputed visibility for monsters after applying MONSTER_BLACKLIST /
    * MONSTER_WHITELIST policy objects from the merged dataset.
@@ -272,54 +263,54 @@ export class CBNData {
    */
   _dissectionSources: Map<string, DissectionSource[]> = new Map();
 
-  release: any;
   /** Concrete build number from the game data (e.g., "v0.9.1") */
-  build_number: string | undefined;
+  buildVersion: string;
   /** Original version slug used for fetching (e.g., "stable", "nightly") */
-  fetching_version: string | undefined;
-  /** Effective locale actually loaded (e.g. "uk" if "uk_UA" fell back) */
-  effective_locale: string;
-  /** Locale originally requested by the user */
-  requested_locale: string;
-  /** Ordered non-core mod metadata. null means metadata wasn't fetched yet. */
-  mods: ModInfo[] | null;
-  /** Ordered active non-core mod ids. null means metadata wasn't fetched yet. */
-  active_mods: string[] | null;
-  /** Full all_mods.json payload keyed by mod id. null means metadata wasn't fetched yet. */
-  raw_mods_json: Record<string, ModData> | null;
-
+  fetchVersion: string;
+  /** Ordered active non-core mod ids. */
+  activeMods: string[];
+  /** Effective locale actually loaded and applied to the i18n singleton. */
+  locale: string;
   /**
-   * @param raw Raw game data objects
-   * @param build_number Concrete build number from the loaded data blob
-   * @param release Release metadata from the loaded data blob
-   * @param fetching_version Original version slug or alias used for fetching
-   * @param effective_locale Locale actually loaded after fallback resolution
-   * @param requested_locale Locale originally requested by the user
-   * @param mods Ordered non-core mod metadata, or `null` if not loaded
-   * @param active_mods Ordered non-core active mod ids, or `null` if not loaded
-   * @param raw_mods_json Full parsed mod payload keyed by mod id, or `null` if not loaded
+   * A record containing mods data, where each key is a string identifier for a specific mod
+   * and the value is an object representing the corresponding mod's data.
+   *
+   * @property {string} key - The unique identifier for the mod.
+   * @property {ModData} value - The data object containing configuration and metadata for the mod.
    */
+  rawModsJSON: Record<string, ModData>;
+
   constructor(
-    raw: any[],
-    build_number?: string,
-    release?: any,
-    fetching_version?: string,
-    effective_locale: string = "en",
-    requested_locale: string = "en",
-    mods: ModInfo[] | null = null,
-    active_mods: string[] | null = null,
-    raw_mods_json: Record<string, ModData> | null = null,
+    rawJSON: unknown[],
+    buildVersion: string,
+    fetchVersion: string,
+    locale: string,
+    localeJSON: unknown | undefined,
+    pinyinJSON: unknown | undefined,
+    activeMods: string[],
+    rawModsJSON: Record<string, ModData>,
   ) {
     const p = perf.mark("CBNData.constructor");
 
-    this.release = release;
-    this.build_number = build_number;
-    this.fetching_version = fetching_version;
-    this.effective_locale = effective_locale;
-    this.requested_locale = requested_locale;
-    this.mods = mods;
-    this.active_mods = active_mods;
-    this.raw_mods_json = raw_mods_json;
+    const raw = rawJSON as any[];
+
+    this.buildVersion = buildVersion;
+    this.fetchVersion = fetchVersion;
+    this.activeMods = activeMods;
+    this.locale = locale;
+    this.rawModsJSON = rawModsJSON;
+
+    // Apply locale to the shared i18n singleton before any data method runs.
+    if (locale !== DEFAULT_LOCALE) {
+      try {
+        applyLocaleJSON(localeJSON, pinyinJSON ?? null, this.locale);
+      } catch (e) {
+        console.warn("Failed to apply locale JSON in CBNData constructor:", e);
+        resetI18n("en");
+        this.locale = "en";
+      }
+    }
+
     // For some reason O—G has the string "mapgen" as one of its objects.
     this._raw = raw.filter((x) => typeof x === "object");
     for (const obj of raw) {
@@ -862,220 +853,6 @@ export class CBNData {
   }
 
   /**
-   * Resolves direct touching mods for a mapped type/key by scanning active mods
-   * on demand. This intentionally avoids any constructor-time provenance index.
-   *
-   * ARCHITECTURE: Uses top-down scanning (see ADR-003 and ADR-004)
-   */
-  _directModsForTypeIdByScan(
-    mappedType: keyof SupportedTypesWithMapped,
-    id: string,
-  ): ModInfo[] {
-    const activeMods = this.active_mods;
-    const rawModsJson = this.raw_mods_json;
-    if (!activeMods || !rawModsJson) return [];
-
-    const directMods: ModInfo[] = [];
-    for (const modId of activeMods) {
-      const modData = rawModsJson[modId];
-      if (!modData) continue;
-
-      let touchesId = false;
-      for (const rawObj of modData.data) {
-        if (typeof rawObj !== "object" || rawObj === null) continue;
-        const candidate = rawObj as Record<string, unknown>;
-        if (typeof candidate.type !== "string") continue;
-
-        const candidateType = mapType(
-          candidate.type as keyof SupportedTypesWithMapped,
-        );
-        if (candidateType !== mappedType) continue;
-
-        if (this._provenanceKeyForObject(candidateType, candidate) === id) {
-          touchesId = true;
-          break;
-        }
-      }
-
-      if (touchesId) directMods.push(modData.info);
-    }
-    return directMods;
-  }
-
-  /**
-   * Returns direct touching mods for a mapped type/id pair using memoized
-   * on-demand scans (no global preindexing).
-   */
-  _directModsForTypeId(
-    mappedType: keyof SupportedTypesWithMapped,
-    id: string,
-  ): readonly ModInfo[] {
-    if (!this._directModsByTypeByIdCache.has(mappedType)) {
-      this._directModsByTypeByIdCache.set(mappedType, new Map());
-    }
-    const byId = this._directModsByTypeByIdCache.get(mappedType)!;
-    const cached = byId.get(id);
-    if (cached) return cached;
-
-    const mods = this._directModsForTypeIdByScan(mappedType, id);
-    byId.set(id, mods);
-    return mods;
-  }
-
-  /**
-   * Merges parent-chain and current-node mod lists while preserving order and
-   * uniqueness by mod id.
-   *
-   * @param inherited Contributing mods from parent chain.
-   * @param current Direct touching mods of the current object node.
-   * @returns Ordered, unique merged mod list.
-   */
-  _mergeUniqueMods(
-    inherited: readonly ModInfo[],
-    current: readonly ModInfo[],
-  ): ModInfo[] {
-    if (inherited.length === 0) return [...current];
-    if (current.length === 0) return [...inherited];
-
-    const merged: ModInfo[] = [...inherited];
-    const seen = new Set(inherited.map((mod) => mod.id));
-    for (const mod of current) {
-      if (seen.has(mod.id)) continue;
-      seen.add(mod.id);
-      merged.push(mod);
-    }
-    return merged;
-  }
-
-  /** Clears memoized provenance caches when mod metadata changes. */
-  _clearModProvenanceCaches(): void {
-    this._directModsByTypeByIdCache.clear();
-    this._contributingModsByTypeByIdCache.clear();
-  }
-
-  /**
-   * Resolves immediate parent provenance id for a mapped type/id.
-   * Self-copy chains (same id copied from itself across overrides) are collapsed
-   * until a different parent id is found.
-   *
-   * ARCHITECTURE: ADR-005 (Robust inheritance: Migrations and Self-Copy Handling).
-   * Collapses self-referential inheritance chains for clean provenance.
-   *
-   * @param mappedType Mapped type family to search in.
-   * @param id Provenance id (object id or abstract).
-   * @returns Parent mapped type/id pair or null when no parent exists.
-   */
-  _resolveParentTypeIdForModProvenance(
-    mappedType: keyof SupportedTypesWithMapped,
-    id: string,
-  ): { mappedType: keyof SupportedTypesWithMapped; id: string } | null {
-    let current = this._objectForProvenanceKey(mappedType, id);
-    if (!current) return null;
-    const currentMappedType = mappedType;
-
-    const seen = new Set<Record<string, unknown>>();
-    while (current) {
-      if (seen.has(current)) return null;
-      seen.add(current);
-
-      const parent = this._resolveCopyFromParent(current);
-      if (!parent) return null;
-      const parentMappedType = mapType(
-        parent.type as keyof SupportedTypesWithMapped,
-      );
-      const parentId = this._provenanceKeyForObject(parentMappedType, parent);
-      if (!parentId) return null;
-
-      if (parentMappedType !== currentMappedType || parentId !== id) {
-        return { mappedType: parentMappedType, id: parentId };
-      }
-
-      // Continue traversing through self-copy overrides until parent id changes.
-      current = parent;
-    }
-    return null;
-  }
-
-  /**
-   * Resolves contributing mods for a mapped type/id by traversing its full
-   * `copy-from` parent chain recursively.
-   *
-   * ARCHITECTURE: Implements top-to-bottom inheritance unfurling (see ADR-003 and ADR-004)
-   *
-   * @param mappedType Mapped type family to search in.
-   * @param id Provenance id (object id or abstract).
-   * @param stack Cycle-detection set for recursive traversal.
-   * @returns Ordered mod list for the full inheritance chain.
-   */
-  _modsForTypeIdChain(
-    mappedType: keyof SupportedTypesWithMapped,
-    id: string,
-    stack: Set<string> = new Set(),
-  ): ModInfo[] {
-    const stackId = `${mappedType}::${id}`;
-    if (stack.has(stackId)) return [];
-    stack.add(stackId);
-
-    const parent = this._resolveParentTypeIdForModProvenance(mappedType, id);
-    const inheritedMods = parent
-      ? this._modsForTypeIdChain(parent.mappedType, parent.id, stack)
-      : [];
-    stack.delete(stackId);
-    return this._mergeUniqueMods(
-      inheritedMods,
-      this._directModsForTypeId(mappedType, id),
-    );
-  }
-
-  /**
-   * Returns mods that directly define/override the concrete object with the
-   * given type/id key. This method does not include `copy-from` ancestry.
-   * The key must match the same identifier used by `byId(...)` for the family
-   * (for example: item `id`, recipe `result[_id_suffix]`, monstergroup `name`).
-   *
-   * @param type Mapped type family to search in.
-   * @param id Concrete object key used by `byId(...)`.
-   * @returns Direct touching non-core mods in load order.
-   */
-  getDirectModsForId<TypeName extends keyof SupportedTypesWithMapped>(
-    type: TypeName,
-    id: string,
-  ): readonly ModInfo[] {
-    if (typeof id !== "string") return [];
-    const mappedType = mapType(type);
-    if (!this._byTypeById.get(mappedType)?.has(id)) return [];
-    return [...this._directModsForTypeId(mappedType, id)];
-  }
-
-  /**
-   * Returns all mods that contribute to the resolved object with the given
-   * type/id key, including direct touches and all `copy-from` ancestors.
-   *
-   * @param type Mapped type family to search in.
-   * @param id Concrete object key used by `byId(...)`.
-   * @returns Contributing non-core mods across the full inheritance chain.
-   */
-  getContributingModsForId<TypeName extends keyof SupportedTypesWithMapped>(
-    type: TypeName,
-    id: string,
-  ): readonly ModInfo[] {
-    if (typeof id !== "string") return [];
-    const mappedType = mapType(type);
-    const cached = this._contributingModsByTypeByIdCache
-      .get(mappedType)
-      ?.get(id);
-    if (cached) return [...cached];
-
-    if (!this._byTypeById.get(mappedType)?.has(id)) return [];
-    const mods = this._modsForTypeIdChain(mappedType, id);
-    if (!this._contributingModsByTypeByIdCache.has(mappedType)) {
-      this._contributingModsByTypeByIdCache.set(mappedType, new Map());
-    }
-    this._contributingModsByTypeByIdCache.get(mappedType)!.set(id, mods);
-    return [...mods];
-  }
-
-  /**
    * ARCHITECTURE: ADR-005 (Robust inheritance: Migrations and Self-Copy Handling).
    * Resolves the parent object for a given object, specifically handling
    * "self-copy" overrides by looking up the previous version in the override stack.
@@ -1111,6 +888,13 @@ export class CBNData {
     return parent;
   }
 
+  /**
+   * Resolves a single inherited field by walking the `copy-from` chain until a
+   * concrete value is found.
+   *
+   * Returns `undefined` when the field is absent across the full inheritance
+   * chain or when a cycle is encountered.
+   */
   resolveOne(obj: any, key: string): any {
     let current = obj;
     const visited = new Set<any>();
@@ -2061,15 +1845,6 @@ export class CBNData {
   constructsTrap(trap_id: string): Item[] {
     return this.#constructTrapIndex.lookup(trap_id).sort(byName);
   }
-
-  setLocale(localeJson: any, pinyinNameJson: any) {
-    if (pinyinNameJson) pinyinNameJson[""] = localeJson[""];
-    i18n.loadJSON(localeJson);
-    i18n.setLocale(this.effective_locale);
-    if (pinyinNameJson) {
-      i18n.loadJSON(pinyinNameJson, "pinyin");
-    }
-  }
 }
 
 class ReverseIndex<T extends keyof SupportedTypesWithMapped> {
@@ -2505,85 +2280,7 @@ function trapIdsFromUseAction(action: Item["use_action"]): string[] {
   return [...trapIds];
 }
 
-const fetchJsonWithProgress = (
-  url: string,
-  progress: (receivedBytes: number, totalBytes: number) => void,
-): Promise<any> => {
-  if (isTesting) {
-    progress(100, 100);
-    return fetch(url).then((r) => {
-      if (!r.ok) {
-        throw new HttpError(
-          `HTTP ${r.status} (${r.statusText}) fetching ${url}`,
-          r.status,
-          url,
-        );
-      }
-      return r.json();
-    });
-  }
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const handleError = (type: string) => {
-      const status = xhr.status;
-      // If status is 404, we definitely have a missing file.
-      // If status is 0, it often means a CORS error, network error,
-      // or a request aborted by the browser/extensions.
-      if (status === 404) {
-        reject(new HttpError(`404: ${url}`, 404, url));
-        return;
-      }
-      if (status === 0) {
-        reject(new Error(`Network/CORS/Abort: ${url}`));
-        return;
-      }
-      reject(
-        new Error(
-          `${type} ${status} (${xhr.statusText}) while fetching ${url}`,
-        ),
-      );
-    };
-
-    xhr.onload = (e) => {
-      if (xhr.status === 404) {
-        reject(new HttpError(`404: ${url}`, 404, url));
-      } else if (xhr.status >= 200 && xhr.status < 300) {
-        if (xhr.response) resolve(xhr.response);
-        else reject(new Error(`Empty/invalid JSON response from ${url}`));
-      } else {
-        handleError("Status");
-      }
-    };
-    xhr.onprogress = (e) => {
-      progress(e.loaded, e.lengthComputable ? e.total : 0);
-    };
-    xhr.onerror = () => handleError("Error");
-    xhr.onabort = () => handleError("Aborted");
-    xhr.open("GET", url);
-    xhr.responseType = "json";
-    xhr.send();
-  });
-};
-
-const fetchJson = async (
-  version: string,
-  progress: (receivedBytes: number, totalBytes: number) => void,
-) => {
-  return fetchJsonWithProgress(getDataJsonUrl(version, "all.json"), progress);
-};
-
-const fetchLocaleJson = async (
-  version: string,
-  locale: string,
-  progress: (receivedBytes: number, totalBytes: number) => void,
-) => {
-  return fetchJsonWithProgress(
-    getDataJsonUrl(version, `lang/${locale}.json`),
-    progress,
-  );
-};
-
-type ParsedModsJson = {
+type ParsedModsJSON = {
   mods: ModInfo[];
   raw: Record<string, ModData>;
   byId: Map<string, ModData>;
@@ -2609,7 +2306,7 @@ function sanitizeTranslation(value: Translation): Translation {
   };
 }
 
-function parseModsJson(rawMods: unknown): ParsedModsJson {
+function parseModsJSON(rawMods: unknown): ParsedModsJSON {
   if (!isRecord(rawMods)) {
     throw new Error("Invalid all_mods.json: expected top-level object map");
   }
@@ -2685,73 +2382,18 @@ function mergeDataWithActiveMods(
   return mergedData;
 }
 
-const fetchModsJson = async (
-  version: string,
-  progress: (receivedBytes: number, totalBytes: number) => void,
-) => {
-  return fetchJsonWithProgress(
-    getDataJsonUrl(version, "all_mods.json"),
-    progress,
-  );
-};
-
-/**
- * Loads and parses the mod index with background retries.
- *
- * SILENT FAIL POLICY: If loading fails due to missing `all_mods.json` (404),
- * this function returns null instead of throwing. Other failures (network/parsing)
- * are propagated to avoid masking data corruption or unexpected errors.
- */
-async function loadParsedModsJson(
-  version: string,
-  progress: (receivedBytes: number, totalBytes: number) => void,
-): Promise<ParsedModsJson | null> {
-  try {
-    const modsJson = await retry(() => fetchModsJson(version, progress), {
-      finalErrorMessage:
-        "Failed to load data after 3 attempts. Please check your internet connection and try refreshing the page.",
-    });
-    return parseModsJson(modsJson);
-  } catch (e) {
-    if (isNotFoundError(e)) {
-      return null;
-    }
-    throw e;
-  }
-}
-
-function applyLoadedModsMetadata(
-  targetData: CBNData,
-  parsedMods: ParsedModsJson | null,
-): void {
-  targetData.mods = parsedMods?.mods ?? [];
-  targetData.active_mods = targetData.active_mods ?? [];
-  targetData.raw_mods_json = parsedMods?.raw ?? {};
-  targetData._clearModProvenanceCaches();
-}
-
 const loadProgressStore = writable<[number, number] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 /**
- * Guards the "initialize once per page load" invariant in production.
- *
- * Tests call `_reset()` between mounts, which clears this flag.
- */
-let _hasSetVersion = false;
-/**
  * Holds the currently published singleton data instance.
  *
- * This remains `null` until `setVersion()` finishes successfully.
+ * This remains `null` until `loadData()` finishes successfully.
  */
 let _currentData: CBNData | null = null;
 /**
- * Deduplicates concurrent `ensureModsLoaded()` calls for the same base instance.
- */
-let _ensureModsLoadedPromise: Promise<void> | null = null;
-/**
  * Monotonic generation token used to invalidate stale async work.
  *
- * Incremented on every `setVersion()` start and on `_reset()`, so any older
+ * Incremented on every `loadData()` start and on `_reset()`, so any older
  * in-flight load exits before mutating the singleton store.
  */
 let _generationToken = 0;
@@ -2781,213 +2423,112 @@ export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
 
 const { subscribe, set } = writable<CBNData | null>(null);
 
+type BuildData = {
+  build_number: string;
+  release: unknown;
+  data: any[];
+  mods: unknown | undefined;
+};
+
 export const data = {
   subscribe,
-  async setVersion(
+  /**
+   * Fetches all game data assets via `loadRawDataset()` and publishes a new
+   * `CBNData` instance to the store. Owns locale fallback policy, mod catalog
+   * parsing, generation-token cancellation, and store lifecycle.
+   *
+   * Concurrent calls are safe: each call takes a generation token and any
+   * stale in-flight call exits before mutating the store.
+   *
+   * @param version      Build version slug (e.g. "nightly", "stable")
+   * @param locale       Requested locale code, or null for English
+   * @param activeMods   Ordered mod ids to activate
+   * @returns true if load was finished
+   */
+  async loadData(
     version: string,
-    locale: string | null,
-    availableLangs?: string[],
+    locale: string,
     activeMods: string[] = [],
-  ) {
-    if (_hasSetVersion && !isTesting)
-      throw new Error("can only set version once");
-    _hasSetVersion = true;
+  ): Promise<boolean> {
     const generationToken = ++_generationToken;
+    const isCancelled = () => generationToken !== _generationToken;
 
-    _ensureModsLoadedPromise = null;
-    let totals = [0, 0, 0, 0];
-    let receiveds = [0, 0, 0, 0];
-    const updateProgress = () => {
-      if (generationToken !== _generationToken) return;
-      const total = totals.reduce((a, b) => a + b, 0);
-      const received = receiveds.reduce((a, b) => a + b, 0);
-      loadProgressStore.set(received > 0 ? [received, total] : null);
-    };
-    updateProgress();
-    const dataJson = await retry(
-      () =>
-        fetchJson(version, (receivedBytes, totalBytes) => {
-          totals[0] = totalBytes;
-          receiveds[0] = receivedBytes;
-          updateProgress();
-        }),
-      {
-        finalErrorMessage:
-          "Failed to load data after 3 attempts. Please check your internet connection and try refreshing the page.",
-      },
-    );
-
-    if (generationToken !== _generationToken) return;
-
-    let localeJson: any = null;
-    let pinyinNameJson: any = null;
-    let effective_locale = "en";
-
-    if (locale && locale !== "en") {
-      const loadLocale = async (loc: string, index: number) => {
-        return retry(
-          () =>
-            fetchLocaleJson(version, loc, (receivedBytes, totalBytes) => {
-              totals[index] = totalBytes;
-              receiveds[index] = receivedBytes;
-              updateProgress();
-            }),
-          {
-            finalErrorMessage:
-              "Failed to load locale after 3 attempts. Please check your internet connection and try refreshing the page.",
-          },
-        );
-      };
-
-      // Determine the best available locale using metadata if provided.
-      // Strategy:
-      // 1. Exact match (e.g. "ru_RU" -> "ru_RU")
-      // 2. Base language match (e.g. "ru_RU" -> "ru")
-      // 3. Fallback to requested locale (letting it fail later if truly missing)
-      let targetLocale: string | null = null;
-      if (availableLangs) {
-        if (availableLangs.includes(locale)) {
-          targetLocale = locale;
-        } else {
-          const partialLocale = locale.split("_")[0];
-          if (availableLangs.includes(partialLocale)) {
-            targetLocale = partialLocale;
-          }
+    try {
+      const raw = await loadRawDataset(version, locale, (received, total) => {
+        if (!isCancelled()) {
+          loadProgressStore.set(received > 0 ? [received, total] : null);
         }
-      } else {
-        // Fallback for cases where metadata is missing (e.g. tests)
-        targetLocale = locale;
+      });
+
+      if (isCancelled()) return false;
+
+      let effectiveLocale = locale;
+      if (locale !== DEFAULT_LOCALE && !raw.localeJSON) {
+        console.warn(
+          `Failed to load locale ${locale}, falling back to English`,
+        );
+        effectiveLocale = DEFAULT_LOCALE;
       }
 
-      if (targetLocale) {
-        try {
-          localeJson = await loadLocale(targetLocale, 1);
-          if (generationToken !== _generationToken) return;
-          effective_locale = targetLocale;
-          if (targetLocale.startsWith("zh_")) {
-            try {
-              pinyinNameJson = await loadLocale(targetLocale + "_pinyin", 2);
-              if (generationToken !== _generationToken) return;
-            } catch (e) {
-              console.warn(`Failed to load pinyin for ${targetLocale}`, e);
-            }
-          }
-        } catch (e) {
-          console.warn(
-            `Failed to load locale ${targetLocale}, falling back to English:`,
-            e,
-          );
-          if (generationToken !== _generationToken) return;
-          effective_locale = "en";
-        }
+      let filteredActiveMods: string[] = [];
+      //TODO: use `zod` maybe
+      if (
+        !(
+          isRecord(raw.dataJSON) &&
+          "data" in raw.dataJSON &&
+          "build_number" in raw.dataJSON
+        )
+      ) {
+        throw new Error("Invalid all.json: expected top-level object map");
       }
-    }
+      const coreJSON = raw.dataJSON as BuildData;
+      let mergedData = coreJSON.data;
+      let rawModsJSON: Record<string, ModData> = {};
 
-    let mods: ModInfo[] | null = null;
-    let filteredActiveMods: string[] | null = null;
-    let rawModsJson: Record<string, ModData> | null = null;
-    let mergedData = dataJson.data;
-    const requestedActiveMods = activeMods.filter((modId) => modId !== "bn");
-
-    if (requestedActiveMods.length > 0) {
-      const parsedMods = await loadParsedModsJson(
-        version,
-        (receivedBytes, totalBytes) => {
-          totals[3] = totalBytes;
-          receiveds[3] = receivedBytes;
-          updateProgress();
-        },
-      );
-      if (generationToken !== _generationToken) return;
-      if (parsedMods) {
-        mods = parsedMods.mods;
-        rawModsJson = parsedMods.raw;
-        filteredActiveMods = filterActiveMods(
-          requestedActiveMods,
-          parsedMods.byId,
-        );
+      if (raw.modsJSON) {
+        const parsedMods = parseModsJSON(raw.modsJSON);
+        rawModsJSON = parsedMods.raw;
+        filteredActiveMods = filterActiveMods(activeMods, parsedMods.byId);
         mergedData = mergeDataWithActiveMods(
-          dataJson.data,
+          coreJSON.data,
           parsedMods.byId,
           filteredActiveMods,
         );
-      } else {
-        mods = [];
-        filteredActiveMods = [];
-        rawModsJson = {};
+      }
+
+      const instance = new CBNData(
+        mergedData,
+        coreJSON.build_number,
+        version,
+        effectiveLocale,
+        raw.localeJSON,
+        raw.pinyinJSON,
+        filteredActiveMods,
+        rawModsJSON,
+      );
+
+      if (isCancelled()) return false;
+      _currentData = instance;
+      set(instance);
+      return true;
+    } finally {
+      if (generationToken === _generationToken) {
+        loadProgressStore.set(null);
       }
     }
-
-    const instance = new CBNData(
-      mergedData,
-      dataJson.build_number,
-      dataJson.release,
-      version,
-      effective_locale,
-      locale || "en",
-      mods,
-      filteredActiveMods,
-      rawModsJson,
-    );
-    try {
-      if (localeJson) instance.setLocale(localeJson, pinyinNameJson);
-    } catch (e) {
-      console.warn("Failed to apply locale JSON:", e);
-      instance.effective_locale = "en";
-      resetI18n(instance.effective_locale);
-    }
-    if (generationToken !== _generationToken) return;
-    _currentData = instance;
-    set(instance);
   },
   /**
    * `_reset`: resetting singleton store state between test app mounts.
-   * Side effects: clearing _hasSetVersion, _currentData, _ensureModsLoadedPromise and calling set(null).
+   * Side effects: clearing _currentData, generation token, and calling set(null).
    * @internal
    * @returns {void}
    */
   _reset(): void {
     _generationToken++;
-    _hasSetVersion = false;
     _currentData = null;
-    _ensureModsLoadedPromise = null;
     loadProgressStore.set(null);
     resetI18n();
     set(null);
-  },
-  async ensureModsLoaded() {
-    const startData = _currentData;
-    if (!startData || startData.mods !== null) return;
-
-    if (_ensureModsLoadedPromise) {
-      await _ensureModsLoadedPromise;
-      return;
-    }
-
-    _ensureModsLoadedPromise = (async () => {
-      const modsVersion = startData.fetching_version ?? startData.build_number;
-      if (!modsVersion) {
-        if (_currentData !== startData) return;
-        applyLoadedModsMetadata(startData, null);
-        _currentData = startData;
-        set(startData);
-        return;
-      }
-
-      const parsedMods = await loadParsedModsJson(modsVersion, () => {});
-      if (_currentData !== startData) return;
-      applyLoadedModsMetadata(startData, parsedMods);
-
-      if (_currentData !== startData) return;
-      _currentData = startData;
-      set(startData);
-    })();
-
-    try {
-      await _ensureModsLoadedPromise;
-    } finally {
-      _ensureModsLoadedPromise = null;
-    }
   },
 };
 

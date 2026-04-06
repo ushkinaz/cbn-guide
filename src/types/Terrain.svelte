@@ -10,7 +10,7 @@ import ItemLink from "./ItemLink.svelte";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
-import { gameSingular } from "../i18n/gettext";
+import { gameSingular } from "../i18n/game-locale";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";

@@ -12,7 +12,7 @@ import type {
   Vitamin,
 } from "../types";
 import ItemLink from "./ItemLink.svelte";
-import { gameSingular, gameSingularName } from "../i18n/gettext";
+import { gameSingular, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
   item: Vitamin;

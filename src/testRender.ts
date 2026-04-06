@@ -4,6 +4,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import * as fs from "fs";
 
 import { CBNData, mapType } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 
 import Thing from "./Thing.svelte";
 import {
@@ -24,7 +25,7 @@ export function makeRenderTests(chunkIdx: number, numChunks: number) {
   const json = JSON.parse(
     fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
   );
-  let data: CBNData = new CBNData(json.data);
+  let data: CBNData = makeTestCBNData(json.data);
   const types = [
     "ammunition_type",
     "bionic",

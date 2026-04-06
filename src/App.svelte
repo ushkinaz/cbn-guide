@@ -10,7 +10,7 @@ import redditIcon from "./assets/icons/link-reddit.svg";
 import bnIcon from "./assets/icons/link-bn.svg";
 import discordIcon from "./assets/icons/link-discord.svg";
 import catapultIcon from "./assets/icons/link-catapult.svg";
-import { GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
+import { DEFAULT_LOCALE, GAME_REPO_URL, UI_GUIDE_NAME } from "./constants";
 import { t } from "@transifex/native";
 import {
   buildLinkTo,
@@ -22,11 +22,7 @@ import {
   navigation,
   updateSearchRoute,
 } from "./navigation.svelte";
-import {
-  buildURL,
-  handleInternalNavigation,
-  navigateToURL,
-} from "./routing.svelte";
+import { handleInternalNavigation } from "./routing.svelte";
 import {
   type BuildInfo,
   buildsState,
@@ -50,7 +46,7 @@ import Notification, { notify } from "./Notification.svelte";
 import RenderErrorFallback from "./RenderErrorFallback.svelte";
 import PageMeta from "./PageMeta.svelte";
 
-import { DEFAULT_LOCALE } from "./i18n/ui-locale";
+import { resolveLocale } from "./i18n/game-locale";
 
 let scrollY = $state(0);
 
@@ -59,7 +55,6 @@ const PWA_INSTALL_CONTEXT = "PWA Install";
 const VERSION_SELECTOR_CONTEXT = "Version Selector";
 const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
-const URL_MODS_CONTEXT = "URL mods";
 const PREWARM_IDLE_TIMEOUT_MS = 500;
 
 function schedulePrewarm(cbnData: CBNData): void {
@@ -87,14 +82,6 @@ function schedulePrewarm(cbnData: CBNData): void {
   });
 }
 
-function arraysEqual(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
 function scrollToTop(): void {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -119,7 +106,6 @@ let latestNightlyBuild: BuildInfo | undefined = $derived(
 );
 let prewarmScheduledFor: CBNData | null = null;
 let lastDataLoadKey: string | null = $state(null);
-let translationWarningKey: string | null = $state(null);
 
 function updateSentryContext(resolvedVersion?: string): void {
   if (resolvedVersion) {
@@ -164,132 +150,86 @@ $effect(() => {
   updateSentryContext(navigation.buildResolvedVersion);
 });
 
-$effect(() => {
-  const currentBuilds = buildsState.current?.builds;
-  const requestedVersion = navigation.buildRequestedVersion;
-  const resolvedVersion = navigation.buildResolvedVersion;
-  const requestedLocale = navigation.locale;
-  const requestedMods = navigation.mods;
-  const routeTarget = navigation.target;
-  const effectiveTileset = navigation.tileset;
+/**
+ * Loads game data for the given version/locale/mods combination.
+ * Handles the loadData call, Sentry capture, and user notification on error.
+ */
+async function loadDataForVersion(
+  requestedVersion: string,
+  requestedMods: string[],
+  requestedLocale: string,
+): Promise<void> {
+  const dataLoadStart = nowTimeStamp();
+  try {
+    const result = await data.loadData(
+      requestedVersion,
+      requestedLocale,
+      requestedMods,
+    );
+    if (!result) return; // Aborted by newer data load
+  } catch (error) {
+    const context = {
+      dataLoad: {
+        requestedVersion,
+        requestedLocale,
+        requestedMods,
+      },
+    };
+    console.warn("Failed to load data", error, context);
+    Sentry.captureException(error, {
+      contexts: context,
+    });
+    notify(
+      t(
+        "Failed to load data for {version}. Please select a different version from the footer.",
+        { version: requestedVersion },
+      ),
+      "error",
+    );
+    return;
+  }
 
-  if (!currentBuilds || !resolvedVersion) {
+  metrics.distribution(
+    "data.load.duration_ms",
+    nowTimeStamp() - dataLoadStart,
+    { unit: "millisecond" },
+  );
+}
+
+let gameLocale: string = $derived.by(() =>
+  resolveLocale(navigation.locale, currentBuild?.langs ?? []),
+);
+
+let currentBuild: BuildInfo | undefined = $derived(
+  buildsState.current?.builds.find(
+    (build) => build.build_number === navigation.buildResolvedVersion,
+  ),
+);
+
+let modsActiveCount = $derived($data?.activeMods.length ?? 0);
+
+$effect(() => {
+  if (!currentBuild || !navigation.buildResolvedVersion) {
     return;
   }
 
   const requestedStateKey = JSON.stringify({
-    requestedVersion,
-    resolvedVersion,
-    requestedLocale: requestedLocale,
-    requestedMods,
+    rq_v: navigation.buildRequestedVersion,
+    rs_v: navigation.buildResolvedVersion,
+    loc: gameLocale,
+    mods: navigation.mods,
   });
   if (requestedStateKey === lastDataLoadKey) {
     return;
   }
 
   lastDataLoadKey = requestedStateKey;
-  const dataLoadStart = nowTimeStamp();
 
   void (async () => {
-    try {
-      await data.setVersion(
-        requestedVersion,
-        requestedLocale,
-        currentBuilds.find((build) => build.build_number === resolvedVersion)
-          ?.langs,
-        requestedMods,
-      );
-    } catch (error) {
-      const context = {
-        dataLoad: {
-          requestedVersion,
-          resolvedVersion,
-          requestedLocale,
-          requestedMods,
-        },
-      };
-      console.warn("Failed to set version", error, context);
-      Sentry.captureException(error, {
-        contexts: context,
-      });
-      notify(
-        t(
-          "Failed to load data for {version}. Please select a different version from the footer.",
-          { version: requestedVersion },
-        ),
-        "error",
-      );
-      return;
-    }
-
-    if ($data) {
-      const resolvedMods = $data.active_mods ?? [];
-      lastDataLoadKey = JSON.stringify({
-        requestedVersion,
-        resolvedVersion,
-        requestedLocale: requestedLocale,
-        requestedMods: resolvedMods,
-      });
-
-      if (!arraysEqual(requestedMods, resolvedMods)) {
-        const removedMods = requestedMods.filter(
-          (modId) => !resolvedMods.includes(modId),
-        );
-        navigateToURL(
-          buildURL(
-            requestedVersion,
-            routeTarget,
-            requestedLocale,
-            effectiveTileset,
-            resolvedMods,
-          ),
-          "replace",
-        );
-        if (removedMods.length > 0) {
-          notify(
-            t("Unknown mods ignored: {mods}.", {
-              mods: removedMods.join(", "),
-              _context: URL_MODS_CONTEXT,
-            }),
-            "warn",
-          );
-        }
-      }
-
-      if (
-        $data.requested_locale !== $data.effective_locale &&
-        $data.requested_locale !== DEFAULT_LOCALE
-      ) {
-        const warningKey = [
-          $data.build_number,
-          $data.requested_locale,
-          $data.effective_locale,
-        ].join(":");
-        if (warningKey !== translationWarningKey) {
-          translationWarningKey = warningKey;
-          const from = getLanguageName($data.requested_locale);
-          const to = getLanguageName($data.effective_locale);
-          notify(
-            t(
-              "Translation for {requested_lang} missing in {build_number}. Using {resolved_lang}.",
-              {
-                build_number: $data.build_number,
-                requested_lang: from,
-                resolved_lang: to,
-              },
-            ),
-            "warn",
-          );
-        }
-      }
-    }
-
-    metrics.distribution(
-      "data.load.duration_ms",
-      nowTimeStamp() - dataLoadStart,
-      {
-        unit: "millisecond",
-      },
+    await loadDataForVersion(
+      navigation.buildRequestedVersion,
+      navigation.mods,
+      gameLocale,
     );
   })();
 });
@@ -336,26 +276,11 @@ const handleSearchKeydown = (e: KeyboardEvent) => {
 };
 
 let isModSelectorOpen = $state(false);
-let isModSelectorLoading = $state(false);
-let modSelectorError: string | null = $state(null);
 
 async function openModSelector(): Promise<void> {
   if (!$data) return;
   metrics.count("ui.modal.open", 1, { widget_id: "mod_selector" });
-
-  modSelectorError = null;
   isModSelectorOpen = true;
-  if ($data.mods !== null) return;
-
-  isModSelectorLoading = true;
-  try {
-    await data.ensureModsLoaded();
-  } catch (e) {
-    console.warn("Failed to load mods.", e);
-    modSelectorError = t("Failed to load mods. Please reload.");
-  } finally {
-    isModSelectorLoading = false;
-  }
 }
 
 function closeModSelector(): void {
@@ -541,21 +466,19 @@ function getLanguageName(code: string): string {
         type="button"
         onclick={openModSelector}
         disabled={!$data}
-        aria-busy={isModSelectorLoading || !$data}
+        aria-busy={!$data}
         aria-label={t("Mods ({count} active)", {
-          count: navigation.mods.length,
+          count: modsActiveCount,
         })}>
         <span class="mods-button-inner">
-          <span
-            class="mods-button-normal"
-            class:loading-hidden={isModSelectorLoading || !$data}>
+          <span class="mods-button-normal" class:loading-hidden={!$data}>
             <span class="mods-label">{t("Mods")}</span>
-            <span class="mods-count">[{String(navigation.mods.length)}]</span>
+            <span class="mods-count">[{modsActiveCount}]</span>
           </span>
           <span
             class="mods-button-loading"
-            class:active={isModSelectorLoading || !$data}
-            aria-hidden={!(isModSelectorLoading || !$data)}>
+            class:active={!$data}
+            aria-hidden={$data !== null}>
             <Spinner size={18} position="center" bounce={3} />
             <span class="mods-loading-label">
               {t("MODS", { _context: "Mods button" })}
@@ -567,15 +490,14 @@ function getLanguageName(code: string): string {
   </nav>
 </header>
 
-<ModSelector
-  open={isModSelectorOpen}
-  mods={$data?.mods ?? []}
-  rawModsJson={$data?.raw_mods_json ?? {}}
-  selectedModIds={navigation.mods}
-  loading={isModSelectorLoading}
-  errorMessage={modSelectorError}
-  onclose={closeModSelector}
-  onapply={(mods) => applyMods(mods)} />
+{#if $data}
+  <ModSelector
+    open={isModSelectorOpen}
+    rawModsJson={$data.rawModsJSON}
+    selectedModIds={$data.activeMods}
+    onclose={closeModSelector}
+    onapply={(mods) => applyMods(mods)} />
+{/if}
 
 <main>
   {#if navigation.target.kind === "catalog" || navigation.target.kind === "item"}
@@ -764,7 +686,7 @@ function getLanguageName(code: string): string {
           </select>
         {:else if $data}
           <select disabled>
-            <option>{$data.build_number}</option>
+            <option>{$data.buildVersion}</option>
           </select>
         {/if}
       {:else}
@@ -792,7 +714,7 @@ function getLanguageName(code: string): string {
         <select
           id="language_select"
           aria-label={t("Language", { _context: LANGUAGE_SELECTOR_CONTEXT })}
-          value={$data?.effective_locale ?? navigation.locale}
+          value={navigation.locale}
           onchange={(e) => {
             const lang = e.currentTarget.value;
             changeLanguage(lang);

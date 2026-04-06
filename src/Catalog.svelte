@@ -14,7 +14,7 @@ import type {
 import MutationCategory from "./types/MutationCategory.svelte";
 import ItemLink from "./types/ItemLink.svelte";
 import { groupBy } from "./utils/collections";
-import { byName, gameSingularName } from "./i18n/gettext";
+import { byName, gameSingularName } from "./i18n/game-locale";
 import { translateType } from "./i18n/transifex-static";
 
 interface Props {

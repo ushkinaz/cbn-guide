@@ -88,7 +88,7 @@ flowchart TD
     PageStore --> App["src/App.svelte"]
     App --> Init["initializeRouting()"]
     Init --> Builds["builds.json"]
-    App --> DataSet["data.setVersion()"]
+    App --> DataSet["data.loadData()"]
     DataSet --> AllJson["/data/{version}/all.json"]
     DataSet --> I18n["optional locale fetch + fallback"]
     DataSet --> DataStore["data store (CBNData)"]
@@ -215,16 +215,16 @@ Avoid these:
 
 ## Key Files and Responsibilities
 
-| File                         | Responsibility                                                                                           | Important side effects                                                                                                 |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `src/App.svelte`             | Bootstraps the app, holds long-lived UI state, chooses which top-level view to render                    | calls `initializeRouting()`, calls `data.setVersion(...)`, updates document metadata, syncs search, handles navigation |
-| `src/routing.svelte.ts`      | URL parsing, navigation helpers, version alias resolution, page store updates                            | uses `history.pushState`, `history.replaceState`, `location.href`, and `location.replace`                              |
-| `src/data.ts`                | Fetches and builds `CBNData`, handles locale fallback, mod loading, flattening, indexing, derived caches | fetches external JSON, resets gettext locale, replaces the global `data` store                                         |
-| `src/search-state.svelte.ts` | Search indexing and debounced result production                                                          | rebuilds index when `CBNData` changes, debounces search by `150ms` outside tests                                       |
-| `src/Thing.svelte`           | Renders a single object view                                                                             | sets `data` context once per mount                                                                                     |
-| `src/Catalog.svelte`         | Renders a type catalog grouped by domain-specific rules                                                  | sets `data` context once per mount                                                                                     |
-| `src/SearchResults.svelte`   | Renders grouped search results without route-keyed remounting                                            | derives from `searchState.results` or injected `results`                                                               |
-| `src/LimitedList.svelte`     | Reusable truncated-list UI using snippets                                                                | expands to full list in tests by using `Infinity`                                                                      |
+| File                         | Responsibility                                                                                           | Important side effects                                                                                               |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `src/App.svelte`             | Bootstraps the app, holds long-lived UI state, chooses which top-level view to render                    | calls `initializeRouting()`, calls `data.loadData(...)`, updates document metadata, syncs search, handles navigation |
+| `src/routing.svelte.ts`      | URL parsing, navigation helpers, version alias resolution, page store updates                            | uses `history.pushState`, `history.replaceState`, `location.href`, and `location.replace`                            |
+| `src/data.ts`                | Fetches and builds `CBNData`, handles locale fallback, mod loading, flattening, indexing, derived caches | fetches external JSON, resets gettext locale, replaces the global `data` store                                       |
+| `src/search-state.svelte.ts` | Search indexing and debounced result production                                                          | rebuilds index when `CBNData` changes, debounces search by `150ms` outside tests                                     |
+| `src/Thing.svelte`           | Renders a single object view                                                                             | sets `data` context once per mount                                                                                   |
+| `src/Catalog.svelte`         | Renders a type catalog grouped by domain-specific rules                                                  | sets `data` context once per mount                                                                                   |
+| `src/SearchResults.svelte`   | Renders grouped search results without route-keyed remounting                                            | derives from `searchState.results` or injected `results`                                                             |
+| `src/LimitedList.svelte`     | Reusable truncated-list UI using snippets                                                                | expands to full list in tests by using `Infinity`                                                                    |
 
 ## State Ownership
 
@@ -298,7 +298,7 @@ jq '.data[] | select(.type=="item") | .id' -r _test/all.json
 
 - Raw game JSON often uses `copy-from`; missing fields may live in a parent object.
 - `CBNData` handles flattening and indexing after fetch.
-- Locale fallback is explicit: if a requested locale is missing, `data.setVersion(...)`
+- Locale fallback is explicit: if a requested locale is missing, `data.loadData(...)`
   falls back to English and `App.svelte` shows a warning.
 - Active mods come from the URL, but unknown mod IDs are removed after the loaded dataset
   resolves the real active mod list.
@@ -464,7 +464,7 @@ Use routing helpers instead of touching history directly from random components.
 ### Add user-facing text
 
 - Use `t` from `@transifex/native` for UI strings
-- Use `src/i18n/gettext.ts` for game-data translations
+- Use `src/i18n/game-locale.ts` for game-data translations
 - Keep extraction constraints in mind: literal `t("...")` strings are safest
 
 ### Add or change architectural behavior

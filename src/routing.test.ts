@@ -351,32 +351,6 @@ describe("App routing integration", () => {
     );
   });
 
-  test("filters unknown mods from the URL and warns once", async () => {
-    setWindowLocation(
-      "stable/item/rock",
-      "?mods=aftershock,missing_mod,magiclysm,bad_mod",
-    );
-    const replaceStateSpy = vi.spyOn(history, "replaceState");
-
-    await renderApp();
-
-    await waitForDataLoad("rock");
-
-    await waitFor(() =>
-      expect(replaceStateSpy).toHaveBeenCalledWith(
-        null,
-        "",
-        expect.stringContaining("mods=aftershock%2Cmagiclysm"),
-      ),
-    );
-
-    const warnNotification = get(notifications).find(
-      (notification) => notification.type === "warn",
-    );
-    expect(warnNotification?.message).toContain("missing_mod, bad_mod");
-    replaceStateSpy.mockRestore();
-  });
-
   test("reacts to history navigation and renders the matching route", async () => {
     await renderApp();
 

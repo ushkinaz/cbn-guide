@@ -7,7 +7,6 @@ import type {
   Translation,
 } from "./types";
 import { mapType, resolveSelectionWithDependencies } from "./data";
-import Spinner from "./Spinner.svelte";
 import { cleanText } from "./utils/format";
 
 const MOD_SELECTOR_CONTEXT = "Mod selector";
@@ -31,28 +30,29 @@ const DEFAULT_MOD_IDS = [
 
 interface Props {
   open?: boolean;
-  mods?: ModInfo[];
   rawModsJson?: Record<string, ModData>;
   selectedModIds?: string[];
-  loading?: boolean;
-  errorMessage?: string | null;
   onclose?: () => void;
   onapply?: (selectedModIds: string[]) => void;
 }
 
 let {
   open = false,
-  mods = [],
   rawModsJson = {},
   selectedModIds = [],
-  loading = false,
-  errorMessage = null,
   onclose = () => {},
   onapply = () => {},
 }: Props = $props();
 
 let draftSelectedModIds: string[] = $state([]);
 let wasOpen = false;
+
+let mods: ModInfo[] = $derived(
+  // Filter out core mods, as they are not selectable.
+  Object.values(rawModsJson)
+    .map(({ info }) => info)
+    .filter((modInfo) => !modInfo.core) as ModInfo[],
+);
 
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;
@@ -244,8 +244,7 @@ let modsById = $derived(
 
 $effect(() => {
   if (modsById.size > 0) {
-    // Keep URL-selected ids intact while mod metadata is still loading.
-    // Otherwise, resolving against an empty map clears valid selections.
+    // Resolve URL-selected ids only once we have a usable catalog.
     const normalizedSelection = resolveSelectionWithDependencies(
       draftSelectedModIds,
       modsById,
@@ -295,16 +294,7 @@ $effect(() => {
         </button>
       </header>
 
-      {#if loading}
-        <div class="mods-loading" role="status" aria-live="polite">
-          <Spinner size={22} position="center" bounce={4} />
-          <p class="mods-state">
-            {t("Loading available mods…", { _context: MOD_SELECTOR_CONTEXT })}
-          </p>
-        </div>
-      {:else if errorMessage}
-        <p class="mods-state error">{errorMessage}</p>
-      {:else if groupedCategories.length === 0}
+      {#if groupedCategories.length === 0}
         <p class="mods-state">
           {t("No mods found for this build.", {
             _context: MOD_SELECTOR_CONTEXT,
@@ -382,19 +372,13 @@ $effect(() => {
               type="button"
               class="ghost"
               onclick={selectDefaultMods}
-              disabled={availableDefaultModIds.length === 0 ||
-                loading ||
-                !!errorMessage}
+              disabled={availableDefaultModIds.length === 0}
               title={t("Load default in-game preset", {
                 _context: MOD_SELECTOR_CONTEXT,
               })}>
               {t("Default", { _context: MOD_SELECTOR_CONTEXT })}
             </button>
-            <button
-              type="button"
-              class="apply"
-              onclick={apply}
-              disabled={loading || !!errorMessage}>
+            <button type="button" class="apply" onclick={apply}>
               {t("Apply", { _context: MOD_SELECTOR_CONTEXT })}
             </button>
           </div>
@@ -592,21 +576,6 @@ $effect(() => {
   margin: 0;
   padding: 1rem;
   color: var(--cata-color-gray);
-}
-
-.mods-loading {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-}
-
-.mods-loading .mods-state {
-  padding: 0;
-}
-
-.mods-state.error {
-  color: var(--cata-color-light_red);
 }
 
 .mods-actions {

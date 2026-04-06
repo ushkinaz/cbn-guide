@@ -9,7 +9,7 @@ import {
   gamePluralName,
   gameSingular,
   gameSingularName,
-} from "../i18n/gettext";
+} from "../i18n/game-locale";
 import { buildLinkTo } from "../navigation.svelte";
 
 type ItemSymbolItem = {

@@ -5,7 +5,7 @@ import ItemLink from "../ItemLink.svelte";
 import type { MapDataCommon } from "../../types";
 import { t } from "@transifex/native";
 
-import { i18n } from "../../i18n/gettext";
+import { i18n } from "../../i18n/game-locale";
 
 interface Props {
   /**

@@ -4,6 +4,7 @@ import * as util from "util";
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
 import { CBNData } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 import { expect, test } from "vitest";
 
 declare global {
@@ -61,7 +62,7 @@ const schemasByType = new Map(
     ];
   }),
 );
-const data = new CBNData(
+const data = makeTestCBNData(
   JSON.parse(fs.readFileSync(__dirname + "/../_test/all.json", "utf8")).data,
 );
 const id = (x: any) => {

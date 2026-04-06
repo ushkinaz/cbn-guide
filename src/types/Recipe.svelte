@@ -200,7 +200,7 @@ writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
       </dd>
     {/if}
   </dl>
-  <JsonView obj={recipe} buildNumber={data.build_number} />
+  <JsonView obj={recipe} buildNumber={data.buildVersion} />
 </section>
 
 <style>

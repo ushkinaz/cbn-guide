@@ -18,7 +18,8 @@ import {
   initializeBuildsState,
   resolveBuildVersion,
 } from "./builds.svelte";
-import { DEFAULT_LOCALE, initializeUILocale } from "./i18n/ui-locale";
+import { initializeUILocale } from "./i18n/ui-locale";
+import { DEFAULT_LOCALE } from "./constants";
 
 type NavigationContext = {
   url: URL;

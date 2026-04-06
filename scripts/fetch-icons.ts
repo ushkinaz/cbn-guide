@@ -21,17 +21,16 @@ import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
-
 import { colorForName } from "../src/colors";
-import { BUILDS_URL, getDataJsonUrl } from "../src/constants";
+import { BUILDS_URL, getDataJSONUrl } from "../src/constants";
 import { CBNData, mapType } from "../src/data";
-import { getTilesetUrl, TILESETS } from "../src/tile-data";
 import type {
   TileChunk,
   TileInfo,
   TilePosition,
   TilesetData,
 } from "../src/tile-data";
+import { getTilesetUrl, TILESETS } from "../src/tile-data";
 
 type TilesetChunk = TileChunk & { ascii?: any[] };
 
@@ -413,14 +412,23 @@ async function loadData(): Promise<{ gameData: CBNData; version: string }> {
   const localAllJson = path.join(cacheDir, `all-${version}.json`);
 
   if (!(await fileExists(localAllJson))) {
-    const url = getDataJsonUrl(version!, "all.json");
+    const url = getDataJSONUrl(version!, "all.json");
     console.log(`Downloading ${url}...`);
     await downloadFile(url, localAllJson);
   }
 
-  const { data, build_number, release } = await readJson(localAllJson);
+  const { data, build_number } = await readJson(localAllJson);
   return {
-    gameData: new CBNData(data, build_number, release),
+    gameData: new CBNData(
+      data,
+      build_number,
+      version!,
+      "en",
+      undefined,
+      undefined,
+      [],
+      {},
+    ),
     version: version!,
   };
 }

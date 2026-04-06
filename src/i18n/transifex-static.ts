@@ -8,7 +8,7 @@ import { t } from "@transifex/native";
  * Transifex extraction only recognizes literal `t("...")` calls, so known UI
  * labels that are selected dynamically are mapped here through explicit helper
  * functions. This module is intentionally browser-facing; shared code and Node
- * scripts should depend on `src/i18n/gettext.ts` instead.
+ * scripts should depend on `src/i18n/game-locale.ts` instead.
  */
 
 /**

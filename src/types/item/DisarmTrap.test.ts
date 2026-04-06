@@ -5,12 +5,13 @@ import { render } from "@testing-library/svelte";
 
 import WithData from "../../WithData.svelte";
 import { CBNData } from "../../data";
+import { makeTestCBNData } from "../../data.test-helpers";
 import DisarmTrap from "./DisarmTrap.svelte";
 import { describe, expect, it } from "vitest";
 
 describe("the disarm trap section", () => {
   it("shows traps that can drop an item when disarmed", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "GENERIC",
         id: "fake_item",

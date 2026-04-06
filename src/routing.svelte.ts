@@ -14,8 +14,8 @@ import {
 } from "./builds.svelte";
 import { isSupportedType } from "./supported-types";
 import { debounce } from "./utils/debounce";
-import { DEFAULT_LOCALE } from "./i18n/ui-locale";
 import { DEFAULT_TILESET } from "./tile-data";
+import { DEFAULT_LOCALE } from "./constants";
 
 export type RouteTarget =
   | { kind: "home" }

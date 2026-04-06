@@ -2,17 +2,17 @@ import "./bench-env.js";
 import fs from "fs";
 import path from "path";
 import { performance } from "perf_hooks";
-import { CBNData, omsName } from "../src/data.js";
-import { buildSearchIndex, performSearch } from "../src/search-engine.js";
+import { CBNData, omsName } from "../src/data";
+import { buildSearchIndex, performSearch } from "../src/search-engine";
 import {
-  getGitSha,
-  createHistogramStats,
-  saveResults,
-  loadBaseline,
-  detectRegressions,
-  type MetricResult,
-  type BenchmarkResult,
   type AggregatedStats,
+  type BenchmarkResult,
+  createHistogramStats,
+  detectRegressions,
+  getGitSha,
+  loadBaseline,
+  type MetricResult,
+  saveResults,
 } from "./bench-utils.js";
 
 // ============================================================================
@@ -36,8 +36,17 @@ function registerScenario(name: string, fn: ScenarioFunction) {
 // ============================================================================
 
 registerScenario("constructor", () => {
-  const data = loadTestData();
-  new CBNData(data);
+  const fixture = loadTestData();
+  new CBNData(
+    fixture.data,
+    fixture.buildVersion,
+    fixture.fetchVersion,
+    "en",
+    undefined,
+    undefined,
+    [],
+    {},
+  );
 });
 
 registerScenario("lazy-indexes", (cbnData) => {
@@ -146,7 +155,11 @@ function clearPerformanceMarks() {
   performance.clearMeasures();
 }
 
-function loadTestData(): any[] {
+function loadTestData(): {
+  data: unknown[];
+  buildVersion: string;
+  fetchVersion: string;
+} {
   const testDataPath = path.resolve("_test/all.json");
   if (!fs.existsSync(testDataPath)) {
     console.error(
@@ -154,7 +167,16 @@ function loadTestData(): any[] {
     );
     process.exit(1);
   }
-  return JSON.parse(fs.readFileSync(testDataPath, "utf-8")).data;
+  const parsed = JSON.parse(fs.readFileSync(testDataPath, "utf-8")) as {
+    data: unknown[];
+    build_number?: string;
+  };
+  const buildVersion = parsed.build_number ?? "test-build";
+  return {
+    data: parsed.data,
+    buildVersion,
+    fetchVersion: buildVersion,
+  };
 }
 
 /**
@@ -169,8 +191,17 @@ async function runBenchmark(scenario: string): Promise<Map<string, number[]>> {
   }
 
   // Common setup
-  const data = loadTestData();
-  const cbnData = new CBNData(data);
+  const fixture = loadTestData();
+  const cbnData = new CBNData(
+    fixture.data,
+    fixture.buildVersion,
+    fixture.fetchVersion,
+    "en",
+    undefined,
+    undefined,
+    [],
+    {},
+  );
 
   clearPerformanceMarks();
   // Run scenario-specific benchmark

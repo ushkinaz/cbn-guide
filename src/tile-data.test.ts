@@ -13,8 +13,8 @@ import {
 
 function fakeData(overrides: Partial<CBNData>): CBNData {
   return {
-    active_mods: [],
-    raw_mods_json: {},
+    activeMods: [],
+    rawModsJSON: {},
     ...overrides,
   } as unknown as CBNData;
 }
@@ -53,8 +53,8 @@ describe("tile-data mod_tileset support", () => {
 
   test("collectActiveModTilesets reads only active mods in order", () => {
     const data = fakeData({
-      active_mods: ["a", "b"],
-      raw_mods_json: {
+      activeMods: ["a", "b"],
+      rawModsJSON: {
         a: {
           info: {
             type: "MOD_INFO",
@@ -224,8 +224,8 @@ describe("tile-data mod_tileset support", () => {
 
     const data = fakeData({
       all: () => [],
-      active_mods: ["mod_a", "mod_b"],
-      raw_mods_json: {
+      activeMods: ["mod_a", "mod_b"],
+      rawModsJSON: {
         mod_a: {
           info: {
             type: "MOD_INFO",
@@ -303,8 +303,8 @@ describe("tile-data mod_tileset support", () => {
 
     const data = fakeData({
       all: () => [],
-      active_mods: ["civilians"],
-      raw_mods_json: {
+      activeMods: ["civilians"],
+      rawModsJSON: {
         civilians: {
           info: {
             type: "MOD_INFO",
@@ -376,8 +376,8 @@ describe("tile-data mod_tileset support", () => {
 
     const data = fakeData({
       all: () => [],
-      active_mods: [],
-      raw_mods_json: {},
+      activeMods: [],
+      rawModsJSON: {},
     });
 
     const tileset = TILESETS.find((entry) => entry.name === "undead_people")!;
@@ -427,8 +427,8 @@ describe("tile-data mod_tileset support", () => {
           ],
         },
       ]) as unknown as CBNData["all"],
-      active_mods: [],
-      raw_mods_json: {},
+      activeMods: [],
+      rawModsJSON: {},
     });
 
     const tileset = TILESETS.find((entry) => entry.name === "undead_people")!;

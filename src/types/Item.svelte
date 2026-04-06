@@ -52,7 +52,7 @@ import UsageDescription from "./UsageDescription.svelte";
 import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
-import { i18n, gameSingular, gameSingularName } from "../i18n/gettext";
+import { i18n, gameSingular, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
   item: Item;

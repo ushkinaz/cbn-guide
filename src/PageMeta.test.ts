@@ -120,6 +120,12 @@ describe("PageMeta", () => {
             }),
         } as Response);
       }
+      if (href.includes("all_mods.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({}),
+        } as Response);
+      }
 
       return Promise.reject(new Error(`Unexpected fetch: ${href}`));
     }) as unknown as typeof fetch;
@@ -130,7 +136,7 @@ describe("PageMeta", () => {
       expect(document.title).toBe(UI_GUIDE_NAME);
 
       await act(async () => {
-        await data.setVersion("stable", null, undefined, []);
+        await data.loadData("stable", "en", []);
       });
 
       await waitFor(() => {

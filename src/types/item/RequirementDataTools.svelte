@@ -7,7 +7,7 @@ import { CBNData } from "../../data";
 
 import type { Recipe, RequirementData } from "../../types";
 import ItemLink from "../ItemLink.svelte";
-import { gameSingularName, i18n } from "../../i18n/gettext";
+import { gameSingularName, i18n } from "../../i18n/game-locale";
 import { buildLinkTo } from "../../navigation.svelte";
 
 interface Props {
