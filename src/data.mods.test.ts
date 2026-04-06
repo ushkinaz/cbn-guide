@@ -35,7 +35,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       // Mock progress store
       (globalThis as any).__isTesting__ = true;
 
-      await expect(data.loadData("latest", "en", [])).resolves.not.toThrow();
+      await data.loadData("latest", "en", []);
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
@@ -78,7 +78,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
 
     try {
       (globalThis as any).__isTesting__ = true;
-      await expect(data.loadData("latest", "en", [])).resolves.not.toThrow();
+      await data.loadData("latest", "en", []);
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
@@ -123,9 +123,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       (globalThis as any).__isTesting__ = true;
 
       // Requesting a mod that won't be found because all_mods.json is 404
-      await expect(
-        data.loadData("latest", "en", ["some_mod"]),
-      ).resolves.not.toThrow();
+      await data.loadData("latest", "en", ["some_mod"]);
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
@@ -166,9 +164,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
 
     try {
       (globalThis as any).__isTesting__ = true;
-      await expect(
-        data.loadData("latest", "en", ["some_mod"]),
-      ).resolves.not.toThrow();
+      await data.loadData("latest", "en", ["some_mod"]);
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
