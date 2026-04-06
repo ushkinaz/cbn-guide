@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { getDataJsonUrl } from "./constants";
+import { getDataJSONUrl } from "./constants";
 import { loadRawDataset } from "./data-loader";
 import { HttpError } from "./utils/http-errors";
 
@@ -57,32 +57,32 @@ afterEach(() => {
 });
 
 describe("loadRawDataset", () => {
-  test("loadRawDataset returns dataJson on success", async () => {
+  test("loadRawDataset returns dataJSON on success", async () => {
     const version = "nightly";
     const locale = "zh_CN";
-    const dataJson = { data: [{ id: "item_1" }], build_number: "123" };
-    const localeJson = { "": { language: "zh_CN" }, item_1: ["Locale"] };
-    const pinyinJson = { item_1: ["PinYin"] };
-    const modsJson = { aftershock: { info: { id: "aftershock" }, data: [] } };
+    const dataJSON = { data: [{ id: "item_1" }], build_number: "123" };
+    const localeJSON = { "": { language: "zh_CN" }, item_1: ["Locale"] };
+    const pinyinJSON = { item_1: ["PinYin"] };
+    const modsJSON = { aftershock: { info: { id: "aftershock" }, data: [] } };
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
-        Promise.resolve(jsonResponse(dataJson)),
-      [getDataJsonUrl(version, `lang/${locale}.json`)]: () =>
-        Promise.resolve(jsonResponse(localeJson)),
-      [getDataJsonUrl(version, `lang/${locale}_pinyin.json`)]: () =>
-        Promise.resolve(jsonResponse(pinyinJson)),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
-        Promise.resolve(jsonResponse(modsJson)),
+      [getDataJSONUrl(version, "all.json")]: () =>
+        Promise.resolve(jsonResponse(dataJSON)),
+      [getDataJSONUrl(version, `lang/${locale}.json`)]: () =>
+        Promise.resolve(jsonResponse(localeJSON)),
+      [getDataJSONUrl(version, `lang/${locale}_pinyin.json`)]: () =>
+        Promise.resolve(jsonResponse(pinyinJSON)),
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
+        Promise.resolve(jsonResponse(modsJSON)),
     });
 
     const result = await loadRawDataset(version, locale, () => {});
 
     expect(result).toEqual({
-      dataJson,
-      localeJson,
-      pinyinJson,
-      modsJson,
+      dataJSON: dataJSON,
+      localeJSON: localeJSON,
+      pinyinJSON: pinyinJSON,
+      modsJSON: modsJSON,
     });
   });
 
@@ -92,10 +92,10 @@ describe("loadRawDataset", () => {
     const error = new HttpError("HTTP 500 (Server Error)", 500, "all.json");
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () => Promise.reject(error),
-      [getDataJsonUrl(version, `lang/${locale}.json`)]: () =>
+      [getDataJSONUrl(version, "all.json")]: () => Promise.reject(error),
+      [getDataJSONUrl(version, `lang/${locale}.json`)]: () =>
         Promise.resolve(jsonResponse({ "": { language: locale } })),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
@@ -105,20 +105,20 @@ describe("loadRawDataset", () => {
   test('loadRawDataset returns localeJson: undefined when locale is "en"', async () => {
     const version = "nightly";
     const fetchMock = installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
     const result = await loadRawDataset(version, "en", () => {});
 
-    expect(result.localeJson).toBeUndefined();
+    expect(result.localeJSON).toBeUndefined();
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock).not.toHaveBeenCalledWith(
-      getDataJsonUrl(version, "lang/en.json"),
+      getDataJSONUrl(version, "lang/en.json"),
     );
   });
 
@@ -127,11 +127,11 @@ describe("loadRawDataset", () => {
     const locale = "uk";
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, `lang/${locale}.json`)]: () =>
+      [getDataJSONUrl(version, `lang/${locale}.json`)]: () =>
         Promise.resolve(
           jsonResponse(null, {
             ok: false,
@@ -139,13 +139,13 @@ describe("loadRawDataset", () => {
             statusText: "Not Found",
           }),
         ),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
     const result = await loadRawDataset(version, locale, () => {});
 
-    expect(result.localeJson).toBeUndefined();
+    expect(result.localeJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       `Failed to load locale ${locale}:`,
       expect.any(HttpError),
@@ -158,19 +158,19 @@ describe("loadRawDataset", () => {
     const error = new Error("Network down");
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, `lang/${locale}.json`)]: () =>
+      [getDataJSONUrl(version, `lang/${locale}.json`)]: () =>
         Promise.reject(error),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
     const result = await loadRawDataset(version, locale, () => {});
 
-    expect(result.localeJson).toBeUndefined();
+    expect(result.localeJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       `Failed to load locale ${locale}:`,
       error,
@@ -181,39 +181,39 @@ describe("loadRawDataset", () => {
     const version = "nightly";
 
     const zhFetchMock = installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, "lang/zh_CN.json")]: () =>
+      [getDataJSONUrl(version, "lang/zh_CN.json")]: () =>
         Promise.resolve(jsonResponse({ "": { language: "zh_CN" } })),
-      [getDataJsonUrl(version, "lang/zh_CN_pinyin.json")]: () =>
+      [getDataJSONUrl(version, "lang/zh_CN_pinyin.json")]: () =>
         Promise.resolve(jsonResponse({ item_1: ["PinYin"] })),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
     await loadRawDataset(version, "zh_CN", () => {});
 
     expect(zhFetchMock).toHaveBeenCalledWith(
-      getDataJsonUrl(version, "lang/zh_CN_pinyin.json"),
+      getDataJSONUrl(version, "lang/zh_CN_pinyin.json"),
     );
 
     const ukFetchMock = installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, "lang/uk.json")]: () =>
+      [getDataJSONUrl(version, "lang/uk.json")]: () =>
         Promise.resolve(jsonResponse({ "": { language: "uk" } })),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
     await loadRawDataset(version, "uk", () => {});
 
     expect(ukFetchMock).not.toHaveBeenCalledWith(
-      getDataJsonUrl(version, "lang/uk_pinyin.json"),
+      getDataJSONUrl(version, "lang/uk_pinyin.json"),
     );
   });
 
@@ -222,13 +222,13 @@ describe("loadRawDataset", () => {
     const locale = "zh_CN";
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, `lang/${locale}.json`)]: () =>
+      [getDataJSONUrl(version, `lang/${locale}.json`)]: () =>
         Promise.resolve(jsonResponse({ "": { language: locale } })),
-      [getDataJsonUrl(version, `lang/${locale}_pinyin.json`)]: () =>
+      [getDataJSONUrl(version, `lang/${locale}_pinyin.json`)]: () =>
         Promise.resolve(
           jsonResponse(null, {
             ok: false,
@@ -236,13 +236,13 @@ describe("loadRawDataset", () => {
             statusText: "Not Found",
           }),
         ),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
     const result = await loadRawDataset(version, locale, () => {});
 
-    expect(result.pinyinJson).toBeUndefined();
+    expect(result.pinyinJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       `Failed to load pinyin for ${locale}:`,
       expect.any(HttpError),
@@ -253,11 +253,11 @@ describe("loadRawDataset", () => {
     const version = "nightly";
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(
           jsonResponse(null, {
             ok: false,
@@ -269,7 +269,7 @@ describe("loadRawDataset", () => {
 
     const result = await loadRawDataset(version, "en", () => {});
 
-    expect(result.modsJson).toBeUndefined();
+    expect(result.modsJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       "Failed to load mods catalog:",
       expect.any(HttpError),
@@ -281,16 +281,16 @@ describe("loadRawDataset", () => {
     const error = new Error("mods network failure");
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, "all_mods.json")]: () => Promise.reject(error),
+      [getDataJSONUrl(version, "all_mods.json")]: () => Promise.reject(error),
     });
 
     const result = await loadRawDataset(version, "en", () => {});
 
-    expect(result.modsJson).toBeUndefined();
+    expect(result.modsJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       "Failed to load mods catalog:",
       error,
@@ -303,15 +303,15 @@ describe("loadRawDataset", () => {
     const onProgress = vi.fn<(received: number, total: number) => void>();
 
     installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () =>
+      [getDataJSONUrl(version, "all.json")]: () =>
         Promise.resolve(
           jsonResponse({ data: [{ id: "item_1" }], build_number: "123" }),
         ),
-      [getDataJsonUrl(version, `lang/${locale}.json`)]: () =>
+      [getDataJSONUrl(version, `lang/${locale}.json`)]: () =>
         Promise.resolve(jsonResponse({ "": { language: locale } })),
-      [getDataJsonUrl(version, `lang/${locale}_pinyin.json`)]: () =>
+      [getDataJSONUrl(version, `lang/${locale}_pinyin.json`)]: () =>
         Promise.resolve(jsonResponse({ item_1: ["PinYin"] })),
-      [getDataJsonUrl(version, "all_mods.json")]: () =>
+      [getDataJSONUrl(version, "all_mods.json")]: () =>
         Promise.resolve(jsonResponse({})),
     });
 
@@ -329,22 +329,22 @@ describe("loadRawDataset", () => {
     const pinyinDeferred = createDeferred<Response>();
     const modsDeferred = createDeferred<Response>();
     const fetchMock = installFetchMock({
-      [getDataJsonUrl(version, "all.json")]: () => dataDeferred.promise,
-      [getDataJsonUrl(version, `lang/${locale}.json`)]: () =>
+      [getDataJSONUrl(version, "all.json")]: () => dataDeferred.promise,
+      [getDataJSONUrl(version, `lang/${locale}.json`)]: () =>
         localeDeferred.promise,
-      [getDataJsonUrl(version, `lang/${locale}_pinyin.json`)]: () =>
+      [getDataJSONUrl(version, `lang/${locale}_pinyin.json`)]: () =>
         pinyinDeferred.promise,
-      [getDataJsonUrl(version, "all_mods.json")]: () => modsDeferred.promise,
+      [getDataJSONUrl(version, "all_mods.json")]: () => modsDeferred.promise,
     });
 
     const loadPromise = loadRawDataset(version, locale, () => {});
 
     expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-      getDataJsonUrl(version, "all.json"),
-      getDataJsonUrl(version, `lang/${locale}.json`),
-      getDataJsonUrl(version, `lang/${locale}_pinyin.json`),
-      getDataJsonUrl(version, "all_mods.json"),
+      getDataJSONUrl(version, "all.json"),
+      getDataJSONUrl(version, `lang/${locale}.json`),
+      getDataJSONUrl(version, `lang/${locale}_pinyin.json`),
+      getDataJSONUrl(version, "all_mods.json"),
     ]);
 
     dataDeferred.resolve(
@@ -355,7 +355,7 @@ describe("loadRawDataset", () => {
     modsDeferred.resolve(jsonResponse({}));
 
     await expect(loadPromise).resolves.toMatchObject({
-      dataJson: { build_number: "123" },
+      dataJSON: { build_number: "123" },
     });
   });
 });

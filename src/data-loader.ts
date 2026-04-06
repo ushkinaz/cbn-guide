@@ -9,7 +9,7 @@
  * In tests, `isTesting` causes the module to fall back to the global `fetch`
  * API so test fixtures can intercept requests uniformly.
  */
-import { DEFAULT_LOCALE, getDataJsonUrl } from "./constants";
+import { DEFAULT_LOCALE, getDataJSONUrl } from "./constants";
 import { HttpError } from "./utils/http-errors";
 import { isTesting } from "./utils/env";
 
@@ -17,13 +17,13 @@ type ProgressCallback = (receivedBytes: number, totalBytes: number) => void;
 const noopProgress: ProgressCallback = () => {};
 
 export type LoadedRawDataset = {
-  dataJson: { data: unknown[]; build_number: string };
-  localeJson: unknown | undefined;
-  pinyinJson: unknown | undefined;
-  modsJson: unknown | undefined;
+  dataJSON: unknown;
+  localeJSON: unknown | undefined;
+  pinyinJSON: unknown | undefined;
+  modsJSON: unknown | undefined;
 };
 
-const fetchJsonWithProgress = (
+const fetchJSONWithProgress = (
   url: string,
   progress: ProgressCallback,
 ): Promise<unknown> => {
@@ -94,7 +94,7 @@ const fetchRawData = (
   version: string,
   progress: ProgressCallback,
 ): Promise<unknown> =>
-  fetchJsonWithProgress(getDataJsonUrl(version, "all.json"), progress);
+  fetchJSONWithProgress(getDataJSONUrl(version, "all.json"), progress);
 
 /**
  * Fetches a locale PO/MO translation file for a given build version and locale.
@@ -109,8 +109,8 @@ const fetchRawLocale = (
   locale: string,
   progress: ProgressCallback,
 ): Promise<unknown> =>
-  fetchJsonWithProgress(
-    getDataJsonUrl(version, `lang/${locale}.json`),
+  fetchJSONWithProgress(
+    getDataJSONUrl(version, `lang/${locale}.json`),
     progress,
   );
 
@@ -125,7 +125,7 @@ const fetchRawMods = (
   version: string,
   progress: ProgressCallback,
 ): Promise<unknown> =>
-  fetchJsonWithProgress(getDataJsonUrl(version, "all_mods.json"), progress);
+  fetchJSONWithProgress(getDataJSONUrl(version, "all_mods.json"), progress);
 
 export async function loadRawDataset(
   version: string,
@@ -161,11 +161,11 @@ export async function loadRawDataset(
   }
 
   return {
-    dataJson: dataResult.value as LoadedRawDataset["dataJson"],
-    localeJson:
+    dataJSON: dataResult.value,
+    localeJSON:
       localeResult.status === "fulfilled" ? localeResult.value : undefined,
-    pinyinJson:
+    pinyinJSON:
       pinyinResult.status === "fulfilled" ? pinyinResult.value : undefined,
-    modsJson: modsResult.status === "fulfilled" ? modsResult.value : undefined,
+    modsJSON: modsResult.status === "fulfilled" ? modsResult.value : undefined,
   };
 }

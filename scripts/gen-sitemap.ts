@@ -21,7 +21,7 @@ import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
-import { BUILDS_URL, CANONICAL_URL, getDataJsonUrl } from "../src/constants";
+import { BUILDS_URL, CANONICAL_URL, getDataJSONUrl } from "../src/constants";
 import { CBNData } from "../src/data";
 
 const agent = new EnvHttpProxyAgent();
@@ -108,7 +108,7 @@ async function loadData(): Promise<{
   const localAllJson = path.join(cacheDir, `all-${version}.json`);
 
   if (!(await fileExists(localAllJson))) {
-    const url = getDataJsonUrl(version, "all.json");
+    const url = getDataJSONUrl(version, "all.json");
     console.log(`Downloading ${url}...`);
     await downloadFile(url, localAllJson);
   }

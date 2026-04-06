@@ -64,7 +64,7 @@ import {
   byName,
   resetI18n,
   gameSingularName,
-  applyLocaleJson,
+  applyLocaleJSON,
 } from "./i18n/game-locale";
 import { loadRawDataset } from "./data-loader";
 
@@ -303,7 +303,7 @@ export class CBNData {
     // Apply locale to the shared i18n singleton before any data method runs.
     if (locale !== DEFAULT_LOCALE) {
       try {
-        applyLocaleJson(localeJSON, pinyinJSON ?? null, this.locale);
+        applyLocaleJSON(localeJSON, pinyinJSON ?? null, this.locale);
       } catch (e) {
         console.warn("Failed to apply locale JSON in CBNData constructor:", e);
         resetI18n("en");
@@ -2280,7 +2280,7 @@ function trapIdsFromUseAction(action: Item["use_action"]): string[] {
   return [...trapIds];
 }
 
-type ParsedModsJson = {
+type ParsedModsJSON = {
   mods: ModInfo[];
   raw: Record<string, ModData>;
   byId: Map<string, ModData>;
@@ -2306,7 +2306,7 @@ function sanitizeTranslation(value: Translation): Translation {
   };
 }
 
-function parseModsJson(rawMods: unknown): ParsedModsJson {
+function parseModsJSON(rawMods: unknown): ParsedModsJSON {
   if (!isRecord(rawMods)) {
     throw new Error("Invalid all_mods.json: expected top-level object map");
   }
@@ -2423,6 +2423,13 @@ export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
 
 const { subscribe, set } = writable<CBNData | null>(null);
 
+type BuildData = {
+  build_number: string;
+  release: unknown;
+  data: any[];
+  mods: unknown | undefined;
+};
+
 export const data = {
   subscribe,
   /**
@@ -2456,7 +2463,7 @@ export const data = {
       if (isCancelled()) return false;
 
       let effectiveLocale = locale;
-      if (locale !== DEFAULT_LOCALE && !raw.localeJson) {
+      if (locale !== DEFAULT_LOCALE && !raw.localeJSON) {
         console.warn(
           `Failed to load locale ${locale}, falling back to English`,
         );
@@ -2464,15 +2471,26 @@ export const data = {
       }
 
       let filteredActiveMods: string[] = [];
-      let mergedData = raw.dataJson.data;
+      //TODO: use `zod` maybe
+      if (
+        !(
+          isRecord(raw.dataJSON) &&
+          "data" in raw.dataJSON &&
+          "build_number" in raw.dataJSON
+        )
+      ) {
+        throw new Error("Invalid all.json: expected top-level object map");
+      }
+      const coreJSON = raw.dataJSON as BuildData;
+      let mergedData = coreJSON.data;
       let rawModsJSON: Record<string, ModData> = {};
 
-      if (raw.modsJson) {
-        const parsedMods = parseModsJson(raw.modsJson);
+      if (raw.modsJSON) {
+        const parsedMods = parseModsJSON(raw.modsJSON);
         rawModsJSON = parsedMods.raw;
         filteredActiveMods = filterActiveMods(activeMods, parsedMods.byId);
         mergedData = mergeDataWithActiveMods(
-          raw.dataJson.data,
+          coreJSON.data,
           parsedMods.byId,
           filteredActiveMods,
         );
@@ -2480,11 +2498,11 @@ export const data = {
 
       const instance = new CBNData(
         mergedData,
-        raw.dataJson.build_number,
+        coreJSON.build_number,
         version,
         effectiveLocale,
-        raw.localeJson,
-        raw.pinyinJson,
+        raw.localeJSON,
+        raw.pinyinJSON,
         filteredActiveMods,
         rawModsJSON,
       );

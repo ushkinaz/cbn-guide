@@ -14,7 +14,7 @@ export const BUILDS_URL = `${CBN_DATA_BASE_URL}/builds.json`;
  * @param {string} path
  * @returns {string}
  */
-export const getDataJsonUrl = (version: string, path: string): string =>
+export const getDataJSONUrl = (version: string, path: string): string =>
   `${CBN_DATA_BASE_URL}/data/${version}/${path}`;
 
 export const GAME_REPO_PATH = "cataclysmbn/Cataclysm-BN";

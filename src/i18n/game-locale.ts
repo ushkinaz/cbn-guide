@@ -82,7 +82,7 @@ export function resolveLocale(
  * @param pinyinJSON     Optional pinyin supplement (zh_* locales only).
  * @param locale The locale string that was actually loaded.
  */
-export function applyLocaleJson(
+export function applyLocaleJSON(
   localeJSON: unknown,
   pinyinJSON: unknown | null,
   locale: string,

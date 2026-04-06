@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
 import { colorForName } from "../src/colors";
-import { BUILDS_URL, getDataJsonUrl } from "../src/constants";
+import { BUILDS_URL, getDataJSONUrl } from "../src/constants";
 import { CBNData, mapType } from "../src/data";
 import type {
   TileChunk,
@@ -412,7 +412,7 @@ async function loadData(): Promise<{ gameData: CBNData; version: string }> {
   const localAllJson = path.join(cacheDir, `all-${version}.json`);
 
   if (!(await fileExists(localAllJson))) {
-    const url = getDataJsonUrl(version!, "all.json");
+    const url = getDataJSONUrl(version!, "all.json");
     console.log(`Downloading ${url}...`);
     await downloadFile(url, localAllJson);
   }
