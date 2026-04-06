@@ -7,12 +7,21 @@ import {
   parseVolume,
   omsName,
 } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 import type { OvermapSpecial } from "./types";
 
 import { gameSingularName } from "./i18n/game-locale";
+import { resolveLocale } from "./i18n/game-locale";
+import type { ModInfo } from "./types";
+
+function loadedModInfos(data: CBNData): ModInfo[] {
+  return Object.values(data.rawModsJSON)
+    .map((modData) => modData.info)
+    .filter((mod) => !mod.core);
+}
 
 test("flattened item group includes container item for distribution", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "item_group",
       id: "foo",
@@ -38,7 +47,7 @@ test("flattened item group includes container item for distribution", () => {
 });
 
 test("flattened item group includes container item for collection", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "item_group",
       id: "foo",
@@ -72,7 +81,7 @@ test("byType returns canonical override entries without duplicate ids", () => {
     relative: { weight: 100 },
   };
 
-  const data = new CBNData([base, modOverride]);
+  const data = makeTestCBNData([base, modOverride]);
   const items = data.byType("item").filter((item) => item.id === "test_item");
 
   expect(items).toHaveLength(1);
@@ -81,7 +90,7 @@ test("byType returns canonical override entries without duplicate ids", () => {
 });
 
 test("includes container item specified in item", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "item_group",
       id: "foo",
@@ -117,7 +126,7 @@ test("getDissectionSources returns monsters that provide the item via dissection
   const item_id = "item_test";
   const group_id = "group_test";
 
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "MONSTER",
       id: monster_id,
@@ -158,7 +167,7 @@ test("getDissectionSources returns monsters that provide the item via dissection
 });
 
 test("getDissectionSources ignores missing bionic_group references", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "MONSTER",
       id: "mon_test",
@@ -176,7 +185,7 @@ test("getDissectionSources ignores missing bionic_group references", () => {
 });
 
 test("nested", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "COMESTIBLE",
       id: "water_clean",
@@ -255,7 +264,7 @@ describe("Parsing units", () => {
 });
 
 test("flattenItemGroup: deep nested groups", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "item_group",
       id: "leaf",
@@ -295,7 +304,7 @@ test("flattenItemGroup: deep nested groups", () => {
 });
 
 test("flattenItemGroup: container-item in entry", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "item_group",
       id: "foo",
@@ -309,7 +318,7 @@ test("flattenItemGroup: container-item in entry", () => {
 });
 
 test("flattenRequirement: basic expansion", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "requirement",
       id: "req_a",
@@ -321,7 +330,7 @@ test("flattenRequirement: basic expansion", () => {
 });
 
 test("flattenRequirement: substitutes", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "TOOL",
       id: "welder",
@@ -346,7 +355,7 @@ test("flattenRequirement: substitutes", () => {
 });
 
 test("flattenRequirement: onlyRecoverable", () => {
-  const data = new CBNData([
+  const data = makeTestCBNData([
     {
       type: "item",
       id: "stick",
@@ -370,7 +379,7 @@ test("flattenRequirement: onlyRecoverable", () => {
 });
 
 describe("Language Loading Fallback", () => {
-  test("setVersion should not crash if locale JSON is malformed", async () => {
+  test("loadData should not crash if locale JSON is malformed", async () => {
     const mockData = {
       data: [{ type: "item", id: "stick", name: "Stick" }],
       build_number: "123",
@@ -411,7 +420,7 @@ describe("Language Loading Fallback", () => {
       (globalThis as any).__isTesting__ = true;
 
       // This should NOT throw "Wrong JSON, it must have an empty key ("") ..."
-      await data.setVersion("latest", "fr");
+      await data.loadData("latest", "fr");
 
       // Verify data is still loaded
       const d = await new Promise<CBNData | null>((resolve) => {
@@ -437,7 +446,7 @@ describe("Language Loading Fallback", () => {
 
 describe("omsName", () => {
   test("returns oms.id if subtype is mutable", () => {
-    const data = new CBNData([]);
+    const data = makeTestCBNData([]);
     const oms: OvermapSpecial = {
       type: "overmap_special",
       id: "Lab",
@@ -447,7 +456,7 @@ describe("omsName", () => {
   });
 
   test("returns singular name of center omt", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "overmap_terrain",
         id: "house_01",
@@ -463,7 +472,7 @@ describe("omsName", () => {
   });
 
   test("strips direction suffix correctly", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "overmap_terrain",
         id: "house_01",
@@ -479,7 +488,7 @@ describe("omsName", () => {
   });
 
   test("ignores non-ground level overmaps", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "overmap_terrain",
         id: "house_01",
@@ -504,107 +513,21 @@ describe("omsName", () => {
 });
 
 test("CBNData stores fetching_version", () => {
-  const data = new CBNData([], "123", {}, "stable");
-  expect(data.fetching_version).toBe("stable");
-  expect(data.build_number).toBe("123");
+  const data = makeTestCBNData([], {
+    buildVersion: "123",
+    fetchVersion: "stable",
+  });
+  expect(data.fetchVersion).toBe("stable");
+  expect(data.buildVersion).toBe("123");
 });
 
 describe("Detailed Locale Fallback Mechanism", () => {
-  test("should fall back to geographical part if full locale missing (uk_UA -> uk)", async () => {
-    const mockData = { data: [], build_number: "123", release: "test" };
-    const mockLocaleUk = {
-      "": { language: "uk", "plural-forms": "nplurals=3; plural=0;" },
-      Stick: "Палиця",
-    };
-
-    const originalFetch = globalThis.fetch;
-    const fetchCalls: string[] = [];
-
-    globalThis.fetch = ((url: string) => {
-      fetchCalls.push(url);
-      if (url.includes("all.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockData),
-        } as Response);
-      }
-      if (url.includes("all_mods.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({}),
-        } as Response);
-      }
-      if (url.includes("lang/uk_UA.json")) {
-        // Return 404 or just fail
-        return Promise.resolve({
-          ok: false,
-          status: 404,
-          json: () => Promise.reject(new Error("404")),
-        } as Response);
-      }
-      if (url.includes("lang/uk.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockLocaleUk),
-        } as Response);
-      }
-      return Promise.reject(new Error("Unexpected fetch"));
-    }) as any;
-
-    try {
-      (globalThis as any).__isTesting__ = true;
-      // We pass metadata that only 'uk' is available
-      await data.setVersion("latest", "uk_UA", ["uk"]);
-
-      // Should NOT try uk_UA because it's not in the metadata
-      expect(fetchCalls.some((url) => url.includes("lang/uk_UA.json"))).toBe(
-        false,
-      );
-      // Should try uk because it is in the metadata as a fallback
-      expect(fetchCalls.some((url) => url.includes("lang/uk.json"))).toBe(true);
-    } finally {
-      globalThis.fetch = originalFetch;
-      (globalThis as any).__isTesting__ = false;
-    }
+  test("resolveLocale prefers the geographical fallback when available", () => {
+    expect(resolveLocale("uk_UA", ["uk"])).toBe("uk");
   });
 
-  test("should fall back to English if both full and partial locales missing", async () => {
-    const mockData = { data: [], build_number: "123", release: "test" };
-
-    const originalFetch = globalThis.fetch;
-    const fetchCalls: string[] = [];
-    globalThis.fetch = ((url: string) => {
-      fetchCalls.push(url);
-      if (url.includes("all.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockData),
-        } as Response);
-      }
-      if (url.includes("all_mods.json")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({}),
-        } as Response);
-      }
-      return Promise.resolve({
-        ok: false,
-        status: 404,
-        json: () => Promise.reject(new Error("404")),
-      } as Response);
-    }) as any;
-
-    try {
-      (globalThis as any).__isTesting__ = true;
-      // Pass metadata that NO locales are available
-      await data.setVersion("latest", "zz_ZZ", []);
-
-      // Should not try ANY locale because none are in metadata
-      expect(fetchCalls.some((url) => url.includes("lang/"))).toBe(false);
-    } finally {
-      globalThis.fetch = originalFetch;
-      (globalThis as any).__isTesting__ = false;
-    }
+  test("resolveLocale falls back to English when no locale matches", () => {
+    expect(resolveLocale("zz_ZZ", [])).toBe("en");
   });
 });
 
@@ -620,7 +543,7 @@ describe("Mod Data Loading", () => {
     });
   }
 
-  test("setVersion without active mods still loads the mod catalog", async () => {
+  test("loadData without active mods still loads the mod catalog", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -660,20 +583,22 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, []);
+      await data.loadData("latest", "en", []);
       const loaded = await getLoadedData();
       expect(fetchCalls.some((url) => url.includes("all_mods.json"))).toBe(
         true,
       );
-      expect(loaded.mods.map((mod) => mod.id)).toEqual(["aftershock"]);
-      expect(loaded.active_mods).toEqual([]);
-      expect(Object.keys(loaded.raw_mods_json)).toEqual(["aftershock"]);
+      expect(loadedModInfos(loaded).map((mod) => mod.id)).toEqual([
+        "aftershock",
+      ]);
+      expect(loaded.activeMods).toEqual([]);
+      expect(Object.keys(loaded.rawModsJSON)).toEqual(["aftershock"]);
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 
-  test("setVersion with active mods filters unknown/core ids and preserves ordered active_mods", async () => {
+  test("loadData with active mods filters unknown/core ids and preserves ordered active_mods", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -734,7 +659,7 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, [
+      await data.loadData("latest", "en", [
         "bn",
         "unknown",
         "magiclysm",
@@ -742,12 +667,12 @@ describe("Mod Data Loading", () => {
         "magiclysm",
       ]);
       const loaded = await getLoadedData();
-      expect(loaded.active_mods).toEqual(["magiclysm", "aftershock"]);
-      expect(loaded.mods.map((mod) => mod.id)).toEqual([
+      expect(loaded.activeMods).toEqual(["magiclysm", "aftershock"]);
+      expect(loadedModInfos(loaded).map((mod) => mod.id)).toEqual([
         "aftershock",
         "magiclysm",
       ]);
-      expect(Object.keys(loaded.raw_mods_json)).toEqual([
+      expect(Object.keys(loaded.rawModsJSON)).toEqual([
         "aftershock",
         "bn",
         "magiclysm",
@@ -759,7 +684,7 @@ describe("Mod Data Loading", () => {
     }
   });
 
-  test("setVersion cleans mod names and descriptions from color tags", async () => {
+  test("loadData cleans mod names and descriptions from color tags", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -797,12 +722,14 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, ["aftershock"]);
+      await data.loadData("latest", "en", ["aftershock"]);
       const loaded = await getLoadedData();
-      expect(loaded.mods?.[0]?.name).toBe("Aftershock");
-      expect(loaded.mods?.[0]?.description).toBe("Line 1 tagged Line 2");
-      expect(loaded.raw_mods_json?.aftershock.info.name).toBe("Aftershock");
-      expect(loaded.raw_mods_json?.aftershock.info.description).toBe(
+      expect(loadedModInfos(loaded)[0]?.name).toBe("Aftershock");
+      expect(loadedModInfos(loaded)[0]?.description).toBe(
+        "Line 1 tagged Line 2",
+      );
+      expect(loaded.rawModsJSON?.aftershock.info.name).toBe("Aftershock");
+      expect(loaded.rawModsJSON?.aftershock.info.description).toBe(
         "Line 1 tagged Line 2",
       );
     } finally {
@@ -810,7 +737,7 @@ describe("Mod Data Loading", () => {
     }
   });
 
-  test("setVersion handles 404 all_mods.json with empty arrays", async () => {
+  test("loadData handles 404 all_mods.json with empty arrays", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -836,17 +763,17 @@ describe("Mod Data Loading", () => {
     }) as any;
 
     try {
-      await data.setVersion("latest", null, undefined, ["aftershock"]);
+      await data.loadData("latest", "en", ["aftershock"]);
       const loaded = await getLoadedData();
-      expect(loaded.mods).toEqual([]);
-      expect(loaded.active_mods).toEqual([]);
-      expect(loaded.raw_mods_json).toEqual({});
+      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
+      expect(loaded.activeMods).toEqual([]);
+      expect(loaded.rawModsJSON).toEqual({});
     } finally {
       globalThis.fetch = originalFetch;
     }
   });
 
-  test("setVersion throws on invalid all_mods.json shape", async () => {
+  test("loadData throws on invalid all_mods.json shape", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -872,7 +799,7 @@ describe("Mod Data Loading", () => {
 
     try {
       await expect(
-        data.setVersion("latest", null, undefined, ["aftershock"]),
+        data.loadData("latest", "en", ["aftershock"]),
       ).rejects.toThrow("Invalid all_mods.json");
     } finally {
       globalThis.fetch = originalFetch;

@@ -162,5 +162,5 @@ if (construction.pre_flags)
       {gameSingular(construction.pre_note)}
     </p>
   {/if}
-  <JsonView obj={construction} buildNumber={data.build_number} />
+  <JsonView obj={construction} buildNumber={data.buildVersion} />
 </section>

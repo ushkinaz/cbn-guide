@@ -5,7 +5,7 @@
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/svelte";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import ModSelector from "./ModSelector.svelte";
-import type { ModInfo } from "./types";
+import type { ModData, ModInfo } from "./types";
 
 const testMods: ModInfo[] = [
   {
@@ -62,12 +62,22 @@ function isChecked(input: HTMLInputElement): boolean {
   );
 }
 
+function toRawModsJson(mods: ModInfo[]): Record<string, ModData> {
+  return Object.fromEntries(
+    mods.map((mod) => [mod.id, { info: mod, data: [] }]),
+  );
+}
+
+const testRawModsJson = toRawModsJson(testMods);
+
 describe("ModSelector", () => {
   test("checks currently selected mods when opened", () => {
-    const { getAllByText, getByLabelText, getByText } = render(ModSelector, {
-      open: true,
-      mods: testMods,
-      selectedModIds: ["aftershock"],
+    const { getByLabelText, getByText } = render(ModSelector, {
+      props: {
+        open: true,
+        rawModsJson: testRawModsJson,
+        selectedModIds: ["aftershock"],
+      },
     });
 
     expect(getByText("content")).toBeTruthy();
@@ -85,11 +95,13 @@ describe("ModSelector", () => {
     const onClose = vi.fn();
     const onApply = vi.fn();
     const { getByLabelText, getByText } = render(ModSelector, {
-      open: true,
-      mods: testMods,
-      selectedModIds: ["aftershock"],
-      onclose: onClose,
-      onapply: onApply,
+      props: {
+        open: true,
+        rawModsJson: testRawModsJson,
+        selectedModIds: ["aftershock"],
+        onclose: onClose,
+        onapply: onApply,
+      },
     });
 
     await fireEvent.keyDown(window, { key: "Escape" });
@@ -104,10 +116,12 @@ describe("ModSelector", () => {
   test("reset clears all selected mods", async () => {
     const onApply = vi.fn();
     const { getByLabelText, getByText } = render(ModSelector, {
-      open: true,
-      mods: testMods,
-      selectedModIds: ["aftershock"],
-      onapply: onApply,
+      props: {
+        open: true,
+        rawModsJson: testRawModsJson,
+        selectedModIds: ["aftershock"],
+        onapply: onApply,
+      },
     });
 
     expect(isChecked(getByLabelText("Aftershock") as HTMLInputElement)).toBe(
@@ -130,10 +144,12 @@ describe("ModSelector", () => {
   test("selecting mod auto-selects dependencies", async () => {
     const onApply = vi.fn();
     const { getByLabelText, getByText } = render(ModSelector, {
-      open: true,
-      mods: testMods,
-      selectedModIds: [],
-      onapply: onApply,
+      props: {
+        open: true,
+        rawModsJson: testRawModsJson,
+        selectedModIds: [],
+        onapply: onApply,
+      },
     });
 
     await fireEvent.click(getByLabelText("Arcana"));
@@ -153,10 +169,12 @@ describe("ModSelector", () => {
   test("default selects game default mods that are available", async () => {
     const onApply = vi.fn();
     const { getByText } = render(ModSelector, {
-      open: true,
-      mods: testMods,
-      selectedModIds: ["aftershock"],
-      onapply: onApply,
+      props: {
+        open: true,
+        rawModsJson: testRawModsJson,
+        selectedModIds: ["aftershock"],
+        onapply: onApply,
+      },
     });
 
     await fireEvent.click(getByText("Default"));
@@ -169,10 +187,12 @@ describe("ModSelector", () => {
   test("default restores full defaults after manual uncheck", async () => {
     const onApply = vi.fn();
     const { getByLabelText, getByText } = render(ModSelector, {
-      open: true,
-      mods: testMods,
-      selectedModIds: [],
-      onapply: onApply,
+      props: {
+        open: true,
+        rawModsJson: testRawModsJson,
+        selectedModIds: [],
+        onapply: onApply,
+      },
     });
 
     await fireEvent.click(getByText("Default"));
@@ -190,7 +210,6 @@ describe("ModSelector", () => {
   });
 
   test("renders mod content stats and skips missing categories", () => {
-    const modsWithStats: ModInfo[] = [{ ...testMods[2] }];
     const rawModsJson = {
       aftershock: {
         info: testMods[2],
@@ -202,10 +221,11 @@ describe("ModSelector", () => {
       },
     };
     const { getByText, queryByText } = render(ModSelector, {
-      open: true,
-      mods: modsWithStats,
-      rawModsJson,
-      selectedModIds: [],
+      props: {
+        open: true,
+        rawModsJson,
+        selectedModIds: [],
+      },
     });
 
     expect(getByText("items:")).toBeTruthy();
@@ -219,9 +239,11 @@ describe("ModSelector", () => {
 
   test("adds and removes the body class with teardown", async () => {
     const view = render(ModSelector, {
-      open: true,
-      mods: testMods,
-      selectedModIds: [],
+      props: {
+        open: true,
+        rawModsJson: testRawModsJson,
+        selectedModIds: [],
+      },
     });
 
     await waitFor(() =>
@@ -230,7 +252,7 @@ describe("ModSelector", () => {
 
     await view.rerender({
       open: false,
-      mods: testMods,
+      rawModsJson: testRawModsJson,
       selectedModIds: [],
     });
 
@@ -242,7 +264,7 @@ describe("ModSelector", () => {
 
     await view.rerender({
       open: true,
-      mods: testMods,
+      rawModsJson: testRawModsJson,
       selectedModIds: [],
     });
 

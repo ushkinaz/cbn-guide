@@ -13,6 +13,7 @@
 import type { Translation } from "../types";
 import makeI18n, { type Gettext } from "gettext.js";
 import { stripColorTags } from "../utils/format";
+import { DEFAULT_LOCALE } from "./ui-locale";
 
 const needsPlural = [
   "AMMO",
@@ -44,9 +45,64 @@ export let i18n: Gettext = makeI18n();
  *
  * This is called when the app or a shared Node consumer switches language.
  */
-export function resetI18n(locale: string = "en"): void {
+export function resetI18n(locale: string = DEFAULT_LOCALE): void {
   i18n = makeI18n();
   i18n.setLocale(locale);
+}
+
+/**
+ * Resolves the locale file that should be requested for a build.
+ *
+ * Resolution order:
+ * 1. Exact match in availableLangs → return it.
+ * 2. Base language match ("ru_RU" → "ru") in availableLangs → return it.
+ * 3. No match found → fall back to `DEFAULT_LOCALE`.
+ *
+ * The caller decides whether the resolved locale requires an extra fetch.
+ */
+export function resolveLocale(
+  requestedLocale: string,
+  availableLangs: string[],
+): string {
+  if (availableLangs.includes(requestedLocale)) return requestedLocale;
+  const partialLocale = requestedLocale.split("_")[0];
+  if (availableLangs.includes(partialLocale)) return partialLocale;
+  return DEFAULT_LOCALE;
+}
+
+/**
+ * Loads pre-fetched locale JSON blobs into the shared gettext singleton.
+ *
+ * Must be called before constructing CBNData so translations are available
+ * at construction time. Makes the locale side effect explicit and testable
+ * in isolation.
+ *
+ * @param localeJSON     Parsed PO/MO data for the effective locale.
+ * @param pinyinJSON     Optional pinyin supplement (zh_* locales only).
+ * @param locale The locale string that was actually loaded.
+ */
+export function applyLocaleJson(
+  localeJSON: unknown,
+  pinyinJSON: unknown | null,
+  locale: string,
+): void {
+  if (
+    pinyinJSON &&
+    typeof pinyinJSON === "object" &&
+    typeof localeJSON === "object" &&
+    localeJSON !== null
+  ) {
+    (pinyinJSON as Record<string, unknown>)[""] = (
+      localeJSON as Record<string, unknown>
+    )[""];
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  i18n.loadJSON(localeJSON as any);
+  i18n.setLocale(locale);
+  if (pinyinJSON) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    i18n.loadJSON(pinyinJSON as any, "pinyin");
+  }
 }
 
 function getMsgId(t: Translation) {

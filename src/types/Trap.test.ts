@@ -5,11 +5,12 @@ import { render } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import WithData from "../WithData.svelte";
 import { CBNData } from "../data";
+import { makeTestCBNData } from "../data.test-helpers";
 import Trap from "./Trap.svelte";
 
 describe("Trap", () => {
   it("renders a basic trap showing names, stats and action", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "trap",
         id: "tr_crossbow",
@@ -44,7 +45,7 @@ describe("Trap", () => {
   });
 
   it("shows the Benign property", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "trap",
         id: "tr_funnel",
@@ -68,7 +69,7 @@ describe("Trap", () => {
   });
 
   it("shows the drops list correctly", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "trap",
         id: "tr_nailboard",
@@ -97,7 +98,7 @@ describe("Trap", () => {
   });
 
   it("shows the Remove on Trigger property and trigger_items", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "trap",
         id: "tr_beartrap",
@@ -128,7 +129,7 @@ describe("Trap", () => {
   });
 
   it("shows construction sources and trap-specific state", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "trap",
         id: "tr_bubblewrap",
@@ -164,7 +165,7 @@ describe("Trap", () => {
   });
 
   it("preserves quantity when count-by-charges drops specify quantity and charges", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "trap",
         id: "tr_charge_drop",

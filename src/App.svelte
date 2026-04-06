@@ -22,12 +22,7 @@ import {
   navigation,
   updateSearchRoute,
 } from "./navigation.svelte";
-import {
-  buildURL,
-  handleInternalNavigation,
-  navigateToURL,
-  type RouteTarget,
-} from "./routing.svelte";
+import { handleInternalNavigation } from "./routing.svelte";
 import {
   type BuildInfo,
   buildsState,
@@ -52,6 +47,7 @@ import RenderErrorFallback from "./RenderErrorFallback.svelte";
 import PageMeta from "./PageMeta.svelte";
 
 import { DEFAULT_LOCALE } from "./i18n/ui-locale";
+import { resolveLocale } from "./i18n/game-locale";
 
 let scrollY = $state(0);
 
@@ -60,7 +56,6 @@ const PWA_INSTALL_CONTEXT = "PWA Install";
 const VERSION_SELECTOR_CONTEXT = "Version Selector";
 const INTRO_DASHBOARD_CONTEXT = "Intro dashboard";
 const LANGUAGE_SELECTOR_CONTEXT = "Language selector";
-const URL_MODS_CONTEXT = "URL mods";
 const PREWARM_IDLE_TIMEOUT_MS = 500;
 
 function schedulePrewarm(cbnData: CBNData): void {
@@ -88,14 +83,6 @@ function schedulePrewarm(cbnData: CBNData): void {
   });
 }
 
-function arraysEqual(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
 function scrollToTop(): void {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -120,7 +107,6 @@ let latestNightlyBuild: BuildInfo | undefined = $derived(
 );
 let prewarmScheduledFor: CBNData | null = null;
 let lastDataLoadKey: string | null = $state(null);
-let translationWarningKey: string | null = $state(null);
 
 function updateSentryContext(resolvedVersion?: string): void {
   if (resolvedVersion) {
@@ -167,34 +153,30 @@ $effect(() => {
 
 /**
  * Loads game data for the given version/locale/mods combination.
- * Handles the setVersion call, Sentry capture, and user notification on error.
- * @returns `true` when data was loaded successfully, `false` on error.
+ * Handles the loadData call, Sentry capture, and user notification on error.
  */
 async function loadDataForVersion(
   requestedVersion: string,
-  requestedLocale: string,
-  resolvedVersionBuild: { langs?: string[] } | undefined,
   requestedMods: string[],
-  resolvedVersion: string,
-  dataLoadStart: number,
-): Promise<boolean> {
+  requestedLocale: string,
+): Promise<void> {
+  const dataLoadStart = nowTimeStamp();
   try {
-    await data.setVersion(
+    const result = await data.loadData(
       requestedVersion,
       requestedLocale,
-      resolvedVersionBuild?.langs,
       requestedMods,
     );
+    if (!result) return; // Aborted by newer data load
   } catch (error) {
     const context = {
       dataLoad: {
         requestedVersion,
-        resolvedVersion,
         requestedLocale,
         requestedMods,
       },
     };
-    console.warn("Failed to set version", error, context);
+    console.warn("Failed to load data", error, context);
     Sentry.captureException(error, {
       contexts: context,
     });
@@ -205,7 +187,7 @@ async function loadDataForVersion(
       ),
       "error",
     );
-    return false;
+    return;
   }
 
   metrics.distribution(
@@ -213,142 +195,43 @@ async function loadDataForVersion(
     nowTimeStamp() - dataLoadStart,
     { unit: "millisecond" },
   );
-  return true;
 }
 
-/**
- * Reconciles the requested mods against what the data layer actually resolved.
- * When the sets differ it navigates to a corrected URL and notifies the user.
- * @returns The updated `lastDataLoadKey` string when reconciliation happened,
- *          or `null` when no change was needed.
- */
-function reconcileMods(
-  requestedVersion: string,
-  requestedMods: string[],
-  resolvedMods: string[],
-  requestedLocale: string,
-  effectiveTileset: string,
-  routeTarget: RouteTarget,
-  resolvedVersion: string,
-): string | null {
-  if (arraysEqual(requestedMods, resolvedMods)) {
-    return null;
-  }
+let gameLocale: string = $derived.by(() =>
+  resolveLocale(navigation.locale, currentBuild?.langs ?? []),
+);
 
-  const removedMods = requestedMods.filter(
-    (modId) => !resolvedMods.includes(modId),
-  );
-  navigateToURL(
-    buildURL(
-      requestedVersion,
-      routeTarget,
-      requestedLocale,
-      effectiveTileset,
-      resolvedMods,
-    ),
-    "replace",
-  );
-  if (removedMods.length > 0) {
-    notify(
-      t("Unknown mods ignored: {mods}.", {
-        mods: removedMods.join(", "),
-        _context: URL_MODS_CONTEXT,
-      }),
-      "warn",
-    );
-  }
+let currentBuild: BuildInfo | undefined = $derived(
+  buildsState.current?.builds.find(
+    (build) => build.build_number === navigation.buildResolvedVersion,
+  ),
+);
 
-  return JSON.stringify({
-    requestedVersion,
-    resolvedVersion,
-    requestedLocale,
-    requestedMods: resolvedMods,
-  });
-}
-
-/**
- * Shows a one-time warning notification when the data layer fell back to a
- * different locale than the user requested.
- */
-function warnOnLocaleFallback(cbnData: CBNData): void {
-  if (
-    cbnData.requested_locale === cbnData.effective_locale ||
-    cbnData.requested_locale === DEFAULT_LOCALE
-  ) {
-    return;
-  }
-  const from = getLanguageName(cbnData.requested_locale);
-  const to = getLanguageName(cbnData.effective_locale);
-  notify(
-    t(
-      'Translation for "{requested_lang}" missing in {build_number}. Using "{resolved_lang}".',
-      {
-        build_number: cbnData.build_number,
-        requested_lang: from,
-        resolved_lang: to,
-      },
-    ),
-    "warn",
-  );
-}
+let modsActiveCount = $derived($data?.activeMods.length ?? 0);
 
 $effect(() => {
-  const currentBuilds = buildsState.current?.builds;
-  const requestedVersion = navigation.buildRequestedVersion;
-  const resolvedVersion = navigation.buildResolvedVersion;
-  const requestedLocale = navigation.locale;
-  const requestedMods = navigation.mods;
-  const routeTarget = navigation.target;
-  const effectiveTileset = navigation.tileset;
-
-  if (!currentBuilds || !resolvedVersion) {
+  if (!currentBuild || !navigation.buildResolvedVersion) {
     return;
   }
 
   const requestedStateKey = JSON.stringify({
-    requestedVersion,
-    resolvedVersion,
-    requestedLocale,
-    requestedMods,
+    rq_v: navigation.buildRequestedVersion,
+    rs_v: navigation.buildResolvedVersion,
+    loc: gameLocale,
+    mods: navigation.mods,
   });
   if (requestedStateKey === lastDataLoadKey) {
     return;
   }
 
   lastDataLoadKey = requestedStateKey;
-  const dataLoadStart = nowTimeStamp();
 
   void (async () => {
-    const resolvedVersionBuild = currentBuilds.find(
-      (build) => build.build_number === resolvedVersion,
+    await loadDataForVersion(
+      navigation.buildRequestedVersion,
+      navigation.mods,
+      gameLocale,
     );
-    const loaded = await loadDataForVersion(
-      requestedVersion,
-      requestedLocale,
-      resolvedVersionBuild,
-      requestedMods,
-      resolvedVersion,
-      dataLoadStart,
-    );
-    if (!loaded) return;
-
-    if ($data) {
-      const resolvedMods = $data.active_mods;
-      const reconciledKey = reconcileMods(
-        requestedVersion,
-        requestedMods,
-        resolvedMods,
-        requestedLocale,
-        effectiveTileset,
-        routeTarget,
-        resolvedVersion,
-      );
-      if (reconciledKey !== null) {
-        lastDataLoadKey = reconciledKey;
-      }
-
-      warnOnLocaleFallback($data);
-    }
   })();
 });
 
@@ -586,12 +469,12 @@ function getLanguageName(code: string): string {
         disabled={!$data}
         aria-busy={!$data}
         aria-label={t("Mods ({count} active)", {
-          count: navigation.mods.length,
+          count: modsActiveCount,
         })}>
         <span class="mods-button-inner">
           <span class="mods-button-normal" class:loading-hidden={!$data}>
             <span class="mods-label">{t("Mods")}</span>
-            <span class="mods-count">[{String(navigation.mods.length)}]</span>
+            <span class="mods-count">[{modsActiveCount}]</span>
           </span>
           <span
             class="mods-button-loading"
@@ -608,13 +491,14 @@ function getLanguageName(code: string): string {
   </nav>
 </header>
 
-<ModSelector
-  open={isModSelectorOpen}
-  mods={$data?.mods ?? []}
-  rawModsJson={$data?.raw_mods_json ?? {}}
-  selectedModIds={navigation.mods}
-  onclose={closeModSelector}
-  onapply={(mods) => applyMods(mods)} />
+{#if $data}
+  <ModSelector
+    open={isModSelectorOpen}
+    rawModsJson={$data.rawModsJSON}
+    selectedModIds={$data.activeMods}
+    onclose={closeModSelector}
+    onapply={(mods) => applyMods(mods)} />
+{/if}
 
 <main>
   {#if navigation.target.kind === "catalog" || navigation.target.kind === "item"}
@@ -803,7 +687,7 @@ function getLanguageName(code: string): string {
           </select>
         {:else if $data}
           <select disabled>
-            <option>{$data.build_number}</option>
+            <option>{$data.buildVersion}</option>
           </select>
         {/if}
       {:else}
@@ -831,7 +715,7 @@ function getLanguageName(code: string): string {
         <select
           id="language_select"
           aria-label={t("Language", { _context: LANGUAGE_SELECTOR_CONTEXT })}
-          value={$data?.effective_locale ?? navigation.locale}
+          value={navigation.locale}
           onchange={(e) => {
             const lang = e.currentTarget.value;
             changeLanguage(lang);

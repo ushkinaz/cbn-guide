@@ -6,11 +6,12 @@ import { describe, expect, it } from "vitest";
 import DissectedFrom from "./DissectedFrom.svelte";
 import WithData from "../../WithData.svelte";
 import { CBNData } from "../../data";
+import { makeTestCBNData } from "../../data.test-helpers";
 
 describe("DissectedFrom", () => {
   it("displays the monsters that an item is dissected from", async () => {
     const item_id = "test_bionic";
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "MONSTER",
         id: "test_monster",
@@ -41,7 +42,7 @@ describe("DissectedFrom", () => {
 
   it("does not display anything if there are no dissection sources", async () => {
     const item_id = "lonely_item";
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "GENERIC",
         id: item_id,

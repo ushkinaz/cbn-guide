@@ -5,11 +5,12 @@ import { afterEach, expect, test } from "vitest";
 import { cleanup, render } from "@testing-library/svelte";
 
 import { CBNData } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 import SearchResults from "./SearchResults.svelte";
 import { searchState } from "./search-state.svelte";
 import { performSearch, buildSearchIndex } from "./search-engine";
 
-let data: CBNData = new CBNData([
+let data: CBNData = makeTestCBNData([
   { type: "MONSTER", id: "zombie", name: "zombie", symbol: "Z" },
   { type: "MONSTER", id: "zombie_child", name: "zombie child", symbol: "z" },
   { type: "BOOK", id: "ZSG", name: "Zombie Survival Guide", symbol: "?" },
@@ -51,7 +52,7 @@ test("search with no results shows 'no results'", () => {
 });
 
 test("search result icon updates when the top match changes", async () => {
-  const searchData = new CBNData([
+  const searchData = makeTestCBNData([
     { type: "BOOK", id: "opal", name: "opal", symbol: "*" },
     { type: "MONSTER", id: "opossum", name: "opossum", symbol: "d" },
   ]);
@@ -81,7 +82,7 @@ test("search result icon updates when the top match changes", async () => {
 });
 
 test("search result mutation color metadata updates with the top match", async () => {
-  const searchData = new CBNData([
+  const searchData = makeTestCBNData([
     { type: "mutation", id: "growth", name: "growth", points: 2 },
     { type: "mutation", id: "shrink", name: "shrink", points: -2 },
   ]);
@@ -128,7 +129,7 @@ test("performSearch returns all results and dedups", () => {
     symbol: "z",
   });
 
-  const testData = new CBNData(manyItems);
+  const testData = makeTestCBNData(manyItems);
   const targets = buildSearchIndex(testData);
 
   const results = performSearch("zombie", targets, testData);

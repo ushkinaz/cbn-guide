@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { data, CBNData } from "./data";
 
 describe("Reproduction: all_mods.json 404 should be silent", () => {
-  test("setVersion should not throw on 404 for all_mods.json without selected mods", async () => {
+  test("loadData should not throw on 404 for all_mods.json without selected mods", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -35,9 +35,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       // Mock progress store
       (globalThis as any).__isTesting__ = true;
 
-      await expect(
-        data.setVersion("latest", null, undefined, []),
-      ).resolves.not.toThrow();
+      await expect(data.loadData("latest", "en", [])).resolves.not.toThrow();
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
@@ -48,15 +46,15 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       expect(fetchCalls.some((url) => url.includes("all_mods.json"))).toBe(
         true,
       );
-      expect(loaded.mods).toEqual([]);
-      expect(loaded.raw_mods_json).toEqual({});
+      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
+      expect(loaded.rawModsJSON).toEqual({});
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
     }
   });
 
-  test("setVersion should not throw on 'HTTP 404' for all_mods.json without selected mods", async () => {
+  test("loadData should not throw on 'HTTP 404' for all_mods.json without selected mods", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -80,9 +78,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
 
     try {
       (globalThis as any).__isTesting__ = true;
-      await expect(
-        data.setVersion("latest", null, undefined, []),
-      ).resolves.not.toThrow();
+      await expect(data.loadData("latest", "en", [])).resolves.not.toThrow();
 
       const loaded = await new Promise<CBNData>((resolve) => {
         data.subscribe((v) => {
@@ -90,14 +86,14 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
         });
       });
 
-      expect(loaded.mods).toEqual([]);
+      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
     }
   });
 
-  test("setVersion with requested mods should not throw on 404 for all_mods.json", async () => {
+  test("loadData with requested mods should not throw on 404 for all_mods.json", async () => {
     const mockData = {
       data: [{ type: "GENERIC", id: "core_item" }],
       build_number: "123",
@@ -128,7 +124,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
 
       // Requesting a mod that won't be found because all_mods.json is 404
       await expect(
-        data.setVersion("latest", null, undefined, ["some_mod"]),
+        data.loadData("latest", "en", ["some_mod"]),
       ).resolves.not.toThrow();
 
       const loaded = await new Promise<CBNData>((resolve) => {
@@ -137,49 +133,54 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
         });
       });
 
-      expect(loaded.mods).toEqual([]);
-      expect(loaded.active_mods).toEqual([]);
+      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
+      expect(loaded.activeMods).toEqual([]);
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
     }
   });
 
-  test(
-    "setVersion should throw when non-404 error message contains 404",
-    { timeout: 12_000 },
-    async () => {
-      const mockData = {
-        data: [{ type: "GENERIC", id: "core_item" }],
-        build_number: "123",
-        release: "test-release",
-      };
+  test("loadData swallows non-404 all_mods errors that merely mention 404", async () => {
+    const mockData = {
+      data: [{ type: "GENERIC", id: "core_item" }],
+      build_number: "123",
+      release: "test-release",
+    };
 
-      const originalFetch = globalThis.fetch;
-      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
-        if (url.includes("all.json")) {
-          return Promise.resolve({
-            ok: true,
-            json: () => Promise.resolve(mockData),
-          } as Response);
-        }
-        if (url.includes("all_mods.json")) {
-          return Promise.reject(
-            new Error("Malformed schema near line 404 in all_mods.json"),
-          );
-        }
-        return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("all.json")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(mockData),
+        } as Response);
+      }
+      if (url.includes("all_mods.json")) {
+        return Promise.reject(
+          new Error("Malformed schema near line 404 in all_mods.json"),
+        );
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    });
+
+    try {
+      (globalThis as any).__isTesting__ = true;
+      await expect(
+        data.loadData("latest", "en", ["some_mod"]),
+      ).resolves.not.toThrow();
+
+      const loaded = await new Promise<CBNData>((resolve) => {
+        data.subscribe((v) => {
+          if (v) resolve(v);
+        });
       });
 
-      try {
-        (globalThis as any).__isTesting__ = true;
-        await expect(
-          data.setVersion("latest", null, undefined, ["some_mod"]),
-        ).rejects.toThrow("Failed to load data after 3 attempts");
-      } finally {
-        globalThis.fetch = originalFetch;
-        (globalThis as any).__isTesting__ = false;
-      }
-    },
-  );
+      expect(loaded.rawModsJSON).toEqual({});
+      expect(loaded.activeMods).toEqual([]);
+    } finally {
+      globalThis.fetch = originalFetch;
+      (globalThis as any).__isTesting__ = false;
+    }
+  });
 });

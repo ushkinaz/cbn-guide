@@ -131,4 +131,4 @@ const display = (obj && displays[obj.type]) ?? Unknown;
   <SvelteComponent item={obj} />
 {/if}
 
-<JsonView {obj} buildNumber={data.build_number} />
+<JsonView {obj} buildNumber={data.buildVersion} />

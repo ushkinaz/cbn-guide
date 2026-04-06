@@ -1,10 +1,11 @@
 import { describe, test, expect } from "vitest";
 import { CBNData } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 import type { GunSlot, ItemBasicInfo } from "./types";
 
 describe("_flatten: copy-from inheritance", () => {
   test("basic copy-from inheritance", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       { type: "item", abstract: "parent", weight: "1 kg", volume: "1 L" },
       { type: "item", id: "child", "copy-from": "parent", weight: "2 kg" },
     ]);
@@ -14,7 +15,7 @@ describe("_flatten: copy-from inheritance", () => {
   });
 
   test("copy-from cycle does not recurse infinitely", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       { type: "GENERIC", id: "a", "copy-from": "b", volume: "1 L" },
       { type: "GENERIC", id: "b", "copy-from": "a", weight: "1 kg" },
     ]);
@@ -28,7 +29,7 @@ describe("_flatten: copy-from inheritance", () => {
   test("abstract inheritance with mod layering works correctly", () => {
     // Simulate base game + mod layering pattern
     // This mimics the real scenario from alt_map_key mod
-    const data = new CBNData([
+    const data = makeTestCBNData([
       // Base game: root abstract
       {
         type: "overmap_terrain",
@@ -70,7 +71,7 @@ describe("_flatten: copy-from inheritance", () => {
 
 describe("_flatten: relative modifier", () => {
   test("basic relative modifications", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "GUN",
         abstract: "parent",
@@ -99,7 +100,7 @@ describe("_flatten: relative modifier", () => {
   });
 
   test("relative melee_damage supports damage instances in object/array form", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "GUN",
         abstract: "parent",
@@ -124,7 +125,7 @@ describe("_flatten: relative modifier", () => {
 
 describe("_flatten: proportional modifier", () => {
   test("basic proportional modifications", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       { type: "item", abstract: "parent", weight: "1 kg", volume: "1 L" },
       {
         type: "item",
@@ -152,7 +153,7 @@ describe("_flatten: proportional modifier", () => {
   });
 
   test("proportional melee_damage supports damage instance arrays", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "GUN",
         abstract: "parent",
@@ -174,7 +175,7 @@ describe("_flatten: proportional modifier", () => {
 
 describe("_flatten: extend and delete modifiers", () => {
   test("extend arrays and delete array elements", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "item",
         abstract: "parent",
@@ -227,7 +228,7 @@ describe("_flatten: extend and delete modifiers", () => {
       },
     ];
 
-    const data = new CBNData(testData);
+    const data = makeTestCBNData(testData);
     const child = data.byId("monster", "test_child");
 
     // After flattening, the child should NOT have upgrades property
@@ -255,7 +256,7 @@ describe("_flatten: extend and delete modifiers", () => {
       },
     ];
 
-    const data = new CBNData(testData);
+    const data = makeTestCBNData(testData);
     const child = data.byId("monster", "test_child_2");
 
     // After flattening, FLAG2 should be removed but FLAG1 and FLAG3 remain
@@ -268,7 +269,7 @@ describe("_flatten: extend and delete modifiers", () => {
     try {
       const fs = require("fs");
       const rawData = JSON.parse(fs.readFileSync("_test/all.json", "utf-8"));
-      const data = new CBNData(rawData.data);
+      const data = makeTestCBNData(rawData.data);
 
       const blackops2 = data.byId("monster", "mon_zombie_soldier_blackops_2");
 

@@ -5,11 +5,12 @@ import { render, within } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import WithData from "../WithData.svelte";
 import { CBNData } from "../data";
+import { makeTestCBNData } from "../data.test-helpers";
 import Furniture from "./Furniture.svelte";
 
 describe("Furniture", () => {
   it("shows furniture constructions from post_furniture", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "construction_group",
         id: "build_sign",
@@ -66,7 +67,7 @@ describe("Furniture", () => {
   });
 
   it("shows deconstruction methods and required tools for advanced furniture removal", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "construction_group",
         id: "advanced_object_deconstruction",

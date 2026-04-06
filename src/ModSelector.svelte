@@ -30,7 +30,6 @@ const DEFAULT_MOD_IDS = [
 
 interface Props {
   open?: boolean;
-  mods?: ModInfo[];
   rawModsJson?: Record<string, ModData>;
   selectedModIds?: string[];
   onclose?: () => void;
@@ -39,7 +38,6 @@ interface Props {
 
 let {
   open = false,
-  mods = [],
   rawModsJson = {},
   selectedModIds = [],
   onclose = () => {},
@@ -48,6 +46,13 @@ let {
 
 let draftSelectedModIds: string[] = $state([]);
 let wasOpen = false;
+
+let mods: ModInfo[] = $derived(
+  // Filter out core mods, as they are not selectable.
+  Object.values(rawModsJson)
+    .map(({ info }) => info)
+    .filter((modInfo) => !modInfo.core) as ModInfo[],
+);
 
 function arraysEqual(a: string[], b: string[]): boolean {
   if (a.length !== b.length) return false;

@@ -138,6 +138,7 @@ flowchart TD
     subgraph Business["Business Logic Layer"]
         direction TB
         DataTS[data.ts]
+        DataLoaderTS[data-loader.ts]
         RoutingTS[routing.svelte.ts]
         TileDataTS[tile-data.ts]
     end
@@ -150,11 +151,17 @@ flowchart TD
 
     Presentation --> Business
     Business --> Data
+    DataTS --> DataLoaderTS
+    DataLoaderTS --> Data
 
     style Presentation fill:#2d4a3e,stroke:#1a2f26,color:#eee
     style Business fill:#4a3f2d,stroke:#2f2a1a,color:#eee
     style Data fill:#3f2d4a,stroke:#2a1a2f,color:#eee
 ```
+
+`src/data.ts` owns domain assembly, locale fallback, mod parsing, and store
+lifecycle. `src/data-loader.ts` owns raw fetch orchestration, parallel asset
+dispatch, and the optional-asset error policy for locale, pinyin, and mods.
 
 ## Core Data Flow
 
@@ -170,6 +177,7 @@ sequenceDiagram
     participant I18n as i18n/ui-locale.ts
     participant App as App.svelte
     participant Data as data.ts
+    participant Loader as data-loader.ts
     participant Ext as data.cataclysmbn-guide.com
 
     Browser->>Main: Page Load
@@ -184,12 +192,28 @@ sequenceDiagram
     Navigation-->>Main: ready
     Main->>App: mount(App)
 
-    App->>Data: setVersion(requestedVersion)
-    Data->>SW: fetch(/data/version/all.json)
-    SW->>Ext: Network/Cache Request
-    Ext-->>Data: Raw game data (~30MB)
+    App->>Data: loadData(requestedVersion)
+    Data->>Loader: loadRawDataset(version, locale, onProgress)
+    par Main dataset
+        Loader->>SW: fetch(/data/version/all.json)
+        SW->>Ext: Network/Cache Request
+        Ext-->>Loader: Raw game data (~30MB)
+    and Locale supplement
+        Loader->>SW: fetch(/data/version/lang/{locale}.json)
+        SW->>Ext: Network/Cache Request
+        Ext-->>Loader: Optional locale JSON
+    and Pinyin supplement
+        Loader->>SW: fetch(/data/version/lang/{locale}_pinyin.json)
+        SW->>Ext: Network/Cache Request
+        Ext-->>Loader: Optional zh_* pinyin JSON
+    and Mod catalog
+        Loader->>SW: fetch(/data/version/all_mods.json)
+        SW->>Ext: Network/Cache Request
+        Ext-->>Loader: Optional mod catalog JSON
+    end
 
-    Data->>Data: CBNData constructor<br/>(parse, index, flatten)
+    Loader-->>Data: Raw settled asset bundle
+    Data->>Data: Locale fallback + mod merge<br/>CBNData constructor
     Data-->>App: Ready
 
     App->>App: Render UI
@@ -271,13 +295,14 @@ flowchart TB
 
 ## Navigation State Ownership
 
-| State                        | Primary owner                                               | Why it lives there                                                                                  |
-| :--------------------------- | :---------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
-| Requested route              | [`src/routing.svelte.ts`](../src/routing.svelte.ts)         | The browser URL and history stack are the only honest source for route identity.                    |
-| Preferred tileset            | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Tileset is a display preference that survives across sessions.                                      |
-| Resolved build metadata      | [`src/builds.svelte.ts`](../src/builds.svelte.ts)           | Alias resolution and build validation depend on fetched `builds.json`, not on route parsing alone.  |
-| Effective navigation context | [`src/navigation.svelte.ts`](../src/navigation.svelte.ts)   | The UI needs one coherent read model instead of scattered route, preference, and bootstrap lookups. |
-| Loaded game data             | [`src/data.ts`](../src/data.ts)                             | The dataset is application data that reacts to navigation, not navigation state itself.             |
+| State                        | Primary owner                                               | Why it lives there                                                                                                                     |
+| :--------------------------- | :---------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
+| Requested route              | [`src/routing.svelte.ts`](../src/routing.svelte.ts)         | The browser URL and history stack are the only honest source for route identity.                                                       |
+| Preferred tileset            | [`src/preferences.svelte.ts`](../src/preferences.svelte.ts) | Tileset is a display preference that survives across sessions.                                                                         |
+| Resolved build metadata      | [`src/builds.svelte.ts`](../src/builds.svelte.ts)           | Alias resolution and build validation depend on fetched `builds.json`, not on route parsing alone.                                     |
+| Effective navigation context | [`src/navigation.svelte.ts`](../src/navigation.svelte.ts)   | The UI needs one coherent read model instead of scattered route, preference, and bootstrap lookups.                                    |
+| Loaded game data             | [`src/data.ts`](../src/data.ts)                             | The dataset is application data that reacts to navigation, owns fallback and assembly, and publishes the immutable `CBNData` instance. |
+| Raw asset transport          | [`src/data-loader.ts`](../src/data-loader.ts)               | Network orchestration, parallel dispatch, and optional-asset degradation belong at the transport boundary, not in the domain model.    |
 
 ## Development & Build Pipeline
 
@@ -319,7 +344,8 @@ flowchart TD
 cbn-guide/
 ├── src/
 │   ├── App.svelte          # Main application component
-│   ├── data.ts             # CBNData class & utilities
+│   ├── data.ts             # CBNData store lifecycle, locale fallback, mod assembly
+│   ├── data-loader.ts      # Parallel raw JSON fetch orchestration
 │   ├── i18n/               # Translation helpers split by runtime boundary
 │   ├── navigation.svelte.ts       # Effective navigation context and app link policy
 │   ├── preferences.svelte.ts      # Browser-persisted user preferences

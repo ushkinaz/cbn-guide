@@ -1,12 +1,13 @@
 import * as fs from "fs";
 import { describe, expect, test } from "vitest";
 import { CBNData } from "./data";
+import { makeTestCBNData } from "./data.test-helpers";
 import { buildSearchIndex } from "./search-engine";
 import type { ModData } from "./types";
 
 describe("monster policy filtering", () => {
   test("applies blacklist selectors and whitelist overrides for monster/species/categories", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "MONSTER",
         id: "mon_blacklisted_direct",
@@ -67,7 +68,7 @@ describe("monster policy filtering", () => {
   });
 
   test("normalizes string species and categories for policy filtering", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "MONSTER",
         id: "mon_string_species",
@@ -96,7 +97,7 @@ describe("monster policy filtering", () => {
   });
 
   test("blocks alias lookup for hidden monsters", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "MONSTER",
         id: "mon_hidden",
@@ -113,7 +114,7 @@ describe("monster policy filtering", () => {
   });
 
   test("enforces whitelist exclusive mode and keeps search inputs in sync", () => {
-    const data = new CBNData([
+    const data = makeTestCBNData([
       {
         type: "MONSTER",
         id: "mon_wildlife",
@@ -165,8 +166,8 @@ describe("monster policy filtering", () => {
       monsters: ["mon_zed_hero"],
     };
 
-    const a = new CBNData([...baseMonsters, blacklist, whitelist]);
-    const b = new CBNData([...baseMonsters, whitelist, blacklist]);
+    const a = makeTestCBNData([...baseMonsters, blacklist, whitelist]);
+    const b = makeTestCBNData([...baseMonsters, whitelist, blacklist]);
 
     expect(
       a
@@ -207,7 +208,7 @@ describe("monster policy fixtures from local all_mods.json", () => {
   test("No_Wasps blacklist hides known wasp monsters", () => {
     const { core, mods } = loadFixture();
     const merged = [...core.data, ...mods.No_Wasps.data];
-    const data = new CBNData(merged);
+    const data = makeTestCBNData(merged);
 
     expect(data.byIdMaybe("monster", "mon_wasp")).toBeUndefined();
     expect(data.byIdMaybe("monster", "mon_wasp_queen")).toBeUndefined();
@@ -217,7 +218,7 @@ describe("monster policy fixtures from local all_mods.json", () => {
   test("classic_zombies exclusive whitelist hides non-whitelisted categories", () => {
     const { core, mods } = loadFixture();
     const merged = [...core.data, ...mods.classic_zombies.data];
-    const data = new CBNData(merged);
+    const data = makeTestCBNData(merged);
 
     expect(data.byIdMaybe("monster", "mon_chicken")).toBeDefined();
     expect(data.byIdMaybe("monster", "mon_copbot")).toBeUndefined();
