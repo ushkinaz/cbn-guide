@@ -82,7 +82,7 @@ The data-loading path no longer retries `all.json`, locale files, or `all_mods.j
 
 - `retry.ts` remains in the codebase because other transport paths still use it;
 - locale fallback still lives in `data.ts`, but it now operates on raw loader output rather than owning fetch sequencing;
-- the public `data.loadData()` API does not change.
+- the public `data.loadData()` method signature changed from `setVersion(...)` but calling semantics remain analogous.
 
 ## References
 
