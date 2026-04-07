@@ -21,7 +21,7 @@ const defaultPreferences: UserPreferences = {
 
 export const preferences = $state<UserPreferences>({
   tileset: defaultPreferences.tileset,
-  mods: defaultPreferences.mods,
+  mods: [...defaultPreferences.mods],
 });
 
 function readStoredTileset(): string | undefined {
@@ -92,7 +92,7 @@ export function initializePreferences(): UserPreferences {
   }
 
   preferences.tileset = preferredTileset;
-  preferences.mods = readStoredMods() ?? defaultPreferences.mods;
+  preferences.mods = [...(readStoredMods() ?? defaultPreferences.mods)];
   return preferences;
 }
 
@@ -117,8 +117,9 @@ export function setMods(mods: string[]): void {
     clearStoredDefaultMods();
     preferences.mods = [];
   } else {
-    persistMods(mods);
-    preferences.mods = mods;
+    const nextMods = [...mods];
+    persistMods(nextMods);
+    preferences.mods = nextMods;
   }
 }
 
@@ -134,5 +135,5 @@ export function clearSavedMods(): void {
  */
 export function _resetPreferences(): void {
   preferences.tileset = defaultPreferences.tileset;
-  preferences.mods = defaultPreferences.mods;
+  preferences.mods = [...defaultPreferences.mods];
 }
