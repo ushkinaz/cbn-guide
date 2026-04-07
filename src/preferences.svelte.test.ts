@@ -41,7 +41,7 @@ function installMockStorage() {
   return storage;
 }
 
-describe("preferences", () => {
+describe("tileset", () => {
   beforeEach(() => {
     installMockStorage();
     localStorage.removeItem?.(TILESET_STORAGE_KEY);
