@@ -2,15 +2,11 @@
 
 ## Overview
 
-`cbn-guide` is a Svelte 5 + Vite 7 application that renders Cataclysm: Bright Nights
-data from external JSON snapshots. The app is mostly a reader of a very large truth
-that lives elsewhere. Its job is to load that truth, index it once, and let the URL
-decide what should be visible.
+`cbn-guide` is a Svelte 5 + Vite 7 application that renders Cataclysm: Bright Nights data from external JSON snapshots. The app is mostly a reader of a very large truth that lives elsewhere. Its job is to load that truth, index it once, and let the URL decide what should be visible.
 
 Core constraints:
 
-- The main data blob is large (`all.json` is roughly 30 MB), so the app prefers
-  coarse reload boundaries over clever incremental mutation.
+- The main data blob is large (`all.json` is roughly 30 MB), so the app prefers coarse reload boundaries over clever incremental mutation.
 - The URL is the source of truth for routing and user-visible configuration.
 - Svelte 5 runes are the reactive model.
 
@@ -25,9 +21,8 @@ Useful companion docs:
 
 - Node.js: 24 recommended. Repository engines currently allow `^20.19.0 || >=22.12.0`.
 - pnpm: 10.x
-- Python: 3.x for image/font generation scripts such as `gen-ogimage.py` and
-  `gen-unifont.py`
-- `jq`: strongly recommended for inspecting `_test/all.json` without grepping the void
+- Python: 3.x for image/font generation scripts such as `gen-ogimage.py` and `gen-unifont.py`
+- `jq`/`jaq`: strongly recommended for inspecting `_test/all.json` without grepping the void
 
 ## Initial Setup
 
@@ -55,57 +50,33 @@ Useful companion docs:
    pnpm dev
    ```
 
-   Vite runs on [http://localhost:3000](http://localhost:3000) per
-   `vite.config.ts`.
-
 ## Architecture Mental Model
 
 ### The Three UI Lifetimes
 
 1. **Long-lived shell**
 
-   `src/App.svelte` stays mounted and owns startup, routing sync, search input state,
-   metadata updates, mod selector UI, and tileset persistence.
+   `App.svelte` stays mounted and owns startup, routing sync, search input state, metadata updates, mod selector UI, and tileset persistence.
 
 2. **Route-keyed detail/catalog views**
 
-   `Thing.svelte` and `Catalog.svelte` are rendered behind a `{#key item}` block in
-   `src/App.svelte`. When the route changes, they are destroyed and recreated. They
-   should treat props as mount-time inputs, not as a stream to diff against.
+   `Thing.svelte` and `Catalog.svelte` are rendered behind a `{#key item}` block in `App.svelte`. When the route changes, they are destroyed and recreated. They should treat props as mount-time inputs, not as a stream to diff against.
 
 3. **Fine-grained search results**
 
-   `SearchResults.svelte` is intentionally **not** wrapped in a `{#key}` block. Search
-   updates are frequent, and preserving DOM state is cheaper than remounting while the
-   user types.
+   `SearchResults.svelte` is intentionally **not** wrapped in a `{#key}` block. Search updates are frequent, and preserving DOM state is cheaper than remounting while the user types.
 
 ### Data Flow
 
-```mermaid
-flowchart TD
-    URL["URL + query params"] --> Routing["src/routing.svelte.ts getRoute()"]
-    Routing --> PageStore["page store"]
-    PageStore --> App["src/App.svelte"]
-    App --> Init["initializeRouting()"]
-    Init --> Builds["builds.json"]
-    App --> DataSet["data.loadData()"]
-    DataSet --> AllJson["/data/{version}/all.json"]
-    DataSet --> I18n["optional locale fetch + fallback"]
-    DataSet --> DataStore["data store (CBNData)"]
-    DataStore --> Thing["Thing.svelte"]
-    DataStore --> Catalog["Catalog.svelte"]
-    DataStore --> Search["searchState.sync()"]
-    Search --> Results["SearchResults.svelte"]
-```
+The core data flow, including bootstrap sequencing and runtime asset loading, is documented in detail in [docs/architecture.md#core-data-flow](docs/architecture.md#core-data-flow).
+
+The app reads route state, preferences, and builds data to form an effective navigation context, which in turn triggers data loads and UI updates.
 
 ### Why This Design Exists
 
-- Version, language, tileset, and mod changes can imply a different dataset or asset
-  universe. The code accepts this and uses hard reload boundaries where needed.
-- Item and catalog pages are keyed so they can stay simple. The route change is the
-  reset mechanism.
-- Search stays unkeyed because remounting on every keystroke would waste work and
-  disrupt the interface.
+- Version, language, tileset, and mod changes can imply a different dataset or asset universe. The code accepts this and uses hard reload boundaries where needed.
+- Item and catalog pages are keyed so they can stay simple. The route change is the reset mechanism.
+- Search stays unkeyed because remounting on every keystroke would waste work and disrupt the interface.
 
 ## Svelte 5 Reactivity Rules
 
@@ -117,9 +88,9 @@ Use `$state` for mutable local UI state.
 
 Real examples:
 
-- `src/App.svelte`: `scrollY`, `builds`, `resolvedVersion`, modal state, metadata
-- `src/LimitedList.svelte`: `expanded`
-- `src/search-state.svelte.ts`: internal reactive search state object
+- `App.svelte`: `scrollY`, `builds`, `resolvedVersion`, modal state, metadata
+- `LimitedList.svelte`: `expanded`
+- `search-state.svelte.ts`: internal reactive search state object
 
 ### `$derived`
 
@@ -127,9 +98,9 @@ Use `$derived` for pure computed values with no side effects.
 
 Real examples:
 
-- `src/App.svelte`: `item` from `getRouteItem($page.route.target)`
-- `src/SearchResults.svelte`: `results` and `matchingObjectsList`
-- `src/LimitedList.svelte`: `initialLimit` and `realLimit`
+- `App.svelte`: `item` projected from navigation context
+- `SearchResults.svelte`: `results` and `matchingObjectsList`
+- `LimitedList.svelte`: `initialLimit` and `realLimit`
 
 Do not write to stores, touch the DOM, or mutate state inside `$derived`.
 
@@ -139,10 +110,10 @@ Use effects only for imperative synchronization.
 
 Real examples:
 
-- `src/App.svelte`: sync route changes into local `search`
-- `src/App.svelte`: update document title and meta description
-- `src/App.svelte`: call `searchState.sync(search, $data)`
-- `src/App.svelte`: schedule derived-cache prewarming with `requestIdleCallback`
+- `App.svelte`: sync route changes into local `search`
+- `App.svelte`: update document title and meta description
+- `App.svelte`: call `searchState.sync(search, $data)`
+- `App.svelte`: schedule derived-cache prewarming with `requestIdleCallback`
 
 ### Typed `$props()`
 
@@ -169,9 +140,9 @@ Svelte 5 snippets are the preferred way to pass list/item rendering behavior.
 
 Real examples:
 
-- `src/LimitedList.svelte`
-- `src/Catalog.svelte`
-- `src/SearchResults.svelte`
+- `LimitedList.svelte`
+- `Catalog.svelte`
+- `SearchResults.svelte`
 
 Pattern:
 
@@ -191,9 +162,7 @@ Inside the reusable component:
 
 ### `untrack` in Route-Keyed Components
 
-`Thing.svelte`, `Catalog.svelte`, and several type views use `untrack(...)` to freeze
-props at mount time. This is deliberate. In keyed pages, the route remount is the
-update boundary.
+`Thing.svelte`, `Catalog.svelte`, and several type views use `untrack(...)` to freeze props at mount time. This is deliberate. In keyed pages, the route remount is the update boundary.
 
 Use `untrack` when:
 
@@ -206,77 +175,61 @@ Do not add effects that mirror props back into local state inside those keyed pa
 
 Avoid these:
 
-- Svelte 4-style `$:` prop mirroring in `Thing.svelte`, `Catalog.svelte`, or their
-  descendants
+- Svelte 4-style `$:` prop mirroring
 - side effects inside `$derived`
 - `setContext(...)` inside a reactive effect
-- legacy compatibility imports or patterns from `svelte/legacy`
 - assuming all route-driven views are keyed; `SearchResults.svelte` is intentionally not
 
 ## Key Files and Responsibilities
 
-| File                         | Responsibility                                                                                           | Important side effects                                                                                               |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `src/App.svelte`             | Bootstraps the app, holds long-lived UI state, chooses which top-level view to render                    | calls `initializeRouting()`, calls `data.loadData(...)`, updates document metadata, syncs search, handles navigation |
-| `src/routing.svelte.ts`      | URL parsing, navigation helpers, version alias resolution, page store updates                            | uses `history.pushState`, `history.replaceState`, `location.href`, and `location.replace`                            |
-| `src/data.ts`                | Fetches and builds `CBNData`, handles locale fallback, mod loading, flattening, indexing, derived caches | fetches external JSON, resets gettext locale, replaces the global `data` store                                       |
-| `src/search-state.svelte.ts` | Search indexing and debounced result production                                                          | rebuilds index when `CBNData` changes, debounces search by `150ms` outside tests                                     |
-| `src/Thing.svelte`           | Renders a single object view                                                                             | sets `data` context once per mount                                                                                   |
-| `src/Catalog.svelte`         | Renders a type catalog grouped by domain-specific rules                                                  | sets `data` context once per mount                                                                                   |
-| `src/SearchResults.svelte`   | Renders grouped search results without route-keyed remounting                                            | derives from `searchState.results` or injected `results`                                                             |
-| `src/LimitedList.svelte`     | Reusable truncated-list UI using snippets                                                                | expands to full list in tests by using `Infinity`                                                                    |
+| File                     | Responsibility                                                                          | Important side effects                                                                |
+| ------------------------ | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `App.svelte`             | Holds long-lived UI state, chooses top-level view to render based on navigation context | Reacts to navigation changes by loading data, updates document metadata, syncs search |
+| `routing.svelte.ts`      | URL parsing, building URLs, raw history synchronization                                 | uses `history.pushState` and `history.replaceState`                                   |
+| `navigation.svelte.ts`   | Effective navigation context and app link policy                                        | Integrates routing, preferences, and builds; exposes navigation actions               |
+| `data.ts`                | Orchestrates data load, locale fallback, mod merge, and flattening for `CBNData`        | Calls `data-loader.ts` to fetch external JSON, replaces the global `data` store       |
+| `search-state.svelte.ts` | Search indexing and debounced result production                                         | rebuilds index when `CBNData` changes, debounces search by `150ms` outside tests      |
+| `Thing.svelte`           | Renders a single object view                                                            | sets `data` context once per mount                                                    |
+| `Catalog.svelte`         | Renders a type catalog grouped by domain-specific rules                                 | sets `data` context once per mount                                                    |
+| `SearchResults.svelte`   | Renders grouped search results without route-keyed remounting                           | derives from `searchState.results` or injected `results`                              |
+| `LimitedList.svelte`     | Reusable truncated-list UI using snippets                                               | expands to full list in tests by using `Infinity`                                     |
 
 ## State Ownership
 
-| State                       | Type                  | Owner                        | Scope     | Notes                                           |
-| --------------------------- | --------------------- | ---------------------------- | --------- | ----------------------------------------------- |
-| `page`                      | readable Svelte store | `src/routing.svelte.ts`      | global    | mirrors `location.href` and parsed route        |
-| `data`                      | writable Svelte store | `src/data.ts`                | global    | replaced wholesale when a new dataset is loaded |
-| `tileData`                  | store/helper module   | `src/tile-data.ts`           | global    | updated from `App.svelte` when tileset changes  |
-| `searchState`               | rune-based singleton  | `src/search-state.svelte.ts` | global    | owns debounced query results                    |
-| `search`                    | local rune state      | `src/App.svelte`             | shell     | synced from URL and user input                  |
-| `item`                      | `$derived`            | `src/App.svelte`             | shell     | projected from `$page.route.target` via helper  |
-| `builds`, `resolvedVersion` | local rune state      | `src/App.svelte`             | shell     | populated by `initializeRouting()`              |
-| `expanded`                  | local rune state      | `src/LimitedList.svelte`     | component | UI-only disclosure state                        |
+| State              | Type                  | Owner                    | Scope     | Notes                                           |
+| ------------------ | --------------------- | ------------------------ | --------- | ----------------------------------------------- |
+| Navigation Context | derived state         | `navigation.svelte.ts`   | global    | Combines route, prefs, and builds logic         |
+| `data`             | writable Svelte store | `data.ts`                | global    | replaced wholesale when a new dataset is loaded |
+| `tileData`         | store/helper module   | `tile-data.ts`           | global    | updated from `App.svelte` when tileset changes  |
+| `searchState`      | rune-based singleton  | `search-state.svelte.ts` | global    | owns debounced query results                    |
+| `search`           | local rune state      | `App.svelte`             | shell     | synced from URL and user input                  |
+| `item`             | `$derived`            | `App.svelte`             | shell     | projected from navigation context via helper    |
+| Build Metadata     | local rune state      | `builds.svelte.ts`       | global    | Resolves aliases like `stable` and `nightly`    |
+| `expanded`         | local rune state      | `LimitedList.svelte`     | component | UI-only disclosure state                        |
 
 ## Routing and Reload Boundaries
 
-The routing system is hybrid by design.
+Routing is deeply layered integrating URL state, browser preferences, build metadata, and a derived navigation context. For comprehensive details on navigation rules, link policy, and ownership, see [docs/routing.md](docs/routing.md).
 
 ### Soft navigation
 
-Use SPA navigation for:
+SPA navigation happens when the destination keeps the same active data context (version, locale, mods).
 
-- internal item links
-- catalog navigation
-- search navigation
-- browser back/forward
+Mechanisms, exposed primarily by `navigation.svelte.ts`:
 
-Mechanisms:
-
-- `handleInternalNavigation(...)`
-- `navigateTo(...)`
-- `updateSearchRoute(...)`
-
-`updateSearchRoute(...)` uses:
-
-- `history.pushState(...)` when navigating away from an item page
-- debounced `history.replaceState(...)` when editing a search URL in place
+- `navigateTo(...)`: move to an item, catalog or search view.
+- `updateSearchRoute(...)`: updates query string without full reload for immediate search UX.
+- Internal link clicks are intercepted where possible if data context doesn't change.
 
 ### Hard navigation
 
-Use full reloads for:
+Full reloads are used when the navigation intent changes the required dataset:
 
 - version changes
 - language changes
 - mod changes
-- invalid legacy paths corrected by `initializeRouting()`
 
-Mechanisms:
-
-- `changeVersion(...)` writes `location.href`
-- `updateQueryParam(...)` writes `location.href`
-- `initializeRouting()` may call `location.replace(...)` to prepend `/stable/...`
+Such changes are handled by dedicated actions in `navigation.svelte.ts` which ensure a full navigation trigger.
 
 ## Working with Game Data
 
@@ -298,15 +251,12 @@ jq '.data[] | select(.type=="item") | .id' -r _test/all.json
 
 - Raw game JSON often uses `copy-from`; missing fields may live in a parent object.
 - `CBNData` handles flattening and indexing after fetch.
-- Locale fallback is explicit: if a requested locale is missing, `data.loadData(...)`
-  falls back to English and `App.svelte` shows a warning.
-- Active mods come from the URL, but unknown mod IDs are removed after the loaded dataset
-  resolves the real active mod list.
+- Locale fallback is explicit: if a requested locale is missing, `data.loadData(...)` falls back to English and `App.svelte` shows a warning.
+- Active mods come from the URL, but unknown mod IDs are removed after the loaded dataset resolves the real active mod list.
 
 ## Testing
 
-Prefer targeted tests first. Full render regressions are expensive and should be chosen
-because the change deserves them, not because anxiety asked for a sacrifice.
+Prefer targeted tests first. Full render regressions are expensive and should be chosen because the change deserves them, not because anxiety asked for a sacrifice.
 
 ### Recommended Workflows
 
@@ -346,20 +296,19 @@ because the change deserves them, not because anxiety asked for a sacrifice.
 
 - `pnpm test`: runs `lint`, `check`, `gen:mod-tests`, then `test:full`
 - `pnpm test:full`: runs `vitest run src`
-- `pnpm test:fast`: excludes `src/all.*.test.ts` and `src/__mod_tests__/**`
+- `pnpm test:fast`: excludes `all.*.test.ts` and `__mod_tests__/**`
 - `pnpm test:render:core`: runs only the core render regression files
 - `pnpm test:render:mods`: runs only generated mod render tests
 - `pnpm test:changed`: runs `lint`, `check`, then `vitest run --changed --run`
 
 ### Important Test Files
 
-- `src/all.*.test.ts`: renders large slices of the dataset to catch runtime/template
-  failures
-- `src/routing.test.ts`: routing and URL behavior
-- `src/schema.test.ts`: schema validation against upstream data changes
-- `src/data.test.ts`: `CBNData` behavior
-- `src/search.test.ts`: search rendering and behavior
-- `src/__mod_tests__/mod.*.test.ts`: generated per-mod render isolation tests
+- `all.*.test.ts`: renders large slices of the dataset to catch runtime/template failures
+- `routing.test.ts`: routing and URL behavior
+- `schema.test.ts`: schema validation against upstream data changes
+- `data.test.ts`: `CBNData` behavior
+- `search.test.ts`: search rendering and behavior
+- `__mod_tests__/mod.*.test.ts`: generated per-mod render isolation tests
 
 Why generated mod tests exist:
 
@@ -446,42 +395,30 @@ Bad:
 
 ### Add a new search presentation
 
-1. Put indexing/search logic in `src/search-engine.ts` or `src/search-state.svelte.ts`.
+1. Put indexing/search logic in `search-engine.ts` or `search-state.svelte.ts`.
 2. Keep `SearchResults.svelte` focused on grouping and rendering.
 3. Use snippets and `LimitedList.svelte` for repeated item rendering.
 4. Do not wrap the whole search results tree in a `{#key search}` block.
 
 ### Change URL behavior safely
 
-Use routing helpers instead of touching history directly from random components.
-
-- `navigateTo(...)`: move to an item or catalog page
-- `updateSearchRoute(...)`: keep search URL and UI in sync
-- `updateQueryParamNoReload(...)`: update tileset-like URL state without reload
-- `updateQueryParam(...)`: update params that require a full reload
-- `changeVersion(...)`: switch data version with a hard navigation
+Use actions from `navigation.svelte.ts` rather than touching history directly or hardcoding `href` changes. This ensures data context and history state are managed correctly according to the rules in [docs/routing.md](docs/routing.md).
 
 ### Add user-facing text
 
 - Use `t` from `@transifex/native` for UI strings
-- Use `src/i18n/game-locale.ts` for game-data translations
+- Use `i18n/game-locale.ts` for game-data translations
 - Keep extraction constraints in mind: literal `t("...")` strings are safest
 
 ### Add or change architectural behavior
 
-If the change alters reload boundaries, routing authority, data lifetime, or mod
-resolution semantics, add or update an ADR in `docs/adr/`.
+If the change alters reload boundaries, routing authority, data lifetime, or mod resolution semantics, add or update an ADR in `docs/adr/`.
 
 ## Limits and Edge Cases
 
-- `SearchResults.svelte` is not keyed. Advice that assumes all top-level route views are
-  remounted is wrong.
-- `data` is replaced wholesale when a new dataset is loaded. Code that assumes
-  incremental mutation of the active dataset will eventually lie to you.
+- `SearchResults.svelte` is not keyed. Advice that assumes all top-level route views are remounted is wrong.
+- `data` is replaced wholesale when a new dataset is loaded. Code that assumes incremental mutation of the active dataset will eventually lie to you.
 - Search is debounced by `150ms` outside tests and by `0ms` in tests.
-- `LimitedList.svelte` expands to `Infinity` during tests so hidden render failures do
-  not evade the suite.
-- `initializeRouting()` may rewrite invalid URLs with `location.replace(...)` before the
-  app fully starts.
-- Local storage access for tileset preference is wrapped in `try/catch` because browser
-  security modes can deny it.
+- `LimitedList.svelte` expands to `Infinity` during tests so hidden render failures do not evade the suite.
+- Malformed URLs are canonicalized and rewritten using `history.replaceState` before the app consumes them, managed by `routing.svelte.ts` alongside build metadata.
+- Local storage access for tileset preference is wrapped in `try/catch` because browser security modes can deny it.
