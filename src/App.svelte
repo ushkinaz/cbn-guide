@@ -493,7 +493,7 @@ function getLanguageName(code: string): string {
 {#if $data}
   <ModSelector
     open={isModSelectorOpen}
-    rawModsJson={$data.allMods()}
+    rawModsJSON={$data.allMods()}
     selectedModIds={$data.activeMods()}
     onclose={closeModSelector}
     onapply={(mods) => applyMods(mods)} />

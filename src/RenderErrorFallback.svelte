@@ -26,7 +26,7 @@ const data = untrack(() => sourceData);
 const error = untrack(() => sourceError);
 const item = untrack(() => sourceItem);
 
-function defaultFallbackJsonObject(
+function defaultFallbackJSONObject(
   type: string,
   id: string,
 ): { __filename: string; id: string; type: string } | undefined {
@@ -43,7 +43,7 @@ const jsonObject = untrack(() => {
 
   return (
     data.byIdMaybe(item.type as keyof SupportedTypes, item.id) ??
-    defaultFallbackJsonObject(item.type, item.id)
+    defaultFallbackJSONObject(item.type, item.id)
   );
 });
 </script>

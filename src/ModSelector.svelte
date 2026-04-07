@@ -30,7 +30,7 @@ const DEFAULT_MOD_IDS = [
 
 interface Props {
   open?: boolean;
-  rawModsJson?: Record<string, ModData>;
+  rawModsJSON?: Record<string, ModData>;
   selectedModIds?: string[];
   onclose?: () => void;
   onapply?: (selectedModIds: string[]) => void;
@@ -38,7 +38,7 @@ interface Props {
 
 let {
   open = false,
-  rawModsJson = {},
+  rawModsJSON = {},
   selectedModIds = [],
   onclose = () => {},
   onapply = () => {},
@@ -49,7 +49,7 @@ let wasOpen = false;
 
 let mods: ModInfo[] = $derived(
   // Filter out core mods, as they are not selectable.
-  Object.values(rawModsJson)
+  Object.values(rawModsJSON)
     .map(({ info }) => info)
     .filter((modInfo) => !modInfo.core) as ModInfo[],
 );
@@ -229,7 +229,7 @@ let availableDefaultModIds = $derived(
 
 let modContentStatsById = $derived(
   mods.reduce((acc, mod) => {
-    const rawData = rawModsJson[mod.id]?.data ?? [];
+    const rawData = rawModsJSON[mod.id]?.data ?? [];
     acc.set(mod.id, toVisibleStats(deriveModContentCounts(rawData)));
     return acc;
   }, new Map<string, ModContentStat[]>()),

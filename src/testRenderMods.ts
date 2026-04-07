@@ -97,24 +97,24 @@ export function makeModRenderTests(modId: string): void {
     testTimeout: MOD_RENDER_TIMEOUT_MS,
   });
 
-  const coreJson = JSON.parse(
+  const coreJSON = JSON.parse(
     fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
   ) as { data: unknown[] };
-  const modsJson = JSON.parse(
+  const modsJSON = JSON.parse(
     fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
   ) as Record<string, RawMod>;
 
-  const modEntries = Object.entries(modsJson).filter(
+  const modEntries = Object.entries(modsJSON).filter(
     ([, value]) => value && Array.isArray(value.data),
   );
 
   const modSubset = modEntries.filter(([id]) => id === modId);
 
   const createDataForMod = (modId: string): CBNData => {
-    const mergedData = [...(coreJson.data ?? [])];
-    const dependencyChain = resolveDependencyChain(modsJson, modId, new Set());
+    const mergedData = [...(coreJSON.data ?? [])];
+    const dependencyChain = resolveDependencyChain(modsJSON, modId, new Set());
     for (const depModId of dependencyChain) {
-      const depData = modsJson[depModId]?.data;
+      const depData = modsJSON[depModId]?.data;
       if (depData) {
         mergedData.push(...depData);
       }

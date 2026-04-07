@@ -62,20 +62,20 @@ function isChecked(input: HTMLInputElement): boolean {
   );
 }
 
-function toRawModsJson(mods: ModInfo[]): Record<string, ModData> {
+function toRawModsJSON(mods: ModInfo[]): Record<string, ModData> {
   return Object.fromEntries(
     mods.map((mod) => [mod.id, { info: mod, data: [] }]),
   );
 }
 
-const testRawModsJson = toRawModsJson(testMods);
+const testRawModsJSON = toRawModsJSON(testMods);
 
 describe("ModSelector", () => {
   test("checks currently selected mods when opened", () => {
     const { getByLabelText, getByText } = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson: testRawModsJson,
+        rawModsJSON: testRawModsJSON,
         selectedModIds: ["aftershock"],
       },
     });
@@ -97,7 +97,7 @@ describe("ModSelector", () => {
     const { getByLabelText, getByText } = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson: testRawModsJson,
+        rawModsJSON: testRawModsJSON,
         selectedModIds: ["aftershock"],
         onclose: onClose,
         onapply: onApply,
@@ -118,7 +118,7 @@ describe("ModSelector", () => {
     const { getByLabelText, getByText } = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson: testRawModsJson,
+        rawModsJSON: testRawModsJSON,
         selectedModIds: ["aftershock"],
         onapply: onApply,
       },
@@ -146,7 +146,7 @@ describe("ModSelector", () => {
     const { getByLabelText, getByText } = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson: testRawModsJson,
+        rawModsJSON: testRawModsJSON,
         selectedModIds: [],
         onapply: onApply,
       },
@@ -171,7 +171,7 @@ describe("ModSelector", () => {
     const { getByText } = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson: testRawModsJson,
+        rawModsJSON: testRawModsJSON,
         selectedModIds: ["aftershock"],
         onapply: onApply,
       },
@@ -189,7 +189,7 @@ describe("ModSelector", () => {
     const { getByLabelText, getByText } = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson: testRawModsJson,
+        rawModsJSON: testRawModsJSON,
         selectedModIds: [],
         onapply: onApply,
       },
@@ -210,7 +210,7 @@ describe("ModSelector", () => {
   });
 
   test("renders mod content stats and skips missing categories", () => {
-    const rawModsJson = {
+    const rawModsJSON = {
       aftershock: {
         info: testMods[2],
         data: [
@@ -223,7 +223,7 @@ describe("ModSelector", () => {
     const { getByText, queryByText } = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson,
+        rawModsJSON,
         selectedModIds: [],
       },
     });
@@ -241,7 +241,7 @@ describe("ModSelector", () => {
     const view = render(ModSelector, {
       props: {
         open: true,
-        rawModsJson: testRawModsJson,
+        rawModsJSON: testRawModsJSON,
         selectedModIds: [],
       },
     });
@@ -252,7 +252,7 @@ describe("ModSelector", () => {
 
     await view.rerender({
       open: false,
-      rawModsJson: testRawModsJson,
+      rawModsJSON: testRawModsJSON,
       selectedModIds: [],
     });
 
@@ -264,7 +264,7 @@ describe("ModSelector", () => {
 
     await view.rerender({
       open: true,
-      rawModsJson: testRawModsJson,
+      rawModsJSON: testRawModsJSON,
       selectedModIds: [],
     });
 

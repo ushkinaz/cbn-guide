@@ -120,13 +120,13 @@ describe("copy-from self-looking override chain", () => {
 
 describe("DinoMod regressions", () => {
   test("mon_ztegosaurus_brute keeps valid melee damage types", () => {
-    const coreJson = JSON.parse(
+    const coreJSON = JSON.parse(
       fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
     );
-    const modsJson = JSON.parse(
+    const modsJSON = JSON.parse(
       fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
     ) as Record<string, { data: unknown[] }>;
-    const merged = [...coreJson.data, ...modsJson.DinoMod.data];
+    const merged = [...coreJSON.data, ...modsJSON.DinoMod.data];
     const loaded = makeTestCBNData(merged);
     const monster = loaded.byId("monster", "mon_ztegosaurus_brute");
     const meleeDamage = normalizeDamageInstance(monster.melee_damage ?? []);
@@ -142,13 +142,13 @@ describe("DinoMod regressions", () => {
   });
 
   test("self copy-from overrides in DinoMod preserve base fields and apply extensions", () => {
-    const coreJson = JSON.parse(
+    const coreJSON = JSON.parse(
       fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
     );
-    const modsJson = JSON.parse(
+    const modsJSON = JSON.parse(
       fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
     ) as Record<string, { data: unknown[] }>;
-    const merged = [...coreJson.data, ...modsJson.DinoMod.data];
+    const merged = [...coreJSON.data, ...modsJSON.DinoMod.data];
     const loaded = makeTestCBNData(merged);
     const mutation = loaded.byId("mutation", "RUMINANT");
 

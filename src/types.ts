@@ -801,7 +801,7 @@ export type Fault = {
   flags?: string[];
 };
 
-export type JsonFlag = {
+export type JSONFlag = {
   type: "json_flag";
   id: string;
 
@@ -1152,7 +1152,7 @@ type MonsterAttack = (
   | SpellAttack
 ) & { cooldown?: number };
 export type SpecialAttack = [string, number] | MonsterAttack;
-export type JsonMapgen = {
+export type JSONMapgen = {
   type: "mapgen";
   method: "json";
   om_terrain?: string | string[] | string[][];
@@ -1172,7 +1172,7 @@ export type LuaMapgen = {
   update_mapgen_id?: string;
 };
 
-export type Mapgen = JsonMapgen | LuaMapgen;
+export type Mapgen = JSONMapgen | LuaMapgen;
 
 export type PlaceMapping<T> = Record<string, T | T[]>;
 export type PlaceMappingAlternative<T> = Record<
@@ -2321,7 +2321,7 @@ export type SupportedTypes = {
   harvest_drop_type: HarvestDropType;
   item_action: ItemAction;
   item_group: { type: "item_group" } & ItemGroup;
-  json_flag: JsonFlag;
+  json_flag: JSONFlag;
   mapgen: Mapgen;
   martial_art: MartialArt;
   material: Material;

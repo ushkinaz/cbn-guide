@@ -4,12 +4,12 @@ import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
-import type { JsonFlag } from "../types";
+import type { JSONFlag } from "../types";
 import ItemLink from "./ItemLink.svelte";
 import { byName, gameSingular } from "../i18n/game-locale";
 
 interface Props {
-  item: JsonFlag;
+  item: JSONFlag;
 }
 
 let { item }: Props = $props();

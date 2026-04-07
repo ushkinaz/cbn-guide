@@ -11,7 +11,7 @@ const OMAP_TILE_SIZE = 24;
 /** 0.0 <= chance <= 1.0 */
 type chance = number;
 
-function isJsonMapgen(mapgen: raw.Mapgen): mapgen is raw.JsonMapgen {
+function isJSONMapgen(mapgen: raw.Mapgen): mapgen is raw.JSONMapgen {
   return mapgen.method === "json";
 }
 
@@ -228,7 +228,7 @@ function setToLoot(
 }
 
 function getSetLoot(
-  mapgen: raw.JsonMapgen,
+  mapgen: raw.JSONMapgen,
   kind: "furniture" | "terrain",
 ): Loot[] {
   return (mapgen.object.set ?? [])
@@ -255,10 +255,10 @@ export function collection(items: Array<Loot>): Loot {
 }
 
 function offsetMapgen(
-  mapgen: raw.JsonMapgen,
+  mapgen: raw.JSONMapgen,
   x: number,
   y: number,
-): raw.JsonMapgen {
+): raw.JSONMapgen {
   const object = {
     ...mapgen.object,
     rows: (mapgen.object.rows ?? [])
@@ -376,7 +376,7 @@ function getMapgensByOmt(data: CBNData): Map<string, raw.Mapgen[]> {
         for (let y = 0; y < mapgen.om_terrain.length; y++) {
           for (let x = 0; x < mapgen.om_terrain[y].length; x++) {
             const omt = mapgen.om_terrain[y][x];
-            if (isJsonMapgen(mapgen)) add(omt, offsetMapgen(mapgen, x, y));
+            if (isJSONMapgen(mapgen)) add(omt, offsetMapgen(mapgen, x, y));
             else add(omt, mapgen);
           }
         }
@@ -394,7 +394,7 @@ export function lootForOmt(
 ) {
   const mapgensByOmt = getMapgensByOmt(data);
   const mapgens = (mapgensByOmt.get(omt_id) ?? []).filter(
-    (mg): mg is raw.JsonMapgen => mg.method === "json",
+    (mg): mg is raw.JSONMapgen => mg.method === "json",
   );
   const loot = mergeLoot(
     mapgens.map((mg) => ({
@@ -800,7 +800,7 @@ function getLootForMapgenInternal(
   stack: WeakSet<raw.Mapgen>,
 ): Loot {
   if (lootForMapgenCache.has(mapgen)) return lootForMapgenCache.get(mapgen)!;
-  if (!isJsonMapgen(mapgen)) {
+  if (!isJSONMapgen(mapgen)) {
     const loot = new Map();
     lootForMapgenCache.set(mapgen, loot);
     return loot;
@@ -891,7 +891,7 @@ const furnitureForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
 export function getFurnitureForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (furnitureForMapgenCache.has(mapgen))
     return furnitureForMapgenCache.get(mapgen)!;
-  if (!isJsonMapgen(mapgen)) {
+  if (!isJSONMapgen(mapgen)) {
     const loot = new Map();
     furnitureForMapgenCache.set(mapgen, loot);
     return loot;
@@ -922,7 +922,7 @@ const terrainForMapgenCache = new WeakMap<raw.Mapgen, Loot>();
 export function getTerrainForMapgen(data: CBNData, mapgen: raw.Mapgen): Loot {
   if (terrainForMapgenCache.has(mapgen))
     return terrainForMapgenCache.get(mapgen)!;
-  if (!isJsonMapgen(mapgen)) {
+  if (!isJSONMapgen(mapgen)) {
     const loot = new Map();
     terrainForMapgenCache.set(mapgen, loot);
     return loot;

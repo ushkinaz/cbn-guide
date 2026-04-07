@@ -3,14 +3,14 @@ import { vi } from "vitest";
 import { BASE_URL } from "./utils/env";
 import type { BuildInfo } from "./builds.svelte";
 
-type TestDataJson = {
+type TestDataJSON = {
   build_number: string;
   data: unknown[];
   mods: unknown[];
   release: { tag_name: string };
 };
 
-type TestModJson = {
+type TestModJSON = {
   info: {
     type: "MOD_INFO";
     id: string;
@@ -22,10 +22,10 @@ type TestModJson = {
   data: unknown[];
 };
 
-let cachedTestData: TestDataJson | null = null;
+let cachedTestData: TestDataJSON | null = null;
 let cachedTestBuilds: BuildInfo[] | null = null;
 
-const minimalAppData: TestDataJson = {
+const minimalAppData: TestDataJSON = {
   build_number: "2026-02-17",
   mods: [],
   release: {
@@ -128,8 +128,8 @@ function jsonResponse<T>(value: T): Response {
   } as Response;
 }
 
-export function getTestData(): TestDataJson {
-  cachedTestData ??= readFixture<TestDataJson>("all.json");
+export function getTestData(): TestDataJSON {
+  cachedTestData ??= readFixture<TestDataJSON>("all.json");
   return cachedTestData;
 }
 
@@ -138,7 +138,7 @@ export function getTestBuilds(): BuildInfo[] {
   return cachedTestBuilds;
 }
 
-export const testModsData: Record<string, TestModJson> = {
+export const testModsData: Record<string, TestModJSON> = {
   aftershock: {
     info: {
       type: "MOD_INFO",
