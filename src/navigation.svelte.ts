@@ -7,6 +7,7 @@ import {
 } from "./preferences.svelte";
 import {
   buildURL,
+  hasVersionlessHomePath,
   initializeRouting,
   navigateToURL,
   page,
@@ -154,22 +155,6 @@ export function changeMods(mods: string[]): void {
     navigation.tileset,
     mods,
   );
-}
-
-function stripBaseFromPathname(pathname: string): string {
-  const baseNoSlash = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
-
-  if (pathname === baseNoSlash) return "/";
-  if (pathname.startsWith(BASE_URL)) return pathname.slice(BASE_URL.length - 1);
-  if (pathname.startsWith(baseNoSlash + "/"))
-    return pathname.slice(baseNoSlash.length);
-  return pathname;
-}
-
-function hasVersionlessHomePath(pathname: string): boolean {
-  const path = stripBaseFromPathname(pathname);
-  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
-  return cleanPath.length === 0;
 }
 
 function buildCanonicalBootstrapURL(
