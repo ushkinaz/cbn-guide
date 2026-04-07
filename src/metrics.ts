@@ -1,36 +1,54 @@
 import * as Sentry from "@sentry/browser";
-import { navigation } from "./navigation.svelte";
 import { isProd, RUNNING_MODE } from "./utils/env";
+import type { RouteTarget } from "./routing.svelte";
 
 /**
  * Metric attributes type for Sentry metrics.
  */
 export type MetricAttributes = Record<string, string | number | boolean>;
 
+let version: string;
+let locale: string;
+let tileset: string;
+let displayMode: string;
+let target: RouteTarget = { kind: "home" };
+
+export function initializeMetrics(
+  versionAttr: string,
+  localeAttr: string,
+  tilesetAttr: string,
+) {
+  version = versionAttr;
+  locale = localeAttr;
+  tileset = tilesetAttr;
+  displayMode = RUNNING_MODE;
+}
+
+export function updateTarget(newTarget: RouteTarget) {
+  target = newTarget;
+  return newTarget;
+}
+
 /**
  * Get common attributes that should be attached to every metric.
  */
 function getCommonAttributes(): MetricAttributes {
   const attrs: MetricAttributes = {
-    version: navigation.buildResolvedVersion,
-    locale: navigation.locale,
-    tileset: navigation.tileset,
-    url_path: navigation.url.pathname,
-    display_mode: RUNNING_MODE,
+    version: version,
+    locale: locale,
+    tileset: tileset,
+    display_mode: displayMode,
   };
 
   // Add route context if available
-  if (
-    navigation.target.kind === "catalog" ||
-    navigation.target.kind === "item"
-  ) {
-    attrs.item_type = navigation.target.type;
+  if (target.kind === "catalog" || target.kind === "item") {
+    attrs.item_type = target.type;
   }
-  if (navigation.target.kind === "item") {
-    attrs.item_id = navigation.target.id;
+  if (target.kind === "item") {
+    attrs.item_id = target.id;
   }
-  if (navigation.target.kind === "search") {
-    attrs.search = navigation.target.query;
+  if (target.kind === "search") {
+    attrs.search = target.query;
   }
 
   return attrs;

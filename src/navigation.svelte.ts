@@ -23,6 +23,7 @@ import {
 } from "./builds.svelte";
 import { initializeUILocale } from "./i18n/ui-locale";
 import { DEFAULT_LOCALE } from "./constants";
+import { initializeMetrics, updateTarget } from "./metrics";
 
 type NavigationContext = {
   url: URL;
@@ -60,6 +61,12 @@ export const navigation: NavigationContext = {
     return page.route.target;
   },
 };
+
+$effect.root(() => {
+  $effect(() => {
+    updateTarget(page.route.target);
+  });
+});
 
 /**
  * Non-reactive variant of linkTo, use only in imperative contexts
@@ -218,6 +225,12 @@ export async function bootstrapApplication(): Promise<void> {
   if (canonicalURL !== currentURL) {
     navigateToURL(canonicalURL, "replace");
   }
+
+  initializeMetrics(
+    navigation.buildResolvedVersion,
+    navigation.locale,
+    navigation.tileset,
+  );
 
   await initializeUILocale(page.route.localeParam);
 }
