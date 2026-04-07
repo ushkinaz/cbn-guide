@@ -24,7 +24,7 @@ import {
 import App from "./App.svelte";
 import { data } from "./data";
 import { dismiss, notifications } from "./Notification.svelte";
-import { _resetPreferences, setPreferredTileset } from "./preferences.svelte";
+import { _resetPreferences, setTileset } from "./preferences.svelte";
 import {
   dispatchPopState,
   createAppFetchMock,
@@ -216,7 +216,7 @@ describe("App routing integration", () => {
   });
 
   test("popstate falls back to the saved preference after removing a transient tileset override", async () => {
-    setPreferredTileset("retrodays");
+    setTileset("retrodays");
     setWindowLocation("stable/", "?t=undead_people");
 
     await renderApp();

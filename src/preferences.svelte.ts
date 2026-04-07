@@ -1,21 +1,27 @@
 import { DEFAULT_TILESET, isValidTileset } from "./tile-data";
 
-const TILESET_STORAGE_KEY = "cbn-guide:tileset";
-const DEFAULT_MODS_STORAGE_KEY = "cbn-guide:default-mods";
+/**
+ * @internal
+ */
+export const TILESET_STORAGE_KEY = "cbn-guide:tileset";
+/**
+ * @internal
+ */
+export const MODS_STORAGE_KEY = "cbn-guide:mods";
 
 export type UserPreferences = {
-  preferredTileset: string;
-  defaultMods: string[] | null;
+  tileset: string;
+  mods: string[];
 };
 
 const defaultPreferences: UserPreferences = {
-  preferredTileset: DEFAULT_TILESET.name,
-  defaultMods: null,
+  tileset: DEFAULT_TILESET.name,
+  mods: [],
 };
 
 export const preferences = $state<UserPreferences>({
-  preferredTileset: defaultPreferences.preferredTileset,
-  defaultMods: defaultPreferences.defaultMods,
+  tileset: defaultPreferences.tileset,
+  mods: defaultPreferences.mods,
 });
 
 function readStoredTileset(): string | undefined {
@@ -26,7 +32,7 @@ function readStoredTileset(): string | undefined {
   }
 }
 
-function persistPreferredTileset(tileset: string): void {
+function persistTileset(tileset: string): void {
   try {
     localStorage.setItem(TILESET_STORAGE_KEY, tileset);
   } catch {
@@ -34,9 +40,9 @@ function persistPreferredTileset(tileset: string): void {
   }
 }
 
-function readStoredDefaultMods(): string[] | null {
+function readStoredMods(): string[] | null {
   try {
-    const raw = localStorage.getItem(DEFAULT_MODS_STORAGE_KEY);
+    const raw = localStorage.getItem(MODS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (
@@ -51,9 +57,9 @@ function readStoredDefaultMods(): string[] | null {
   }
 }
 
-function persistDefaultMods(mods: string[]): void {
+function persistMods(mods: string[]): void {
   try {
-    localStorage.setItem(DEFAULT_MODS_STORAGE_KEY, JSON.stringify(mods));
+    localStorage.setItem(MODS_STORAGE_KEY, JSON.stringify(mods));
   } catch {
     // Swallow storage failures
   }
@@ -61,7 +67,7 @@ function persistDefaultMods(mods: string[]): void {
 
 function clearStoredDefaultMods(): void {
   try {
-    localStorage.removeItem(DEFAULT_MODS_STORAGE_KEY);
+    localStorage.removeItem(MODS_STORAGE_KEY);
   } catch {
     // Swallow storage failures
   }
@@ -78,15 +84,15 @@ function clearStoredDefaultMods(): void {
  * @returns The initialized `UserPreferences` object.
  */
 export function initializePreferences(): UserPreferences {
-  let preferredTileset = readStoredTileset() ?? DEFAULT_TILESET.name;
+  let preferredTileset = readStoredTileset() ?? defaultPreferences.tileset;
   if (!isValidTileset(preferredTileset)) {
     //Clean up invalid tileset
-    preferredTileset = DEFAULT_TILESET.name;
-    persistPreferredTileset(preferredTileset);
+    preferredTileset = defaultPreferences.tileset;
+    persistTileset(preferredTileset);
   }
 
-  preferences.preferredTileset = preferredTileset;
-  preferences.defaultMods = readStoredDefaultMods();
+  preferences.tileset = preferredTileset;
+  preferences.mods = readStoredMods() ?? defaultPreferences.mods;
   return preferences;
 }
 
@@ -98,27 +104,27 @@ export function initializePreferences(): UserPreferences {
  *
  * Persistence and state updates only occur on validation success.
  */
-export function setPreferredTileset(tileset: string): boolean {
+export function setTileset(tileset: string): boolean {
   if (!isValidTileset(tileset)) return false;
 
-  persistPreferredTileset(tileset);
-  preferences.preferredTileset = tileset;
+  persistTileset(tileset);
+  preferences.tileset = tileset;
   return true;
 }
 
-export function setDefaultMods(mods: string[]): void {
+export function setMods(mods: string[]): void {
   if (mods.length === 0) {
     clearStoredDefaultMods();
-    preferences.defaultMods = null;
+    preferences.mods = [];
   } else {
-    persistDefaultMods(mods);
-    preferences.defaultMods = mods;
+    persistMods(mods);
+    preferences.mods = mods;
   }
 }
 
-export function clearSavedDefaultMods(): void {
+export function clearSavedMods(): void {
   clearStoredDefaultMods();
-  preferences.defaultMods = null;
+  preferences.mods = [];
 }
 
 /**
@@ -128,6 +134,6 @@ export function clearSavedDefaultMods(): void {
  * @internal test-only
  */
 export function _resetPreferences(): void {
-  preferences.preferredTileset = defaultPreferences.preferredTileset;
-  preferences.defaultMods = defaultPreferences.defaultMods;
+  preferences.tileset = defaultPreferences.tileset;
+  preferences.mods = defaultPreferences.mods;
 }

@@ -16,7 +16,7 @@ import {
   _resetPreferences,
   initializePreferences,
   preferences,
-  setPreferredTileset,
+  setTileset,
 } from "./preferences.svelte";
 import {
   bootstrapApplication,
@@ -48,7 +48,7 @@ describe("navigation", () => {
     _resetPreferences();
     _resetBuildsState();
     localStorage.removeItem?.("cbn-guide:tileset");
-    localStorage.removeItem?.("cbn-guide:default-mods");
+    localStorage.removeItem?.("cbn-guide:mods");
     global.fetch = defaultFetchMock;
   });
 
@@ -67,7 +67,7 @@ describe("navigation", () => {
 
   test("derives the effective tileset from preferences when the URL omits t", async () => {
     initializePreferences();
-    setPreferredTileset("retrodays");
+    setTileset("retrodays");
     await initializeBuildsState();
 
     expect(navigation).toMatchObject({
@@ -78,7 +78,7 @@ describe("navigation", () => {
   });
 
   test("uses a valid URL tileset override transiently without persisting it", async () => {
-    setPreferredTileset("retrodays");
+    setTileset("retrodays");
     setWindowLocation("stable/item/rock", "?t=ultica");
     _resetRouting();
     await initializeBuildsState();
@@ -87,8 +87,8 @@ describe("navigation", () => {
       tileset: "ultica",
     });
     expect(preferences).toEqual({
-      preferredTileset: "retrodays",
-      defaultMods: null,
+      tileset: "retrodays",
+      mods: [],
     });
     expect(buildLinkTo({ kind: "home" })).toBe("/stable/?t=ultica");
   });
@@ -191,8 +191,8 @@ describe("navigation", () => {
 
     expect(navigation.tileset).toBe("retrodays");
     expect(preferences).toEqual({
-      preferredTileset: "retrodays",
-      defaultMods: null,
+      tileset: "retrodays",
+      mods: [],
     });
     expect(window.location.search).toContain("t=retrodays");
     expect(replaceStateSpy).toHaveBeenCalledOnce();
@@ -230,10 +230,7 @@ describe("navigation", () => {
   });
 
   test("bootstrap injects saved mods into bare URL", async () => {
-    localStorage.setItem(
-      "cbn-guide:default-mods",
-      JSON.stringify(["aftershock"]),
-    );
+    localStorage.setItem("cbn-guide:mods", JSON.stringify(["aftershock"]));
     setWindowLocation("stable/");
     _resetRouting();
     const replaceStateSpy = vi
@@ -256,10 +253,7 @@ describe("navigation", () => {
   });
 
   test("bootstrap does not inject when URL already has mods", async () => {
-    localStorage.setItem(
-      "cbn-guide:default-mods",
-      JSON.stringify(["magiclysm"]),
-    );
+    localStorage.setItem("cbn-guide:mods", JSON.stringify(["magiclysm"]));
     setWindowLocation("stable/", "?mods=aftershock");
     _resetRouting();
     const replaceStateSpy = vi.spyOn(history, "replaceState");
@@ -275,7 +269,7 @@ describe("navigation", () => {
   });
 
   test("bootstrap does not inject when no preset saved", async () => {
-    localStorage.removeItem("cbn-guide:default-mods");
+    localStorage.removeItem("cbn-guide:mods");
     setWindowLocation("stable/");
     _resetRouting();
     const replaceStateSpy = vi.spyOn(history, "replaceState");
@@ -292,10 +286,7 @@ describe("navigation", () => {
 
   test("bootstrap canonicalizes version and saved preferences with one replaceState", async () => {
     localStorage.setItem("cbn-guide:tileset", "retrodays");
-    localStorage.setItem(
-      "cbn-guide:default-mods",
-      JSON.stringify(["aftershock"]),
-    );
+    localStorage.setItem("cbn-guide:mods", JSON.stringify(["aftershock"]));
     setWindowLocation("bogus/item/rock");
     _resetRouting();
     const replaceStateSpy = vi
