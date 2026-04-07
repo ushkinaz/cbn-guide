@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import { untrack } from "svelte";
 
 import type { CBNData } from "./data";
-import JsonView from "./JsonView.svelte";
+import JSONView from "./JSONView.svelte";
 import { isSupportedType } from "./supported-types";
 import type { SupportedTypes } from "./types";
 import { isDev } from "./utils/env";
@@ -71,7 +71,7 @@ const jsonObject = untrack(() => {
     </div>
 
     {#if jsonObject}
-      <JsonView obj={jsonObject} buildNumber={data?.buildVersion()} />
+      <JSONView obj={jsonObject} buildNumber={data?.buildVersion()} />
     {/if}
   </div>
 </section>

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import JsonView from "../JsonView.svelte";
+import JSONView from "../JSONView.svelte";
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../data";
 
@@ -200,7 +200,7 @@ writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
       </dd>
     {/if}
   </dl>
-  <JsonView obj={recipe} buildNumber={data.buildVersion()} />
+  <JSONView obj={recipe} buildNumber={data.buildVersion()} />
 </section>
 
 <style>

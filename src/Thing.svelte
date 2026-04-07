@@ -28,7 +28,7 @@ import Achievement from "./types/Achievement.svelte";
 import ObsoletionWarning from "./ObsoletionWarning.svelte";
 import Bionic from "./types/Bionic.svelte";
 import type { SupportedTypes } from "./types";
-import JsonView from "./JsonView.svelte";
+import JSONView from "./JSONView.svelte";
 import OvermapSpecial from "./types/OvermapSpecial.svelte";
 import ItemAction from "./types/ItemAction.svelte";
 import Technique from "./types/Technique.svelte";
@@ -131,4 +131,4 @@ const display = (obj && displays[obj.type]) ?? Unknown;
   <SvelteComponent item={obj} />
 {/if}
 
-<JsonView {obj} buildNumber={data.buildVersion()} />
+<JSONView {obj} buildNumber={data.buildVersion()} />

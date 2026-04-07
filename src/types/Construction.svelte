@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import JsonView from "../JsonView.svelte";
+import JSONView from "../JSONView.svelte";
 
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../data";
@@ -162,5 +162,5 @@ if (construction.pre_flags)
       {gameSingular(construction.pre_note)}
     </p>
   {/if}
-  <JsonView obj={construction} buildNumber={data.buildVersion()} />
+  <JSONView obj={construction} buildNumber={data.buildVersion()} />
 </section>
