@@ -129,8 +129,8 @@ export function clearSavedMods(): void {
 }
 
 /**
- * Test helper: resets `tileset` to the default value
- * (`defaultPreferences.tileset`). Does not touch localStorage.
+ * Test helper: resets preferences to the default values
+ * Does not touch localStorage.
  * @internal test-only
  */
 export function _resetPreferences(): void {
