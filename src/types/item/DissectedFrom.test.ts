@@ -5,7 +5,6 @@ import { render } from "@testing-library/svelte";
 import { describe, expect, it } from "vitest";
 import DissectedFrom from "./DissectedFrom.svelte";
 import WithData from "../../WithData.svelte";
-import { CBNData } from "../../data";
 import { makeTestCBNData } from "../../data.test-helpers";
 
 describe("DissectedFrom", () => {

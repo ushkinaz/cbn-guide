@@ -1,5 +1,4 @@
 import { expect, test } from "vitest";
-import { CBNData } from "./data";
 import { makeTestCBNData } from "./data.test-helpers";
 import { createSearchState } from "./search-state.svelte";
 

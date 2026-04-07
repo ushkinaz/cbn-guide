@@ -5,7 +5,6 @@ import { render } from "@testing-library/svelte";
 
 import SpawnedIn from "./SpawnedIn.svelte";
 import WithData from "../../WithData.svelte";
-import { CBNData } from "../../data";
 import { makeTestCBNData } from "../../data.test-helpers";
 import { lootByOMSAppearance } from "./spawnLocations";
 import { describe, expect, it } from "vitest";

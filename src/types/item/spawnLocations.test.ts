@@ -13,7 +13,6 @@ import {
   parsePlaceMappingAlternative,
   repeatChance,
 } from "./spawnLocations";
-import { CBNData } from "../../data";
 import { makeTestCBNData } from "../../data.test-helpers";
 import type { ItemGroupData, Mapgen } from "../../types";
 import { describe, expect, it } from "vitest";

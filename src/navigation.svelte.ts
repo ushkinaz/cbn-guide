@@ -23,7 +23,6 @@ import {
 } from "./builds.svelte";
 import { initializeUILocale } from "./i18n/ui-locale";
 import { DEFAULT_LOCALE } from "./constants";
-import { BASE_URL } from "./utils/env";
 
 type NavigationContext = {
   url: URL;

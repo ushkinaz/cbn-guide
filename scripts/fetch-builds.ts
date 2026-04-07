@@ -8,7 +8,6 @@
  * ```
  */
 
-import * as fs from "fs/promises";
 import { createWriteStream } from "fs";
 import * as path from "path";
 import * as url from "url";

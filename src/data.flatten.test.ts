@@ -1,5 +1,4 @@
 import { describe, test, expect } from "vitest";
-import { CBNData } from "./data";
 import { makeTestCBNData } from "./data.test-helpers";
 import type { GunSlot, ItemBasicInfo } from "./types";
 

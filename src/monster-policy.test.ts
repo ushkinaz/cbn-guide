@@ -1,6 +1,5 @@
 import * as fs from "fs";
 import { describe, expect, test } from "vitest";
-import { CBNData } from "./data";
 import { makeTestCBNData } from "./data.test-helpers";
 import { buildSearchIndex } from "./search-engine";
 import type { ModData } from "./types";
