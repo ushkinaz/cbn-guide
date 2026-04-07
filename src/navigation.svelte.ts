@@ -2,8 +2,8 @@ import { resolveTileset } from "./tile-data";
 import {
   initializePreferences,
   preferences,
-  setDefaultMods,
-  setPreferredTileset,
+  setMods,
+  setTileset,
 } from "./preferences.svelte";
 import {
   buildURL,
@@ -51,10 +51,7 @@ export const navigation: NavigationContext = {
     return page.route.localeParam ?? DEFAULT_LOCALE;
   },
   get tileset(): string {
-    return resolveTileset(
-      preferences.preferredTileset,
-      page.route.tilesetParam,
-    );
+    return resolveTileset(preferences.tileset, page.route.tilesetParam);
   },
   get mods(): string[] {
     return page.route.modsParam;
@@ -106,7 +103,7 @@ export function updateSearchRoute(
  *
  */
 export function changeTileset(tileset: string): void {
-  if (setPreferredTileset(tileset)) {
+  if (setTileset(tileset)) {
     navigateToURL(
       buildURL(
         navigation.buildRequestedVersion,
@@ -149,7 +146,7 @@ export function changeVersion(buildVersion: string): void {
 }
 
 export function changeMods(mods: string[]): void {
-  setDefaultMods(mods);
+  setMods(mods);
   location.href = buildURL(
     navigation.buildRequestedVersion,
     navigation.target,
@@ -184,14 +181,12 @@ function buildCanonicalBootstrapURL(
   const canonicalPath = resolveVersionedPath(currentURL.pathname, builds);
 
   const canonicalMods =
-    page.route.modsParam.length > 0
-      ? page.route.modsParam
-      : (preferences.defaultMods ?? []);
+    page.route.modsParam.length > 0 ? page.route.modsParam : preferences.mods;
 
   const canonicalLocale = page.route.localeParam;
 
   const canonicalTileset = resolveTileset(
-    preferences.preferredTileset,
+    preferences.tileset,
     page.route.tilesetParam,
   );
 

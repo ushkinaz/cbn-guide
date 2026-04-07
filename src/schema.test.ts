@@ -3,7 +3,6 @@ import * as fs from "fs";
 import * as util from "util";
 import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
-import { CBNData } from "./data";
 import { makeTestCBNData } from "./data.test-helpers";
 import { expect, test } from "vitest";
 
