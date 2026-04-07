@@ -206,7 +206,7 @@ let currentBuild: BuildInfo | undefined = $derived(
   ),
 );
 
-let modsActiveCount = $derived($data?.activeMods.length ?? 0);
+let modsActiveCount = $derived($data?.activeMods().length ?? 0);
 
 $effect(() => {
   if (!currentBuild || !navigation.buildResolvedVersion) {
@@ -493,8 +493,8 @@ function getLanguageName(code: string): string {
 {#if $data}
   <ModSelector
     open={isModSelectorOpen}
-    rawModsJson={$data.rawModsJSON}
-    selectedModIds={$data.activeMods}
+    rawModsJson={$data.allMods()}
+    selectedModIds={$data.activeMods()}
     onclose={closeModSelector}
     onapply={(mods) => applyMods(mods)} />
 {/if}
@@ -686,7 +686,7 @@ function getLanguageName(code: string): string {
           </select>
         {:else if $data}
           <select disabled>
-            <option>{$data.buildVersion}</option>
+            <option>{$data.buildVersion()}</option>
           </select>
         {/if}
       {:else}

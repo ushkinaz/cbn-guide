@@ -239,6 +239,23 @@ type DissectionSource = {
  */
 export class CBNData {
   _raw: any[];
+  /**
+   * A record containing mods data, where each key is a string identifier for a specific mod
+   * and the value is an object representing the corresponding mod's data.
+   *
+   * @property {string} key - The unique identifier for the mod.
+   * @property {ModData} value - The data object containing configuration and metadata for the mod.
+   */
+  _rawModsJSON: Record<string, ModData>;
+  /** Concrete build number from the game data (e.g., "v0.9.1") */
+  _buildVersion: string;
+  /** Original version slug used for fetching (e.g., "stable", "nightly") */
+  _fetchVersion: string;
+  /** Ordered active non-core mod ids. */
+  _activeMods: string[];
+  /** Effective locale actually loaded and applied to the i18n singleton. */
+  _locale: string;
+
   _byType: Map<string, any[]> = new Map();
   _byTypeById: Map<string, Map<string, any>> = new Map();
   _abstractsByType: Map<string, Map<string, any>> = new Map();
@@ -263,23 +280,6 @@ export class CBNData {
    */
   _dissectionSources: Map<string, DissectionSource[]> = new Map();
 
-  /** Concrete build number from the game data (e.g., "v0.9.1") */
-  buildVersion: string;
-  /** Original version slug used for fetching (e.g., "stable", "nightly") */
-  fetchVersion: string;
-  /** Ordered active non-core mod ids. */
-  activeMods: string[];
-  /** Effective locale actually loaded and applied to the i18n singleton. */
-  locale: string;
-  /**
-   * A record containing mods data, where each key is a string identifier for a specific mod
-   * and the value is an object representing the corresponding mod's data.
-   *
-   * @property {string} key - The unique identifier for the mod.
-   * @property {ModData} value - The data object containing configuration and metadata for the mod.
-   */
-  rawModsJSON: Record<string, ModData>;
-
   constructor(
     rawJSON: unknown[],
     buildVersion: string,
@@ -294,20 +294,20 @@ export class CBNData {
 
     const raw = rawJSON as any[];
 
-    this.buildVersion = buildVersion;
-    this.fetchVersion = fetchVersion;
-    this.activeMods = activeMods;
-    this.locale = locale;
-    this.rawModsJSON = rawModsJSON;
+    this._buildVersion = buildVersion;
+    this._fetchVersion = fetchVersion;
+    this._activeMods = activeMods;
+    this._locale = locale;
+    this._rawModsJSON = rawModsJSON;
 
     // Apply locale to the shared i18n singleton before any data method runs.
     if (locale !== DEFAULT_LOCALE) {
       try {
-        applyLocaleJSON(localeJSON, pinyinJSON ?? null, this.locale);
+        applyLocaleJSON(localeJSON, pinyinJSON ?? null, this._locale);
       } catch (e) {
         console.warn("Failed to apply locale JSON in CBNData constructor:", e);
-        resetI18n("en");
-        this.locale = "en";
+        resetI18n(DEFAULT_LOCALE);
+        this._locale = DEFAULT_LOCALE;
       }
     }
 
@@ -776,6 +776,26 @@ export class CBNData {
 
   all(): SupportedTypeMapped[] {
     return this._raw;
+  }
+
+  allMods() {
+    return this._rawModsJSON;
+  }
+
+  activeMods() {
+    return this._activeMods;
+  }
+
+  buildVersion(): string {
+    return this._buildVersion;
+  }
+
+  locale(): string {
+    return this._locale;
+  }
+
+  fetchVersion(): string {
+    return this._fetchVersion;
   }
 
   /**
@@ -2521,7 +2541,6 @@ export const data = {
    * `_reset`: resetting singleton store state between test app mounts.
    * Side effects: clearing _currentData, generation token, and calling set(null).
    * @internal
-   * @returns {void}
    */
   _reset(): void {
     _generationToken++;

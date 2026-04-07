@@ -71,7 +71,7 @@ const jsonObject = untrack(() => {
     </div>
 
     {#if jsonObject}
-      <JsonView obj={jsonObject} buildNumber={data?.buildVersion} />
+      <JsonView obj={jsonObject} buildNumber={data?.buildVersion()} />
     {/if}
   </div>
 </section>

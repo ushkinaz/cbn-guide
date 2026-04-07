@@ -346,10 +346,10 @@ function getCachedBaseTileset(url: string): Promise<NonNullable<TilesetData>> {
 }
 
 export function collectActiveModTilesets(
-  data: Pick<CBNData, "activeMods" | "rawModsJSON">,
+  data: CBNData,
 ): ModTilesetContribution[] {
-  const activeMods = data.activeMods ?? [];
-  const rawMods = data.rawModsJSON ?? {};
+  const activeMods = data.activeMods();
+  const rawMods = data.allMods();
   const result: ModTilesetContribution[] = [];
 
   for (const modId of activeMods) {
@@ -436,13 +436,11 @@ function getMergeCacheKey(
   version: string,
   tileset: TilesetDefinition,
   aliases: Set<string>,
-  data: Pick<CBNData, "activeMods" | "rawModsJSON">,
+  data: CBNData,
 ): string {
-  const activeMods = (data.activeMods ?? []).join(",");
+  const activeMods = data.activeMods().join(",");
   const aliasSignature = [...aliases].sort().join(",");
-  const modsLoaded = data.rawModsJSON
-    ? `loaded:${Object.keys(data.rawModsJSON).length}`
-    : "loaded:none";
+  const modsLoaded = `loaded:${Object.keys(data.allMods()).length}`;
   return `${version}|${tileset.path ?? "ascii"}|${activeMods}|${aliasSignature}|${modsLoaded}`;
 }
 
@@ -729,8 +727,8 @@ export const tileData = {
     const tileset =
       TILESETS.find((entry) => entry.name === tilesetName) ?? DEFAULT_TILESET;
 
-    if (data?.buildVersion && tileset.path !== null) {
-      const version = data.fetchVersion ?? data.buildVersion;
+    if (data?.fetchVersion() && tileset.path !== null) {
+      const version = data.fetchVersion();
       loadMergedTileset(data, version, tileset)
         .then((loaded) => {
           if (requestToken !== _requestToken) return;
@@ -742,12 +740,12 @@ export const tileData = {
           const extra = {
             tileset: tileset.name,
             version,
-            active_mods: data.activeMods ?? [],
+            active_mods: data.activeMods() ?? [],
           };
           Sentry.withScope((scope) => {
             scope.setTag("tileset", tileset.name);
             scope.setExtra("version", version);
-            scope.setExtra("active_mods", data.activeMods ?? []);
+            scope.setExtra("active_mods", data.activeMods() ?? []);
             scope.setExtra("tileset_error", err);
             Sentry.captureException(err);
           });

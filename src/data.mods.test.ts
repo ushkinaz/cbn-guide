@@ -46,8 +46,8 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
       expect(fetchCalls.some((url) => url.includes("all_mods.json"))).toBe(
         true,
       );
-      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
-      expect(loaded.rawModsJSON).toEqual({});
+      expect(Object.keys(loaded.allMods())).toEqual([]);
+      expect(loaded.allMods()).toEqual({});
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
@@ -86,7 +86,7 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
         });
       });
 
-      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
+      expect(Object.keys(loaded.allMods())).toEqual([]);
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
@@ -131,8 +131,8 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
         });
       });
 
-      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
-      expect(loaded.activeMods).toEqual([]);
+      expect(Object.keys(loaded.allMods())).toEqual([]);
+      expect(loaded.activeMods()).toEqual([]);
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;
@@ -172,8 +172,8 @@ describe("Reproduction: all_mods.json 404 should be silent", () => {
         });
       });
 
-      expect(loaded.rawModsJSON).toEqual({});
-      expect(loaded.activeMods).toEqual([]);
+      expect(loaded.allMods()).toEqual({});
+      expect(loaded.activeMods()).toEqual([]);
     } finally {
       globalThis.fetch = originalFetch;
       (globalThis as any).__isTesting__ = false;

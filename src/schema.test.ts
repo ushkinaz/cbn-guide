@@ -97,9 +97,10 @@ const buildParentMap = (obj: any, parent: any = null) => {
 };
 
 // Build parent-child relationships
-buildParentMap(data._raw);
+buildParentMap(data.all());
 
-const all = data._raw
+const all = data
+  .all()
   .filter((x) => id(x))
   .filter((x) => schemasByType.has(x.type))
   .map((x, i) => [x.type, id(x) ?? i, data._flatten(x)]);

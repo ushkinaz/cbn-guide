@@ -52,15 +52,16 @@ export function makeRenderTests(chunkIdx: number, numChunks: number) {
     "weapon_category",
   ];
 
-  const all = data._raw
+  const all = data
+    .all()
     .filter(
-      (x) =>
+      (x: any) =>
         x.id &&
         types.includes(mapType(x.type)) &&
         (!process.env.TEST_ONLY ||
           process.env.TEST_ONLY === `${mapType(x.type)}/${x.id}`),
     )
-    .map((x) => [mapType(x.type), x.id]);
+    .map((x: any) => [mapType(x.type), x.id]);
 
   afterEach(cleanup);
 

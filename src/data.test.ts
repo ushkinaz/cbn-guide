@@ -15,7 +15,7 @@ import { resolveLocale } from "./i18n/game-locale";
 import type { ModInfo } from "./types";
 
 function loadedModInfos(data: CBNData): ModInfo[] {
-  return Object.values(data.rawModsJSON)
+  return Object.values(data.allMods())
     .map((modData) => modData.info)
     .filter((mod) => !mod.core);
 }
@@ -517,8 +517,8 @@ test("CBNData stores fetching_version", () => {
     buildVersion: "123",
     fetchVersion: "stable",
   });
-  expect(data.fetchVersion).toBe("stable");
-  expect(data.buildVersion).toBe("123");
+  expect(data.fetchVersion()).toBe("stable");
+  expect(data.buildVersion()).toBe("123");
 });
 
 describe("Detailed Locale Fallback Mechanism", () => {
@@ -591,8 +591,8 @@ describe("Mod Data Loading", () => {
       expect(loadedModInfos(loaded).map((mod) => mod.id)).toEqual([
         "aftershock",
       ]);
-      expect(loaded.activeMods).toEqual([]);
-      expect(Object.keys(loaded.rawModsJSON)).toEqual(["aftershock"]);
+      expect(loaded.activeMods()).toEqual([]);
+      expect(Object.keys(loaded.allMods())).toEqual(["aftershock"]);
     } finally {
       globalThis.fetch = originalFetch;
     }
@@ -667,12 +667,12 @@ describe("Mod Data Loading", () => {
         "magiclysm",
       ]);
       const loaded = await getLoadedData();
-      expect(loaded.activeMods).toEqual(["magiclysm", "aftershock"]);
+      expect(loaded.activeMods()).toEqual(["magiclysm", "aftershock"]);
       expect(loadedModInfos(loaded).map((mod) => mod.id)).toEqual([
         "aftershock",
         "magiclysm",
       ]);
-      expect(Object.keys(loaded.rawModsJSON)).toEqual([
+      expect(Object.keys(loaded.allMods())).toEqual([
         "aftershock",
         "bn",
         "magiclysm",
@@ -728,8 +728,8 @@ describe("Mod Data Loading", () => {
       expect(loadedModInfos(loaded)[0]?.description).toBe(
         "Line 1 tagged Line 2",
       );
-      expect(loaded.rawModsJSON?.aftershock.info.name).toBe("Aftershock");
-      expect(loaded.rawModsJSON?.aftershock.info.description).toBe(
+      expect(loaded.allMods()?.aftershock.info.name).toBe("Aftershock");
+      expect(loaded.allMods()?.aftershock.info.description).toBe(
         "Line 1 tagged Line 2",
       );
     } finally {
@@ -765,9 +765,9 @@ describe("Mod Data Loading", () => {
     try {
       await data.loadData("latest", "en", ["aftershock"]);
       const loaded = await getLoadedData();
-      expect(Object.keys(loaded.rawModsJSON)).toEqual([]);
-      expect(loaded.activeMods).toEqual([]);
-      expect(loaded.rawModsJSON).toEqual({});
+      expect(Object.keys(loaded.allMods())).toEqual([]);
+      expect(loaded.activeMods()).toEqual([]);
+      expect(loaded.allMods()).toEqual({});
     } finally {
       globalThis.fetch = originalFetch;
     }
