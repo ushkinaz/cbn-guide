@@ -77,7 +77,7 @@ describe("preferences", () => {
     expect(localStorage.getItem(TILESET_STORAGE_KEY)).toBe(DEFAULT_TILESET);
   });
 
-  test("setPreferredTileset rejects invalid values without mutating the preference", () => {
+  test("setTileset rejects invalid values without mutating the preference", () => {
     expect(setTileset("bad-input")).toBe(false);
     expect(preferences).toEqual({
       tileset: DEFAULT_TILESET,
@@ -130,7 +130,7 @@ describe("mods", () => {
     expect(preferences.mods).toEqual(["aftershock", "magiclysm"]);
   });
 
-  test("returns null when no key exists", () => {
+  test("returns empty array when no key exists", () => {
     expect(initializePreferences().mods).toEqual([]);
     expect(preferences.mods).toEqual([]);
   });
@@ -152,7 +152,7 @@ describe("mods", () => {
     expect(preferences.mods).toEqual([]);
   });
 
-  test("setDefaultMods persists and updates state", () => {
+  test("setMods persists and updates state", () => {
     setMods(["aftershock"]);
 
     expect(preferences.mods).toEqual(["aftershock"]);
@@ -161,7 +161,7 @@ describe("mods", () => {
     );
   });
 
-  test("setDefaultMods([]) clears the preset", () => {
+  test("setMods([]) clears the preset", () => {
     localStorage.setItem(MODS_STORAGE_KEY, JSON.stringify(["aftershock"]));
     setMods([]);
 
@@ -169,7 +169,7 @@ describe("mods", () => {
     expect(localStorage.getItem(MODS_STORAGE_KEY)).toBeNull();
   });
 
-  test("clearSavedDefaultMods removes key and state", () => {
+  test("clearSavedMods removes key and state", () => {
     localStorage.setItem(MODS_STORAGE_KEY, JSON.stringify(["aftershock"]));
     clearSavedMods();
 
