@@ -3,7 +3,7 @@ import { writable } from "svelte/store";
 import type { CBNData } from "./data";
 import { mapType } from "./data";
 import { CBN_DATA_BASE_URL } from "./constants";
-import { HttpError, isHttpError } from "./utils/http-errors";
+import { HTTPError, isHTTPError } from "./utils/http-errors";
 import { retry } from "./utils/retry";
 
 type TileInfoMeta = { width: number; height: number; pixelscale: number };
@@ -198,7 +198,7 @@ async function readImageDimensions(
   const blob = await retry(async () => {
     const res = await fetch(fileUrl, { mode: "cors", credentials: "omit" });
     if (!res.ok) {
-      throw new HttpError(
+      throw new HTTPError(
         `HTTP ${res.status} (${res.statusText}) fetching ${fileUrl}`,
         res.status,
         fileUrl,
@@ -273,7 +273,7 @@ async function fetchBaseTileset(
   const res = await retry(async () => {
     const response = await fetch(`${url}/tile_config.json`, { mode: "cors" });
     if (!response.ok) {
-      throw new HttpError(
+      throw new HTTPError(
         `HTTP ${response.status} (${response.statusText}) fetching ${url}/tile_config.json`,
         response.status,
         `${url}/tile_config.json`,
@@ -298,7 +298,7 @@ async function fetchBaseTileset(
           ensureTrailingSlash(url),
         );
       } catch (err) {
-        if (isHttpError(err) && err.isPermanent) {
+        if (isHTTPError(err) && err.isPermanent) {
           console.warn("Missing base tileset chunk (404), skipping", {
             url,
             filename,
@@ -496,7 +496,7 @@ export async function loadMergedTileset(
                 getChunkSourceBase(resolvedUrl),
               );
             } catch (err) {
-              if (isHttpError(err) && err.isPermanent) {
+              if (isHTTPError(err) && err.isPermanent) {
                 console.warn("Missing contribution chunk (404), skipping", {
                   source: contribution.source,
                   modId:

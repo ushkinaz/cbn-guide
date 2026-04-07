@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { getDataJSONUrl } from "./constants";
 import { loadRawDataset } from "./data-loader";
-import { HttpError } from "./utils/http-errors";
+import { HTTPError } from "./utils/http-errors";
 
 type Deferred<T> = {
   promise: Promise<T>;
@@ -89,7 +89,7 @@ describe("loadRawDataset", () => {
   test("loadRawDataset throws when all.json fails", async () => {
     const version = "nightly";
     const locale = "uk";
-    const error = new HttpError("HTTP 500 (Server Error)", 500, "all.json");
+    const error = new HTTPError("HTTP 500 (Server Error)", 500, "all.json");
 
     installFetchMock({
       [getDataJSONUrl(version, "all.json")]: () => Promise.reject(error),
@@ -148,7 +148,7 @@ describe("loadRawDataset", () => {
     expect(result.localeJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       `Failed to load locale ${locale}:`,
-      expect.any(HttpError),
+      expect.any(HTTPError),
     );
   });
 
@@ -245,7 +245,7 @@ describe("loadRawDataset", () => {
     expect(result.pinyinJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       `Failed to load pinyin for ${locale}:`,
-      expect.any(HttpError),
+      expect.any(HTTPError),
     );
   });
 
@@ -272,7 +272,7 @@ describe("loadRawDataset", () => {
     expect(result.modsJSON).toBeUndefined();
     expect(console.warn).toHaveBeenCalledWith(
       "Failed to load mods catalog:",
-      expect.any(HttpError),
+      expect.any(HTTPError),
     );
   });
 

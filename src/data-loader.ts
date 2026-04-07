@@ -10,7 +10,7 @@
  * API so test fixtures can intercept requests uniformly.
  */
 import { DEFAULT_LOCALE, getDataJSONUrl } from "./constants";
-import { HttpError } from "./utils/http-errors";
+import { HTTPError } from "./utils/http-errors";
 import { isTesting } from "./utils/env";
 
 type ProgressCallback = (receivedBytes: number, totalBytes: number) => void;
@@ -31,7 +31,7 @@ const fetchJSONWithProgress = (
     progress(100, 100);
     return fetch(url).then((r) => {
       if (!r.ok) {
-        throw new HttpError(
+        throw new HTTPError(
           `HTTP ${r.status} (${r.statusText}) fetching ${url}`,
           r.status,
           url,
@@ -48,7 +48,7 @@ const fetchJSONWithProgress = (
       // If status is 0, it often means a CORS error, network error,
       // or a request aborted by the browser/extensions.
       if (status === 404) {
-        reject(new HttpError(`404: ${url}`, 404, url));
+        reject(new HTTPError(`404: ${url}`, 404, url));
         return;
       }
       if (status === 0) {
@@ -64,7 +64,7 @@ const fetchJSONWithProgress = (
 
     xhr.onload = () => {
       if (xhr.status === 404) {
-        reject(new HttpError(`404: ${url}`, 404, url));
+        reject(new HTTPError(`404: ${url}`, 404, url));
       } else if (xhr.status >= 200 && xhr.status < 300) {
         if (xhr.response) resolve(xhr.response);
         else reject(new Error(`Empty/invalid JSON response from ${url}`));

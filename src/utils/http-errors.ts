@@ -1,11 +1,11 @@
-export class HttpError extends Error {
+export class HTTPError extends Error {
   constructor(
     message: string,
     public readonly status: number,
     public readonly url: string,
   ) {
     super(message);
-    this.name = "HttpError";
+    this.name = "HTTPError";
   }
 
   get isPermanent(): boolean {
@@ -17,12 +17,12 @@ export class HttpError extends Error {
   }
 }
 
-export function isHttpError(error: unknown): error is HttpError {
-  return error instanceof HttpError;
+export function isHTTPError(error: unknown): error is HTTPError {
+  return error instanceof HTTPError;
 }
 
 export function isNotFoundError(error: unknown): boolean {
-  if (error instanceof HttpError) {
+  if (error instanceof HTTPError) {
     return error.isNotFound;
   }
 
