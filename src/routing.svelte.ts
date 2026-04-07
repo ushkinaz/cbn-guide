@@ -373,3 +373,8 @@ export function handleInternalNavigation(event: MouseEvent): boolean {
 
   return false;
 }
+export function hasVersionlessHomePath(pathname: string): boolean {
+  const path = stripBaseFromPathname(pathname);
+  const cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  return cleanPath.length === 0;
+}
