@@ -1,4 +1,6 @@
 import { BUILDS_URL } from "./constants";
+import { retry } from "./utils/retry";
+import { HTTPError } from "./utils/http-errors";
 
 export const STABLE_VERSION = "stable";
 export const NIGHTLY_VERSION = "nightly";
@@ -80,12 +82,20 @@ export function isSupportedVersion(buildNumber: string): boolean {
 }
 
 export async function initializeBuildsState(): Promise<BuildsState> {
-  const response = await fetch(BUILDS_URL);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch builds: ${response.status} ${response.statusText}`,
-    );
-  }
+  const response = await retry(
+    async () => {
+      const res = await fetch(BUILDS_URL);
+      if (!res.ok) {
+        throw new HTTPError(
+          `HTTP ${res.status} (${res.statusText}) fetching ${BUILDS_URL}`,
+          res.status,
+          BUILDS_URL,
+        );
+      }
+      return res;
+    },
+    { maxAttempts: 3, baseDelayMs: 500 },
+  );
 
   const builds = [...((await response.json()) as BuildInfo[])].sort(
     compareBuildsDescending,
