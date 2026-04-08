@@ -48,6 +48,9 @@ export default defineConfig({
             if (id.includes("fuzzysort")) {
               return "vendor-fuzzysort";
             }
+            if (id.includes("zaraz")) {
+              return "vendor-cloudflare";
+            }
           }
         },
       },
