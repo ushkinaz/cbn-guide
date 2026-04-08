@@ -120,7 +120,7 @@ test("includes container item specified in item", () => {
   ]);
 });
 
-test("getDissectionSources returns monsters that provide the item via dissection", () => {
+test("dissectedFrom returns monsters that provide the item via dissection", () => {
   const monster_id = "mon_test";
   const harvest_id = "harvest_test";
   const item_id = "item_test";
@@ -153,20 +153,16 @@ test("getDissectionSources returns monsters that provide the item via dissection
     },
   ]);
 
-  const sourcesForItem = data.getDissectionSources(item_id);
-  expect(sourcesForItem).toHaveLength(1);
-  expect(sourcesForItem[0].monster.id).toBe(monster_id);
-  expect(sourcesForItem[0].harvest.id).toBe(harvest_id);
-  expect(sourcesForItem[0].entry.drop).toBe(item_id);
+  const monstersForItem = data.dissectedFrom(item_id);
+  expect(monstersForItem).toHaveLength(1);
+  expect(monstersForItem[0].id).toBe(monster_id);
 
-  const sourcesForGroupMember = data.getDissectionSources("other_item");
-  expect(sourcesForGroupMember).toHaveLength(1);
-  expect(sourcesForGroupMember[0].monster.id).toBe(monster_id);
-  expect(sourcesForGroupMember[0].harvest.id).toBe(harvest_id);
-  expect(sourcesForGroupMember[0].entry.drop).toBe(group_id);
+  const monstersForGroupMember = data.dissectedFrom("other_item");
+  expect(monstersForGroupMember).toHaveLength(1);
+  expect(monstersForGroupMember[0].id).toBe(monster_id);
 });
 
-test("getDissectionSources ignores missing bionic_group references", () => {
+test("dissectedFrom ignores missing bionic_group references", () => {
   const data = makeTestCBNData([
     {
       type: "MONSTER",
@@ -181,7 +177,7 @@ test("getDissectionSources ignores missing bionic_group references", () => {
     },
   ]);
 
-  expect(data.getDissectionSources("missing_group")).toEqual([]);
+  expect(data.dissectedFrom("missing_group")).toEqual([]);
 });
 
 test("nested", () => {
