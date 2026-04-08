@@ -101,10 +101,8 @@ export function updateSearchRoute(
     navigateToURL(href, "push");
     return;
   }
-  //Ignore 'too short' queries. Empty query is allowed as 'reset'
-  if (searchQuery.length >= 3 || searchQuery.length === 0) {
-    replaceURLDebounced(href);
-  }
+
+  replaceURLDebounced(href);
 }
 
 /**
