@@ -92,8 +92,8 @@
     "workbox-build": "^7.4.0"
   },
   "dependencies": {
-    "@sentry/browser": "^10.45.0",
-    "@sentry/vite-plugin": "^5.1.1",
+    "@sentry/browser": "^10.47.0",
+    "@sentry/vite-plugin": "^5.2.0",
     "@transifex/native": "^7.1.5",
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",
