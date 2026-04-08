@@ -19,7 +19,7 @@ Useful companion docs:
 
 ## Prerequisites
 
-- Node.js: 24 recommended. Repository engines currently allow `^20.19.0 || >=22.12.0`.
+- Node.js: 24 recommended.
 - pnpm: 10.x
 - Python: 3.x for image/font generation scripts such as `gen-ogimage.py` and `gen-unifont.py`
 - `jq`/`jaq`: strongly recommended for inspecting `_test/all.json` without grepping the void
