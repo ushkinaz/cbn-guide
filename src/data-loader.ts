@@ -5,9 +5,6 @@
  * files. It fetches all required assets (data, locale, pinyin, mods) in
  * parallel via Promise.allSettled, reports progress from the main all.json
  * download, and swallows errors for optional assets (locale, pinyin, mods).
- *
- * In tests, `isTesting` causes the module to fall back to the global `fetch`
- * API so test fixtures can intercept requests uniformly.
  */
 import { DEFAULT_LOCALE, getDataJSONUrl } from "./constants";
 import { HTTPError } from "./utils/http-errors";
