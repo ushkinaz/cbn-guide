@@ -2405,12 +2405,6 @@ function mergeDataWithActiveMods(
 const loadProgressStore = writable<[number, number | undefined] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 /**
- * Holds the currently published singleton data instance.
- *
- * This remains `null` until `loadData()` finishes successfully.
- */
-let _currentData: CBNData | null = null;
-/**
  * Monotonic generation token used to invalidate stale async work.
  *
  * Incremented on every `loadData()` start and on `_reset()`, so any older
@@ -2528,7 +2522,6 @@ export const data = {
       );
 
       if (isCancelled()) return false;
-      _currentData = instance;
       set(instance);
       return true;
     } finally {
@@ -2544,7 +2537,6 @@ export const data = {
    */
   _reset(): void {
     _generationToken++;
-    _currentData = null;
     loadProgressStore.set(null);
     resetI18n();
     set(null);
