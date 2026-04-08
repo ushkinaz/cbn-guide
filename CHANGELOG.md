@@ -2,6 +2,26 @@
 
 This is a monthly changelog for The Hitchhiker's [Guide](https://cataclysmbn-guide.com/) for Cataclysm: Bright Nights. It tries to be as user-centric as possible, with little to no technical details. For full technical details, see commit messages.
 
+## March 2026
+
+### Highlights
+
+- Trap support landed: traps can now be browsed directly, found in search, and linked back from item pages when disarming them can yield loot.
+- Terrain, furniture, vehicle, and item pages gained more practical gameplay context, including deconstruction results, dissection sources, and more accurate mixed vehicle layouts.
+- The guide became steadier on modern browsers, with Safari freeze fixes, safer startup behavior, and more polished install and app-icon handling.
+
+### Changes
+
+- [FEATURE] Traps are now first-class pages with search support, and item pages can show which traps yield an item when disarmed.
+- [FEATURE] Furniture and terrain pages now show deconstruction details more clearly, including deconstruction targets and hidden skill requirements.
+- [FEATURE] Item pages can now show what creatures or sources can be dissected for a result.
+- [FEATURE] Vehicle pages now better represent mixed blueprint-and-parts designs, with richer part visuals for fuel, turrets, and icons.
+- [FEATURE] More text is translated in place, including seasons and static type names.
+- [UI] App icons, theme-color handling, vehicle-part icons, symbol colors, and definition-list alignment were polished for a cleaner browse experience.
+- [PERF] Initial loading and code delivery were tuned to feel lighter, with better chunking and less wasted background work after startup.
+- [FIX] Safari no longer freezes during startup, and page rendering is less likely to fail when metadata or initialization data is malformed.
+- [FIX] BN edge cases are handled more accurately across constructions, terrain, bionic references, pseudo items, and other odd data shapes that previously produced missing or misleading output.
+
 ## February 2026
 
 ### Highlights
