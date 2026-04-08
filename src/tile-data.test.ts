@@ -11,6 +11,16 @@ import {
   resolveModChunkUrl,
 } from "./tile-data";
 
+vi.mock("./utils/retry", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./utils/retry")>();
+  return {
+    ...actual,
+    retry: (fn: any, options: any = {}) => {
+      return actual.retry(fn, { ...options, baseDelayMs: 0 });
+    },
+  };
+});
+
 function fakeData(overrides: any): CBNData {
   return {
     activeMods: () => overrides._activeMods ?? [],

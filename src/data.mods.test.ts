@@ -1,6 +1,16 @@
 import { describe, expect, test, vi } from "vitest";
 import { data, CBNData } from "./data";
 
+vi.mock("./utils/retry", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./utils/retry")>();
+  return {
+    ...actual,
+    retry: (fn: any, options: any = {}) => {
+      return actual.retry(fn, { ...options, baseDelayMs: 0 });
+    },
+  };
+});
+
 describe("Reproduction: all_mods.json 404 should be silent", () => {
   test("loadData should not throw on 404 for all_mods.json without selected mods", async () => {
     const mockData = {
