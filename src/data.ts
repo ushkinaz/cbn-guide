@@ -2402,7 +2402,7 @@ function mergeDataWithActiveMods(
   return mergedData;
 }
 
-const loadProgressStore = writable<[number, number] | null>(null);
+const loadProgressStore = writable<[number, number | undefined] | null>(null);
 export const loadProgress = { subscribe: loadProgressStore.subscribe };
 /**
  * Holds the currently published singleton data instance.

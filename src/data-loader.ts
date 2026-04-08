@@ -11,9 +11,12 @@
  */
 import { DEFAULT_LOCALE, getDataJSONUrl } from "./constants";
 import { HTTPError } from "./utils/http-errors";
-import { isTesting } from "./utils/env";
+import { retry } from "./utils/retry";
 
-type ProgressCallback = (receivedBytes: number, totalBytes: number) => void;
+export type ProgressCallback = (
+  receivedBytes: number,
+  totalBytes: number | undefined,
+) => void;
 const noopProgress: ProgressCallback = () => {};
 
 export type LoadedRawDataset = {
@@ -23,65 +26,36 @@ export type LoadedRawDataset = {
   modsJSON: unknown | undefined;
 };
 
-const fetchJSONWithProgress = (
+async function fetchJSONWithProgress<T>(
   url: string,
-  progress: ProgressCallback,
-): Promise<unknown> => {
-  if (isTesting) {
-    progress(100, 100);
-    return fetch(url).then((r) => {
-      if (!r.ok) {
-        throw new HTTPError(
-          `HTTP ${r.status} (${r.statusText}) fetching ${url}`,
-          r.status,
-          url,
-        );
-      }
-      return r.json();
-    });
-  }
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    const handleError = (type: string) => {
-      const status = xhr.status;
-      // If status is 404, we definitely have a missing file.
-      // If status is 0, it often means a CORS error, network error,
-      // or a request aborted by the browser/extensions.
-      if (status === 404) {
-        reject(new HTTPError(`404: ${url}`, 404, url));
-        return;
-      }
-      if (status === 0) {
-        reject(new Error(`Network/CORS/Abort: ${url}`));
-        return;
-      }
-      reject(
-        new Error(
-          `${type} ${status} (${xhr.statusText}) while fetching ${url}`,
-        ),
-      );
-    };
+  progress: ProgressCallback = noopProgress,
+): Promise<T> {
+  let response: Response;
 
-    xhr.onload = () => {
-      if (xhr.status === 404) {
-        reject(new HTTPError(`404: ${url}`, 404, url));
-      } else if (xhr.status >= 200 && xhr.status < 300) {
-        if (xhr.response) resolve(xhr.response);
-        else reject(new Error(`Empty/invalid JSON response from ${url}`));
-      } else {
-        handleError("Status");
-      }
-    };
-    xhr.onprogress = (e) => {
-      progress(e.loaded, e.lengthComputable ? e.total : 0);
-    };
-    xhr.onerror = () => handleError("Error");
-    xhr.onabort = () => handleError("Aborted");
-    xhr.open("GET", url);
-    xhr.responseType = "json";
-    xhr.send();
-  });
-};
+  try {
+    response = await fetch(url);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown fetch error";
+    throw new Error(`Failed to fetch ${url}: ${message}`);
+  }
+
+  if (!response.ok) {
+    throw new HTTPError(
+      `HTTP ${response.status} (${response.statusText}) fetching ${url}`,
+      response.status,
+      url,
+    );
+  }
+
+  try {
+    return (await response.json()) as T;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Unknown parse error";
+    throw new Error(`Failed to parse JSON from ${url}: ${message}`);
+  } finally {
+    progress(100, 100);
+  }
+}
 
 /**
  * Fetches the main game data blob (`all.json`) for a given build version.
@@ -90,47 +64,46 @@ const fetchJSONWithProgress = (
  * @param progress Callback invoked with (receivedBytes, totalBytes) during download
  * @returns Raw parsed JSON with the dataset payload and build number.
  */
-const fetchRawData = (
+async function fetchRawData<T>(
   version: string,
   progress: ProgressCallback,
-): Promise<unknown> =>
-  fetchJSONWithProgress(getDataJSONUrl(version, "all.json"), progress);
+): Promise<T> {
+  return await retry(() =>
+    fetchJSONWithProgress(getDataJSONUrl(version, "all.json"), progress),
+  );
+}
 
 /**
  * Fetches a locale PO/MO translation file for a given build version and locale.
  *
  * @param version Build version slug
  * @param locale Locale code (e.g. "uk", "zh_CN")
- * @param progress Callback invoked with (receivedBytes, totalBytes) during download
  * @returns Raw parsed locale JSON blob
  */
-const fetchRawLocale = (
-  version: string,
-  locale: string,
-  progress: ProgressCallback,
-): Promise<unknown> =>
-  fetchJSONWithProgress(
-    getDataJSONUrl(version, `lang/${locale}.json`),
-    progress,
+function fetchRawLocale<T>(version: string, locale: string): Promise<T> {
+  return retry(
+    () => fetchJSONWithProgress(getDataJSONUrl(version, `lang/${locale}.json`)),
+    { maxAttempts: 2, baseDelayMs: 1000 },
   );
+}
 
 /**
  * Fetches the mod index (`all_mods.json`) for a given build version.
  *
  * @param version Build version slug
- * @param progress Callback invoked with (receivedBytes, totalBytes) during download
  * @returns Raw parsed mod JSON blob keyed by mod id
  */
-const fetchRawMods = (
-  version: string,
-  progress: ProgressCallback,
-): Promise<unknown> =>
-  fetchJSONWithProgress(getDataJSONUrl(version, "all_mods.json"), progress);
+async function fetchRawMods<T>(version: string): Promise<T> {
+  return retry(
+    () => fetchJSONWithProgress(getDataJSONUrl(version, "all_mods.json")),
+    { maxAttempts: 2, baseDelayMs: 1000 },
+  );
+}
 
 export async function loadRawDataset(
   version: string,
   locale: string,
-  onProgress: (received: number, total: number) => void,
+  onProgress: ProgressCallback,
 ): Promise<LoadedRawDataset> {
   const needsLocale = locale !== DEFAULT_LOCALE;
   const needsPinyin = locale.startsWith("zh_");
@@ -138,12 +111,12 @@ export async function loadRawDataset(
     await Promise.allSettled([
       fetchRawData(version, onProgress),
       needsLocale
-        ? fetchRawLocale(version, locale, noopProgress)
+        ? fetchRawLocale(version, locale)
         : Promise.resolve(undefined),
       needsPinyin
-        ? fetchRawLocale(version, `${locale}_pinyin`, noopProgress)
+        ? fetchRawLocale(version, `${locale}_pinyin`)
         : Promise.resolve(undefined),
-      fetchRawMods(version, noopProgress),
+      fetchRawMods(version),
     ]);
 
   if (dataResult.status === "rejected") {

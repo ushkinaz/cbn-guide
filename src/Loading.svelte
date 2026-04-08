@@ -18,6 +18,9 @@ let { text, fullScreen = false }: Props = $props();
       {#if $loadProgress}
         <span class="loading-progress-stats">
           ({($loadProgress[0] / 1024 / 1024).toFixed(1)}
+          {#if $loadProgress[1]}
+            /{($loadProgress[1] / 1024 / 1024).toFixed(1)}
+          {/if}
           MB)
         </span>
       {/if}
