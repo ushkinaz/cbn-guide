@@ -69,9 +69,6 @@ importers:
       ajv:
         specifier: ^8.18.0
         version: 8.18.0
-      esbuild:
-        specifier: ^0.27.3
-        version: 0.27.3
       happy-dom:
         specifier: ^20.8.9
         version: 20.8.9
