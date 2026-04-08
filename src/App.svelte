@@ -175,13 +175,13 @@ async function loadDataForVersion(
         requestedMods,
       },
     };
-    console.warn("Failed to load data", error, context);
+    console.warn("Failed to load data", error);
     Sentry.captureException(error, {
       contexts: context,
     });
     notify(
       t(
-        "Failed to load data for {version}. Please select a different version from the footer.",
+        "Failed to load data for {version}. Please check your internet connection and try again. If the problem persists, please report it to the developer via Discord or GitHub.",
         { version: requestedVersion },
       ),
       "error",
