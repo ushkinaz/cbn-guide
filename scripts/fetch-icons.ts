@@ -20,7 +20,6 @@ import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
 import { colorForName } from "../src/colors";
 import { BUILDS_URL, getDataJSONUrl } from "../src/constants";
 import { CBNData, mapType } from "../src/data";
@@ -44,9 +43,6 @@ type LoadedTileset = {
   chunkPathMap: Map<string, string>;
   idMap: Map<string, TileInfo>;
 };
-
-const agent = new EnvHttpProxyAgent();
-setGlobalDispatcher(agent);
 
 const cwd = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(cwd, "..");
@@ -95,12 +91,12 @@ async function readJson(file: string) {
 async function downloadFile(url: string, dest: string) {
   if (!force && (await fileExists(dest))) return;
   await fs.mkdir(path.dirname(dest), { recursive: true });
-  const res = await request(url);
-  if (res.statusCode && res.statusCode >= 400) {
-    throw new Error(`Failed to fetch ${url} (${res.statusCode})`);
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url} (${res.status})`);
   }
   if (!res.body) throw new Error(`No response body for ${url}`);
-  await pipeline(res.body, createWriteStream(dest));
+  await pipeline(res.body as any, createWriteStream(dest));
 }
 
 async function loadTileset(): Promise<LoadedTileset> {
@@ -399,8 +395,10 @@ async function composeIcon(
 async function loadData(): Promise<{ gameData: CBNData; version: string }> {
   if (!version) {
     console.log(`Fetching latest builds from ${BUILDS_URL}...`);
-    const res = await request(BUILDS_URL);
-    const builds = (await res.body.json()) as any[];
+    const res = await fetch(BUILDS_URL);
+    if (!res.ok)
+      throw new Error(`Failed to fetch ${BUILDS_URL} (${res.status})`);
+    const builds = (await res.json()) as any[];
     const stable = builds.find((b) => !b.prerelease);
     if (!stable) throw new Error("No stable build found in builds.json");
     version = stable.build_number;

@@ -15,15 +15,11 @@
  */
 
 import * as fs from "fs/promises";
-import { createReadStream, createWriteStream, readFileSync } from "fs";
+import { createReadStream, readFileSync } from "fs";
 import * as crypto from "crypto";
-import * as url from "url";
 import * as path from "path";
-import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
 import { getDataJSONUrl } from "../src/constants";
-
-const envHttpProxyAgent = new EnvHttpProxyAgent();
-setGlobalDispatcher(envHttpProxyAgent);
+import { fileURLToPath } from "node:url";
 
 interface MetaData {
   buildNum: string;
@@ -31,8 +27,8 @@ interface MetaData {
   modsSha?: string;
 }
 
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
-const projectRoot = path.resolve(__dirname, "..");
+const cwd = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(cwd, "..");
 
 const metaPath = path.join(projectRoot, "_test", "all.meta.json");
 const currentMeta: MetaData = JSON.parse(readFileSync(metaPath, "utf8"));
@@ -67,27 +63,14 @@ async function matchesSha(
 }
 
 async function fetchFile(url: string, destPath: string): Promise<void> {
-  // console.log(`Fetching ${url} -> ${destPath}`);
-  const res = await request(url);
-  if (!res.body) {
-    throw new Error(`No response body received for ${url}`);
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url}: Status ${res.status}`);
   }
-  if (res.statusCode !== 200) {
-    throw new Error(`Failed to fetch ${url}: Status ${res.statusCode}`);
-  }
-
-  const dest = createWriteStream(destPath);
-  res.body.pipe(dest);
-
-  return new Promise<void>((resolve, reject) => {
-    // Resolve only after destination stream has flushed all bytes to disk.
-    dest.on("finish", resolve);
-    res.body.on("error", reject);
-    dest.on("error", reject);
-  });
+  return fs.writeFile(destPath, JSON.stringify(await res.json(), null, 2));
 }
 
-(async () => {
+async function main() {
   const allJsonPath = path.join(projectRoot, "_test", "all.json");
   const allModsJsonPath = path.join(projectRoot, "_test", "all_mods.json");
 
@@ -108,33 +91,33 @@ async function fetchFile(url: string, destPath: string): Promise<void> {
 
   const newMeta: MetaData = { ...currentMeta };
 
-  try {
-    if (fetchAll) {
-      const url = getDataJSONUrl(targetVersion, "all.json");
-      console.log(`Fetching all.json from ${targetVersion}...`);
-      await fetchFile(url, allJsonPath);
-      newMeta.sha = await computeSha(allJsonPath);
+  if (fetchAll) {
+    const url = getDataJSONUrl(targetVersion, "all.json");
+    console.log(`Fetching all.json from ${targetVersion}...`);
+    await fetchFile(url, allJsonPath);
+    newMeta.sha = await computeSha(allJsonPath);
 
-      // Update build number from new file content
-      const dataContent = await fs.readFile(allJsonPath, "utf8");
-      const json = JSON.parse(dataContent);
-      if (json.build_number) {
-        newMeta.buildNum = json.build_number;
-      }
+    // Update build number from new file content
+    const dataContent = await fs.readFile(allJsonPath, "utf8");
+    const json = JSON.parse(dataContent);
+    if (json.build_number) {
+      newMeta.buildNum = json.build_number;
     }
-
-    if (fetchMods) {
-      const url = getDataJSONUrl(targetVersion, "all_mods.json");
-      console.log(`Fetching all_mods.json from ${targetVersion}...`);
-      await fetchFile(url, allModsJsonPath);
-      newMeta.modsSha = await computeSha(allModsJsonPath);
-    }
-
-    // Save updated metadata
-    await fs.writeFile(metaPath, JSON.stringify(newMeta, null, 2));
-    console.log(`Successfully updated test data to build ${newMeta.buildNum}`);
-  } catch (error) {
-    console.error("Failed to fetch fixtures:", error);
-    process.exit(1);
   }
-})();
+
+  if (fetchMods) {
+    const url = getDataJSONUrl(targetVersion, "all_mods.json");
+    console.log(`Fetching all_mods.json from ${targetVersion}...`);
+    await fetchFile(url, allModsJsonPath);
+    newMeta.modsSha = await computeSha(allModsJsonPath);
+  }
+
+  // Save updated metadata
+  await fs.writeFile(metaPath, JSON.stringify(newMeta, null, 2));
+  console.log(`Successfully updated test data to build ${newMeta.buildNum}`);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

@@ -8,39 +8,29 @@
  * ```
  */
 
-import { createWriteStream } from "fs";
-import * as path from "path";
-import * as url from "url";
-import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { BUILDS_URL } from "../src/constants";
 
-const envHttpProxyAgent = new EnvHttpProxyAgent();
-setGlobalDispatcher(envHttpProxyAgent);
-
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
-const projectRoot = path.resolve(__dirname, "..");
+const cwd = path.dirname(fileURLToPath(import.meta.url));
+const projectRoot = path.resolve(cwd, "..");
 const buildsPath = path.join(projectRoot, "_test", "builds.json");
 
-(async () => {
+async function main() {
   console.log(`Fetching builds from ${BUILDS_URL}...`);
-  try {
-    const res = await request(BUILDS_URL);
-    if (!res.body) {
-      throw new Error("No response body received");
-    }
+  const res = await fetch(BUILDS_URL);
 
-    const dest = createWriteStream(buildsPath);
-    res.body.pipe(dest);
-
-    await new Promise<void>((resolve, reject) => {
-      res.body.on("end", resolve);
-      res.body.on("error", reject);
-      dest.on("error", reject);
-    });
-
-    console.log(`Successfully updated ${buildsPath}`);
-  } catch (error) {
-    console.error("Failed to fetch builds:", error);
-    process.exit(1);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch builds: ${res.status} ${res.statusText}`);
   }
-})();
+
+  await fs.writeFile(buildsPath, JSON.stringify(await res.json(), null, 2));
+
+  console.log(`Successfully updated ${buildsPath}`);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

@@ -20,17 +20,13 @@ import fs from "node:fs/promises";
 import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
-import { EnvHttpProxyAgent, request, setGlobalDispatcher } from "undici";
 import { BUILDS_URL, CANONICAL_URL, getDataJSONUrl } from "../src/constants";
 import { CBNData } from "../src/data";
-
-const agent = new EnvHttpProxyAgent();
-setGlobalDispatcher(agent);
 
 const cwd = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(cwd, "..");
 const publicDir = path.join(projectRoot, "public");
-const cacheDir = path.join(projectRoot, "tmp", "data-cache");
+const cacheDir = path.join(projectRoot, ".cache", "data-cache");
 
 const BASE_URL = CANONICAL_URL;
 const SITEMAP_PATH = path.join(publicDir, "sitemap.xml");
@@ -72,9 +68,9 @@ async function readJson(file: string) {
 
 async function downloadFile(url: string, dest: string) {
   await fs.mkdir(path.dirname(dest), { recursive: true });
-  const res = await request(url);
-  if (res.statusCode && res.statusCode >= 400) {
-    throw new Error(`Failed to fetch ${url} (${res.statusCode})`);
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${url} (${res.status})`);
   }
   if (!res.body) throw new Error(`No response body for ${url}`);
   await pipeline(res.body, createWriteStream(dest));
@@ -87,8 +83,12 @@ async function loadData(): Promise<{
 }> {
   const versionEnv = process.env.GAME_VERSION;
   console.log(`Fetching builds from ${BUILDS_URL}...`);
-  const res = await request(BUILDS_URL);
-  const builds = (await res.body.json()) as any[];
+  const res = await fetch(BUILDS_URL);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch ${BUILDS_URL} (${res.status})`);
+  }
+
+  const builds = (await res.json()) as any[];
 
   let selectedBuild;
   if (versionEnv) {
@@ -148,64 +148,62 @@ function generateXml(urls: string[], lastmod: string): string {
 }
 
 async function main() {
-  try {
-    const { gameData, version, releaseDate } = await loadData();
+  const { gameData, version, releaseDate } = await loadData();
 
-    const urls: string[] = [];
-    const baseWithStable = `${BASE_URL}/stable`;
+  const urls: string[] = [];
+  const baseWithStable = `${BASE_URL}/stable`;
 
-    // 1. Root and category pages
-    urls.push(`${baseWithStable}`);
-    for (const type of ENTITY_TYPES) {
-      urls.push(`${baseWithStable}/${type}`);
-    }
+  // 1. Root and category pages
+  urls.push(`${baseWithStable}`);
+  for (const type of ENTITY_TYPES) {
+    urls.push(`${baseWithStable}/${type}`);
+  }
 
-    // 2. Entity pages
-    console.log("Collecting entity IDs...");
-    const seen = new Set<string>();
+  // 2. Entity pages
+  console.log("Collecting entity IDs...");
+  const seen = new Set<string>();
 
-    for (const type of ENTITY_TYPES) {
-      const items = gameData.byType(type as any);
-      for (const item of items) {
-        const ids: string[] = Array.isArray(item.id)
-          ? item.id
-          : typeof item.id === "string"
-            ? [item.id]
-            : [item.abstract].filter(Boolean);
+  for (const type of ENTITY_TYPES) {
+    const items = gameData.byType(type as any);
+    for (const item of items) {
+      const ids: string[] = Array.isArray(item.id)
+        ? item.id
+        : typeof item.id === "string"
+          ? [item.id]
+          : [item.abstract].filter(Boolean);
 
-        for (const id of ids) {
-          if (!id) continue;
-          const key = `${type}:${id}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          urls.push(`${baseWithStable}/${type}/${encodeURIComponent(id)}`);
+      for (const id of ids) {
+        if (!id) continue;
+        const key = `${type}:${id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        urls.push(`${baseWithStable}/${type}/${encodeURIComponent(id)}`);
 
-          if (urls.length > MAX_ENTRIES) {
-            throw new Error(
-              `Sitemap entries exceeded limit of ${MAX_ENTRIES}. A sitemap index must be implemented.`,
-            );
-          }
+        if (urls.length > MAX_ENTRIES) {
+          throw new Error(
+            `Sitemap entries exceeded limit of ${MAX_ENTRIES}. A sitemap index must be implemented.`,
+          );
         }
       }
     }
-
-    console.log(`Generated ${urls.length} URLs.`);
-
-    const xml = generateXml(urls, releaseDate);
-    const xmlSizeMB = Buffer.byteLength(xml) / (1024 * 1024);
-
-    if (xmlSizeMB > MAX_SIZE_MB) {
-      throw new Error(
-        `Sitemap size (${xmlSizeMB.toFixed(2)}MB) exceeded limit of ${MAX_SIZE_MB}MB. A sitemap index must be implemented.`,
-      );
-    }
-
-    await fs.writeFile(SITEMAP_PATH, xml);
-    console.log(`Sitemap saved to ${SITEMAP_PATH}`);
-  } catch (err) {
-    console.error("Error generating sitemap:", err);
-    process.exit(1);
   }
+
+  console.log(`Generated ${urls.length} URLs.`);
+
+  const xml = generateXml(urls, releaseDate);
+  const xmlSizeMB = Buffer.byteLength(xml) / (1024 * 1024);
+
+  if (xmlSizeMB > MAX_SIZE_MB) {
+    throw new Error(
+      `Sitemap size (${xmlSizeMB.toFixed(2)}MB) exceeded limit of ${MAX_SIZE_MB}MB. A sitemap index must be implemented.`,
+    );
+  }
+
+  await fs.writeFile(SITEMAP_PATH, xml);
+  console.log(`Sitemap saved to ${SITEMAP_PATH}`);
 }
 
-main();
+main().catch((err) => {
+  console.error("Error generating sitemap:", err);
+  process.exit(1);
+});
