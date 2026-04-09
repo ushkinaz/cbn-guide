@@ -2278,6 +2278,21 @@ export type MonsterAttackType = {
   | ({ attack_type: "spell" } & Omit<SpellAttack, "type">)
 );
 
+export type MonsterBlacklist = {
+  type: "MONSTER_BLACKLIST";
+  monsters?: string[];
+  species?: string[];
+  categories?: string[];
+};
+
+export type MonsterWhitelist = {
+  type: "MONSTER_WHITELIST";
+  mode?: "EXCLUSIVE" | string;
+  monsters?: string[];
+  species?: string[];
+  categories?: string[];
+};
+
 export type SupportedTypes = {
   // Item types.
   AMMO: { type: "AMMO" } & ItemBasicInfo & AmmoSlot;
@@ -2297,6 +2312,10 @@ export type SupportedTypes = {
   TOOLMOD: { type: "TOOLMOD" } & ItemBasicInfo;
   TOOL_ARMOR: { type: "TOOL_ARMOR" } & ItemBasicInfo & ToolSlot & ArmorSlot;
   WHEEL: { type: "WHEEL" } & ItemBasicInfo & WheelSlot;
+
+  // Policies.
+  MONSTER_BLACKLIST: MonsterBlacklist;
+  MONSTER_WHITELIST: MonsterWhitelist;
 
   // Non-item types.
   ITEM_CATEGORY: ItemCategory;

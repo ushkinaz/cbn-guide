@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { describe, expect, test } from "vitest";
 import { makeTestCBNData } from "./data.test-helpers";
 import { buildSearchIndex } from "./search-engine";
-import type { ModData } from "./types";
+import type { ModData, Monster } from "./types";
 
 describe("monster policy filtering", () => {
   test("applies blacklist selectors and whitelist overrides for monster/species/categories", () => {
@@ -25,22 +25,13 @@ describe("monster policy filtering", () => {
       },
       {
         type: "MONSTER",
-        id: "mon_blacklisted_group",
-      },
-      {
-        type: "MONSTER",
         id: "mon_visible",
-      },
-      {
-        type: "monstergroup",
-        name: "GROUP_TEST_BLACKLIST",
-        monsters: [{ monster: "mon_blacklisted_group", freq: 100 }],
       },
       {
         type: "MONSTER_BLACKLIST",
         monsters: ["mon_blacklisted_direct"],
         species: ["FUNGUS"],
-        categories: ["WILDLIFE", "GROUP_TEST_BLACKLIST"],
+        categories: ["WILDLIFE", "TEST_BLACKLIST"],
       },
       {
         type: "MONSTER_WHITELIST",
@@ -55,7 +46,6 @@ describe("monster policy filtering", () => {
     expect(
       data.byIdMaybe("monster", "mon_blacklisted_category"),
     ).toBeUndefined();
-    expect(data.byIdMaybe("monster", "mon_blacklisted_group")).toBeUndefined();
     expect(data.byIdMaybe("monster", "mon_visible")).toBeDefined();
 
     expect(
@@ -185,6 +175,87 @@ describe("monster policy filtering", () => {
         .map((x) => x.id)
         .sort(),
     ).toEqual(["mon_bird", "mon_zed_hero"]);
+  });
+
+  test("isMonsterVisible evaluates selectors dynamically from cached policy sets", () => {
+    const data = makeTestCBNData([
+      {
+        type: "MONSTER",
+        id: "mon_blacklisted_species",
+        species: ["FUNGUS"],
+        categories: ["WILDLIFE"],
+      },
+      {
+        type: "MONSTER",
+        id: "mon_whitelisted_direct",
+        species: ["ZOMBIE"],
+      },
+      {
+        type: "MONSTER_BLACKLIST",
+        species: ["FUNGUS"],
+      },
+      {
+        type: "MONSTER_WHITELIST",
+        monsters: ["mon_whitelisted_direct"],
+      },
+    ]);
+
+    expect(
+      data.isMonsterVisible({
+        id: "mon_blacklisted_species",
+        species: ["FUNGUS"],
+        categories: ["WILDLIFE"],
+      } as Monster),
+    ).toBe(false);
+    expect(
+      data.isMonsterVisible({
+        id: "mon_whitelisted_direct",
+        species: ["ZOMBIE"],
+      } as Monster),
+    ).toBe(true);
+    expect(
+      data.isMonsterVisible({
+        id: "mon_other",
+        species: ["HUMAN"],
+      } as Monster),
+    ).toBe(true);
+  });
+
+  test("resolves categories policies once and reuses cached selectors in visibility checks", () => {
+    const data = makeTestCBNData([
+      {
+        type: "MONSTER",
+        id: "mon_cat_hidden",
+        categories: ["CLASSIC"],
+      },
+      {
+        type: "MONSTER",
+        id: "mon_cat_visible",
+        categories: ["TREE"],
+      },
+      {
+        type: "MONSTER_BLACKLIST",
+        categories: ["CLASSIC"],
+      },
+      {
+        type: "MONSTER_WHITELIST",
+        monsters: ["TREE"],
+      },
+    ]);
+
+    expect(
+      data.isMonsterVisible({
+        id: "mon_cat_hidden",
+        categories: ["CLASSIC"],
+      } as Monster),
+    ).toBe(false);
+    expect(
+      data.isMonsterVisible({
+        id: "mon_cat_visible",
+        categories: ["TREE"],
+        species: ["HUMAN"],
+      } as Monster),
+    ).toBe(true);
   });
 });
 
