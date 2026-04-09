@@ -259,6 +259,8 @@ export class CBNData {
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
+  _byTypeCache: Map<keyof SupportedTypesWithMapped, SupportedTypeMapped[]> =
+    new Map();
 
   /**
    * Cached monster policy selectors resolved from MONSTER_BLACKLIST and
@@ -576,6 +578,17 @@ export class CBNData {
    */
   //TODO review the whole fun
   byType<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+  ): SupportedTypesWithMapped[TypeName][] {
+    const cached = this._byTypeCache.get(type);
+    if (cached) return cached.slice() as SupportedTypesWithMapped[TypeName][];
+
+    const snapshot = this._buildByTypeSnapshot(type);
+    this._byTypeCache.set(type, snapshot as SupportedTypeMapped[]);
+    return snapshot.slice() as SupportedTypesWithMapped[TypeName][];
+  }
+
+  _buildByTypeSnapshot<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
   ): SupportedTypesWithMapped[TypeName][] {
     const raws = this._byType.get(type) ?? [];

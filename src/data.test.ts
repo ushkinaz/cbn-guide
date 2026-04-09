@@ -89,6 +89,56 @@ test("byType returns canonical override entries without duplicate ids", () => {
   expect(gameSingularName(items[0])).toBe("Modded item");
 });
 
+test("byType returns a fresh array shell around cached item snapshots", () => {
+  const data = makeTestCBNData([
+    {
+      type: "GENERIC",
+      id: "item_a",
+      name: "Item A",
+    },
+    {
+      type: "GENERIC",
+      id: "item_b",
+      name: "Item B",
+    },
+  ]);
+
+  const first = data.byType("item");
+  first.pop();
+
+  const second = data.byType("item");
+
+  expect(second.map((item) => item.id)).toEqual(["item_a", "item_b"]);
+});
+
+test("byType caches monster snapshots without leaking hidden monsters", () => {
+  const data = makeTestCBNData([
+    {
+      type: "MONSTER",
+      id: "mon_visible",
+      name: "Visible Monster",
+      species: ["SPECIES_VISIBLE"],
+    },
+    {
+      type: "MONSTER",
+      id: "mon_hidden",
+      name: "Hidden Monster",
+      species: ["SPECIES_HIDDEN"],
+    },
+    {
+      type: "MONSTER_BLACKLIST",
+      species: ["SPECIES_HIDDEN"],
+    },
+  ]);
+
+  const first = data.byType("monster");
+  const second = data.byType("monster");
+
+  expect(first.map((monster) => monster.id)).toEqual(["mon_visible"]);
+  expect(second.map((monster) => monster.id)).toEqual(["mon_visible"]);
+  expect(data.byIdMaybe("monster", "mon_hidden")).toBeUndefined();
+});
+
 test("includes container item specified in item", () => {
   const data = makeTestCBNData([
     {
