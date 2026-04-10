@@ -103,11 +103,7 @@ export function buildSearchIndex(data: CBNData): SearchTarget[] {
 
     if (x.type === "mutation" && /Fake\d$/.test(x.id as string)) continue;
 
-    if (
-      x.type === "MONSTER" &&
-      !data.isMonsterVisible((x as { id: string }).id)
-    )
-      continue;
+    if (x.type === "MONSTER" && !data.isMonsterVisible(x)) continue;
 
     targets.push({
       id: (x as any).id,

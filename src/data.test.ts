@@ -89,6 +89,56 @@ test("byType returns canonical override entries without duplicate ids", () => {
   expect(gameSingularName(items[0])).toBe("Modded item");
 });
 
+test("byType returns a fresh array shell around cached item snapshots", () => {
+  const data = makeTestCBNData([
+    {
+      type: "GENERIC",
+      id: "item_a",
+      name: "Item A",
+    },
+    {
+      type: "GENERIC",
+      id: "item_b",
+      name: "Item B",
+    },
+  ]);
+
+  const first = data.byType("item");
+  first.pop();
+
+  const second = data.byType("item");
+
+  expect(second.map((item) => item.id)).toEqual(["item_a", "item_b"]);
+});
+
+test("byType caches monster snapshots without leaking hidden monsters", () => {
+  const data = makeTestCBNData([
+    {
+      type: "MONSTER",
+      id: "mon_visible",
+      name: "Visible Monster",
+      species: ["SPECIES_VISIBLE"],
+    },
+    {
+      type: "MONSTER",
+      id: "mon_hidden",
+      name: "Hidden Monster",
+      species: ["SPECIES_HIDDEN"],
+    },
+    {
+      type: "MONSTER_BLACKLIST",
+      species: ["SPECIES_HIDDEN"],
+    },
+  ]);
+
+  const first = data.byType("monster");
+  const second = data.byType("monster");
+
+  expect(first.map((monster) => monster.id)).toEqual(["mon_visible"]);
+  expect(second.map((monster) => monster.id)).toEqual(["mon_visible"]);
+  expect(data.byIdMaybe("monster", "mon_hidden")).toBeUndefined();
+});
+
 test("includes container item specified in item", () => {
   const data = makeTestCBNData([
     {
@@ -120,7 +170,7 @@ test("includes container item specified in item", () => {
   ]);
 });
 
-test("getDissectionSources returns monsters that provide the item via dissection", () => {
+test("dissectedFrom returns monsters that provide the item via dissection", () => {
   const monster_id = "mon_test";
   const harvest_id = "harvest_test";
   const item_id = "item_test";
@@ -153,20 +203,16 @@ test("getDissectionSources returns monsters that provide the item via dissection
     },
   ]);
 
-  const sourcesForItem = data.getDissectionSources(item_id);
-  expect(sourcesForItem).toHaveLength(1);
-  expect(sourcesForItem[0].monster.id).toBe(monster_id);
-  expect(sourcesForItem[0].harvest.id).toBe(harvest_id);
-  expect(sourcesForItem[0].entry.drop).toBe(item_id);
+  const monstersForItem = data.dissectedFrom(item_id);
+  expect(monstersForItem).toHaveLength(1);
+  expect(monstersForItem[0].id).toBe(monster_id);
 
-  const sourcesForGroupMember = data.getDissectionSources("other_item");
-  expect(sourcesForGroupMember).toHaveLength(1);
-  expect(sourcesForGroupMember[0].monster.id).toBe(monster_id);
-  expect(sourcesForGroupMember[0].harvest.id).toBe(harvest_id);
-  expect(sourcesForGroupMember[0].entry.drop).toBe(group_id);
+  const monstersForGroupMember = data.dissectedFrom("other_item");
+  expect(monstersForGroupMember).toHaveLength(1);
+  expect(monstersForGroupMember[0].id).toBe(monster_id);
 });
 
-test("getDissectionSources ignores missing bionic_group references", () => {
+test("dissectedFrom ignores missing bionic_group references", () => {
   const data = makeTestCBNData([
     {
       type: "MONSTER",
@@ -181,7 +227,7 @@ test("getDissectionSources ignores missing bionic_group references", () => {
     },
   ]);
 
-  expect(data.getDissectionSources("missing_group")).toEqual([]);
+  expect(data.dissectedFrom("missing_group")).toEqual([]);
 });
 
 test("nested", () => {

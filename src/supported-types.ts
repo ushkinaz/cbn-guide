@@ -70,6 +70,8 @@ const SUPPORTED_TYPE_KEYS = {
   vehicle_part: null,
   vitamin: null,
   weapon_category: null,
+  MONSTER_BLACKLIST: null,
+  MONSTER_WHITELIST: null,
 } satisfies Record<keyof SupportedTypesWithMapped, null>;
 
 const supportedTypes = new Set(Object.keys(SUPPORTED_TYPE_KEYS));

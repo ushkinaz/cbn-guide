@@ -43,6 +43,10 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
       return t("Gun Mods");
     case "MAGAZINE":
       return t("Magazines");
+    case "MONSTER_WHITELIST":
+      return t("Monsters Whitelists");
+    case "MONSTER_BLACKLIST":
+      return t("Monsters Blacklists");
     case "PET_ARMOR":
       return t("Pet Armor");
     case "TOOL":

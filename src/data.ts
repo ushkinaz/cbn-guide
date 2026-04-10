@@ -27,8 +27,6 @@ import type {
   Bionic,
   DamageInstance,
   DamageUnit,
-  Harvest,
-  HarvestEntry,
   Item,
   ItemGroup,
   ItemGroupData,
@@ -37,7 +35,9 @@ import type {
   ModData,
   ModInfo,
   Monster,
+  MonsterBlacklist,
   MonsterGroup,
+  MonsterWhitelist,
   OvermapSpecial,
   QualityRequirement,
   Recipe,
@@ -226,12 +226,6 @@ export function asKilograms(string: string | number): string {
   return formatKg(g);
 }
 
-type DissectionSource = {
-  monster: Monster;
-  harvest: Harvest;
-  entry: HarvestEntry;
-};
-
 /**
  * Central data store for the application.
  * Handles loading, indexing, and accessing game data.
@@ -265,20 +259,26 @@ export class CBNData {
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
+  _byTypeCache: Map<keyof SupportedTypesWithMapped, SupportedTypeMapped[]> =
+    new Map();
+
   /**
-   * Precomputed visibility for monsters after applying MONSTER_BLACKLIST /
-   * MONSTER_WHITELIST policy objects from the merged dataset.
+   * Cached monster policy selectors resolved from MONSTER_BLACKLIST and
+   * MONSTER_WHITELIST policies.
    *
    * @internal
    */
-  _monsterVisibilityById: Map<string, boolean> = new Map();
+  _monsterVisibilityPolicy?: {
+    explicitBlacklisted: Set<string>;
+    blacklistedSpecies: Set<string>;
+    blacklistedCategories: Set<string>;
 
-  /**
-   * Reverse index for "Dissected From" functionality.
-   * Maps item_id or item_group_id to a list of monsters that provide it.
-   * @internal
-   */
-  _dissectionSources: Map<string, DissectionSource[]> = new Map();
+    explicitWhitelisted: Set<string>;
+    whitelistedSpecies: Set<string>;
+    whitelistedCategories: Set<string>;
+
+    hasExclusiveWhitelist: boolean;
+  };
 
   constructor(
     rawJSON: unknown[],
@@ -402,82 +402,11 @@ export class CBNData {
     this._byTypeById
       .get("item_group")
       ?.set("EMPTY_GROUP", { id: "EMPTY_GROUP", entries: [] });
-    this._indexMonsterVisibilityPolicy();
-    this._indexDissectionSources();
     p.finish();
   }
 
-  _collectStringArrayValues(
-    obj: Record<string, unknown>,
-    key: string,
-  ): string[] {
-    const value = obj[key];
-    if (!Array.isArray(value)) return [];
-    return value.filter((x): x is string => typeof x === "string");
-  }
-
-  _resolveMonstersFromGroup(
-    groupId: string,
-    cache: Map<string, Set<string>>,
-    stack: Set<string> = new Set(),
-  ): Set<string> {
-    const cached = cache.get(groupId);
-    if (cached) return cached;
-    if (stack.has(groupId)) return new Set();
-    stack.add(groupId);
-
-    const result = new Set<string>();
-    const group = this.byIdMaybe("monstergroup", groupId) as
-      | (MonsterGroup & { __filename: string })
-      | undefined;
-
-    if (group) {
-      if (typeof group.default === "string") result.add(group.default);
-      for (const entry of group.monsters ?? []) {
-        if (typeof entry.monster === "string") result.add(entry.monster);
-        if (typeof entry.group === "string") {
-          for (const member of this._resolveMonstersFromGroup(
-            entry.group,
-            cache,
-            stack,
-          )) {
-            result.add(member);
-          }
-        }
-      }
-    }
-
-    stack.delete(groupId);
-    cache.set(groupId, result);
-    return result;
-  }
-
-  /**
-   * Indexes `MONSTER_BLACKLIST` and `MONSTER_WHITELIST` objects to compute
-   * a final visibility map for all monsters.
-   *
-   * Logic:
-   * 1. Collects all explicit IDs, Species, and Categories from policy objects.
-   * 2. Resolves monster groups to individual monster IDs.
-   * 3. Iterates over all monsters and determines visibility based on:
-   *    - WHITELIST (if present): defaults to visible unless EXCLUSIVE mode.
-   *    - BLACKLIST: overrides default visibility.
-   *
-   * This is called once during data construction.
-   *
-   * @internal
-   */
-  _indexMonsterVisibilityPolicy(): void {
-    const allMonsterRows = this._byType.get("monster") ?? [];
-    if (allMonsterRows.length === 0) return;
-
-    const monsters: Monster[] = allMonsterRows
-      .map((raw) => this._flatten(raw) as Monster)
-      .filter((monster) => typeof monster.id === "string");
-    if (monsters.length === 0) return;
-
-    const blacklists = this._byType.get("MONSTER_BLACKLIST") ?? [];
-    const whitelists = this._byType.get("MONSTER_WHITELIST") ?? [];
+  _getVisibilityPolicy() {
+    if (this._monsterVisibilityPolicy) return this._monsterVisibilityPolicy;
 
     const explicitBlacklisted = new Set<string>();
     const blacklistedSpecies = new Set<string>();
@@ -489,152 +418,101 @@ export class CBNData {
 
     let hasExclusiveWhitelist = false;
 
-    for (const raw of blacklists) {
-      if (typeof raw !== "object" || raw === null) continue;
-      const policy = raw as Record<string, unknown>;
-      for (const id of this._collectStringArrayValues(policy, "monsters")) {
-        explicitBlacklisted.add(id);
-      }
-      for (const species of this._collectStringArrayValues(policy, "species")) {
+    const blacklists =
+      (this._byType.get("MONSTER_BLACKLIST") as MonsterBlacklist[]) ?? [];
+
+    const whitelists =
+      (this._byType.get("MONSTER_WHITELIST") as MonsterWhitelist[]) ?? [];
+
+    for (const policy of blacklists) {
+      for (const id of asArray(policy.monsters)) explicitBlacklisted.add(id);
+      for (const species of asArray(policy.species))
         blacklistedSpecies.add(species);
-      }
-      for (const category of this._collectStringArrayValues(
-        policy,
-        "categories",
-      )) {
+      for (const category of asArray(policy.categories)) {
         blacklistedCategories.add(category);
       }
     }
 
-    for (const raw of whitelists) {
-      if (typeof raw !== "object" || raw === null) continue;
-      const policy = raw as Record<string, unknown>;
-      if (typeof policy.mode === "string" && policy.mode === "EXCLUSIVE") {
-        hasExclusiveWhitelist = true;
-      }
-      for (const id of this._collectStringArrayValues(policy, "monsters")) {
-        explicitWhitelisted.add(id);
-      }
-      for (const species of this._collectStringArrayValues(policy, "species")) {
+    for (const policy of whitelists) {
+      if (policy.mode === "EXCLUSIVE") hasExclusiveWhitelist = true;
+      for (const id of asArray(policy.monsters)) explicitWhitelisted.add(id);
+      for (const species of asArray(policy.species))
         whitelistedSpecies.add(species);
-      }
-      for (const category of this._collectStringArrayValues(
-        policy,
-        "categories",
-      )) {
+      for (const category of asArray(policy.categories)) {
         whitelistedCategories.add(category);
       }
     }
 
-    const groupCache = new Map<string, Set<string>>();
-    const blacklistedViaGroups = new Set<string>();
-    const whitelistedViaGroups = new Set<string>();
-    const monsterGroupIds = this._byTypeById.get("monstergroup");
-
-    for (const category of blacklistedCategories) {
-      if (!monsterGroupIds?.has(category)) continue;
-      for (const id of this._resolveMonstersFromGroup(category, groupCache)) {
-        blacklistedViaGroups.add(id);
-      }
-    }
-    for (const category of whitelistedCategories) {
-      if (!monsterGroupIds?.has(category)) continue;
-      for (const id of this._resolveMonstersFromGroup(category, groupCache)) {
-        whitelistedViaGroups.add(id);
-      }
-    }
-
-    for (const monster of monsters) {
-      const monsterCategories = new Set(asArray(monster.categories));
-      const monsterSpecies = new Set(asArray(monster.species));
-
-      const isWhitelisted =
-        explicitWhitelisted.has(monster.id) ||
-        whitelistedViaGroups.has(monster.id) ||
-        [...monsterSpecies].some((species) =>
-          whitelistedSpecies.has(species),
-        ) ||
-        [...monsterCategories].some((category) =>
-          whitelistedCategories.has(category),
-        );
-
-      const isBlacklisted =
-        explicitBlacklisted.has(monster.id) ||
-        blacklistedViaGroups.has(monster.id) ||
-        [...monsterSpecies].some((species) =>
-          blacklistedSpecies.has(species),
-        ) ||
-        [...monsterCategories].some((category) =>
-          blacklistedCategories.has(category),
-        );
-
-      const isVisible = hasExclusiveWhitelist
-        ? isWhitelisted
-        : isWhitelisted || !isBlacklisted;
-      this._monsterVisibilityById.set(monster.id, isVisible);
-    }
+    this._monsterVisibilityPolicy = {
+      explicitBlacklisted,
+      blacklistedSpecies,
+      blacklistedCategories,
+      explicitWhitelisted,
+      whitelistedSpecies,
+      whitelistedCategories,
+      hasExclusiveWhitelist,
+    };
+    return this._monsterVisibilityPolicy;
   }
 
   /**
    * Checks if a monster ID is visible according to the loaded policy.
    *
-   * @param id The monster ID to check.
+   * @param mon The monster to check
    * @returns true if visible (default), false if blacklisted/not whitelisted.
    */
-  isMonsterVisible(id: string): boolean {
-    if (typeof id !== "string") return false;
-    const visible = this._monsterVisibilityById.get(id);
-    return visible ?? true;
+  isMonsterVisible(
+    mon: Pick<Monster, "id" | "species" | "categories">,
+  ): boolean {
+    const policy = this._getVisibilityPolicy();
+
+    const monCategories = asArray(mon.categories);
+    const monSpecies = asArray(mon.species);
+
+    const isWhitelisted =
+      policy.explicitWhitelisted.has(mon.id) ||
+      monSpecies.some((entry) => policy.whitelistedSpecies.has(entry)) ||
+      monCategories.some((entry) => policy.whitelistedCategories.has(entry));
+
+    const isBlacklisted =
+      policy.explicitBlacklisted.has(mon.id) ||
+      monSpecies.some((entry) => policy.blacklistedSpecies.has(entry)) ||
+      monCategories.some((entry) => policy.blacklistedCategories.has(entry));
+
+    return policy.hasExclusiveWhitelist
+      ? isWhitelisted
+      : isWhitelisted || !isBlacklisted;
   }
 
-  /** @internal */
-  _indexDissectionSources(): void {
-    const monsters = this.byType("monster");
-    for (const monster of monsters) {
-      if (!monster.harvest) continue;
-      const harvest = this.byIdMaybe("harvest", monster.harvest);
-      if (!harvest || !harvest.entries) continue;
+  #dissectedFromIndex = new ReverseIndex(this, "monster", (monster) => {
+    if (!monster.harvest) return [];
+    const harvest = this.byIdMaybe("harvest", monster.harvest);
+    if (!harvest?.entries) return [];
 
-      for (const entry of harvest.entries) {
-        if (
-          entry.type === "bionic" ||
-          entry.type === "bionic_group" ||
-          entry.type === "bionic_faulty"
-        ) {
-          let dropIds: string[];
-          if (entry.type === "bionic_group") {
-            const group = this.byIdMaybe("item_group", entry.drop);
-            if (!group) continue;
-            dropIds = this.flattenTopLevelItemGroup(group).map((x) => x.id);
-          } else {
-            dropIds = [entry.drop];
-          }
-
-          for (const dropId of dropIds) {
-            let sources = this._dissectionSources.get(dropId);
-            if (!sources) {
-              sources = [];
-              this._dissectionSources.set(dropId, sources);
-            }
-            sources.push({
-              monster,
-              harvest,
-              entry,
-            });
-          }
-        }
+    return harvest.entries.flatMap((entry) => {
+      if (
+        entry.type !== "bionic" &&
+        entry.type !== "bionic_group" &&
+        entry.type !== "bionic_faulty"
+      ) {
+        return [];
       }
-    }
-  }
+
+      if (entry.type !== "bionic_group") return [entry.drop];
+
+      const group = this.byIdMaybe("item_group", entry.drop);
+      return group ? this.flattenTopLevelItemGroup(group).map((x) => x.id) : [];
+    });
+  });
 
   /**
    * Returns a list of monsters that provide the given item (or group) via dissection.
    *
    * @param id The item ID or item group ID to search for.
-   * @returns A list of dissection sources.
+   * @returns A list of monsters.
    */
-  getDissectionSources(id: string): DissectionSource[] {
-    return this._dissectionSources.get(id) ?? [];
+  dissectedFrom(id: string): Monster[] {
+    return this.#dissectedFromIndex.lookup(id);
   }
 
   /**
@@ -663,11 +541,9 @@ export class CBNData {
         obj,
       ) as SupportedTypesWithMapped[TypeName];
       if (type === "monster") {
-        const canonicalId =
-          typeof (flattened as { id?: unknown }).id === "string"
-            ? ((flattened as { id: string }).id as string)
-            : id;
-        if (!this.isMonsterVisible(canonicalId)) return undefined;
+        if (!this.isMonsterVisible(flattened as Monster)) {
+          return undefined;
+        }
       }
       return flattened as SupportedTypesWithMapped[TypeName] & {
         __filename: string;
@@ -702,7 +578,19 @@ export class CBNData {
    * @param type The type of objects to retrieve.
    * @returns An array of flattened objects.
    */
+  //TODO review the whole fun
   byType<TypeName extends keyof SupportedTypesWithMapped>(
+    type: TypeName,
+  ): SupportedTypesWithMapped[TypeName][] {
+    const cached = this._byTypeCache.get(type);
+    if (cached) return cached.slice() as SupportedTypesWithMapped[TypeName][];
+
+    const snapshot = this._buildByTypeSnapshot(type);
+    this._byTypeCache.set(type, snapshot as SupportedTypeMapped[]);
+    return snapshot.slice() as SupportedTypesWithMapped[TypeName][];
+  }
+
+  _buildByTypeSnapshot<TypeName extends keyof SupportedTypesWithMapped>(
     type: TypeName,
   ): SupportedTypesWithMapped[TypeName][] {
     const raws = this._byType.get(type) ?? [];
@@ -730,11 +618,9 @@ export class CBNData {
       this._flatten(x),
     ) as SupportedTypesWithMapped[TypeName][];
     if (type !== "monster") return flattened;
-    return flattened.filter(
-      (monster) =>
-        typeof (monster as { id?: unknown }).id === "string" &&
-        this.isMonsterVisible((monster as { id: string }).id),
-    );
+    return flattened.filter((monster) => {
+      return this.isMonsterVisible(monster as Monster);
+    });
   }
 
   abstractById<TypeName extends keyof SupportedTypesWithMapped>(
@@ -2532,7 +2418,7 @@ export const data = {
   },
   /**
    * `_reset`: resetting singleton store state between test app mounts.
-   * Side effects: clearing _currentData, generation token, and calling set(null).
+   * Side effects: clearing generation token, and calling set(null).
    * @internal
    */
   _reset(): void {

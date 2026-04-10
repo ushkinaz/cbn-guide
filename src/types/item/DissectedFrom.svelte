@@ -15,11 +15,11 @@ let { item_id }: Props = $props();
 
 const data = getContext<CBNData>("data");
 
-const sources = $derived(data.getDissectionSources(item_id));
-// Deduplicate monsters since multiple harvest entries might point to the same item/group
 const monsters = $derived(
   Array.from(
-    new Map(sources.map((s) => [s.monster.id, s.monster])).values(),
+    new Map(
+      data.dissectedFrom(item_id).map((monster) => [monster.id, monster]),
+    ).values(),
   ).sort(byName),
 );
 </script>
