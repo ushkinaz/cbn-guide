@@ -45,7 +45,7 @@ let realLimit = $derived(expanded ? Infinity : initialLimit);
       e.preventDefault();
       expanded = !expanded;
       if (expanded) {
-        metrics.count("ui.list.expand", 1, { count: items.length });
+        metrics.count("ui.table.expand", 1, { count: items.length });
       }
     }}>
     {expanded
