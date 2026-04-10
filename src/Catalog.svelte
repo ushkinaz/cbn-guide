@@ -1,5 +1,5 @@
 <script lang="ts">
-import { setContext, untrack } from "svelte";
+import { onMount, setContext, untrack } from "svelte";
 
 import { CBNData } from "./data";
 import LimitedList from "./LimitedList.svelte";
@@ -16,6 +16,8 @@ import ItemLink from "./types/ItemLink.svelte";
 import { asArray, groupBy } from "./utils/collections";
 import { gameSingularName } from "./i18n/game-locale";
 import { translateType } from "./i18n/transifex-static";
+import { nowTimeStamp } from "./utils/perf";
+import { metrics } from "./metrics";
 interface Props {
   type: string;
   data: CBNData;
@@ -25,6 +27,18 @@ const type = untrack(() => sourceType);
 const data = untrack(() => sourceData);
 let typeWithCorrectType = type as keyof SupportedTypesWithMapped;
 setContext("data", data);
+
+const renderStart = nowTimeStamp();
+onMount(() => {
+  metrics.distribution(
+    "ui.catalog.render_duration_ms",
+    nowTimeStamp() - renderStart,
+    {
+      unit: "millisecond",
+      type: type,
+    },
+  );
+});
 
 const things = data
   .byType(typeWithCorrectType)

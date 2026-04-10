@@ -2,7 +2,7 @@
 import { type CBNData, loadProgress, mapType } from "./data";
 import ItemLink from "./types/ItemLink.svelte";
 import type { OvermapSpecial, SupportedTypesWithMapped } from "./types";
-import { setContext, untrack } from "svelte";
+import { onMount, setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 import LimitedList from "./LimitedList.svelte";
 import {
@@ -14,6 +14,8 @@ import type { SearchResult, SearchResultsMap } from "./search-engine";
 import Loading from "./Loading.svelte";
 
 import { translateType } from "./i18n/transifex-static";
+import { nowTimeStamp } from "./utils/perf";
+import { metrics } from "./metrics";
 
 interface Props {
   data: CBNData;
@@ -22,6 +24,17 @@ interface Props {
 }
 
 let { data, search, results: sourceResults }: Props = $props();
+
+const renderStart = nowTimeStamp();
+onMount(() => {
+  metrics.distribution(
+    "ui.search.render_duration_ms",
+    nowTimeStamp() - renderStart,
+    {
+      unit: "millisecond",
+    },
+  );
+});
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {
   const seenAppearances = new Set<string>();
