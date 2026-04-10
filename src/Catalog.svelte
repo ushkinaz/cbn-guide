@@ -30,14 +30,9 @@ setContext("data", data);
 
 const renderStart = nowTimeStamp();
 onMount(() => {
-  metrics.distribution(
-    "ui.catalog.render_duration_ms",
-    nowTimeStamp() - renderStart,
-    {
-      unit: "millisecond",
-      type: type,
-    },
-  );
+  metrics.duration("ui.catalog.render", nowTimeStamp() - renderStart, {
+    type: type,
+  });
 });
 
 const things = data

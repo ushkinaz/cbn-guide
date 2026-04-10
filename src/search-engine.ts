@@ -111,13 +111,7 @@ export function buildSearchIndex(data: CBNData): SearchTarget[] {
       type: mappedType,
     });
   }
-  metrics.distribution(
-    "search.index.calc_duration_ms",
-    Math.round(nowTimeStamp() - start),
-    {
-      unit: "millisecond",
-    },
-  );
+  metrics.duration("search.index.calc", nowTimeStamp() - start);
   return targets;
 }
 

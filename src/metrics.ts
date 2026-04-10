@@ -87,4 +87,17 @@ export const metrics = {
       attributes: { ...getCommonAttributes(), ...attributes },
     });
   },
+
+  /**
+   * Track durations in milliseconds with a consistent metric suffix and unit.
+   */
+  duration(name: string, value: number, attributes: MetricAttributes = {}) {
+    Sentry.metrics.distribution(`${name}_duration_ms`, Math.round(value), {
+      attributes: {
+        ...getCommonAttributes(),
+        ...attributes,
+        unit: "millisecond",
+      },
+    });
+  },
 };

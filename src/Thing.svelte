@@ -56,15 +56,10 @@ function defaultItem(id: string, type: string) {
 const renderStart = nowTimeStamp();
 
 onMount(() => {
-  metrics.distribution(
-    "ui.item.render_duration_ms",
-    nowTimeStamp() - renderStart,
-    {
-      unit: "millisecond",
-      type: item.type,
-      id: item.id,
-    },
-  );
+  metrics.duration("ui.item.render", nowTimeStamp() - renderStart, {
+    type: item.type,
+    id: item.id,
+  });
 });
 
 let obj =

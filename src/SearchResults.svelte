@@ -27,13 +27,7 @@ let { data, search, results: sourceResults }: Props = $props();
 
 const renderStart = nowTimeStamp();
 onMount(() => {
-  metrics.distribution(
-    "ui.search.render_duration_ms",
-    nowTimeStamp() - renderStart,
-    {
-      unit: "millisecond",
-    },
-  );
+  metrics.duration("ui.search.render", nowTimeStamp() - renderStart);
 });
 
 function groupByAppearance(results: SearchResult[]): OvermapSpecial[][] {

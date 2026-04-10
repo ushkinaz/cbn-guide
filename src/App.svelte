@@ -68,9 +68,7 @@ function schedulePrewarm(cbnData: CBNData): void {
     void prewarmDerivedCaches(cbnData)
       .then(() => {
         const durationMs = nowTimeStamp() - prewarmStart;
-        metrics.distribution("data.loot.prewarm_duration_ms", durationMs, {
-          unit: "millisecond",
-        });
+        metrics.duration("data.loot.prewarm", durationMs);
       })
       .catch((error: unknown) => {
         console.warn("Failed to prewarm derived caches", error);
