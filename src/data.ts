@@ -461,7 +461,9 @@ export class CBNData {
    * @param mon The monster to check
    * @returns true if visible (default), false if blacklisted/not whitelisted.
    */
-  isMonsterVisible(mon: Monster): boolean {
+  isMonsterVisible(
+    mon: Pick<Monster, "id" | "species" | "categories">,
+  ): boolean {
     const policy = this._getVisibilityPolicy();
 
     const monCategories = asArray(mon.categories);

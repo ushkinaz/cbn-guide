@@ -205,19 +205,19 @@ describe("monster policy filtering", () => {
         id: "mon_blacklisted_species",
         species: ["FUNGUS"],
         categories: ["WILDLIFE"],
-      } as Monster),
+      }),
     ).toBe(false);
     expect(
       data.isMonsterVisible({
         id: "mon_whitelisted_direct",
         species: ["ZOMBIE"],
-      } as Monster),
+      }),
     ).toBe(true);
     expect(
       data.isMonsterVisible({
         id: "mon_other",
         species: ["HUMAN"],
-      } as Monster),
+      }),
     ).toBe(true);
   });
 
@@ -239,7 +239,7 @@ describe("monster policy filtering", () => {
       },
       {
         type: "MONSTER_WHITELIST",
-        monsters: ["TREE"],
+        monsters: ["mon_cat_visible"],
       },
     ]);
 
@@ -247,14 +247,48 @@ describe("monster policy filtering", () => {
       data.isMonsterVisible({
         id: "mon_cat_hidden",
         categories: ["CLASSIC"],
-      } as Monster),
+      }),
     ).toBe(false);
     expect(
       data.isMonsterVisible({
         id: "mon_cat_visible",
         categories: ["TREE"],
         species: ["HUMAN"],
-      } as Monster),
+      }),
+    ).toBe(true);
+  });
+
+  test("exclusive whitelist does not exclude another", () => {
+    const data = makeTestCBNData([
+      {
+        type: "MONSTER",
+        id: "mon_exclusive",
+      },
+      {
+        type: "MONSTER",
+        id: "mon_white",
+        categories: ["TREE"],
+      },
+      {
+        type: "MONSTER_WHITELIST",
+        monsters: ["mon_exclusive"],
+        mode: "EXCLUSIVE",
+      },
+      {
+        type: "MONSTER_WHITELIST",
+        monsters: ["mon_white"],
+      },
+    ]);
+
+    expect(
+      data.isMonsterVisible({
+        id: "mon_exclusive",
+      }),
+    ).toBe(true);
+    expect(
+      data.isMonsterVisible({
+        id: "mon_white",
+      }),
     ).toBe(true);
   });
 });
