@@ -35,7 +35,7 @@ if (isProd) {
     integrations: [eventFiltersIntegration],
     tracesSampleRate: 1,
     //Custom Zaraz endpoints, we ignore any error happening in Zaraz
-    denyUrls: [/srv\/z\/s\.js/i, /srv\/z\/t/i],
+    denyUrls: [/srv\/z\//i],
     sendDefaultPii: true,
     environment: __DEPLOY_ENV__,
     skipBrowserExtensionCheck: true,
