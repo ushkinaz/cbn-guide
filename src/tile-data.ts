@@ -163,6 +163,9 @@ function getDataBaseUrl(version: string): string {
   return `${CBN_DATA_BASE_URL}/data/${version}`;
 }
 
+/**
+ * @internal
+ */
 export function resolveModChunkUrl(
   version: string,
   modId: string,
@@ -174,6 +177,9 @@ export function resolveModChunkUrl(
   );
 }
 
+/**
+ * @internal
+ */
 export function resolveExternalChunkUrl(version: string, file: string): string {
   return resolvePath(
     getDataBaseUrl(version),
@@ -345,6 +351,9 @@ function getCachedBaseTileset(url: string): Promise<NonNullable<TilesetData>> {
   return created;
 }
 
+/**
+ * @internal
+ */
 export function collectActiveModTilesets(
   data: CBNData,
 ): ModTilesetContribution[] {
@@ -376,6 +385,9 @@ function isExternalTilesetChunk(file: string): boolean {
   return file.startsWith("external_tileset/");
 }
 
+/**
+ * @internal
+ */
 export function collectExternalTilesets(
   data: Pick<CBNData, "all">,
 ): ExternalTilesetContribution[] {
@@ -402,6 +414,9 @@ export function collectExternalTilesets(
   return result;
 }
 
+/**
+ * @internal
+ */
 export function isContributionCompatible(
   contribution: Pick<TilesetContribution, "compatibility">,
   selectedAliases: Set<string>,
@@ -417,6 +432,9 @@ export function isContributionCompatible(
   return false;
 }
 
+/**
+ * @internal
+ */
 export function getTilesetCompatibilityIdentities(
   tilesetName: string,
 ): Set<string> {
@@ -444,6 +462,9 @@ function getMergeCacheKey(
   return `${version}|${tileset.path ?? "ascii"}|${activeMods}|${aliasSignature}|${modsLoaded}`;
 }
 
+/**
+ * @internal
+ */
 export async function loadMergedTileset(
   data: CBNData,
   version: string,
@@ -593,6 +614,10 @@ export type TilesetData = {
   baseUrl?: string;
 } | null;
 
+type IndexedTilesetData = NonNullable<TilesetData>;
+type TileLookupIndex = Map<string, TileInfo>;
+const tileLookupIndexCache = new WeakMap<IndexedTilesetData, TileLookupIndex>();
+
 export function resolveTileLayerUrl(
   tileset: TilesetData,
   layer: TilePosition | undefined,
@@ -610,72 +635,91 @@ export function findTile(
   id: string,
 ): TileInfo | undefined {
   if (!tileData || !id) return;
-  //TODO: Cache tiles-new ranges and tile lookups per tileset to avoid per-cell scans.
+  return getTileLookupIndex(tileData).get(id);
+}
+
+function getTileLookupIndex(tileData: IndexedTilesetData): TileLookupIndex {
+  const cached = tileLookupIndexCache.get(tileData);
+  if (cached) return cached;
+
+  const indexed = buildTileLookupIndex(tileData);
+  tileLookupIndexCache.set(tileData, indexed);
+  return indexed;
+}
+
+function buildTileLookupIndex(tileData: IndexedTilesetData): TileLookupIndex {
   let offset = 0;
-  const ranges: { from: number; to: number; chunk: any }[] = [];
-  for (const chunk of tileData["tiles-new"]) {
-    ranges.push({
+  const ranges = tileData["tiles-new"].map((chunk) => {
+    const range = {
       from: offset,
       to: offset + chunk.nx * chunk.ny,
       chunk,
-    });
-    offset += chunk.nx * chunk.ny;
+    };
+    offset = range.to;
+    return range;
+  });
+
+  function findRange(spriteId: number) {
+    for (const range of ranges) {
+      if (spriteId >= range.from && spriteId < range.to) return range;
+    }
   }
-  function findRange(id: number) {
-    for (const range of ranges)
-      if (id >= range.from && id < range.to) return range;
-  }
-  function tileInfoForId(id: number | undefined): TilePosition | undefined {
-    if (id == null) return;
-    const range = findRange(id);
+
+  function tileInfoForSprite(
+    spriteId: number | undefined,
+  ): TilePosition | undefined {
+    if (spriteId == null) return;
+    const range = findRange(spriteId);
     if (!range) return;
-    const offsetInFile = id - range.from;
-    const fgTx = offsetInFile % range.chunk.nx;
-    const fgTy = (offsetInFile / range.chunk.nx) | 0;
+    const offsetInFile = spriteId - range.from;
     return {
       file: range.chunk.file,
       file_url: range.chunk.file_url,
       source_base_url: range.chunk.source_base_url,
-      // Safe to use ! because we check tileData at function entry
-      width: range.chunk.sprite_width ?? tileData!.tile_info[0].width,
-      height: range.chunk.sprite_height ?? tileData!.tile_info[0].height,
+      width: range.chunk.sprite_width ?? tileData.tile_info[0].width,
+      height: range.chunk.sprite_height ?? tileData.tile_info[0].height,
       offx: range.chunk.sprite_offset_x ?? 0,
       offy: range.chunk.sprite_offset_y ?? 0,
-      tx: fgTx,
-      ty: fgTy,
+      tx: offsetInFile % range.chunk.nx,
+      ty: (offsetInFile / range.chunk.nx) | 0,
     };
   }
-  const idMatches = (testId: string) =>
-    testId &&
-    (testId === id ||
-      (testId.startsWith(id) &&
-        /^_season_(autumn|spring|summer|winter)$/.test(
-          testId.substring(id.length),
-        )));
-  for (
-    let chunkIdx = tileData["tiles-new"].length - 1;
-    chunkIdx >= 0;
-    chunkIdx--
-  ) {
-    const chunk = tileData["tiles-new"][chunkIdx];
-    for (const info of chunk.tiles) {
-      if (
-        Array.isArray(info.id) ? info.id.some(idMatches) : idMatches(info.id)
-      ) {
-        let fg = Array.isArray(info.fg) ? info.fg[0] : info.fg;
-        let bg = Array.isArray(info.bg) ? info.bg[0] : info.bg;
-        if (fg && typeof fg === "object") fg = fg.sprite;
-        if (bg && typeof bg === "object") bg = bg.sprite;
-        return {
-          fg: tileInfoForId(fg),
-          bg: tileInfoForId(bg),
-        };
+
+  function firstSpriteRef(value: unknown): number | undefined {
+    const maybeArrayHead = Array.isArray(value) ? value[0] : value;
+    if (typeof maybeArrayHead === "number") return maybeArrayHead;
+    if (
+      typeof maybeArrayHead === "object" &&
+      maybeArrayHead !== null &&
+      typeof maybeArrayHead.sprite === "number"
+    ) {
+      return maybeArrayHead.sprite;
+    }
+  }
+
+  function tileInfoForEntry(entry: TileEntry): TileInfo {
+    return {
+      fg: tileInfoForSprite(firstSpriteRef(entry.fg)),
+      bg: tileInfoForSprite(firstSpriteRef(entry.bg)),
+    };
+  }
+
+  const exact = new Map<string, TileInfo>();
+
+  for (const chunk of tileData["tiles-new"]) {
+    for (let idx = chunk.tiles.length - 1; idx >= 0; idx--) {
+      const entry = chunk.tiles[idx];
+      const tileInfo = tileInfoForEntry(entry);
+      for (const entryId of Array.isArray(entry.id) ? entry.id : [entry.id]) {
+        exact.set(entryId, tileInfo);
       }
     }
   }
+
+  return exact;
 }
 
-export const MAX_INHERITANCE_DEPTH = 10;
+const MAX_INHERITANCE_DEPTH = 10;
 
 export function findTileOrLooksLike(
   data: CBNData,

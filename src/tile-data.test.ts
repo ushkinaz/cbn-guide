@@ -4,11 +4,13 @@ import {
   TILESETS,
   collectActiveModTilesets,
   collectExternalTilesets,
+  findTile,
   getTilesetCompatibilityIdentities,
   isContributionCompatible,
   loadMergedTileset,
   resolveExternalChunkUrl,
   resolveModChunkUrl,
+  type TilesetData,
 } from "./tile-data";
 
 vi.mock("./utils/retry", async (importOriginal) => {
@@ -27,6 +29,15 @@ function fakeData(overrides: any): CBNData {
     allMods: () => overrides._rawModsJSON ?? {},
     ...overrides,
   } as unknown as CBNData;
+}
+
+function createTestTileset(
+  chunks: NonNullable<TilesetData>["tiles-new"],
+): NonNullable<TilesetData> {
+  return {
+    tile_info: [{ width: 32, height: 32, pixelscale: 1 }],
+    "tiles-new": chunks,
+  };
 }
 
 describe("tile-data mod_tileset support", () => {
@@ -456,5 +467,82 @@ describe("tile-data mod_tileset support", () => {
         String(arg).includes("/external_tileset/custom.webp"),
       ),
     ).toBe(true);
+  });
+});
+
+describe("findTile", () => {
+  test("prefers later chunks over earlier ones", () => {
+    const tile = findTile(
+      createTestTileset([
+        {
+          file: "base.webp",
+          nx: 2,
+          ny: 1,
+          tiles: [{ id: "foo", fg: 0 }],
+        },
+        {
+          file: "override.webp",
+          nx: 2,
+          ny: 1,
+          tiles: [{ id: "foo", fg: 2 }],
+        },
+      ]),
+      "foo",
+    );
+
+    expect(tile?.fg).toMatchObject({
+      file: "override.webp",
+      tx: 0,
+      ty: 0,
+    });
+  });
+
+  test("keeps the first matching entry within a chunk", () => {
+    const tile = findTile(
+      createTestTileset([
+        {
+          file: "base.webp",
+          nx: 2,
+          ny: 1,
+          tiles: [
+            { id: "foo", fg: 0 },
+            { id: "foo", fg: 1 },
+          ],
+        },
+      ]),
+      "foo",
+    );
+
+    expect(tile?.fg).toMatchObject({
+      file: "base.webp",
+      tx: 0,
+      ty: 0,
+    });
+  });
+
+  test("prefers an exact tile over a later seasonal variant", () => {
+    const tile = findTile(
+      createTestTileset([
+        {
+          file: "base.webp",
+          nx: 2,
+          ny: 1,
+          tiles: [{ id: "tree", fg: 0 }],
+        },
+        {
+          file: "seasonal.webp",
+          nx: 2,
+          ny: 1,
+          tiles: [{ id: "tree_season_summer", fg: 2 }],
+        },
+      ]),
+      "tree",
+    );
+
+    expect(tile?.fg).toMatchObject({
+      file: "base.webp",
+      tx: 0,
+      ty: 0,
+    });
   });
 });
