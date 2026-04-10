@@ -545,4 +545,49 @@ describe("findTile", () => {
       ty: 0,
     });
   });
+
+  test("matches entries whose id is a string array", () => {
+    const tile = findTile(
+      createTestTileset([
+        {
+          file: "aliases.webp",
+          nx: 2,
+          ny: 1,
+          tiles: [{ id: ["foo", "bar"], fg: 1 }],
+        },
+      ]),
+      "bar",
+    );
+
+    expect(tile?.fg).toMatchObject({
+      file: "aliases.webp",
+      tx: 1,
+      ty: 0,
+    });
+  });
+
+  test("resolves sprite references from fg and bg sprite objects", () => {
+    const tile = findTile(
+      createTestTileset([
+        {
+          file: "sprites.webp",
+          nx: 2,
+          ny: 2,
+          tiles: [{ id: "sprite-ref", fg: { sprite: 2 }, bg: { sprite: 3 } }],
+        },
+      ]),
+      "sprite-ref",
+    );
+
+    expect(tile?.fg).toMatchObject({
+      file: "sprites.webp",
+      tx: 0,
+      ty: 1,
+    });
+    expect(tile?.bg).toMatchObject({
+      file: "sprites.webp",
+      tx: 1,
+      ty: 1,
+    });
+  });
 });

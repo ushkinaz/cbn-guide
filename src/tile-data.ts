@@ -688,11 +688,7 @@ function buildTileLookupIndex(tileData: IndexedTilesetData): TileLookupIndex {
   function firstSpriteRef(value: unknown): number | undefined {
     const maybeArrayHead = Array.isArray(value) ? value[0] : value;
     if (typeof maybeArrayHead === "number") return maybeArrayHead;
-    if (
-      typeof maybeArrayHead === "object" &&
-      maybeArrayHead !== null &&
-      typeof maybeArrayHead.sprite === "number"
-    ) {
+    if (isRecord(maybeArrayHead) && typeof maybeArrayHead.sprite === "number") {
       return maybeArrayHead.sprite;
     }
   }
