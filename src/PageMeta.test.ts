@@ -133,14 +133,14 @@ describe("PageMeta", () => {
     try {
       renderPageMeta("stable/monster/mon_zombie");
 
-      expect(document.title).toBe(UI_GUIDE_NAME);
+      expect(document.title).toBe(`${UI_GUIDE_NAME} @ stable`);
 
       await act(async () => {
         await data.loadData("stable", "en", []);
       });
 
       await waitFor(() => {
-        expect(document.title).toBe(`Zombie | ${UI_GUIDE_NAME}`);
+        expect(document.title).toBe(`Zombie | ${UI_GUIDE_NAME} @ stable`);
       });
     } finally {
       globalThis.fetch = originalFetch;
@@ -151,7 +151,7 @@ describe("PageMeta", () => {
     renderPageMeta("stable/item");
 
     await waitFor(() => {
-      expect(document.title).toBe(`Items | ${UI_GUIDE_NAME}`);
+      expect(document.title).toBe(`Items | ${UI_GUIDE_NAME} @ stable`);
     });
   });
 
@@ -159,7 +159,7 @@ describe("PageMeta", () => {
     renderPageMeta("stable/search/rock");
 
     await waitFor(() => {
-      expect(document.title).toBe(`Search: rock | ${UI_GUIDE_NAME}`);
+      expect(document.title).toBe(`Search: rock | ${UI_GUIDE_NAME} @ stable`);
     });
   });
 

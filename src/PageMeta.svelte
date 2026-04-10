@@ -47,7 +47,9 @@ function formatTitle(pageTitle: string | null = null): string {
   if (RUNNING_MODE === "pwa") {
     return pageTitle ?? "";
   }
-  return pageTitle ? `${pageTitle} | ${UI_GUIDE_NAME}` : UI_GUIDE_NAME;
+  return pageTitle
+    ? `${pageTitle} | ${UI_GUIDE_NAME} @ ${navigation.buildRequestedVersion}`
+    : `${UI_GUIDE_NAME} @ ${navigation.buildRequestedVersion}`;
 }
 
 const defaultMetaDescription = t(
