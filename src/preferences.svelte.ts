@@ -9,20 +9,30 @@ export const TILESET_STORAGE_KEY = "cbn-guide:tileset";
  */
 export const MODS_STORAGE_KEY = "cbn-guide:mods";
 
+const NEXT_SEEN_WARNING_STORAGE_KEY = "cbn-guide:next-warning-seen";
+const NEXT_DISABLE_STORAGE_KEY = "cbn-guide:next-warning-disabled";
+
 export type UserPreferences = {
   tileset: string;
   mods: string[];
+  nextWarning: {
+    disabled: boolean;
+    seen: boolean;
+  };
 };
 
 const defaultPreferences: UserPreferences = {
   tileset: DEFAULT_TILESET.name,
   mods: [],
+  nextWarning: {
+    disabled: false,
+    seen: false,
+  },
 };
 
-export const preferences = $state<UserPreferences>({
-  tileset: defaultPreferences.tileset,
-  mods: [...defaultPreferences.mods],
-});
+export const preferences = $state<UserPreferences>(
+  structuredClone(defaultPreferences),
+);
 
 function readStoredTileset(): string | undefined {
   try {
@@ -72,6 +82,28 @@ function clearStoredDefaultMods(): void {
     // Swallow storage failures
   }
 }
+
+function readNextWarning() {
+  try {
+    const disabled = localStorage.getItem(NEXT_DISABLE_STORAGE_KEY) === "true";
+    const seen =
+      sessionStorage.getItem(NEXT_SEEN_WARNING_STORAGE_KEY) === "true";
+    return {
+      disabled,
+      seen,
+    };
+  } catch (error) {
+    return {
+      disabled: false,
+      seen: false,
+    };
+  }
+}
+
+export function setNextWarningSeen() {
+  sessionStorage.setItem(NEXT_SEEN_WARNING_STORAGE_KEY, "true");
+}
+
 /**
  * Reads persisted user preferences from localStorage and initializes the
  * reactive `preferences` state.
@@ -93,6 +125,7 @@ export function initializePreferences(): UserPreferences {
 
   preferences.tileset = preferredTileset;
   preferences.mods = [...(readStoredMods() ?? defaultPreferences.mods)];
+  preferences.nextWarning = readNextWarning();
   return preferences;
 }
 
@@ -134,6 +167,5 @@ export function clearSavedMods(): void {
  * @internal test-only
  */
 export function _resetPreferences(): void {
-  preferences.tileset = defaultPreferences.tileset;
-  preferences.mods = [...defaultPreferences.mods];
+  Object.assign(preferences, structuredClone(defaultPreferences));
 }

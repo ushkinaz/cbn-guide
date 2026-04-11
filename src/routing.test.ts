@@ -114,7 +114,6 @@ describe("App routing integration", () => {
     clearHeadMetadata();
     window.scrollTo = vi.fn();
     setWindowLocation("stable/");
-    localStorage.removeItem?.("cbn-guide:tileset");
     _resetRouting();
     _resetPreferences();
     _resetBuildsState();

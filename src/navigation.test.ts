@@ -86,10 +86,11 @@ describe("navigation", () => {
     expect(navigation).toMatchObject({
       tileset: "ultica",
     });
-    expect(preferences).toEqual({
-      tileset: "retrodays",
-      mods: [],
-    });
+    expect(preferences).toEqual(
+      expect.objectContaining({
+        tileset: "retrodays",
+      }),
+    );
     expect(buildLinkTo({ kind: "home" })).toBe("/stable/?t=ultica");
   });
 
@@ -190,10 +191,11 @@ describe("navigation", () => {
     changeTileset("retrodays");
 
     expect(navigation.tileset).toBe("retrodays");
-    expect(preferences).toEqual({
-      tileset: "retrodays",
-      mods: [],
-    });
+    expect(preferences).toEqual(
+      expect.objectContaining({
+        tileset: "retrodays",
+      }),
+    );
     expect(window.location.search).toContain("t=retrodays");
     expect(replaceStateSpy).toHaveBeenCalledOnce();
   });

@@ -5,49 +5,29 @@ import { fly } from "svelte/transition";
 import { quintOut } from "svelte/easing";
 import reconImage from "./assets/migo_recon.webp";
 import { metrics } from "./metrics";
+import { preferences, setNextWarningSeen } from "./preferences.svelte";
 
 /**
  * Mi-Go Bio-Terminal Warning Banner
- * Renders a "breach notification" from an extra-dimensional intelligence.
+ * Renders a "breach notification" from extradimensional intelligence.
  * Persists dismissal via sessionStorage so it resets after the session ends.
  */
-const SEEN_WARNING = "cbn-guide:next-warning-seen";
-const DEV_DISABLE = "cbn-guide:next-warning-disabled";
 
-interface Props {
-  visible?: boolean;
-}
-
-let { visible = $bindable(true) }: Props = $props();
+let visible = $derived(
+  !preferences.nextWarning.disabled && !preferences.nextWarning.seen,
+);
 
 /**
  * Dismisses the banner and records the action in sessionStorage.
  */
 function dismiss() {
   visible = false;
-  try {
-    sessionStorage.setItem(SEEN_WARNING, "1");
-  } catch (e) {
-    // Ignore security errors
-  }
+  setNextWarningSeen();
 }
 
 onMount(() => {
-  try {
-    const isDevDisabled =
-      typeof localStorage !== "undefined" &&
-      localStorage.getItem(DEV_DISABLE) === "1";
-    const isSeenInSession =
-      typeof sessionStorage !== "undefined" &&
-      sessionStorage.getItem(SEEN_WARNING) === "1";
-
-    if (isDevDisabled || isSeenInSession) {
-      visible = false;
-    } else {
-      metrics.count("nav.next.triggered", 1);
-    }
-  } catch (e) {
-    // Ignore security errors
+  if (visible) {
+    metrics.count("nav.next.triggered", 1);
   }
 });
 </script>

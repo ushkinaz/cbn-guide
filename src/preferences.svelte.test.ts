@@ -57,32 +57,36 @@ describe("tileset", () => {
   test("loads the persisted tileset preference when the route omits it", () => {
     localStorage.setItem(TILESET_STORAGE_KEY, "retrodays");
 
-    expect(initializePreferences()).toEqual({
-      tileset: "retrodays",
-      mods: [],
-    });
-    expect(preferences).toEqual({
-      tileset: "retrodays",
-      mods: [],
-    });
+    expect(initializePreferences()).toEqual(
+      expect.objectContaining({
+        tileset: "retrodays",
+      }),
+    );
+    expect(preferences).toEqual(
+      expect.objectContaining({
+        tileset: "retrodays",
+      }),
+    );
   });
 
   test("falls back to the default tileset when storage contains an invalid value", () => {
     localStorage.setItem(TILESET_STORAGE_KEY, "not-a-real-tileset");
 
-    expect(initializePreferences()).toEqual({
-      tileset: DEFAULT_TILESET,
-      mods: [],
-    });
+    expect(initializePreferences()).toEqual(
+      expect.objectContaining({
+        tileset: DEFAULT_TILESET,
+      }),
+    );
     expect(localStorage.getItem(TILESET_STORAGE_KEY)).toBe(DEFAULT_TILESET);
   });
 
   test("setTileset rejects invalid values without mutating the preference", () => {
     expect(setTileset("bad-input")).toBe(false);
-    expect(preferences).toEqual({
-      tileset: DEFAULT_TILESET,
-      mods: [],
-    });
+    expect(preferences).toEqual(
+      expect.objectContaining({
+        tileset: DEFAULT_TILESET,
+      }),
+    );
     expect(localStorage.getItem(TILESET_STORAGE_KEY)).toBeNull();
   });
 
@@ -94,16 +98,18 @@ describe("tileset", () => {
       throw new Error("storage denied");
     });
 
-    expect(initializePreferences()).toEqual({
-      tileset: DEFAULT_TILESET,
-      mods: [],
-    });
+    expect(initializePreferences()).toEqual(
+      expect.objectContaining({
+        tileset: DEFAULT_TILESET,
+      }),
+    );
 
     expect(() => setTileset("retrodays")).not.toThrow();
-    expect(preferences).toEqual({
-      tileset: "retrodays",
-      mods: [],
-    });
+    expect(preferences).toEqual(
+      expect.objectContaining({
+        tileset: "retrodays",
+      }),
+    );
   });
 });
 
