@@ -17,7 +17,6 @@ tx.init({
 });
 
 if (isProd) {
-  // Check metrics opt-out flag (defensive for puppeteer/restricted browsers)
   let metricsDisabled = false;
   try {
     metricsDisabled =
@@ -39,17 +38,6 @@ if (isProd) {
     sendDefaultPii: true,
     environment: __DEPLOY_ENV__,
     skipBrowserExtensionCheck: true,
-    // Runtime filter for dynamic toggling without reload
-    beforeSendMetric: (metric) => {
-      try {
-        if (localStorage.getItem("cbn-guide:metrics-disabled") === "true") {
-          return null;
-        }
-      } catch {
-        // localStorage unavailable - allow metric through
-      }
-      return metric;
-    },
   });
 }
 
@@ -58,7 +46,7 @@ registerSW({
     console.log("PWA: onNeedRefresh - New content available, please refresh.");
   },
   onOfflineReady() {},
-  onRegistered(registration) {},
+  onRegistered() {},
   onRegisterError(error) {
     if (error?.message === "Rejected") {
       console.warn(
@@ -73,6 +61,11 @@ registerSW({
 void bootstrapApplication()
   .then(() => {
     start();
+    console.log(
+      "Application initialized. %s @ %s",
+      __DEPLOY_ENV__,
+      __RELEASE_ID__,
+    );
   })
   .catch((error) => {
     console.error("Failed to bootstrap application state.", error);
