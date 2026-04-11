@@ -36,7 +36,6 @@ import type {
   ModInfo,
   Monster,
   MonsterBlacklist,
-  MonsterGroup,
   MonsterWhitelist,
   OvermapSpecial,
   QualityRequirement,
@@ -2295,12 +2294,15 @@ export const loadProgress = { subscribe: loadProgressStore.subscribe };
  *
  * Incremented on every `loadData()` start and on `_reset()`, so any older
  * in-flight load exits before mutating the singleton store.
+ * Both `_generationToken` and `prewarmedDerivedCaches` matter only in the test environment,
+ * where it's possible to have multiple CBNData instances loaded at the same time
  */
 let _generationToken = 0;
-const prewarmedDerivedCaches = new WeakSet<CBNData>();
+const prewarmedDerivedCaches = new Set<string>();
 
 export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
-  if (isTesting || prewarmedDerivedCaches.has(targetData)) return;
+  const stateKey = `${targetData.buildVersion()}:${targetData.activeMods().join(",")}`;
+  if (isTesting || prewarmedDerivedCaches.has(stateKey)) return;
   const startToken = _generationToken;
   try {
     if (startToken !== _generationToken) return;
@@ -2314,7 +2316,7 @@ export async function prewarmDerivedCaches(targetData: CBNData): Promise<void> {
     if (startToken !== _generationToken) return;
     await terrainByOMSAppearance(targetData);
     if (startToken !== _generationToken) return;
-    prewarmedDerivedCaches.add(targetData);
+    prewarmedDerivedCaches.add(stateKey);
   } catch (error) {
     // Keep prewarm best-effort: failures should not prevent future retries.
     console.warn("Failed to prewarm derived caches", error);
