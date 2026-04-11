@@ -968,7 +968,7 @@ kbd {
   margin: 0;
   width: 100%;
   height: 40px;
-  padding-right: 110px;
+  padding-right: 80px;
 
   background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent depth */
   border: 1px solid var(--cata-color-dark_gray);
@@ -1160,9 +1160,6 @@ nav > .title {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-}
-
-@media (max-width: 600px) {
 }
 
 .guide-title {
@@ -1457,7 +1454,7 @@ footer .link:hover::after {
   color: var(--cata-color-black);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
   nav > .title .wide {
     display: none;
   }
@@ -1470,7 +1467,6 @@ footer .link:hover::after {
   }
 
   .mods-button {
-    min-height: 2.25rem;
     padding: 0.3rem 0.45rem;
   }
 
