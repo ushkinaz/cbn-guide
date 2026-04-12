@@ -100,8 +100,13 @@ function readNextWarning() {
   }
 }
 
-export function setNextWarningSeen() {
-  sessionStorage.setItem(NEXT_SEEN_WARNING_STORAGE_KEY, "true");
+export function setNextWarningSeen(): void {
+  try {
+    sessionStorage.setItem(NEXT_SEEN_WARNING_STORAGE_KEY, "true");
+    preferences.nextWarning.seen = true;
+  } catch {
+    // Swallow storage failures in restricted browser modes.
+  }
 }
 
 /**
