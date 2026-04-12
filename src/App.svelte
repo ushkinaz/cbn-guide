@@ -795,7 +795,7 @@ header {
   left: 0;
   z-index: 100;
   width: 100%;
-  height: 4rem;
+  height: 3.5rem;
   background: #212121fa;
   border-top: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
