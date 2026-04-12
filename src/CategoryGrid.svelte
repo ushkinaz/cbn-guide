@@ -216,10 +216,7 @@ async function openRandomPage(event: MouseEvent) {
   padding: 0.6rem;
   text-decoration: none;
   color: inherit;
-  transition:
-    transform 0.2s,
-    background-color 0.2s,
-    box-shadow 0.2s;
+  transition: background-color 0.05s;
 
   height: auto;
   min-height: 60px;
@@ -227,8 +224,6 @@ async function openRandomPage(event: MouseEvent) {
 
 .category-card:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .icon-wrapper {
@@ -251,7 +246,6 @@ async function openRandomPage(event: MouseEvent) {
   height: 100%;
   object-fit: contain;
   image-rendering: pixelated;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.8));
 }
 
 img.category-icon {
@@ -262,7 +256,6 @@ img.category-icon {
 
 .category-card:hover .category-icon,
 .category-card:focus-visible .category-icon {
-  transform: scale(1.05);
 }
 
 .label {

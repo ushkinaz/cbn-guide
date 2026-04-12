@@ -824,27 +824,9 @@ header {
   transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-.brand-link::before {
-  content: "[";
-  left: -14px;
-  transform: translateX(4px);
-}
-
-.brand-link::after {
-  content: "]";
-  right: -14px;
-  transform: translateX(-4px);
-}
-
 /* THE INTERACTION */
 .brand-link:hover {
   color: var(--cata-color-cyan); /* Text lights up */
-}
-
-.brand-link:hover::before,
-.brand-link:hover::after {
-  opacity: 1;
-  transform: translateX(0); /* Snap into place */
 }
 
 nav {
@@ -1402,26 +1384,6 @@ footer .link .icon {
 footer .link:hover .icon {
   opacity: 1;
   filter: grayscale(0%);
-}
-
-footer .link::before {
-  content: "[";
-  margin-right: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  color: var(--cata-color-dark_gray);
-}
-footer .link::after {
-  content: "]";
-  margin-left: 4px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  color: var(--cata-color-dark_gray);
-}
-
-footer .link:hover::before,
-footer .link:hover::after {
-  opacity: 1;
 }
 
 .scroll-to-top {
