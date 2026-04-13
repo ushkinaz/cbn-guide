@@ -213,6 +213,7 @@ let scaleY = $derived(finalHeight / (tile_info?.height ?? 32));
     ">{symbol}</span>
 {/if}
 
+<!--suppress CssUnusedSymbol-->
 <style>
 .tile-icon {
   vertical-align: middle;
