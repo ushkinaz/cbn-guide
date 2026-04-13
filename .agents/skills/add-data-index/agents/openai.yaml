@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add Data Index"
+  short_description: "Add or update data.ts index patterns."
+  default_prompt: "Use $add-data-index to add or revise an index and accessor in src/data.ts with matching tests."
