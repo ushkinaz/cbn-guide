@@ -100,8 +100,7 @@ function toggle() {
 
 pre {
   margin: 1em;
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
   color: var(--cata-color-gray);
   line-height: 1.2;

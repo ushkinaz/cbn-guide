@@ -25,7 +25,7 @@ let { item }: Props = $props();
   padding: 12px 18px;
   display: flex;
   align-items: flex-start;
-  font-family: UnifontSubset, monospace;
+  font-family: var(--font-mono-game);
   line-height: 1.4;
 }
 

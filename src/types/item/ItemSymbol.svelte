@@ -218,7 +218,7 @@ let scaleY = $derived(finalHeight / (tile_info?.height ?? 32));
   vertical-align: middle;
   display: inline-block;
   position: relative;
-  font-family: UnifontSubset, monospace;
+  font-family: var(--font-mono-game);
   text-align: center;
 }
 

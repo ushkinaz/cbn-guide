@@ -92,7 +92,7 @@ onMount(() => {
   display: flex;
   padding: 16px;
   gap: 20px;
-  font-family: "UnifontSubset", "Courier New", Courier, monospace;
+  font-family: var(--font-mono-game);
   color: var(--cata-color-light_green);
   overflow: hidden;
   box-sizing: border-box;

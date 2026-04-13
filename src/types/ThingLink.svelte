@@ -143,7 +143,7 @@ let iconItem = $derived(
 <style>
 .obsolete {
   color: var(--cata-color-gray);
-  font-family: UnifontSubset, monospace;
+  font-family: var(--font-mono-game);
 }
 
 .item-link {

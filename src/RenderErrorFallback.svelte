@@ -88,7 +88,7 @@ const jsonObject = untrack(() => {
 }
 
 .trace {
-  font-family: monospace;
+  font-family: var(--font-mono);
   overflow-x: auto;
 }
 </style>

@@ -51,13 +51,13 @@ let { text, fullScreen = false }: Props = $props();
 }
 
 .loading-text {
-  font-family: UnifontSubset, monospace;
+  font-family: var(--font-mono-game);
   line-height: 1; /* Help with bottom alignment */
   display: inline-block;
 }
 
 .loading-progress-stats {
-  font-family: UnifontSubset, monospace;
+  font-family: var(--font-mono-game);
   font-variant-numeric: tabular-nums;
   display: inline-block;
   min-width: 8.5em; /* Ensure enough space for " (XXX.X/XXX.X MB)" */

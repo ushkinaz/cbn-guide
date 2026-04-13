@@ -441,8 +441,7 @@ $effect(() => {
 
 .mods-header h2 {
   margin: 0;
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   font-size: 0.95rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -464,8 +463,7 @@ $effect(() => {
   font-size: 0.8rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
 }
 
 .mods-category ul {
@@ -524,8 +522,7 @@ $effect(() => {
 
 .mod-id {
   color: var(--cata-color-dark_gray);
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
 }
 
@@ -537,8 +534,7 @@ $effect(() => {
 
 .mod-dependencies {
   color: var(--cata-color-dark_gray);
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   line-height: 1.3;
 }
@@ -553,8 +549,7 @@ $effect(() => {
   text-align: right;
   white-space: nowrap;
   color: var(--cata-color-dark_gray);
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   line-height: 1.3;
 }
@@ -608,8 +603,7 @@ $effect(() => {
 .mods-actions button,
 .close-button {
   margin: 0;
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 0.8rem;

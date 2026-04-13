@@ -271,7 +271,7 @@ function getFallback(partId: string, variant: string) {
   vertical-align: middle;
   display: inline-block;
   position: relative;
-  font-family: UnifontSubset, monospace;
+  font-family: var(--font-mono-game);
   text-align: center;
 }
 

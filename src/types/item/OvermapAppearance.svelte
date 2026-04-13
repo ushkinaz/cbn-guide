@@ -111,7 +111,7 @@ function omtAppearance(
 
 <style>
 .appearance-grid {
-  font-family: UnifontSubset, monospace;
+  font-family: var(--font-mono-game);
   line-height: 1;
   white-space: pre;
 }

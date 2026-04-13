@@ -864,8 +864,7 @@ nav > .search {
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.35);
   color: var(--cata-color-gray);
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   transition:
     border-color 0.15s ease,
     color 0.15s ease,
@@ -1002,7 +1001,7 @@ kbd {
   align-items: center;
   gap: 2px;
   font-size: 0.9rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   cursor: text;
   justify-content: center;
   height: 26px;
@@ -1024,7 +1023,7 @@ kbd {
 .hotkey-hint .key {
   color: var(--cata-color-gray);
   font-weight: bold;
-  font-family: monospace;
+  font-family: var(--font-mono);
 }
 
 .search-control-btn {
@@ -1043,7 +1042,7 @@ kbd {
   align-items: center;
   justify-content: center;
 
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
   line-height: 1;
   transition: background-color 0.15s ease;
@@ -1099,7 +1098,7 @@ kbd {
 .search-action-button .key {
   color: var(--cata-color-white);
   font-weight: bold;
-  font-family: monospace;
+  font-family: var(--font-mono);
   transition: color 0.15s;
 }
 
@@ -1163,7 +1162,7 @@ nav > .title {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 
@@ -1313,8 +1312,7 @@ button.install-button:hover {
   font-size: 0.9rem;
   line-height: 1.5;
   padding: 4px 8px;
-  font-family:
-    "Spline Sans Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: var(--font-mono);
   border: 1px solid var(--cata-color-dark_gray);
   transition:
     border-color 0.3s cubic-bezier(0.25, 1, 0.5, 1),
@@ -1349,7 +1347,7 @@ footer .link {
   align-items: center;
   text-decoration: none;
 
-  font-family: monospace;
+  font-family: var(--font-mono);
   text-transform: uppercase;
   font-size: 0.8rem;
   letter-spacing: 0.05em;
