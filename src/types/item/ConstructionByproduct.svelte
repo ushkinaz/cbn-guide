@@ -4,7 +4,7 @@ import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { getConstructionPrerequisites } from "../construction";
 import { byName } from "../../i18n/game-locale";
 
@@ -32,14 +32,14 @@ const constructions = data
     <h2>{t("Construct", { _context: "Obtaining" })}</h2>
     <LimitedList items={constructions}>
       {#snippet children({ item: f })}
-        <ItemLink id={f.group} type="construction_group" showIcon={false} />
+        <ThingLink id={f.group} type="construction_group" showIcon={false} />
         {@const prerequisites = getConstructionPrerequisites(f)}
         {#if prerequisites.length}
           {t("on")}
           {#each prerequisites as prerequisite, i}
             {#if i !== 0},
             {/if}
-            <ItemLink type={prerequisite.type} id={prerequisite.id} />
+            <ThingLink type={prerequisite.type} id={prerequisite.id} />
           {/each}
         {/if}
       {/snippet}

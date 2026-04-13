@@ -10,7 +10,7 @@ import {
   getConstructionResults,
   isNullConstructionResult,
 } from "./construction";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
 import { i18n, gameSingular, gameSingularName } from "../i18n/game-locale";
 
@@ -74,7 +74,7 @@ if (construction.pre_flags)
     <dd>
       {#if construction.required_skills?.length}
         {#each construction.required_skills as [id, level], i}
-          <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
+          <ThingLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
         {/each}
       {:else}
         {t("none")}
@@ -92,7 +92,7 @@ if (construction.pre_flags)
         <ul class="comma-separated">
           {#each prerequisites as prerequisite}
             <li>
-              <ItemLink type={prerequisite.type} id={prerequisite.id} />
+              <ThingLink type={prerequisite.type} id={prerequisite.id} />
             </li>
           {/each}
         </ul>
@@ -103,7 +103,7 @@ if (construction.pre_flags)
       <dd>
         <ul class="comma-separated">
           {#each preFlags as { flag }}
-            <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
+            <li><ThingLink type="json_flag" id={flag} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -117,7 +117,7 @@ if (construction.pre_flags)
             <li>
               {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}
                 {#if i !== 0}{i18n.__(" OR ")}{/if}
-                <ItemLink {id} {count} type="item" showIcon={false} />
+                <ThingLink {id} {count} type="item" showIcon={false} />
               {/each}
             </li>{/each}
         </ul>
@@ -129,7 +129,7 @@ if (construction.pre_flags)
         <ul class="comma-separated">
           {#each byproducts as { id, count }}
             <li>
-              <ItemLink type="item" {id} {count} />
+              <ThingLink type="item" {id} {count} />
             </li>
           {/each}
         </ul>
@@ -149,7 +149,7 @@ if (construction.pre_flags)
                       'The furniture/terrain "created" by a deconstruction is...',
                   })}</em>
               {:else}
-                <ItemLink type={result.type} id={result.id} />
+                <ThingLink type={result.type} id={result.id} />
               {/if}
             </li>
           {/each}

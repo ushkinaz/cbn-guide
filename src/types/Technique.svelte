@@ -6,7 +6,7 @@ import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { MartialArtBuff, Technique } from "../types";
 import BonusContainer from "./BonusContainer.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
 import {
   byName,
@@ -142,7 +142,7 @@ if (item.stunned_target)
     <h2>{t("Weapons", { _context })}</h2>
     <LimitedList items={weapons} limit={20}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.id} />
+        <ThingLink type="item" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>

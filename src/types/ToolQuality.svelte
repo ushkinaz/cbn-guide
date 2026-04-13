@@ -6,7 +6,7 @@ import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Construction, Item, ToolQuality, VehiclePart } from "../types";
 import { getConstructionPrerequisites } from "./construction";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { byName, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
@@ -128,7 +128,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         <dd>
           <ul class="comma-separated">
             <!-- prettier-ignore -->
-            {#each usages as usage}<li><ItemLink type="item_action" id={usage}  showIcon={false} /></li>{/each}
+            {#each usages as usage}<li><ThingLink type="item_action" id={usage} showIcon={false} /></li>{/each}
           </ul>
         </dd>
       {/each}
@@ -146,7 +146,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         <dd>
           <LimitedList items={tools} limit={20}>
             {#snippet children({ item })}
-              <ItemLink type="item" id={item.id} />
+              <ThingLink type="item" id={item.id} />
             {/snippet}
           </LimitedList>
         </dd>
@@ -165,7 +165,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         <dd>
           <LimitedList items={vparts} limit={20}>
             {#snippet children({ item })}
-              <ItemLink type="vehicle_part" id={item.id} />
+              <ThingLink type="vehicle_part" id={item.id} />
             {/snippet}
           </LimitedList>
         </dd>
@@ -184,7 +184,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         <dd>
           <LimitedList items={recipes} limit={20}>
             {#snippet children({ item })}
-              <ItemLink type="item" id={item} />
+              <ThingLink type="item" id={item} />
             {/snippet}
           </LimitedList>
         </dd>
@@ -203,7 +203,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
         <dd>
           <LimitedList items={constructions}>
             {#snippet children({ item: f })}
-              <ItemLink
+              <ThingLink
                 id={f.group}
                 type="construction_group"
                 showIcon={false} />
@@ -213,7 +213,7 @@ constructionsUsingQualityByLevelList.forEach(([, constructions]) => {
                 {#each prerequisites as prerequisite, i}
                   {#if i !== 0},
                   {/if}
-                  <ItemLink type={prerequisite.type} id={prerequisite.id} />
+                  <ThingLink type={prerequisite.type} id={prerequisite.id} />
                 {/each}
               {/if}
             {/snippet}

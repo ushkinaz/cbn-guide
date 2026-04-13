@@ -2,7 +2,7 @@
 import { CBNData } from "../data";
 import { getContext, untrack } from "svelte";
 import type { UseFunction } from "../types";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { t } from "@transifex/native";
 import { gameSingular, gameSingularName } from "../i18n/game-locale";
 
@@ -25,14 +25,14 @@ let description =
   gameSingularName(action);
 </script>
 
-<ItemLink
+<ThingLink
   type="item_action"
   id={action.id}
   overrideText={description}
   showIcon={false} />
 {#if usage.type === "transform" || usage.type === "delayed_transform"}
   {" "}(⟹
-  <ItemLink type="item" id={usage.target} showIcon={false} />
+  <ThingLink type="item" id={usage.target} showIcon={false} />
   )
 {:else if usage.type === "consume_drug" && (usage.vitamins?.length || Object.keys(usage.tools_needed ?? {}).length)}
   {" "}(
@@ -40,7 +40,7 @@ let description =
     {#each Object.entries(usage.tools_needed ?? {}) as [tool], i}
       {#if i !== 0},
       {/if}
-      <ItemLink type="item" id={tool} showIcon={false} />
+      <ThingLink type="item" id={tool} showIcon={false} />
     {/each}
     {#if usage.vitamins?.length}:
     {/if}
@@ -51,7 +51,7 @@ let description =
     )}
     {#if i !== 0},
     {/if}
-    <ItemLink type={v.type} id={v.id} showIcon={false} />
+    <ThingLink type={v.type} id={v.id} showIcon={false} />
     ({lo}{hi && hi !== lo ? `–${hi}` : ""}{v.vit_type === "counter"
       ? " U"
       : "%"})
@@ -66,7 +66,7 @@ let description =
     })}{/if})
 {:else if usage.type === "train_skill"}
   {" "}(
-  <ItemLink type="skill" id={usage.training_skill} showIcon={false} />
+  <ThingLink type="skill" id={usage.training_skill} showIcon={false} />
   {" "}{t("({min}-{max})", {
     min: usage.training_skill_min_level,
     max: usage.training_skill_max_level,

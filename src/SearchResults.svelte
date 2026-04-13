@@ -1,6 +1,6 @@
 <script lang="ts">
 import { type CBNData, loadProgress, mapType } from "./data";
-import ItemLink from "./types/ItemLink.svelte";
+import ThingLink from "./types/ThingLink.svelte";
 import type { OvermapSpecial, SupportedTypesWithMapped } from "./types";
 import { onMount, setContext, untrack } from "svelte";
 import { t } from "@transifex/native";
@@ -68,14 +68,14 @@ function asType(type: string): keyof SupportedTypesWithMapped {
         <h2>{t("Locations", { _context: "Search Results" })}</h2>
         <LimitedList items={grouped} limit={25}>
           {#snippet children({ item: result })}
-            <ItemLink type="overmap_special" id={result[0].id} />
+            <ThingLink type="overmap_special" id={result[0].id} />
           {/snippet}
         </LimitedList>
       {:else}
         <h2>{translateType(asType(type))}</h2>
         <LimitedList items={results} limit={25}>
           {#snippet children({ item: result })}
-            <ItemLink type={mapType(result.item.type)} id={result.item.id} />
+            <ThingLink type={mapType(result.item.type)} id={result.item.id} />
           {/snippet}
         </LimitedList>
       {/if}
@@ -90,7 +90,7 @@ function asType(type: string): keyof SupportedTypesWithMapped {
   {/each}
 {:else if data || !$loadProgress}
   <div class="searching-state" style="font-size: 20px">
-    <ItemLink
+    <ThingLink
       type="monster"
       id="mon_dog_thing"
       overrideText={t("looking...", {

@@ -5,7 +5,7 @@ import { getContext } from "svelte";
 import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { JSONFlag } from "../types";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { byName, gameSingular } from "../i18n/game-locale";
 
 interface Props {
@@ -54,7 +54,7 @@ const bionicWithFlag = data
     <h2>{t("Items", { _comment: "Section heading" })}</h2>
     <LimitedList items={itemsWithFlag.sort(byName)}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.id} />
+        <ThingLink type="item" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>
@@ -64,7 +64,7 @@ const bionicWithFlag = data
     <h2>{t("Vehicle Parts")}</h2>
     <LimitedList items={vpartsWithFlag.sort(byName)}>
       {#snippet children({ item })}
-        <ItemLink type="vehicle_part" id={item.id} />
+        <ThingLink type="vehicle_part" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>
@@ -74,7 +74,7 @@ const bionicWithFlag = data
     <h2>{t("Terrain")}</h2>
     <LimitedList items={terrainWithFlag.sort(byName)}>
       {#snippet children({ item })}
-        <ItemLink type="terrain" id={item.id} />
+        <ThingLink type="terrain" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>
@@ -84,7 +84,7 @@ const bionicWithFlag = data
     <h2>{t("Furniture")}</h2>
     <LimitedList items={furnitureWithFlag.sort(byName)}>
       {#snippet children({ item })}
-        <ItemLink type="furniture" id={item.id} />
+        <ThingLink type="furniture" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>
@@ -94,7 +94,7 @@ const bionicWithFlag = data
     <h2>{t("Bionics")}</h2>
     <LimitedList items={bionicWithFlag.sort(byName)}>
       {#snippet children({ item })}
-        <ItemLink type="bionic" id={item.id} showIcon={false} />
+        <ThingLink type="bionic" id={item.id} showIcon={false} />
       {/snippet}
     </LimitedList>
   </section>

@@ -11,7 +11,7 @@ import {
   lootForOmSpecial,
   overmapAppearance,
 } from "./item/spawnLocations";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { t } from "@transifex/native";
 import OvermapAppearance from "./item/OvermapAppearance.svelte";
 import ItemTable from "./item/ItemTable.svelte";
@@ -132,7 +132,7 @@ const fitTight: Action<HTMLElement> = (node) => {
       <dd>
         <ul class="comma-separated">
           {#each item.flags as flag}
-            <li><ItemLink type="json_flag" id={flag} /></li>
+            <li><ThingLink type="json_flag" id={flag} /></li>
           {/each}
         </ul>
       </dd>
@@ -142,7 +142,7 @@ const fitTight: Action<HTMLElement> = (node) => {
       <dd>
         <ul class="comma-separated">
           <!-- prettier-ignore -->
-          {#each lookalikeIds as id (id)}<li>{#if id === item.id}{id}{:else}<ItemLink type="overmap_special" {id} showIcon={false} />{/if}</li>{/each}
+          {#each lookalikeIds as id (id)}<li>{#if id === item.id}{id}{:else}<ThingLink type="overmap_special" {id} showIcon={false} />{/if}</li>{/each}
         </ul>
       </dd>
     {/if}

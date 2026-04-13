@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import type { ToolSlot } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item: ToolSlot;
@@ -21,7 +21,7 @@ let { item }: Props = $props();
           <ul class="comma-separated">
             {#each [item.ammo].flat() as ammo}
               <li>
-                <ItemLink type="ammunition_type" id={ammo} showIcon={false} />
+                <ThingLink type="ammunition_type" id={ammo} showIcon={false} />
               </li>
             {/each}
           </ul>
@@ -41,7 +41,7 @@ let { item }: Props = $props();
       {/if}
       {#if item.sub}
         <dt>{t("Substitute")}</dt>
-        <dd><ItemLink type="item" id={item.sub} showIcon={false} /></dd>
+        <dd><ThingLink type="item" id={item.sub} showIcon={false} /></dd>
       {/if}
     </dl>
   </section>

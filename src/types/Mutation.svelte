@@ -8,7 +8,7 @@ import { CBNData } from "../data";
 import type { Mutation } from "../types";
 import MutationColor from "./MutationColor.svelte";
 import MutationList from "./MutationList.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { asArray } from "../utils/collections";
 import { byName, gameSingular, gameSingularName } from "../i18n/game-locale";
 
@@ -68,7 +68,7 @@ const conflictsWithBionics = data
         <ul class="comma-separated">
           {#each asArray(item.category) as category_id}
             <li>
-              <ItemLink
+              <ThingLink
                 type="mutation_category"
                 id={category_id}
                 showIcon={false} />
@@ -84,7 +84,7 @@ const conflictsWithBionics = data
             .byType("mutation_category")
             .filter((mc) => mc.threshold_mut === item.id) as category}
             <li>
-              <ItemLink
+              <ThingLink
                 type="mutation_category"
                 id={category.id}
                 showIcon={false} />
@@ -105,7 +105,7 @@ const conflictsWithBionics = data
         <ul class="comma-separated">
           {#each item.encumbrance_always as [part, encumbrance]}
             <li>
-              <ItemLink type="body_part" id={part} showIcon={false} /> ({encumbrance})
+              <ThingLink type="body_part" id={part} showIcon={false} /> ({encumbrance})
             </li>
           {/each}
         </ul>
@@ -117,7 +117,7 @@ const conflictsWithBionics = data
         <ul class="comma-separated">
           {#each item.encumbrance_covered as [part, encumbrance]}
             <li>
-              <ItemLink type="body_part" id={part} showIcon={false} /> ({encumbrance})
+              <ThingLink type="body_part" id={part} showIcon={false} /> ({encumbrance})
             </li>
           {/each}
         </ul>
@@ -133,7 +133,7 @@ const conflictsWithBionics = data
       <dd>
         <ul class="comma-separated">
           {#each item.restricts_gear as part}
-            <li><ItemLink type="body_part" id={part} showIcon={false} /></li>
+            <li><ThingLink type="body_part" id={part} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -144,7 +144,7 @@ const conflictsWithBionics = data
         <ul class="comma-separated">
           {#each item.craft_skill_bonus as [skill, bonus]}
             <li>
-              <ItemLink type="skill" id={skill} showIcon={false} /> ({bonus > 0
+              <ThingLink type="skill" id={skill} showIcon={false} /> ({bonus > 0
                 ? "+" + bonus
                 : bonus})
             </li>
@@ -163,7 +163,7 @@ const conflictsWithBionics = data
         <ul class="comma-separated">
           {#each item.types as type_id}
             <li>
-              <ItemLink type="mutation_type" id={type_id} showIcon={false} />
+              <ThingLink type="mutation_type" id={type_id} showIcon={false} />
             </li>
           {/each}
         </ul>
@@ -179,7 +179,7 @@ const conflictsWithBionics = data
             <ul class="comma-separated or">
               {#each asArray(item.prereqs) as prereq_id}
                 <li>
-                  <ItemLink type="mutation" id={prereq_id} showIcon={false} />
+                  <ThingLink type="mutation" id={prereq_id} showIcon={false} />
                 </li>
               {/each}
             </ul>
@@ -189,7 +189,10 @@ const conflictsWithBionics = data
               <ul class="comma-separated or">
                 {#each asArray(item.prereqs2) as prereq_id}
                   <li>
-                    <ItemLink type="mutation" id={prereq_id} showIcon={false} />
+                    <ThingLink
+                      type="mutation"
+                      id={prereq_id}
+                      showIcon={false} />
                   </li>
                 {/each}
               </ul>
@@ -206,7 +209,7 @@ const conflictsWithBionics = data
         <ul class="comma-separated or">
           {#each asArray(item.threshreq) as prereq_id}
             <li>
-              <ItemLink type="mutation" id={prereq_id} showIcon={false} />
+              <ThingLink type="mutation" id={prereq_id} showIcon={false} />
             </li>
           {/each}
         </ul>
@@ -217,7 +220,7 @@ const conflictsWithBionics = data
       <dd>
         <ul class="comma-separated">
           {#each asArray(item.leads_to) as id}
-            <li><ItemLink {id} type="mutation" showIcon={false} /></li>
+            <li><ThingLink {id} type="mutation" showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -247,7 +250,7 @@ const conflictsWithBionics = data
       <dd>
         <ul>
           {#each conflictsWithBionics as { id }}
-            <li><ItemLink {id} type="bionic" showIcon={false} /></li>
+            <li><ThingLink {id} type="bionic" showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -257,7 +260,7 @@ const conflictsWithBionics = data
       <dd>
         <ul>
           {#each canceledByBionics as { id }}
-            <li><ItemLink {id} type="bionic" showIcon={false} /></li>
+            <li><ThingLink {id} type="bionic" showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -267,7 +270,7 @@ const conflictsWithBionics = data
       <dd>
         <ul class="comma-separated">
           {#each item.integrated_armor as id}
-            <li><ItemLink {id} type="item" showIcon={false} /></li>
+            <li><ThingLink {id} type="item" showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -293,7 +296,7 @@ const conflictsWithBionics = data
     <h2>{t("Required By", { _context })}</h2>
     <ul>
       {#each requiredBy as m}
-        <li><ItemLink id={m.id} type="mutation" showIcon={false} /></li>
+        <li><ThingLink id={m.id} type="mutation" showIcon={false} /></li>
       {/each}
     </ul>
   </section>

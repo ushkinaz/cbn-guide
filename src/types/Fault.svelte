@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { CBNData } from "../data";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { getContext, untrack } from "svelte";
 import type { Fault, RequirementData } from "../types";
 import { t } from "@transifex/native";
@@ -65,7 +65,7 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
       <dt>{t("Skills Used", { _context })}</dt>
       <dd>
         {#each mending_method.skills as { id, level }, i}
-          <ItemLink type="skill" {id} showIcon={false} /> ({level}){#if i === mending_method.skills.length - 2}{" and "}{:else if i !== mending_method.skills.length - 1}{", "}{/if}
+          <ThingLink type="skill" {id} showIcon={false} /> ({level}){#if i === mending_method.skills.length - 2}{" and "}{:else if i !== mending_method.skills.length - 1}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
@@ -81,7 +81,7 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
               <li>
                 {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}
                   {#if i !== 0}{i18n.__(" OR ")}{/if}
-                  <ItemLink {id} {count} type="item" showIcon={false} />
+                  <ThingLink {id} {count} type="item" showIcon={false} />
                 {/each}
               </li>
             {/each}
@@ -91,7 +91,7 @@ const mendingMethods = (item.mending_methods ?? []).map((mm) => {
       {#if mending_method.turns_into}
         <dt>{t("Turns Into", { _context })}</dt>
         <dd>
-          <ItemLink
+          <ThingLink
             type="fault"
             id={mending_method.turns_into}
             showIcon={false} />

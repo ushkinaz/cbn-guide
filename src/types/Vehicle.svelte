@@ -13,7 +13,7 @@ import LimitedList from "../LimitedList.svelte";
 
 import type { Vehicle } from "../types";
 import { groupBy } from "../utils/collections";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 import VehicleView from "./VehicleView.svelte";
 
@@ -72,7 +72,7 @@ partsCounted.sort((a, b) => {
     <h2>{t("Parts", { _context })}</h2>
     <LimitedList items={partsCounted}>
       {#snippet children({ item: { id, count } })}
-        <ItemLink {id} type="vehicle_part" /> ({count})
+        <ThingLink {id} type="vehicle_part" /> ({count})
       {/snippet}
     </LimitedList>
   </section>

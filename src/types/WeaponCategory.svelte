@@ -5,7 +5,7 @@ import { getContext } from "svelte";
 import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { WeaponCategory } from "../types";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { byName, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
@@ -47,7 +47,7 @@ martialArts.sort(byName);
   {#if itemsInCategory.length}
     <LimitedList items={itemsInCategory}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.id} />
+        <ThingLink type="item" id={item.id} />
       {/snippet}
     </LimitedList>
   {:else}
@@ -62,7 +62,7 @@ martialArts.sort(byName);
   {#if martialArts.length}
     <LimitedList items={martialArts}>
       {#snippet children({ item })}
-        <ItemLink type="martial_art" id={item.id} showIcon={false} />
+        <ThingLink type="martial_art" id={item.id} showIcon={false} />
       {/snippet}
     </LimitedList>
   {:else}

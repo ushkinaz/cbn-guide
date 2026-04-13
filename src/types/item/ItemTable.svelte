@@ -1,7 +1,7 @@
 <script lang="ts">
 import LimitedTableList from "../../LimitedTableList.svelte";
 import { metrics } from "../../metrics";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import type { Loot } from "./spawnLocations";
 import { formatFixed2, formatPercent } from "../../utils/format";
 import { t } from "@transifex/native";
@@ -69,7 +69,7 @@ let {
             {@const [item_id, chance] = item}
             <tr>
               <td style="padding-left: 5px;">
-                <ItemLink {type} id={item_id} showIcon={true} />
+                <ThingLink {type} id={item_id} showIcon={true} />
               </td>
               <td class="numeric">{formatFixed2(chance.expected)}</td>
               <td class="numeric">{formatPercent(chance.prob)}</td>

@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import type { CBNData } from "src/data";
 import type { ActivityDataCommon } from "src/types";
 import { getContext } from "svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 
 interface Props {
   act: ActivityDataCommon & { result?: string };
@@ -21,7 +21,7 @@ const _comment = "activity (prying, hacksawing, etc.)";
 <ul class="comma-separated">
   {#each act.byproducts ?? [] as { item: i, count }}
     <li>
-      <ItemLink
+      <ThingLink
         id={i}
         type="item"
         showIcon={false} />{#if typeof count === "number"}&nbsp;({count}){:else if Array.isArray(count)}&nbsp;({count[0]}–{count[1]}){/if}
@@ -36,8 +36,8 @@ const _comment = "activity (prying, hacksawing, etc.)";
     <dd>{act.prying_data.difficulty ?? 0}</dd>
     <dt>{t("Requires", { _context, _comment })}</dt>
     <dd>
-      <ItemLink id="PRY" type="tool_quality" showIcon={false} />
-      {act.prying_data.prying_level ?? 0}{#if act.prying_data.prying_nails}, <ItemLink
+      <ThingLink id="PRY" type="tool_quality" showIcon={false} />
+      {act.prying_data.prying_level ?? 0}{#if act.prying_data.prying_nails}, <ThingLink
           id="PRYING_NAIL"
           type="tool_quality"
           showIcon={false} />&nbsp;1{/if}
@@ -52,7 +52,7 @@ const _comment = "activity (prying, hacksawing, etc.)";
   {#if act.result && act.result !== "t_null"}
     <dt>{t("Result", { _context, _comment })}</dt>
     <dd>
-      <ItemLink id={act.result} type={resultType} />
+      <ThingLink id={act.result} type={resultType} />
     </dd>
   {/if}
 </dl>

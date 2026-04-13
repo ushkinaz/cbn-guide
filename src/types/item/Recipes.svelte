@@ -55,7 +55,7 @@ import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import Recipe from "../Recipe.svelte";
 
 interface Props {
@@ -88,7 +88,7 @@ const byproducts = getByproductsIndex(data)[item_id] ?? [];
     <h2>{t("Byproduct when crafting", { _context: "Obtaining" })}</h2>
     <LimitedList items={byproducts}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.result} />
+        <ThingLink type="item" id={item.result} />
       {/snippet}
     </LimitedList>
   </section>

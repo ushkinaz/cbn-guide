@@ -5,7 +5,7 @@ import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Trap } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item_id: string;
@@ -24,7 +24,7 @@ const traps = data.disarmTrap(item_id) as Trap[];
     <h2>{t("Disarmed From", { _context: "Obtaining" })}</h2>
     <LimitedList items={traps}>
       {#snippet children({ item: trap })}
-        <ItemLink id={trap.id} type="trap" />
+        <ThingLink id={trap.id} type="trap" />
       {/snippet}
     </LimitedList>
   </section>

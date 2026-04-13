@@ -7,7 +7,7 @@ import { asArray } from "../utils/collections";
 import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
 import type { Skill, SupportedTypesWithMapped } from "../types";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { byName, gameSingular, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
@@ -104,7 +104,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
         <dd>
           <ul>
             {#each books as book}
-              <li><ItemLink id={book.id} type="item" showIcon={false} /></li>
+              <li><ThingLink id={book.id} type="item" showIcon={false} /></li>
             {/each}
           </ul>
         </dd>
@@ -122,7 +122,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
         <dd>
           <ul>
             {#each items as item}
-              <li><ItemLink id={item.id} type="item" showIcon={false} /></li>
+              <li><ThingLink id={item.id} type="item" showIcon={false} /></li>
             {/each}
           </ul>
         </dd>
@@ -136,7 +136,7 @@ itemsTrainingSkillByLevelList.forEach(([, items]) => {
     <h2>{t("Used By", { _context: "Skill" })}</h2>
     <LimitedList items={itemsUsingSkill}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.id} />
+        <ThingLink type="item" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>

@@ -6,7 +6,7 @@ import { getContext, untrack } from "svelte";
 import { CBNData, formatPercent } from "../data";
 import type { Terrain } from "../types";
 import Construction from "./Construction.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
@@ -53,7 +53,7 @@ const deconstructions = data
   );
 </script>
 
-<h1><ItemLink type="terrain" id={item.id} link={false} /></h1>
+<h1><ThingLink type="terrain" id={item.id} link={false} /></h1>
 
 <section>
   <dl>
@@ -64,29 +64,31 @@ const deconstructions = data
     {#if item.transforms_into}
       <dt>{t("Transforms Into", { _context })}</dt>
       <dd>
-        <ItemLink id={item.transforms_into} type="terrain" />
+        <ThingLink id={item.transforms_into} type="terrain" />
       </dd>
     {/if}
     {#if item.boltcut}
-      <dt><ItemLink type="item_action" id="BOLTCUTTERS" showIcon={false} /></dt>
+      <dt>
+        <ThingLink type="item_action" id="BOLTCUTTERS" showIcon={false} />
+      </dt>
       <dd>
         <TerFurnActivity act={item.boltcut} resultType="terrain" />
       </dd>
     {/if}
     {#if item.hacksaw}
-      <dt><ItemLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
+      <dt><ThingLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.hacksaw} resultType="terrain" />
       </dd>
     {/if}
     {#if item.oxytorch}
-      <dt><ItemLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
+      <dt><ThingLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.oxytorch} resultType="terrain" />
       </dd>
     {/if}
     {#if item.prying}
-      <dt><ItemLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
+      <dt><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.prying} resultType="terrain" />
       </dd>
@@ -98,7 +100,7 @@ const deconstructions = data
           <ul class="comma-separated">
             <!-- prettier-ignore -->
             {#each deconstruct as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
+            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
@@ -109,7 +111,7 @@ const deconstructions = data
           <dl>
             <dt>{t("Becomes", { _context })}</dt>
             <dd>
-              <ItemLink type="terrain" id={becomes} />
+              <ThingLink type="terrain" id={becomes} />
             </dd>
           </dl>
         {/if}
@@ -121,7 +123,7 @@ const deconstructions = data
         <ul class="comma-separated">
           <!-- prettier-ignore -->
           {#each bash as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
+            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
@@ -133,7 +135,7 @@ const deconstructions = data
     <dd>
       <ul class="comma-separated">
         {#each item.flags ?? [] as flag}
-          <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
+          <li><ThingLink type="json_flag" id={flag} showIcon={false} /></li>
         {:else}
           <li><em>{t("none")}</em></li>
         {/each}

@@ -4,7 +4,7 @@ import type { Furniture } from "../types";
 import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 import Construction from "./Construction.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { t } from "@transifex/native";
 import TerFurnActivity from "./TerFurnActivity.svelte";
 import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
@@ -59,7 +59,7 @@ const bashedFrom = data
 const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
 </script>
 
-<h1><ItemLink type="furniture" id={item.id} link={false} /></h1>
+<h1><ThingLink type="furniture" id={item.id} link={false} /></h1>
 
 <section>
   <h2>{t("General", { _context })}</h2>
@@ -86,31 +86,33 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
       <dd>
         <ul class="comma-separated">
           {#each pseudo_items as pseudo_item}
-            <li><ItemLink type="item" id={pseudo_item} showIcon={false} /></li>
+            <li><ThingLink type="item" id={pseudo_item} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
     {/if}
     {#if item.boltcut}
-      <dt><ItemLink type="item_action" id="BOLTCUTTERS" showIcon={false} /></dt>
+      <dt>
+        <ThingLink type="item_action" id="BOLTCUTTERS" showIcon={false} />
+      </dt>
       <dd>
         <TerFurnActivity act={item.boltcut} resultType="furniture" />
       </dd>
     {/if}
     {#if item.hacksaw}
-      <dt><ItemLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
+      <dt><ThingLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.hacksaw} resultType="furniture" />
       </dd>
     {/if}
     {#if item.oxytorch}
-      <dt><ItemLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
+      <dt><ThingLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.oxytorch} resultType="furniture" />
       </dd>
     {/if}
     {#if item.prying}
-      <dt><ItemLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
+      <dt><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.prying} resultType="furniture" />
       </dd>
@@ -121,7 +123,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
         <ul class="comma-separated">
           <!-- prettier-ignore -->
           {#each deconstruct as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
+            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
@@ -131,7 +133,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
           <dl>
             <dt>{t("Becomes", { _context })}</dt>
             <dd>
-              <ItemLink type="furniture" id={becomes} />
+              <ThingLink type="furniture" id={becomes} />
             </dd>
           </dl>
         {/if}
@@ -143,7 +145,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
         <ul class="comma-separated">
           <!-- prettier-ignore -->
           {#each bash as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ItemLink type="item" {id}  showIcon={false} />{
+            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
               ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
               ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
             {/each}
@@ -155,7 +157,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
             {@const becomes = item.bash.furn_set}
             <dt>{t("Becomes", { _context })}</dt>
             <dd>
-              <ItemLink type="furniture" id={becomes} />
+              <ThingLink type="furniture" id={becomes} />
             </dd>
           {/if}
         </dl>
@@ -166,7 +168,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
     <dd>
       <ul class="comma-separated">
         {#each item.flags ?? [] as flag}
-          <li><ItemLink type="json_flag" id={flag} showIcon={false} /></li>
+          <li><ThingLink type="json_flag" id={flag} showIcon={false} /></li>
         {:else}
           <li><em>{t("none")}</em></li>
         {/each}
@@ -195,7 +197,7 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
     <h2>{t("Bashed From", { _context })}</h2>
     <LimitedList items={bashedFrom}>
       {#snippet children({ item })}
-        <ItemLink type="furniture" id={item.id} />
+        <ThingLink type="furniture" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>

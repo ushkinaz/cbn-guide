@@ -2,7 +2,7 @@
 import { getContext } from "svelte";
 import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { t } from "@transifex/native";
 
 import { byName } from "../../i18n/game-locale";
@@ -29,7 +29,7 @@ sources.sort(byName);
     <h2>{t("Smoke", { _context: "Obtaining" })}</h2>
     <LimitedList items={sources}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.id} />
+        <ThingLink type="item" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>

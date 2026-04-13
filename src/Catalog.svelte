@@ -12,7 +12,7 @@ import type {
   VehiclePart,
 } from "./types";
 import MutationCategory from "./types/MutationCategory.svelte";
-import ItemLink from "./types/ItemLink.svelte";
+import ThingLink from "./types/ThingLink.svelte";
 import { asArray, groupBy } from "./utils/collections";
 import { gameSingularName } from "./i18n/game-locale";
 import { translateType } from "./i18n/transifex-static";
@@ -109,7 +109,7 @@ const groupsList = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
         items={group}
         limit={groupsList.length === 1 ? Infinity : 10}>
         {#snippet children({ item })}
-          <ItemLink
+          <ThingLink
             type={typeWithCorrectType}
             id={"id" in item.item ? item.item.id : ""}
             overrideText={item.displayName} />

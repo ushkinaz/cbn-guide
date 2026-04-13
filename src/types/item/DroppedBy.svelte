@@ -5,7 +5,7 @@ import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Harvest } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import ItemTable from "./ItemTable.svelte";
 
 interface Props {
@@ -52,7 +52,7 @@ const harvestableFrom = data
     <h2>{t("Butcher", { _context: "Obtaining" })}</h2>
     <LimitedList items={harvestableFrom}>
       {#snippet children({ item: m })}
-        <ItemLink id={m.id} type="monster" />
+        <ThingLink id={m.id} type="monster" />
       {/snippet}
     </LimitedList>
   </section>

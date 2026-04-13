@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 import { CBNData } from "../../data";
 import type { AmmoSlot, DamageUnit } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { getContext, untrack } from "svelte";
 import CompatibleItems from "./CompatibleItems.svelte";
 
@@ -58,7 +58,10 @@ function computeLoudness(item: AmmoSlot): number {
     <dl>
       <dt>{t("Ammunition Type")}</dt>
       <dd>
-        <ItemLink type="ammunition_type" id={item.ammo_type} showIcon={false} />
+        <ThingLink
+          type="ammunition_type"
+          id={item.ammo_type}
+          showIcon={false} />
       </dd>
       <dt>{t("Damage")}</dt>
       <dd>
@@ -82,7 +85,7 @@ function computeLoudness(item: AmmoSlot): number {
       <dd>{computeLoudness(item).toFixed(0)}</dd>
       {#if item.casing}
         <dt>{t("Casing")}</dt>
-        <dd><ItemLink id={item.casing} type="item" showIcon={false} /></dd>
+        <dd><ThingLink id={item.casing} type="item" showIcon={false} /></dd>
       {/if}
       {#if item.effects?.length}
         <dt>{t("Effects")}</dt>

@@ -4,7 +4,7 @@ import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 
 import type { BookSlot } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item: BookSlot & { id: string; type: "BOOK" };
@@ -44,7 +44,7 @@ for (const recipe of data.byType("recipe")) {
   <dl>
     {#if item.skill}
       <dt>{t("Skill")}</dt>
-      <dd><ItemLink id={item.skill} type="skill" showIcon={false} /></dd>
+      <dd><ThingLink id={item.skill} type="skill" showIcon={false} /></dd>
       <dt>{t("Required Level")}</dt>
       <dd>{item.required_level ?? 0}</dd>
       <dt>{t("Maximum Level")}</dt>
@@ -63,7 +63,7 @@ for (const recipe of data.byType("recipe")) {
     {#if item.martial_art}
       <dt>{t("Martial Art")}</dt>
       <dd>
-        <ItemLink type="martial_art" id={item.martial_art} showIcon={false} />
+        <ThingLink type="martial_art" id={item.martial_art} showIcon={false} />
       </dd>
     {/if}
     {#if bookRecipes.size}
@@ -73,7 +73,7 @@ for (const recipe of data.byType("recipe")) {
           {#each [...bookRecipes.entries()].sort((a, b) => {
             return a[1].level - b[1].level || a[1].recipe_name.localeCompare(b[1].recipe_name);
           }) as [id, { recipe_name, level }]}
-            <li><ItemLink {id} type="item" showIcon={false} /> ({level})</li>
+            <li><ThingLink {id} type="item" showIcon={false} /> ({level})</li>
           {/each}
         </ul>
       </dd>

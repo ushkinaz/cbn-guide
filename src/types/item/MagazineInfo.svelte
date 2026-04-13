@@ -3,7 +3,7 @@ import LimitedList from "../../LimitedList.svelte";
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../../data";
 import type { ItemBasicInfo, MagazineSlot } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { t } from "@transifex/native";
 import CompatibleItems from "./CompatibleItems.svelte";
 
@@ -41,7 +41,7 @@ const compatibleGuns = data
         <ul class="comma-separated inline" style="display: inline; padding: 0;">
           {#each ammo_types as at}
             <li>
-              <ItemLink type="ammunition_type" id={at} showIcon={false} />
+              <ThingLink type="ammunition_type" id={at} showIcon={false} />
             </li>
           {/each}
         </ul>
@@ -61,7 +61,7 @@ const compatibleGuns = data
     {/if}
     {#if item.linkage}
       <dt>{t("Linkage")}</dt>
-      <dd><ItemLink type="item" id={item.linkage} showIcon={false} /></dd>
+      <dd><ThingLink type="item" id={item.linkage} showIcon={false} /></dd>
     {/if}
   </dl>
 </section>
@@ -72,7 +72,7 @@ const compatibleGuns = data
       <h2>{t("Weapons", { _context: "Item Magazine Info" })}</h2>
       <LimitedList items={compatibleGuns}>
         {#snippet children({ item })}
-          <ItemLink type="item" id={item.id} />
+          <ThingLink type="item" id={item.id} />
         {/snippet}
       </LimitedList>
     </section>

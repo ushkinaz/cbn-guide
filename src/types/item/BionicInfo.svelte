@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import type { BionicSlot, ItemBasicInfo } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item: ItemBasicInfo & BionicSlot;
@@ -15,7 +15,10 @@ let { item }: Props = $props();
   <dl>
     <dt>{t("Installs as")}</dt>
     <dd>
-      <ItemLink type="bionic" id={item.bionic_id ?? item.id} showIcon={false} />
+      <ThingLink
+        type="bionic"
+        id={item.bionic_id ?? item.id}
+        showIcon={false} />
     </dd>
     <dt>{t("Difficulty")}</dt>
     <dd>{item.difficulty ?? 0}</dd>
@@ -24,7 +27,7 @@ let { item }: Props = $props();
     {#if item.installation_data}
       <dt>{t("Installation data")}</dt>
       <dd>
-        <ItemLink type="item" id={item.installation_data} showIcon={false} />
+        <ThingLink type="item" id={item.installation_data} showIcon={false} />
       </dd>
     {/if}
   </dl>

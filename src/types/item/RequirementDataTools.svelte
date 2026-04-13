@@ -6,7 +6,7 @@ import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 import { CBNData } from "../../data";
 
 import type { Recipe, RequirementData } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { gameSingularName, i18n } from "../../i18n/game-locale";
 import { buildLinkTo } from "../../navigation.svelte";
 
@@ -60,7 +60,7 @@ function furnLink(id: string): string {
                 .replace(/\$./g, "")}
               slot0="tool_quality">
               {#snippet _0()}
-                <ItemLink
+                <ThingLink
                   type="tool_quality"
                   id={quality.id}
                   showIcon={false} />
@@ -77,7 +77,7 @@ function furnLink(id: string): string {
                 <a href={furnLink(data.craftingPseudoItem(toolId)!)}
                   >{gameSingularName(data.byId("item", toolId))}</a>
               {:else}
-                <ItemLink type="item" id={toolId} showIcon={false} />
+                <ThingLink type="item" id={toolId} showIcon={false} />
               {/if}
             {:else}
               <InterpolatedTranslation
@@ -98,7 +98,7 @@ function furnLink(id: string): string {
                     <a href={furnLink(data.craftingPseudoItem(toolId)!)}
                       >{gameSingularName(data.byId("item", toolId))}</a>
                   {:else}
-                    <ItemLink type="item" id={toolId} showIcon={false} />
+                    <ThingLink type="item" id={toolId} showIcon={false} />
                   {/if}
                 {/snippet}
               </InterpolatedTranslation>

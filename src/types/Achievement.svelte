@@ -5,7 +5,7 @@ import { getContext, untrack } from "svelte";
 
 import { CBNData } from "../data";
 import type { Achievement } from "../types";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import {
   gamePlural,
   gameSingular,
@@ -50,7 +50,7 @@ const hiddenBy = item.hidden_by
         <ul class="comma-separated and">
           {#each hiddenBy as id}
             {id}
-            <li><ItemLink type={item.type} {id} showIcon={false} /></li>
+            <li><ThingLink type={item.type} {id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
@@ -60,7 +60,7 @@ const hiddenBy = item.hidden_by
       <dd>
         <ul class="comma-separated and">
           {#each unlocks as a}
-            <li><ItemLink type={item.type} id={a.id} showIcon={false} /></li>
+            <li><ThingLink type={item.type} id={a.id} showIcon={false} /></li>
           {/each}
         </ul>
       </dd>

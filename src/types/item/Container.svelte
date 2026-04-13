@@ -1,7 +1,7 @@
 <script lang="ts">
 import { t } from "@transifex/native";
 import type { ContainerSlot } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item: ContainerSlot;
@@ -23,7 +23,7 @@ let { item }: Props = $props();
     <dd>{item.preserves ?? "false"}</dd>
     {#if item.unseals_into}
       <dt>{t("Unseals Into")}</dt>
-      <dd><ItemLink id={item.unseals_into} type="item" showIcon={false} /></dd>
+      <dd><ThingLink id={item.unseals_into} type="item" showIcon={false} /></dd>
     {/if}
   </dl>
 </section>

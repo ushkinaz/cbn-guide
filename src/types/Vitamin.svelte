@@ -11,7 +11,7 @@ import type {
   SupportedTypes,
   Vitamin,
 } from "../types";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { gameSingular, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
@@ -124,7 +124,7 @@ const deficiencyNames = item.deficiency
     <h2>{t("Comestibles", { _context })}</h2>
     <LimitedList items={containing}>
       {#snippet children({ item: other })}
-        <ItemLink id={other.comestible.id} type="item" showIcon={false} /> ({other.pct.toFixed(
+        <ThingLink id={other.comestible.id} type="item" showIcon={false} /> ({other.pct.toFixed(
           2,
         )}{item.vit_type === "counter" || item.vit_type === "drug"
           ? " U"

@@ -4,7 +4,7 @@ import { getContext, untrack } from "svelte";
 import { countsByCharges, type CBNData } from "../data";
 import type { Trap, TrapDrop } from "../types";
 import LimitedList from "../LimitedList.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 
 const data = getContext<CBNData>("data");
 const _context = "Trap";
@@ -49,7 +49,7 @@ function dropCount(drop: Exclude<TrapDrop, string>): number | undefined {
 }
 </script>
 
-<h1><ItemLink type="trap" id={item.id} link={false} /></h1>
+<h1><ThingLink type="trap" id={item.id} link={false} /></h1>
 
 <section>
   <dl>
@@ -118,9 +118,9 @@ function dropCount(drop: Exclude<TrapDrop, string>): number | undefined {
           {#each item.drops as drop}
             <li>
               {#if typeof drop === "string"}
-                <ItemLink type="item" id={drop} />
+                <ThingLink type="item" id={drop} />
               {:else if drop.item}
-                <ItemLink type="item" id={drop.item} count={dropCount(drop)} />
+                <ThingLink type="item" id={drop.item} count={dropCount(drop)} />
               {/if}
             </li>
           {/each}
@@ -135,9 +135,9 @@ function dropCount(drop: Exclude<TrapDrop, string>): number | undefined {
           {#each item.trigger_items as drop}
             <li>
               {#if typeof drop === "string"}
-                <ItemLink type="item" id={drop} />
+                <ThingLink type="item" id={drop} />
               {:else if drop.item}
-                <ItemLink type="item" id={drop.item} count={dropCount(drop)} />
+                <ThingLink type="item" id={drop.item} count={dropCount(drop)} />
               {/if}
             </li>
           {/each}
@@ -152,7 +152,7 @@ function dropCount(drop: Exclude<TrapDrop, string>): number | undefined {
     <h2>{t("Construction", { _context })}</h2>
     <LimitedList items={constructingItems}>
       {#snippet children({ item: constructionItem })}
-        <ItemLink type="item" id={constructionItem.id} />
+        <ThingLink type="item" id={constructionItem.id} />
       {/snippet}
     </LimitedList>
   </section>

@@ -3,7 +3,7 @@ import { getContext } from "svelte";
 import { CBNData, itemGroupFromVehicle } from "../../data";
 import { formatPercent } from "../../utils/format";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { t } from "@transifex/native";
 
 interface Props {
@@ -32,7 +32,7 @@ vehiclesAndProbabilities.sort((a, b) => b.prob - a.prob);
     <h2>{t("In Vehicle", { _context: "Obtaining" })}</h2>
     <LimitedList items={vehiclesAndProbabilities}>
       {#snippet children({ item: { vehicle, prob } })}
-        <ItemLink id={vehicle.id} type="vehicle" showIcon={false} /> ({formatPercent(
+        <ThingLink id={vehicle.id} type="vehicle" showIcon={false} /> ({formatPercent(
           prob,
         )})
       {/snippet}

@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../../data";
 import type { GunSlot, Item } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import LimitedList from "../../LimitedList.svelte"; // Assuming we want symbols in lists
 import CompatibleItems from "./CompatibleItems.svelte";
 import { asArray } from "../../utils/collections";
@@ -65,7 +65,7 @@ const ammoData = ammo_types.map((ammo_type) => {
 
         <dt>{t("Ammo Type")}</dt>
         <dd>
-          <ItemLink type="ammunition_type" id={ammoTypeId} showIcon={false} />
+          <ThingLink type="ammunition_type" id={ammoTypeId} showIcon={false} />
         </dd>
 
         <dt>{t("Magazine")}</dt>
@@ -73,7 +73,7 @@ const ammoData = ammo_types.map((ammo_type) => {
           {#if magazines.length}
             <LimitedList items={magazines} limit={7} grace={2}>
               {#snippet children({ item })}
-                <ItemLink type="item" id={item.id} />
+                <ThingLink type="item" id={item.id} />
               {/snippet}
             </LimitedList>
           {:else}

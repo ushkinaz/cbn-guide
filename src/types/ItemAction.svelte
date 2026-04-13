@@ -4,7 +4,7 @@ import { type CBNData, normalizeUseAction } from "../data";
 import { getContext } from "svelte";
 import { t } from "@transifex/native";
 import LimitedList from "../LimitedList.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { byName, gameSingularName } from "../i18n/game-locale";
 
 interface Props {
@@ -41,7 +41,7 @@ const providerQualities = data
     <h2>{t("Provided By", { _context: "Use action" })}</h2>
     <LimitedList items={providers}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.id} />
+        <ThingLink type="item" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>
@@ -52,7 +52,7 @@ const providerQualities = data
     <h2>{t("Provided By Quality", { _context: "Use action" })}</h2>
     <LimitedList items={providerQualities}>
       {#snippet children({ item })}
-        <ItemLink type={item.type} id={item.id} />
+        <ThingLink type={item.type} id={item.id} />
       {/snippet}
     </LimitedList>
   </section>

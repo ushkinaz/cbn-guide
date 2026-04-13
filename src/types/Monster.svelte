@@ -9,7 +9,7 @@ import {
   formatPercent,
   normalizeDamageInstance,
 } from "../data";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import type { Harvest, Monster } from "../types";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
@@ -390,7 +390,7 @@ for (const group of sortedGroups) {
 </script>
 
 <h1 class="capitalize">
-  <ItemLink type="monster" id={item.id} link={false} showIcon={false} />
+  <ThingLink type="monster" id={item.id} link={false} showIcon={false} />
 </h1>
 <section class="monster-header">
   <div class="monster-header-layout">
@@ -413,7 +413,7 @@ for (const group of sortedGroups) {
           <dd>
             <ul class="comma-separated">
               {#each materials as id}
-                <li><ItemLink type="material" {id} showIcon={false} /></li>
+                <li><ThingLink type="material" {id} showIcon={false} /></li>
               {/each}
             </ul>
           </dd>
@@ -457,7 +457,7 @@ for (const group of sortedGroups) {
               {#each item.special_attacks as special_attack}
                 <li>
                   {#if Array.isArray(special_attack) && special_attack[0] && data.byIdMaybe("monster_attack", special_attack[0])}
-                    <ItemLink
+                    <ThingLink
                       type="monster_attack"
                       id={special_attack[0]}
                       showIcon={false} />
@@ -589,7 +589,7 @@ for (const group of sortedGroups) {
           <ul class="comma-separated">
             <!-- prettier-ignore -->
             {#each upgrades.monsters as mon}
-			<li><ItemLink type="monster" id={mon} showIcon={false} /></li>{/each}
+			<li><ThingLink type="monster" id={mon} showIcon={false} /></li>{/each}
           </ul>
           {#if upgrades.age_grow}
             {t("in {days} {days, plural, =1 {day} other {days}}", {
@@ -613,7 +613,7 @@ for (const group of sortedGroups) {
             <span>
               {#each group.monsters as monId, j}
                 {#if j > 0},
-                {/if}<ItemLink type="monster" id={monId} showIcon={false} />
+                {/if}<ThingLink type="monster" id={monId} showIcon={false} />
               {/each}
             </span>
             {#if group.type === "age_grow"}
@@ -645,12 +645,12 @@ for (const group of sortedGroups) {
           {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
             {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
               <li>
-                <ItemLink type="item" {id} /> ({formatPercent(prob)})
+                <ThingLink type="item" {id} /> ({formatPercent(prob)})
               </li>
             {/each}
           {:else}
             <li>
-              <ItemLink type="item" id={harvest_entry.drop} />
+              <ThingLink type="item" id={harvest_entry.drop} />
             </li>
           {/if}
         {/each}

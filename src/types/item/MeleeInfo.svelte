@@ -4,7 +4,7 @@ import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 import { CBNData, parseMass, parseVolume } from "../../data";
 import type { Item } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { gameSingular } from "../../i18n/game-locale";
 
 let data = getContext<CBNData>("data");
@@ -93,7 +93,7 @@ const piercing =
             {#each techniques as technique}
               <li>
                 <strong
-                  ><ItemLink
+                  ><ThingLink
                     type="technique"
                     id={technique.id}
                     showIcon={false} /></strong

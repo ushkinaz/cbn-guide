@@ -5,7 +5,7 @@ import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Furniture, Terrain, VehiclePart } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item_id: string;
@@ -26,7 +26,7 @@ let bashFrom = (
     <h2>{t("Bash", { _context: "Obtaining" })}</h2>
     <LimitedList items={bashFrom}>
       {#snippet children({ item: f })}
-        <ItemLink id={f.id} type={f.type} />
+        <ThingLink id={f.id} type={f.type} />
         {#if f.bash?.str_min}
           <span style="color: var(--cata-color-gray)">
             (≥ {f.bash.str_min} STR)

@@ -4,7 +4,7 @@ import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import type { Furniture, Terrain, VehiclePart } from "src/types";
 
 interface Props {
@@ -29,7 +29,7 @@ let deconstructibleFrom = (
     <h2>{t("Deconstruct", { _context: "Obtaining" })}</h2>
     <LimitedList items={deconstructibleFrom}>
       {#snippet children({ item: f })}
-        <ItemLink id={f.id} type={f.type} />
+        <ThingLink id={f.id} type={f.type} />
       {/snippet}
     </LimitedList>
   </section>

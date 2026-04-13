@@ -6,7 +6,7 @@ import { getContext, untrack } from "svelte";
 import { CBNData } from "../data";
 import type { MutationCategory } from "../types";
 import MutationList from "./MutationList.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import { byName, gameSingularName } from "../i18n/game-locale";
 
 let data = getContext<CBNData>("data");
@@ -50,7 +50,7 @@ const postThreshold = mutationsInCategory.filter(
     {#if item.threshold_mut}
       <dt>{t("Threshold", { _context })}</dt>
       <dd>
-        <ItemLink id={item.threshold_mut} type="mutation" showIcon={false} />
+        <ThingLink id={item.threshold_mut} type="mutation" showIcon={false} />
       </dd>
     {/if}
     {#if postThreshold.length}

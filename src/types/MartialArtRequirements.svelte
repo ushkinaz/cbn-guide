@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import { untrack } from "svelte";
 
 import type { MartialArtBuff, MartialArtRequirements } from "../types";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 
 import { gameSingularName } from "../i18n/game-locale";
 
@@ -26,7 +26,7 @@ const requiredBuffs =
 <dt>{t("Required Skills")}</dt>
 <dd>
   {#each item.skill_requirements ?? [] as { name, level }, i}
-    <ItemLink type="skill" id={name} showIcon={false} /> ({level}){#if i + 2 === item.skill_requirements?.length}{" and "}{:else if i + 1 !== item.skill_requirements?.length}{", "}{/if}
+    <ThingLink type="skill" id={name} showIcon={false} /> ({level}){#if i + 2 === item.skill_requirements?.length}{" and "}{:else if i + 1 !== item.skill_requirements?.length}{", "}{/if}
   {:else}
     <em>{t("none")}</em>
   {/each}

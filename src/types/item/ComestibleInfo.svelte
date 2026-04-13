@@ -5,7 +5,7 @@ import { CBNData, parseDuration } from "../../data";
 import { t } from "@transifex/native";
 import { formatFixed2 } from "../../utils/format";
 import type { ComestibleSlot } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item: ComestibleSlot;
@@ -38,7 +38,7 @@ const data = getContext<CBNData>("data");
     {#if item.smoking_result}
       <dt>{t("Smoking Result")}</dt>
       <dd>
-        <ItemLink type="item" id={item.smoking_result} showIcon={false} />
+        <ThingLink type="item" id={item.smoking_result} showIcon={false} />
       </dd>
     {/if}
     {#if item.parasites ?? 0 !== 0}
@@ -55,7 +55,7 @@ const data = getContext<CBNData>("data");
             {@const mass = (rdapct / 100) * unitsPerDay}
             {@const rda = (mass / unitsPerDay) * 100}
             <dt>
-              <ItemLink id={vitamin} type="vitamin" showIcon={false} />
+              <ThingLink id={vitamin} type="vitamin" showIcon={false} />
             </dt>
             <dd>
               {#if v.vit_type === "counter" || v.vit_type === "drug"}

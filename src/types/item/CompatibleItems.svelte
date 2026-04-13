@@ -3,7 +3,7 @@ import { getContext, untrack } from "svelte";
 import { t } from "@transifex/native";
 import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import type { SupportedTypes } from "../../types";
 
 import { byName } from "../../i18n/game-locale";
@@ -54,7 +54,7 @@ const items = data
     <h2>{config.title}</h2>
     <LimitedList {items} limit={5} grace={2}>
       {#snippet children({ item })}
-        <ItemLink type="item" id={item.id} />
+        <ThingLink type="item" id={item.id} />
       {/snippet}
     </LimitedList>
   </section>

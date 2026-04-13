@@ -3,7 +3,7 @@ import { getContext } from "svelte";
 import { type CBNData } from "../../data";
 import { t } from "@transifex/native";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 import { byName } from "../../i18n/game-locale";
 
@@ -29,7 +29,7 @@ const monsters = $derived(
     <h2>{t("Dissected From", { _context: "Obtaining" })}</h2>
     <LimitedList items={monsters}>
       {#snippet children({ item: monster })}
-        <ItemLink type="monster" id={monster.id} />
+        <ThingLink type="monster" id={monster.id} />
       {/snippet}
     </LimitedList>
   </section>

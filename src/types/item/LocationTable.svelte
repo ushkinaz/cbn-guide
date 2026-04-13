@@ -7,7 +7,7 @@ import type { OvermapSpecial } from "../../types";
 import { t } from "@transifex/native";
 import LimitedTableList from "../../LimitedTableList.svelte";
 import { metrics } from "../../metrics";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   id: string;
@@ -74,7 +74,7 @@ function filterLocations(
           {#snippet item({ item: loc })}
             <tr class="middle">
               <td>
-                <ItemLink type="overmap_special" id={loc.ids[0]} />
+                <ThingLink type="overmap_special" id={loc.ids[0]} />
               </td>
               <td style="text-align: right; padding-left: 1em;"
                 >{formatFixed2(loc.chance.expected)}</td>

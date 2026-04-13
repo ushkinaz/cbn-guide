@@ -4,7 +4,7 @@ import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item_id: string;
@@ -23,7 +23,7 @@ const sources = data.brewedFrom(item_id);
     <h2>{t("Fermented From", { _context: "Obtaining" })}</h2>
     <LimitedList items={sources}>
       {#snippet children({ item })}
-        <ItemLink id={item.id} type="item" /> ({item.brewable?.time ??
+        <ThingLink id={item.id} type="item" /> ({item.brewable?.time ??
           t("1 turn")})
       {/snippet}
     </LimitedList>

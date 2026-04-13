@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import type { DamageUnit, GunSlot, Item } from "../../types";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import { CBNData } from "../../data";
 import { getContext, untrack } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
@@ -71,7 +71,7 @@ const ranged_damage = extractRangedDamage();
   <h2>{t("Ranged", { _comment: "Section heading" })}</h2>
   <dl>
     <dt>{t("Skill")}</dt>
-    <dd><ItemLink type="skill" id={gunProps.skill} showIcon={false} /></dd>
+    <dd><ThingLink type="skill" id={gunProps.skill} showIcon={false} /></dd>
     {#if item.min_strength}
       <dt>{t("Min Strength")}</dt>
       <dd>{item.min_strength}</dd>

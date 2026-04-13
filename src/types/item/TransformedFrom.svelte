@@ -13,7 +13,7 @@ import {
   normalizeUseAction,
 } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 interface Props {
   item_id: string;
@@ -36,7 +36,7 @@ const getTransformAction = (item: Item) =>
     <LimitedList items={transformedFrom}>
       {#snippet children({ item })}
         {@const ua = getTransformAction(item)}
-        <ItemLink
+        <ThingLink
           type="item"
           id={item.id} />{#if ua.type === "delayed_transform" && ua.transform_age}{" "}({asHumanReadableDuration(
             ua.transform_age * 100,

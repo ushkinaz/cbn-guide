@@ -2,7 +2,7 @@
 import { getContext } from "svelte";
 import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 import type { Furniture, Terrain } from "../../types";
 import { t } from "@transifex/native";
 
@@ -49,7 +49,7 @@ harvestedFrom.sort(byName);
     <h2>{t("Harvest", { _context: "Obtaining" })}</h2>
     <LimitedList items={harvestedFrom}>
       {#snippet children({ item })}
-        <ItemLink type={item.type} id={item.id} />
+        <ThingLink type={item.type} id={item.id} />
       {/snippet}
     </LimitedList>
   </section>

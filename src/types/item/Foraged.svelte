@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 import { getContext } from "svelte";
 import type { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
-import ItemLink from "../ItemLink.svelte";
+import ThingLink from "../ThingLink.svelte";
 
 import { translateSeason } from "../../i18n/transifex-static";
 
@@ -41,7 +41,7 @@ const forageSources = data
     <h2>{t("Forage", { _context: "Obtaining" })}</h2>
     <LimitedList items={forageSources}>
       {#snippet children({ item })}
-        <ItemLink type="terrain" id={item.id} /> in
+        <ThingLink type="terrain" id={item.id} /> in
         <ul class="comma-separated or">
           {#each forageable as [season, _prob]}
             <li>{translateSeason(season)}</li>

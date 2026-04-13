@@ -4,7 +4,7 @@ import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 import { CBNData } from "../data";
 import LimitedList from "../LimitedList.svelte";
-import ItemLink from "./ItemLink.svelte";
+import ThingLink from "./ThingLink.svelte";
 import Technique from "./Technique.svelte";
 import BonusContainer from "./BonusContainer.svelte";
 import MartialArtRequirements from "./MartialArtRequirements.svelte";
@@ -83,7 +83,7 @@ const buffMap = new Map(
           {#if item.autolearn}
           <ul class="comma-separated">
           {#each item.autolearn as [skill, level]}
-            <li><ItemLink type="skill" id={skill}  showIcon={false} /> ({level})</li>
+            <li><ThingLink type="skill" id={skill} showIcon={false} /> ({level})</li>
           {/each}
           </ul>
         {/if}
@@ -94,7 +94,7 @@ const buffMap = new Map(
         <dd>
           <ul class="comma-separated">
             {#each books as book}
-              <li><ItemLink type="item" id={book.id} showIcon={false} /></li>
+              <li><ThingLink type="item" id={book.id} showIcon={false} /></li>
             {/each}
           </ul>
         </dd>
@@ -105,7 +105,7 @@ const buffMap = new Map(
           <ul class="comma-separated">
             {#each weaponCategories as category_id}
               <li>
-                <ItemLink
+                <ThingLink
                   type="weapon_category"
                   id={category_id}
                   showIcon={false} />
@@ -118,9 +118,9 @@ const buffMap = new Map(
         <dt>{t("Arm Block", { _context })}</dt>
         <dd>
           {#if item.arm_block_with_bio_armor_arms}
-            with <ItemLink type="item" id="bio_armor_arms" showIcon={false} />
+            with <ThingLink type="item" id="bio_armor_arms" showIcon={false} />
           {:else}
-            <ItemLink type="skill" id="unarmed" showIcon={false} /> ({item.arm_block})
+            <ThingLink type="skill" id="unarmed" showIcon={false} /> ({item.arm_block})
           {/if}
         </dd>
       {/if}
@@ -128,9 +128,9 @@ const buffMap = new Map(
         <dt>{t("Leg Block", { _context })}</dt>
         <dd>
           {#if item.leg_block_with_bio_armor_legs}
-            with <ItemLink type="item" id="bio_armor_legs" showIcon={false} />
+            with <ThingLink type="item" id="bio_armor_legs" showIcon={false} />
           {:else}
-            <ItemLink type="skill" id="unarmed" showIcon={false} /> ({item.leg_block})
+            <ThingLink type="skill" id="unarmed" showIcon={false} /> ({item.leg_block})
           {/if}
         </dd>
       {/if}
@@ -149,7 +149,7 @@ const buffMap = new Map(
         ),
       )}>
       {#snippet children({ item })}
-        <ItemLink id={item} type="item" showIcon={false} />
+        <ThingLink id={item} type="item" showIcon={false} />
       {/snippet}
     </LimitedList>
   </section>
