@@ -151,7 +151,7 @@ let iconItem = $derived(
   align-items: center;
   gap: 0.25em;
   text-decoration: none;
-  vertical-align: middle;
+  vertical-align: baseline;
   min-width: 0;
 }
 
