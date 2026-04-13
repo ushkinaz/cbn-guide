@@ -470,7 +470,10 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
     </LimitedList>
   </section>
 {/if}
-<ComponentOf item_id={item.id} />
+<div class="hide-header-if-no-sections">
+  <h2>{t("Usage", { _context })}</h2>
+  <ComponentOf item_id={item.id} />
+</div>
 
 <div class="hide-header-if-no-sections">
   <h2>{t("Obtaining", { _context })}</h2>
