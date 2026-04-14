@@ -65,8 +65,6 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
       return t("Spells");
     case "achievement":
       return t("Achievements");
-    case "addiction_type":
-      return t("Addiction Types");
     case "ammunition_type":
       return t("Ammunition Types");
     case "ascii_art":
@@ -81,10 +79,6 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
       return t("Constructions");
     case "construction_group":
       return t("Construction Groups");
-    case "damage_info_order":
-      return t("Damage Info Orders");
-    case "damage_type":
-      return t("Damage Types");
     case "effect_type":
       return t("Effect Types");
     case "event_statistic":
@@ -95,8 +89,6 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
       return t("Furniture");
     case "harvest":
       return t("Harvests");
-    case "harvest_drop_type":
-      return t("Harvest Drop Types");
     case "item_action":
       return t("Item Actions");
     case "item_group":
@@ -131,8 +123,6 @@ export function translateType(type: keyof SupportedTypesWithMapped): string {
       return t("Rotatable Symbols");
     case "skill":
       return t("Skills");
-    case "sub_body_part":
-      return t("Sub Body Parts");
     case "technique":
       return t("Techniques");
     case "terrain":

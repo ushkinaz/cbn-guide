@@ -7,7 +7,6 @@ import {
   asLiters,
   asMinutes,
   CBNData,
-  getVehiclePartIdAndVariant,
   normalizeVehicleMountedParts,
   parseDuration,
   formatPercent,
@@ -69,9 +68,7 @@ const vehiclesContainingPart = data
     (v) =>
       v.id &&
       normalizeVehicleMountedParts(v).some((mountedPart) =>
-        mountedPart.parts.some(
-          (p) => getVehiclePartIdAndVariant(data, p.part)[0] === item.id,
-        ),
+        mountedPart.parts.some((p) => p.part === item.id),
       ),
   );
 vehiclesContainingPart.sort((a, b) =>
@@ -174,21 +171,6 @@ vehiclesContainingPart.sort((a, b) =>
     {#if item.bonus && bonusLabel(item)}
       <dt>{bonusLabel(item)}</dt>
       <dd>{item.bonus}</dd>
-    {/if}
-    {#if item.pseudo_tools?.length}
-      <dt>
-        {t("Provides", {
-          _context,
-          _comment: "List of tools that the vehicle part acts as",
-        })}
-      </dt>
-      <dd>
-        <ul class="comma-separated">
-          {#each item.pseudo_tools as { id }}
-            <li><ThingLink type="item" {id} showIcon={false} /></li>
-          {/each}
-        </ul>
-      </dd>
     {/if}
     {#if breaksIntoGroupFlattened?.length}
       <dt>

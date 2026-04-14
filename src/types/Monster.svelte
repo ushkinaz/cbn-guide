@@ -121,19 +121,8 @@ function damage(mon: Monster) {
   }
   //melee_damage = melee_damage ?? [ { damage_type: "bash", amount: `${melee_dice}d${melee_dice_sides}` } ]
   return (
-    `${melee_dice}d${melee_dice_sides} ${gameSingularName(
-      data.byIdMaybe("damage_type", "bash") ?? { id: "bash" },
-    )}` +
-    du
-      .map(
-        (u) =>
-          ` + ${u.amount} ${gameSingularName(
-            data.byIdMaybe("damage_type", u.damage_type) ?? {
-              id: u.damage_type,
-            },
-          )}`,
-      )
-      .join("")
+    `${melee_dice}d${melee_dice_sides} ${gameSingular("bash")}` +
+    du.map((u) => ` + ${u.amount} ${gameSingular(u.damage_type)}`).join("")
   );
 }
 
@@ -642,7 +631,7 @@ for (const group of sortedGroups) {
       <h2>{t("Butchering Results", { _context })}</h2>
       <ul class="no-bullets">
         {#each harvest.entries as harvest_entry}
-          {#if (harvest_entry.type && data.byIdMaybe("harvest_drop_type", harvest_entry.type)?.group) || harvest_entry.type === "bionic_group"}
+          {#if harvest_entry.type === "bionic_group"}
             {#each data.flattenTopLevelItemGroup(data.byId("item_group", harvest_entry.drop)) as { id, prob }}
               <li>
                 <ThingLink type="item" {id} /> ({formatPercent(prob)})

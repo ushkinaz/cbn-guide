@@ -78,10 +78,6 @@ const containingBionics = data
         </ul>
       </dd>
     {/if}
-    {#if item.cant_remove_reason}
-      <dt>{t("Removable", { _context })}</dt>
-      <dd>{t("No")}</dd>
-    {/if}
     {#if item.act_cost}
       <dt>{t("Activation Cost", { _context })}</dt>
       <dd>{item.act_cost}</dd>
@@ -93,10 +89,6 @@ const containingBionics = data
     {#if item.react_cost}
       <dt>{t("Power Over Time", { _context })}</dt>
       <dd>{item.react_cost}</dd>
-    {/if}
-    {#if (item.vitamin_absorb_mod ?? 1) !== 1}
-      <dt>{t("Vitamin Absorption Modifier", { _context })}</dt>
-      <dd>{((item.vitamin_absorb_mod ?? 1) * 100).toFixed(0)}%</dd>
     {/if}
     {#if item.fuel_options?.length}
       <dt>{t("Fuel", { _context })}</dt>
@@ -126,10 +118,6 @@ const containingBionics = data
       <dt>{t("Emits Heat", { _context })}</dt>
       <dd>{t("Yes")}</dd>
     {/if}
-    {#if item.power_trickle}
-      <dt>{t("Power Trickle", { _context })}</dt>
-      <dd>{item.power_trickle}</dd>
-    {/if}
     {#if item.time}
       <dt>{t("Charge Time", { _context })}</dt>
       <dd>{item.time} turn{item.time !== 1 ? "s" : ""}</dd>
@@ -137,30 +125,6 @@ const containingBionics = data
     {#if item.capacity}
       <dt>{t("Capacity", { _context })}</dt>
       <dd>{item.capacity}</dd>
-    {/if}
-    {#if item.fake_weapon}
-      <dt>{t("Acts As", { _context })}</dt>
-      <dd><ThingLink type="item" id={item.fake_weapon} showIcon={false} /></dd>
-    {/if}
-    {#if item.toggled_pseudo_items?.length}
-      <dt>{t("Acts As", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated">
-          {#each item.toggled_pseudo_items as item_id}
-            <li><ThingLink type="item" id={item_id} showIcon={false} /></li>
-          {/each}
-        </ul>
-      </dd>
-    {/if}
-    {#if item.passive_pseudo_items?.length}
-      <dt>{t("Acts As", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated">
-          {#each item.passive_pseudo_items as item_id}
-            <li><ThingLink type="item" id={item_id} showIcon={false} /></li>
-          {/each}
-        </ul>
-      </dd>
     {/if}
     {#if item.included_bionics?.length}
       <dt>{t("Includes", { _context })}</dt>
@@ -172,8 +136,6 @@ const containingBionics = data
         </ul>
       </dd>
     {/if}
-    <dt>{t("Duplicates Allowed", { _context })}</dt>
-    <dd>{item.dupes_allowed ? t("Yes") : t("No")}</dd>
     <dt>{t("Flags")}</dt>
     <dd>
       {#if item.flags?.length}
@@ -186,26 +148,6 @@ const containingBionics = data
         <em>{t("none")}</em>
       {/if}
     </dd>
-    {#if item.active_flags}
-      <dt>{t("Flags When Active", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated">
-          {#each item.active_flags as flag}
-            <li><ThingLink type="json_flag" id={flag} showIcon={false} /></li>
-          {/each}
-        </ul>
-      </dd>
-    {/if}
-    {#if item.mutation_conflicts}
-      <dt>{t("Conflicts With Mutations", { _context })}</dt>
-      <dd>
-        <MutationList
-          mutations={item.mutation_conflicts.flatMap((x) => {
-            const m = data.byIdMaybe("mutation", x);
-            return m ? [m] : [];
-          })} />
-      </dd>
-    {/if}
     {#if item.canceled_mutations}
       <dt>{t("Removes Mutations", { _context })}</dt>
       <dd>

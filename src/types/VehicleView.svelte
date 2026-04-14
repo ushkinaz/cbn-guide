@@ -1,11 +1,11 @@
 <script lang="ts">
 import { getContext, untrack } from "svelte";
-import {
-  CBNData,
-  getVehiclePartIdAndVariant,
-  normalizeVehicleMountedParts,
-} from "../data";
-import type { Vehicle, VehiclePart } from "../types";
+import { CBNData, normalizeVehicleMountedParts } from "../data";
+import type {
+  Vehicle,
+  VehicleMountedPartDefinition,
+  VehiclePart,
+} from "../types";
 import {
   resolveTileLayerUrl,
   tileData,
@@ -48,40 +48,25 @@ const zForPart = (partId: string): number => {
   return zOrder[location] ?? 0;
 };
 
-type NormalizedPart = { partId: string; variant: string; fuel?: string };
-type NormalizedPartList = {
-  x: number;
-  y: number;
-  parts: NormalizedPart[];
-};
-
-const { minX, maxX, minY, maxY, normalizedParts, finalGrid } = (() => {
+const { minX, maxX, minY, maxY, finalGrid } = (() => {
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
   let maxY = -Infinity;
 
-  const normalizedParts: NormalizedPartList[] = normalizeVehicleMountedParts(
-    item,
-  ).map((part) => {
+  const mountedParts = normalizeVehicleMountedParts(item);
+  for (const part of mountedParts) {
     if (part.x < minX) minX = part.x;
     if (part.x > maxX) maxX = part.x;
     if (part.y < minY) minY = part.y;
     if (part.y > maxY) maxY = part.y;
+  }
 
-    const parts =
-      part.parts?.map(({ part, fuel }) => {
-        const [partId, variant] = getVehiclePartIdAndVariant(data, part);
-        return { partId, variant, fuel };
-      }) ?? [];
-    return { x: part.x, y: part.y, parts };
-  });
-
-  const finalGrid: (NormalizedPart | undefined)[][] = [];
+  const finalGrid: (VehicleMountedPartDefinition | undefined)[][] = [];
   for (let x = maxX; x >= minX; x--) {
-    const row: (NormalizedPart | undefined)[] = [];
+    const row: (VehicleMountedPartDefinition | undefined)[] = [];
     for (let y = minY; y <= maxY; y++) {
-      const cellParts = normalizedParts
+      const cellParts = mountedParts
         .filter((p) => p.x === x && p.y === y)
         .flatMap((p) => p.parts);
       if (!cellParts.length) {
@@ -89,9 +74,9 @@ const { minX, maxX, minY, maxY, normalizedParts, finalGrid } = (() => {
         continue;
       }
       let topPart = cellParts[0];
-      let topZ = zForPart(topPart.partId);
+      let topZ = zForPart(topPart.part);
       for (const part of cellParts) {
-        const z = zForPart(part.partId);
+        const z = zForPart(part.part);
         if (z >= 0 && z > topZ) {
           topZ = z;
           topPart = part;
@@ -101,23 +86,10 @@ const { minX, maxX, minY, maxY, normalizedParts, finalGrid } = (() => {
     }
     finalGrid.push(row);
   }
-  return { minX, maxX, minY, maxY, normalizedParts, finalGrid };
+  return { minX, maxX, minY, maxY, finalGrid };
 })();
 
 let tile_info = $derived($tileData?.tile_info[0]);
-
-const standardSymbols = {
-  cover: "^",
-  cross: "c",
-  horizontal: "h",
-  horizontal_2: "=",
-  vertical: "j",
-  vertical_2: "H",
-  ne: "u",
-  nw: "y",
-  se: "n",
-  sw: "b",
-};
 const LINE = {
   XOXO: "│",
   OXOX: "─",
@@ -152,16 +124,12 @@ const specialSymbol = (symbol: string): string => {
   }
 };
 
-function getFallback(partId: string, variant: string) {
+function getFallback(partId: string) {
   const vehiclePart = data.byIdMaybe("vehicle_part", partId);
   if (!vehiclePart) return { symbol: "?", color: "white" };
   const symbol = vehiclePart.symbol ?? "=";
-  const symbols: Record<string, string> = {
-    ...(vehiclePart.standard_symbols ? standardSymbols : {}),
-    ...vehiclePart.symbols,
-  };
   return {
-    symbol: specialSymbol(symbols[variant] ?? symbol),
+    symbol: specialSymbol(symbol),
     color: vehiclePart.color ?? "white",
   };
 }
@@ -177,13 +145,13 @@ function getFallback(partId: string, variant: string) {
         <div class="cell">
           {#if part}
             {@const vehiclePart =
-              data.byIdMaybe("vehicle_part", part.partId) ??
-              data.abstractById("vehicle_part", part.partId)}
+              data.byIdMaybe("vehicle_part", part.part) ??
+              data.abstractById("vehicle_part", part.part)}
             {@const tile = $tileData
               ? findTileOrLooksLike(data, $tileData, {
                   ...vehiclePart,
                   type: "vehicle_part",
-                  id: part.partId,
+                  id: part.part,
                 })
               : null}
             {#if tile && tile_info}
@@ -193,7 +161,7 @@ function getFallback(partId: string, variant: string) {
                 height: {tile_info.height * tile_info.pixelscale}px;
               "
                 class="tile-icon"
-                title={part.partId}>
+                title={part.part}>
                 {#if tile.bg != null}
                   <div
                     class="icon-layer bg"
@@ -230,10 +198,10 @@ function getFallback(partId: string, variant: string) {
                 {/if}
               </div>
             {:else}
-              {@const fallback = getFallback(part.partId, part.variant)}
+              {@const fallback = getFallback(part.part)}
               <span
                 class="tile-icon c_{fallback.color}"
-                title={part.partId}
+                title={part.part}
                 style="
                 width: {tile_info?.width
                   ? tile_info.width * tile_info.pixelscale

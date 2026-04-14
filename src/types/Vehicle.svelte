@@ -5,7 +5,6 @@ import { getContext, untrack } from "svelte";
 
 import {
   CBNData,
-  getVehiclePartIdAndVariant,
   itemGroupFromVehicle,
   normalizeVehicleMountedParts,
 } from "../data";
@@ -29,27 +28,10 @@ const item = untrack(() => sourceItem);
 const data = getContext<CBNData>("data");
 const _context = "Vehicle";
 
-const normalizedParts = normalizeVehicleMountedParts(item).map((part) => {
-  const parts =
-    part.parts?.map(({ part, fuel }) => {
-      const [partId, variant] = getVehiclePartIdAndVariant(data, part);
-      return {
-        partId,
-        variant,
-        fuel,
-      };
-    }) ?? [];
-  return {
-    x: part.x,
-    y: part.y,
-    parts,
-  };
-});
-
-const parts = normalizedParts
-  .flatMap((np) => np.parts)
-  .filter((x) => data.byIdMaybe("vehicle_part", x.partId)); // TODO: turrets?
-const partsGrouped = groupBy(parts, (p) => [p.partId]);
+const parts = normalizeVehicleMountedParts(item)
+  .flatMap((mountedPart) => mountedPart.parts)
+  .filter((x) => data.byIdMaybe("vehicle_part", x.part)); // TODO: turrets?
+const partsGrouped = groupBy(parts, (p) => [p.part]);
 const partsCounted = [...partsGrouped.entries()].map(([id, list]) => ({
   id,
   count: list.length,

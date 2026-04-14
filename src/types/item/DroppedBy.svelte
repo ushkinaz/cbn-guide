@@ -27,7 +27,7 @@ const mons = new Map(
 
 const itemsFromHarvest = (h: Harvest): string[] =>
   h.entries?.flatMap((e) =>
-    e.type && data.byIdMaybe("harvest_drop_type", e.type)?.group
+    e.type && e.type === "bionic_group"
       ? data
           .flattenTopLevelItemGroup(data.byId("item_group", e.drop))
           .map((x) => x.id)

@@ -160,10 +160,6 @@ const usedToRepair = data.byType("fault").filter((f) => {
   );
 });
 
-const grantedByMutation = data
-  .byType("mutation")
-  .filter((m) => m.id && m.integrated_armor?.some((x) => x === item.id));
-
 function normalizeStackVolume(item: Item): (string | number) | undefined {
   if (item.type === "AMMO" && item.ammo_type !== "components") {
     const { count } = item;
@@ -361,17 +357,6 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           <dd>
             <ThingLink type="item" id={item.milling.into} showIcon={false} />
             (×{item.milling.conversion_rate ?? 0})
-          </dd>
-        {/if}
-
-        {#if grantedByMutation.length}
-          <dt>{t("From Mutation", { _context })}</dt>
-          <dd>
-            <ul class="comma-separated">
-              {#each grantedByMutation as { id }}
-                <li><ThingLink type="mutation" {id} showIcon={false} /></li>
-              {/each}
-            </ul>
           </dd>
         {/if}
       </dl>

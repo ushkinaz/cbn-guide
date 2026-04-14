@@ -7,7 +7,7 @@ import { CBNData } from "../../data";
 import { getContext, untrack } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
 
-import { gameSingularName } from "../../i18n/game-locale";
+import { gameSingular, gameSingularName } from "../../i18n/game-locale";
 
 interface Props {
   item: Item;
@@ -78,14 +78,7 @@ const ranged_damage = extractRangedDamage();
     {/if}
     <dt>{t("Base Damage")}</dt>
     <dd>
-      {ranged_damage.amount ?? 0} ({gameSingularName(
-        data.byIdMaybe(
-          "damage_type",
-          ranged_damage.damage_type ?? "bullet",
-        ) ?? {
-          id: ranged_damage.damage_type ?? "bullet",
-        },
-      )})
+      {ranged_damage.amount ?? 0} ({gameSingular(ranged_damage.damage_type)})
     </dd>
     <dt>{t("Armor Penetration")}</dt>
     <dd>{ranged_damage.armor_penetration ?? 0}</dd>

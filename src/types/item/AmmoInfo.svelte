@@ -6,7 +6,7 @@ import ThingLink from "../ThingLink.svelte";
 import { getContext, untrack } from "svelte";
 import CompatibleItems from "./CompatibleItems.svelte";
 
-import { gameSingularName } from "../../i18n/game-locale";
+import { gameSingular, gameSingularName } from "../../i18n/game-locale";
 
 interface Props {
   item: AmmoSlot;
@@ -65,11 +65,7 @@ function computeLoudness(item: AmmoSlot): number {
       </dd>
       <dt>{t("Damage")}</dt>
       <dd>
-        {damage.amount ?? 0} ({gameSingularName(
-          data.byIdMaybe("damage_type", damage.damage_type) ?? {
-            id: damage.damage_type,
-          },
-        )})
+        {damage.amount ?? 0} ({gameSingular(damage.damage_type)})
       </dd>
       <dt>{t("Armor Penetration")}</dt>
       <dd>{damage.armor_penetration ?? 0}</dd>

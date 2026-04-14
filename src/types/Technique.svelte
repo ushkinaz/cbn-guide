@@ -55,10 +55,6 @@ const type = i18n.__(
 const extractInfo = (s: string): string =>
   /<info>(.+?)<\/info>/.exec(s)?.[1] ?? s;
 const targetRequirements: string[] = [];
-if (item.human_target)
-  targetRequirements.push(
-    extractInfo(i18n.__("* Only works on a <info>humanoid</info> target")),
-  );
 if (item.downed_target)
   targetRequirements.push(
     extractInfo(i18n.__("* Only works on a <info>downed</info> target")),

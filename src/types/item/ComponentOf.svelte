@@ -44,9 +44,6 @@ const toolConstructions = [
     ),
   );
 
-const providedByVparts = data
-  .byType("vehicle_part")
-  .filter((vp) => vp.id && vp.pseudo_tools?.some((t) => t.id === item_id));
 const providedByFurniture = data
   .byType("furniture")
   .filter((f) => f.id && f.crafting_pseudo_item === item_id);
@@ -61,22 +58,6 @@ const toolResults = [...toolRecipes].sort((a, b) =>
   ),
 );
 </script>
-
-{#if providedByVparts.length}
-  <section>
-    <h2>
-      {t("Provided By Vehicle Parts", {
-        _context,
-        _comment: "Section heading",
-      })}
-    </h2>
-    <LimitedList items={providedByVparts}>
-      {#snippet children({ item })}
-        <ThingLink type={item.type} id={item.id} />
-      {/snippet}
-    </LimitedList>
-  </section>
-{/if}
 
 {#if providedByFurniture.length}
   <section>

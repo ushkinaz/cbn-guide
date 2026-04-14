@@ -30,13 +30,7 @@ const terrainWithFlag = data
   .filter((f) => f.id && f.flags?.includes(item.id));
 const bionicWithFlag = data
   .byType("bionic")
-  .filter(
-    (f) =>
-      f.id &&
-      (f.flags?.includes(item.id) ||
-        f.active_flags?.includes(item.id) ||
-        f.inactive_flags?.includes(item.id)),
-  );
+  .filter((f) => f.id && f.flags?.includes(item.id));
 </script>
 
 <h2>{t("Flag", { _comment: "Section heading" })}: {item.id}</h2>

@@ -75,7 +75,7 @@ let itemsWithMaterial = data
 
         <dt>{t("Conductive", { _context })}</dt>
         <dd>
-          {item.elec_resist === 0 || item.elec_resist === 1 || item.conductive
+          {item.elec_resist === 0 || item.elec_resist === 1
             ? t("Yes")
             : t("No")}
         </dd>

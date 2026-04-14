@@ -38,7 +38,7 @@ export type ItemGroupEntry = (
   count?: number | [number, number];
   charges?: number | [number, number];
 
-  // NB! "container-item" isn't greppable in the correct place in the source,
+  // NB! "container-item" isn't greppable in the correct place in the source;
   // it's made up by load_sub_ref(..., "container"), which then looks for
   // "contents-item" and "container-group". rg '"-item"' to find it.
   // The same is true for ammo{-item,-group}. "container-item" is special since
@@ -152,7 +152,7 @@ export type Recipe = {
   flags?: string[];
 
   contained?: boolean;
-  container?: string /* item_id, implies contained */;
+  container?: string /* item_id implies contained */;
 
   batch_time_factors?: [number /* int */, number /* int */]; // [rscale (percentage), rsize]
 
@@ -177,52 +177,9 @@ export type Recipe = {
   // for type: 'recipe' only
   category?: string;
   subcategory?: string;
-  description?: Translation;
   reversible?: boolean | { time: duration };
   byproducts?: ([string] | [string, number])[];
 } & RequirementData;
-
-export type DamageType = {
-  id: string;
-  type: "damage_type";
-  name: Translation;
-  skill?: string; // skill_id
-  physical?: boolean;
-  melee_only?: boolean;
-  edged?: boolean;
-  environmental?: boolean;
-  material_required?: boolean;
-  mon_difficulty?: boolean;
-  no_resist?: boolean;
-
-  immune_flags?: {
-    monster?: string[];
-    character?: string[];
-  };
-
-  magic_color?: string;
-
-  derived_from?: [string /* damage_type_id */, number /* float */];
-};
-
-export type DamageInfoOrderEntry = {
-  show_type?: boolean; // default: true
-  order: integer;
-};
-
-export type DamageInfoOrder = {
-  id: string;
-  type: "damage_info_order";
-  info_display?: "detailed" | "basic" | "none";
-
-  bionic_info?: DamageInfoOrderEntry;
-  protection_info?: DamageInfoOrderEntry;
-  pet_prot_info?: DamageInfoOrderEntry;
-  melee_combat_info?: DamageInfoOrderEntry;
-  ablative_info?: DamageInfoOrderEntry;
-
-  verb?: Translation;
-};
 
 export type BookSlot = {
   max_level?: number; // default: 0
@@ -288,9 +245,8 @@ export type GunSlot = {
   dispersion?: number; // int
   sight_dispersion?: number; // int, default: 30
   recoil?: number; // int
-  handling?: number; // int, default: derived from weapon type. if skill_used is rifle, smg or shotgun, 20, otherwise 10.
+  handling?: number; // int, default: derived from a weapon type. if skill_used is rifle, smg or shotgun, 20, otherwise 10.
   durability?: number; // int
-  burst?: number; // int, default: 0
   loudness?: number; // int, default: 0
   clip_size?: number; // int
   reload?: number; // int moves, default 100
@@ -319,7 +275,6 @@ export type AmmoSlot = {
   ammo_type: string; // ammunition_type_id
   casing?: string; // item_id
   drop?: string; // item_id
-  drop_active?: boolean; // default: true
   damage?: DamageInstance;
   range?: number; // int
   dispersion?: number; // int
@@ -350,7 +305,6 @@ export type ComestibleSlot = {
   fatigue_mod?: integer; // int, default 0
   healthy?: integer; // int, default 0
   parasites?: integer; // int, default 0
-  radiation?: integer; // int, default 0
   spoils_in?: string | number; // duration, default 0 (never spoils)
   cooks_like?: string; // item_id
   smoking_result?: string; // item_id
@@ -379,17 +333,6 @@ export type ComestibleSlot = {
   vitamins?: [string, integer][];
   rot_spawn?: string; // mongroup_id
   rot_spawn_chance?: integer; // default 10
-};
-
-export type AddictionType = {
-  type: "addiction_type";
-  id: string;
-  name: Translation;
-  type_name: Translation;
-  description: Translation;
-  craving_morale?: string; // morale_type_id
-  effect_on_condition?: string; // effect_on_condition_id
-  builtin?: string;
 };
 
 export type CoveredPart =
@@ -424,8 +367,6 @@ export type ArmorSlot = {
   environmental_protection?: number;
   environmental_protection_with_filter?: number;
   material_thickness?: number;
-  weight_capacity_modifier?: number; // default 1.0
-  weight_capacity_bonus?: mass;
   valid_mods?: string[];
   max_encumbrance?: number;
   warmth?: number;
@@ -518,7 +459,7 @@ export type UseFunction =
     }
   | {
       // Technically, the type can be any of the custom iuse functions. In
-      // practice, STRONG_ANTIBIOTIC is the only instances of
+      // practice, STRONG_ANTIBIOTIC is the only instance of
       // this. Instead of using the fully generic |string| type, keep this here
       // so we get a schema warning when new use actions are added.
       type: "STRONG_ANTIBIOTIC";
@@ -717,7 +658,6 @@ export type ItemBasicInfo = {
   stackable?: boolean;
   volume?: volume;
   weight?: mass;
-  longest_side?: string;
   material?: string | string[] | { type: string; portion?: integer }[]; // material_id
   rigid?: boolean;
   flags?: string | string[];
@@ -727,7 +667,6 @@ export type ItemBasicInfo = {
     | null
     | any /* this is to appease json-schema, which doesn't generate a correct schema for just string | null */;
   container_data?: ContainerSlot;
-  /* O.G */
   bashing?: number;
   cutting?: number;
 
@@ -739,7 +678,7 @@ export type ItemBasicInfo = {
     plant_name: Translation;
     fruit: string; // item_id
     fruit_div?: number; // int (NB. only used for pumpkin?)
-    seeds?: boolean; // default true (NB. never present in json)
+    seeds?: boolean; // default true (NB. never present in JSON)
     byproducts?: string[]; // item_id
   };
   ascii_picture?: string;
@@ -928,8 +867,6 @@ export type Furniture = MapDataCommon & {
   comfort?: number;
   floor_bedding_warmth?: number;
 
-  emmissions?: string[];
-
   bonus_fire_warmth_feet?: number; // default: 300
 
   keg_capacity?: number | string; // volume, default: 0 ml
@@ -1004,7 +941,6 @@ export type Technique = {
   downed_target?: boolean;
   stunned_target?: boolean;
   wall_adjacent?: boolean;
-  human_target?: boolean;
 
   defensive?: boolean;
   disarms?: boolean;
@@ -1541,16 +1477,18 @@ export type ToolQuality = {
   usages?: [number, string[]][];
 };
 
-export type HarvestDropType = {
-  id: string;
-  type: "harvest_drop_type";
-  group?: boolean;
-  // ...
-};
-
+//TODO: revisit, its used wrongly
 export type HarvestEntry = {
-  drop: string; // item id (or group id iff byId("harvest_drop_type", i.type).group)
-  type?: string; // harvest_drop_type id
+  drop: string;
+  type:
+    | "bionic"
+    | "bionic_faulty"
+    | "bionic_group"
+    | "blood"
+    | "bone"
+    | "flesh"
+    | "offal"
+    | "skin";
   base_num?: [number, number]; // default [1, 1]
   scale_num?: [number, number]; // default [0, 0]
   max?: number; // default 1000
@@ -1564,8 +1502,6 @@ export type Harvest = {
   id: string;
   entries: HarvestEntry[];
   message?: string;
-  leftovers?: string; // item_id, default "ruined_chunks"
-  butchery_requirements?: string; // butchery_requirement id, default "default"
 };
 
 export type Monster = {
@@ -1669,7 +1605,6 @@ export type Monster = {
       };
   reproduction?: object; //TODO
   baby_flags?: string[];
-  ascii_picture?: string;
   death_drops?: InlineItemGroup; // distribution
   on_death?: any; //TODO
 
@@ -1735,7 +1670,6 @@ export type VehiclePart = {
   power?: integer | string; // watts, default 0
   epower?: integer | string; // watts, default 0
   emissions?: string[]; // emit_id
-  exhaust?: string[]; // emit_id
   fuel_type?: string; // item_id
   default_ammo?: string; // item_id
   folded_volume?:
@@ -1750,7 +1684,6 @@ export type VehiclePart = {
   description?: Translation;
   comfort?: integer;
   floor_bedding_warmth?: integer;
-  bonus_fire_warmth_feet?: integer; // default 300
   requirements?: {
     install?: VehiclePartRequirements;
     repair?: VehiclePartRequirements;
@@ -1758,10 +1691,6 @@ export type VehiclePart = {
   };
   breaks_into?: InlineItemGroup; // collection
   qualities?: [string, number][];
-  pseudo_tools?: {
-    id: string;
-    hotkey?: string;
-  }[];
   damage_reduction?: {
     /* TODO */
   };
@@ -1791,11 +1720,6 @@ export type VehiclePart = {
     volume?: volume;
   };
 
-  // TODO:
-  // transform_terrain
-  // symbol, color, etc
-  standard_symbols?: boolean;
-  symbols?: Record<string, string>;
   symbol?: string;
   color?: string;
   looks_like?: string;
@@ -1837,7 +1761,6 @@ export type BodyPart = {
   stylish_bonus?: number;
   hot_morale_mod?: number;
   cold_morale_mod?: number;
-  squeamish_penalty?: number;
 
   main_part?: string;
   opposite_part?: string;
@@ -1846,18 +1769,6 @@ export type BodyPart = {
   flags?: string[];
 
   side?: "left" | "right" | "both";
-};
-
-export type SubBodyPart = {
-  id: string;
-  type: "sub_body_part";
-  name: Translation;
-  parent: string;
-  secondary?: boolean;
-  max_coverage?: integer; // default 0
-  side: 0 | 1 | 2; // left / right / both
-  name_multiple?: Translation;
-  opposite?: string; // sub_body_part_id
 };
 
 export type EffectType = {
@@ -1893,7 +1804,6 @@ export type Material = {
 
   density: number; // default 1
 
-  // 0.G
   bash_resist?: number;
   cut_resist?: number;
   bullet_resist?: number;
@@ -1909,7 +1819,6 @@ export type Material = {
   specific_heat_solid?: number; // default 2.108
   latent_heat?: number; // default 334.0
 
-  conductive?: boolean;
   edible?: boolean;
   rotting?: boolean;
   soft?: boolean;
@@ -2048,8 +1957,6 @@ export type Mutation = {
 
   threshold?: boolean;
 
-  integrated_armor?: string[];
-
   encumbrance_always?: [string /* bp_id */, integer][];
   encumbrance_covered?: [string /* bp_id */, integer][];
   restricts_gear?: string[];
@@ -2066,7 +1973,6 @@ export type MutationCategory = {
   id: string;
   type: "mutation_category";
   name: Translation;
-  description?: Translation;
   threshold_mut?: string;
 };
 
@@ -2168,61 +2074,31 @@ export type Bionic = {
   id: string;
   name: Translation;
   description: Translation;
-  cant_remove_reason?: Translation;
 
   react_cost?: energy;
   capacity?: energy;
   weight_capacity_bonus?: mass;
   act_cost?: energy;
-  deact_cost?: energy;
   trigger_cost?: energy;
-  power_trickle?: energy;
   time?: duration;
 
   flags?: string[];
-  active_flags?: string[];
-  inactive_flags?: string[];
 
   fuel_efficiency?: number;
   passive_fuel_efficiency?: number;
 
-  passive_pseudo_items?: string[];
-  toggled_pseudo_items?: string[];
-  fake_weapon?: string;
-  installable_weapon_flags?: string[];
-
-  weight_capacity_modifier?: number; // default 1
   exothermic_power_gen?: boolean;
-  power_gen_emission?: string;
-  coverage_power_gen_penalty?: number;
-  is_remote_fueled?: boolean;
 
-  known_ma_styles?: string[];
   learned_spells?: Record<string, number> | [string, number][];
-  learned_proficiencies?: string[];
   canceled_mutations?: string[];
-  mutation_conflicts?: string[];
   included_bionics?: string[];
   included?: boolean;
   upgraded_bionic?: string;
   fuel_options?: string[]; // material_id
   fuel_capacity?: integer;
-  activated_on_install?: boolean;
 
   available_upgrades?: string[]; // bionic_id
-  installation_requirement?: string; // requirement_id
 
-  vitamin_absorb_mod?: number; // default 1
-
-  dupes_allowed?: boolean;
-  auto_deactivates?: string[];
-
-  activated_close_ui?: boolean;
-  deactivated_close_ui?: boolean;
-
-  activated_eocs?: any; // TODO
-  processed_eocs?: any; // TODO
-  deactivated_eocs?: any; // TODO
   enchantments?: any; // TODO
 
   stat_bonus?: [string, integer][];
@@ -2232,12 +2108,6 @@ export type Bionic = {
   bash_protec?: [string /* bodypart_id */, integer][];
   cut_protec?: [string /* bodypart_id */, integer][];
   bullet_protec?: [string /* bodypart_id */, integer][];
-
-  social_modifiers?: {
-    lie?: integer;
-    persuade?: integer;
-    intimidate?: integer;
-  };
 };
 
 export type ItemCategory = {
@@ -2322,7 +2192,6 @@ export type SupportedTypes = {
   MONSTER: Monster;
   SPELL: Spell;
   achievement: Achievement;
-  addiction_type: AddictionType;
   ammunition_type: AmmunitionType;
   ascii_art: AsciiArt;
   bionic: Bionic;
@@ -2330,14 +2199,11 @@ export type SupportedTypes = {
   city_building: { type: "city_building" } & OvermapSpecial;
   construction: Construction;
   construction_group: ConstructionGroup;
-  damage_info_order: DamageInfoOrder;
-  damage_type: DamageType;
   effect_type: EffectType;
   event_statistic: EventStatistic;
   fault: Fault;
   furniture: Furniture;
   harvest: Harvest;
-  harvest_drop_type: HarvestDropType;
   item_action: ItemAction;
   item_group: { type: "item_group" } & ItemGroup;
   json_flag: JSONFlag;
@@ -2355,7 +2221,6 @@ export type SupportedTypes = {
   requirement: Requirement;
   rotatable_symbol: RotatableSymbol;
   skill: Skill;
-  sub_body_part: SubBodyPart;
   technique: Technique;
   terrain: Terrain;
   trap: Trap;

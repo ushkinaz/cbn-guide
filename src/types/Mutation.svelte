@@ -48,11 +48,6 @@ const canceledByBionics = data
   .byType("bionic")
   .filter((b) => (b.canceled_mutations ?? []).includes(item.id))
   .sort(byName);
-
-const conflictsWithBionics = data
-  .byType("bionic")
-  .filter((b) => (b.mutation_conflicts ?? []).includes(item.id))
-  .sort(byName);
 </script>
 
 <h1>
@@ -245,32 +240,12 @@ const conflictsWithBionics = data
         <MutationList mutations={canceledByMutations} />
       </dd>
     {/if}
-    {#if conflictsWithBionics.length}
-      <dt>{t("Incompatible With", { _context })}</dt>
-      <dd>
-        <ul>
-          {#each conflictsWithBionics as { id }}
-            <li><ThingLink {id} type="bionic" showIcon={false} /></li>
-          {/each}
-        </ul>
-      </dd>
-    {/if}
     {#if canceledByBionics.length}
       <dt>{t("Canceled By Bionics", { _context })}</dt>
       <dd>
         <ul>
           {#each canceledByBionics as { id }}
             <li><ThingLink {id} type="bionic" showIcon={false} /></li>
-          {/each}
-        </ul>
-      </dd>
-    {/if}
-    {#if item.integrated_armor}
-      <dt>{t("Integrated Armor", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated">
-          {#each item.integrated_armor as id}
-            <li><ThingLink {id} type="item" showIcon={false} /></li>
           {/each}
         </ul>
       </dd>
