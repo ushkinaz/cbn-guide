@@ -1,5 +1,5 @@
 export function formatPercent(prob: number): string {
-  return formatFixed2(prob * 100) + "%";
+  return Math.ceil(prob * 100).toFixed(0) + "%";
 }
 
 export function formatFixed2(v: number): string {
