@@ -5,6 +5,7 @@ import * as TJS from "ts-json-schema-generator";
 
 import { makeTestCBNData } from "../src/data.test-helpers";
 import type { ModData } from "../src/types";
+import { fileURLToPath } from "node:url";
 
 /**
  * Analyze which top-level properties declared in `SupportedTypes` are not
@@ -127,7 +128,7 @@ const ITEM_TYPE_NAMES = new Set([
 ]);
 
 const repoRoot = path.resolve(
-  path.dirname(new URL(import.meta.url).pathname),
+  path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
 const corePath = path.join(repoRoot, "_test/all.json");
@@ -420,27 +421,40 @@ function buildReport(): FinalReport {
         raw: 0,
         flattened: 0,
       };
+      const status =
+        pathCounts.raw > 0
+          ? "used_raw"
+          : pathCounts.flattened > 0
+            ? "flattened_only"
+            : "never_seen";
 
       return {
         path: declaredPath,
         declaredBy: ["ItemBasicInfo"],
         raw: pathCounts.raw,
         flattened: pathCounts.flattened,
-        status: "never_seen",
+        status,
       };
     })
-    .filter((entry) => entry.raw === 0 && entry.flattened === 0)
     .sort((left, right) => left.path.localeCompare(right.path));
 
-  perType.unshift({
+  const itemBasicInfoReport = {
     typeName: "ItemBasicInfo",
     objectCount: itemRawObjects.length,
-    declaredPathCount: itemBasicInfoEntries.length,
-    usedInRaw: 0,
-    usedOnlyAfterFlattening: 0,
-    neverObserved: itemBasicInfoEntries.length,
+    declaredPathCount: itemBasicInfoPaths.size,
+    usedInRaw: itemBasicInfoEntries.filter(
+      (entry) => entry.status === "used_raw",
+    ).length,
+    usedOnlyAfterFlattening: itemBasicInfoEntries.filter(
+      (entry) => entry.status === "flattened_only",
+    ).length,
+    neverObserved: itemBasicInfoEntries.filter(
+      (entry) => entry.status === "never_seen",
+    ).length,
     entries: itemBasicInfoEntries,
-  });
+  } satisfies TypeReport;
+
+  perType.unshift(itemBasicInfoReport);
 
   const totals = perType.reduce(
     (acc, typeReport) => {
@@ -451,7 +465,7 @@ function buildReport(): FinalReport {
       return acc;
     },
     {
-      supportedTypes: perType.length,
+      supportedTypes: typeNames.length,
       declaredPaths: 0,
       usedInRaw: 0,
       usedOnlyAfterFlattening: 0,
@@ -552,7 +566,11 @@ function parseArgs(argv: string[]): {
       continue;
     }
     if (arg === "--output") {
-      outputPath = argv[index + 1];
+      const candidate = argv[index + 1];
+      if (!candidate || candidate.startsWith("-")) {
+        throw new Error("`--output` requires a following output path.");
+      }
+      outputPath = candidate;
       index += 1;
     }
   }
