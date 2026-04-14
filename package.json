@@ -43,6 +43,7 @@
     "fetch:fixtures:nightly": "tsx scripts/fetch-fixtures.ts nightly",
     "fetch:builds": "tsx scripts/fetch-builds.ts",
     "fetch:icons": "tsx scripts/fetch-icons.ts",
+    "analyze:unused-type-properties": "tsx scripts/find-unused-type-properties.ts",
     "gen:mod-tests": "tsx scripts/gen-mod-tests.ts",
     "gen:css": "tsx scripts/gen-css.ts",
     "gen:sitemap": "tsx scripts/gen-sitemap.ts",
