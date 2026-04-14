@@ -41,6 +41,9 @@ import { fileURLToPath } from "node:url";
  *   quality
  * - `ItemBasicInfo` suppression is heuristic and tied to the explicit
  *   `ITEM_TYPE_NAMES` list below
+ * - the default human-readable output is intentionally filtered to only show
+ *   types with at least one `never_seen` property; use `--show-all` to include
+ *   clean sections too
  */
 type JSONSchema = TJS.Definition & {
   $ref?: string;
@@ -490,7 +493,7 @@ function buildReport(): FinalReport {
 /**
  * Render a human-readable Markdown report.
  */
-function formatSummary(report: FinalReport): string {
+function formatSummary(report: FinalReport, showAll: boolean): string {
   const lines: string[] = [];
 
   lines.push("# Unused SupportedTypes Property Report");
@@ -526,15 +529,19 @@ function formatSummary(report: FinalReport): string {
   lines.push(`- never seen: ${report.totals.neverObserved}`);
 
   for (const typeReport of report.perType) {
+    const neverSeen = typeReport.entries.filter(
+      (entry) => entry.status === "never_seen",
+    );
+    if (!showAll && neverSeen.length === 0) {
+      continue;
+    }
+
     lines.push("");
     lines.push(`## ${typeReport.typeName}`);
     lines.push(
       `objects=${typeReport.objectCount}, declared=${typeReport.declaredPathCount}, raw=${typeReport.usedInRaw}, flattened_only=${typeReport.usedOnlyAfterFlattening}, never_seen=${typeReport.neverObserved}`,
     );
 
-    const neverSeen = typeReport.entries.filter(
-      (entry) => entry.status === "never_seen",
-    );
     if (neverSeen.length === 0) {
       lines.push("- no never-seen declared paths");
       continue;
@@ -555,14 +562,20 @@ function formatSummary(report: FinalReport): string {
 function parseArgs(argv: string[]): {
   outputPath?: string;
   json: boolean;
+  showAll: boolean;
 } {
   let outputPath: string | undefined;
   let json = false;
+  let showAll = false;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--json") {
       json = true;
+      continue;
+    }
+    if (arg === "--show-all") {
+      showAll = true;
       continue;
     }
     if (arg === "--output") {
@@ -575,18 +588,18 @@ function parseArgs(argv: string[]): {
     }
   }
 
-  return { outputPath, json };
+  return { outputPath, json, showAll };
 }
 
 /**
  * Entry point for CLI execution.
  */
 function main(): void {
-  const { outputPath, json } = parseArgs(process.argv.slice(2));
+  const { outputPath, json, showAll } = parseArgs(process.argv.slice(2));
   const report = buildReport();
   const rendered = json
     ? JSON.stringify(report, null, 2)
-    : formatSummary(report);
+    : formatSummary(report, showAll);
 
   if (outputPath) {
     const absoluteOutputPath = path.resolve(process.cwd(), outputPath);
