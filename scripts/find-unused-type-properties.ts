@@ -70,6 +70,7 @@ type FinalReport = {
   perType: TypeReport[];
 };
 
+//TODO: use SUPPORTED_TYPE_KEYS
 const ITEM_TYPE_NAMES = new Set([
   "AMMO",
   "ARMOR",
@@ -233,14 +234,14 @@ function buildReport(): FinalReport {
     (entry): entry is Record<string, unknown> =>
       Boolean(entry) &&
       typeof entry === "object" &&
-      "type" in entry &&
+      "type" in entry! &&
       ITEM_TYPE_NAMES.has((entry as { type?: string }).type ?? ""),
   );
   const itemFlattenedObjects = flattenedCombined.filter(
     (entry): entry is Record<string, unknown> =>
       Boolean(entry) &&
       typeof entry === "object" &&
-      "type" in entry &&
+      "type" in entry! &&
       ITEM_TYPE_NAMES.has((entry as { type?: string }).type ?? ""),
   );
   const itemBasicInfoCounts = new Map<string, PathCounts>();
@@ -281,7 +282,7 @@ function buildReport(): FinalReport {
       (entry): entry is Record<string, unknown> =>
         Boolean(entry) &&
         typeof entry === "object" &&
-        "type" in entry &&
+        "type" in entry! &&
         (entry as { type?: unknown }).type === typeName,
     );
 
@@ -289,7 +290,7 @@ function buildReport(): FinalReport {
       (entry): entry is Record<string, unknown> =>
         Boolean(entry) &&
         typeof entry === "object" &&
-        "type" in entry &&
+        "type" in entry! &&
         (entry as { type?: unknown }).type === typeName,
     );
 
