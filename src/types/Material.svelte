@@ -72,13 +72,6 @@ let itemsWithMaterial = data
         <dd>{item.acid_resist ?? 0}</dd>
         <dt>{t("Heat", { _context: "Damage Type" })}</dt>
         <dd>{item.fire_resist ?? 0}</dd>
-
-        <dt>{t("Conductive", { _context })}</dt>
-        <dd>
-          {item.elec_resist === 0 || item.elec_resist === 1
-            ? t("Yes")
-            : t("No")}
-        </dd>
       </dl>
     </dd>
     <dt title="Resistance to physical damage of the item itself">
