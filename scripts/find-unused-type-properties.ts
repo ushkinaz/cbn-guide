@@ -6,6 +6,41 @@ import * as TJS from "ts-json-schema-generator";
 import { makeTestCBNData } from "../src/data.test-helpers";
 import type { ModData } from "../src/types";
 
+/**
+ * Analyze which top-level properties declared in `SupportedTypes` are not
+ * observed in the real fixture datasets.
+ *
+ * Purpose:
+ * - give a lightweight reality check for the JSON-facing type surface in
+ *   `src/types.ts`
+ * - find top-level properties that are declared but appear to be unused in
+ *   `_test/all.json` and `_test/all_mods.json`
+ * - treat `ItemBasicInfo` specially so shared item-base fields are reported
+ *   once, not repeated for every concrete item type
+ *
+ * Scope:
+ * - only top-level properties are analyzed
+ * - only `SupportedTypes` and `ItemBasicInfo` are considered
+ * - only the checked-in fixture data is considered, not upstream source trees
+ *   or runtime-fetched data
+ *
+ * Assumptions:
+ * - `ts-json-schema-generator` produces a sufficiently faithful schema for the
+ *   top-level shape of `SupportedTypes`
+ * - `_test/all.json` and `_test/all_mods.json` are representative enough to
+ *   use as a practical proxy for "real data"
+ * - flattening via `CBNData._flatten()` is a reasonable approximation of the
+ *   effective post-`copy-from` object shape
+ *
+ * Limitations:
+ * - this is intentionally shallow: nested paths are not reported
+ * - absence in fixtures is not proof that a property is invalid upstream; it
+ *   may simply be rare or missing from the current snapshot
+ * - the script reports presence/absence, not semantic correctness or value
+ *   quality
+ * - `ItemBasicInfo` suppression is heuristic and tied to the explicit
+ *   `ITEM_TYPE_NAMES` list below
+ */
 type JSONSchema = TJS.Definition & {
   $ref?: string;
   additionalProperties?: unknown;
@@ -102,10 +137,19 @@ function readJSON<T>(filePath: string): T {
   return JSON.parse(fs.readFileSync(filePath, "utf8")) as T;
 }
 
+/**
+ * Convert a JSON Schema local ref into a definition key name.
+ */
 function normalizeRef(ref: string): string {
   return ref.replace(/^#\/definitions\//, "");
 }
 
+/**
+ * Create a schema generator configured the same way as the schema tests.
+ *
+ * `additionalProperties: true` is deliberate: the script is only interested in
+ * whether declared keys are ever observed, not in rejecting extra keys.
+ */
 function createGenerator(): TJS.SchemaGenerator {
   return TJS.createGenerator({
     tsconfig: path.join(repoRoot, "tsconfig.json"),
@@ -113,6 +157,13 @@ function createGenerator(): TJS.SchemaGenerator {
   });
 }
 
+/**
+ * Collect the declared top-level property names for a schema node.
+ *
+ * The traversal resolves local `$ref`s and merges `allOf`/`anyOf`/`oneOf`
+ * branches, but it intentionally stops at the first object layer because this
+ * script is now scoped to top-level fields only.
+ */
 function collectDeclaredTopLevelPaths(
   schema: JSONSchema | undefined,
   definitions: Record<string, JSONSchema>,
@@ -158,6 +209,9 @@ function collectDeclaredTopLevelPaths(
   return output;
 }
 
+/**
+ * Return the top-level keys present on a concrete JSON object.
+ */
 function collectActualTopLevelPaths(value: unknown): Set<string> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return new Set();
@@ -165,6 +219,9 @@ function collectActualTopLevelPaths(value: unknown): Set<string> {
   return new Set(Object.keys(value));
 }
 
+/**
+ * Increment occurrence counts for a batch of observed keys.
+ */
 function incrementPathCounts(
   counts: Map<string, PathCounts>,
   paths: Set<string>,
@@ -177,6 +234,15 @@ function incrementPathCounts(
   }
 }
 
+/**
+ * Load the core and mod fixtures, then compute a flattened view of the combined
+ * dataset.
+ *
+ * Flattening is used to distinguish keys that are never authored from keys that
+ * only appear after inheritance. Warnings from `_flatten()` are muted here
+ * because they are data-quality noise for this report, not failures of the
+ * analysis itself.
+ */
 function loadFixtures(): {
   core: DataBlob;
   mods: Record<string, ModData>;
@@ -208,6 +274,14 @@ function loadFixtures(): {
   };
 }
 
+/**
+ * Build the full analysis report.
+ *
+ * Concrete item types have `ItemBasicInfo` fields removed from their individual
+ * reports. Those shared fields are then checked once across all item-like
+ * objects and reported under the synthetic `ItemBasicInfo` section only if they
+ * never occur at all.
+ */
 function buildReport(): FinalReport {
   const generator = createGenerator();
   const schema = generator.createSchema("SupportedTypes") as JSONSchema & {
@@ -399,6 +473,9 @@ function buildReport(): FinalReport {
   };
 }
 
+/**
+ * Render a human-readable Markdown report.
+ */
 function formatSummary(report: FinalReport): string {
   const lines: string[] = [];
 
@@ -458,6 +535,9 @@ function formatSummary(report: FinalReport): string {
   return lines.join("\n");
 }
 
+/**
+ * Parse a very small CLI surface.
+ */
 function parseArgs(argv: string[]): {
   outputPath?: string;
   json: boolean;
@@ -480,6 +560,9 @@ function parseArgs(argv: string[]): {
   return { outputPath, json };
 }
 
+/**
+ * Entry point for CLI execution.
+ */
 function main(): void {
   const { outputPath, json } = parseArgs(process.argv.slice(2));
   const report = buildReport();
