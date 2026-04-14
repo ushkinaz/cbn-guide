@@ -111,12 +111,6 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
         <TerFurnActivity act={item.oxytorch} resultType="furniture" />
       </dd>
     {/if}
-    {#if item.prying}
-      <dt><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
-      <dd>
-        <TerFurnActivity act={item.prying} resultType="furniture" />
-      </dd>
-    {/if}
     {#if deconstruct.length}
       <dt>{t("Deconstruct", { _context })}</dt>
       <dd>

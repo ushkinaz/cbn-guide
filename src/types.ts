@@ -883,7 +883,6 @@ export type Furniture = MapDataCommon & {
   oxytorch?: ActivityDataCommon & { result?: string };
   boltcut?: ActivityDataCommon & { result?: string };
   hacksaw?: ActivityDataCommon & { result?: string };
-  prying?: ActivityDataCommon & { result?: string };
 
   // TODO:
   // open
@@ -1765,8 +1764,6 @@ export type BodyPart = {
   main_part?: string;
   opposite_part?: string;
   bionic_slots?: integer;
-
-  flags?: string[];
 
   side?: "left" | "right" | "both";
 };
