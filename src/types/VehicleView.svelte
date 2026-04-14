@@ -49,12 +49,21 @@ const zForPart = (partId: string): number => {
 };
 
 const { minX, maxX, minY, maxY, finalGrid } = (() => {
+  const mountedParts = normalizeVehicleMountedParts(item);
+  if (mountedParts.length === 0) {
+    return {
+      minX: 0,
+      maxX: 0,
+      minY: 0,
+      maxY: 0,
+      finalGrid: [] as (VehicleMountedPartDefinition | undefined)[][],
+    };
+  }
+
   let minX = Infinity;
   let maxX = -Infinity;
   let minY = Infinity;
   let maxY = -Infinity;
-
-  const mountedParts = normalizeVehicleMountedParts(item);
   for (const part of mountedParts) {
     if (part.x < minX) minX = part.x;
     if (part.x > maxX) maxX = part.x;
