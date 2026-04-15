@@ -462,6 +462,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
 
 <div class="hide-header-if-no-sections">
   <h2>{t("Obtaining", { _context })}</h2>
+  <Recipes item_id={item.id} />
+  <DroppedBy item_id={item.id} />
+  <DissectedFrom item_id={item.id} />
   <Foraged item_id={item.id} />
   <GrownFrom item_id={item.id} />
   <BrewedFrom item_id={item.id} />
@@ -470,14 +473,11 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
   <SmokedFrom item_id={item.id} />
   <TransformedFrom item_id={item.id} />
   <Disassembly item_id={item.id} />
-  <DissectedFrom item_id={item.id} />
   <Salvaged item_id={item.id} />
-  <Recipes item_id={item.id} />
   <ConstructionByproduct item_id={item.id} />
   <Deconstruct item_id={item.id} />
   <Bash item_id={item.id} />
   <DisarmTrap item_id={item.id} />
-  <DroppedBy item_id={item.id} />
   <SpawnedIn item_id={item.id} />
   <SpawnedInVehicle item_id={item.id} />
 </div>
