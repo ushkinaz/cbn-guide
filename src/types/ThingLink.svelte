@@ -25,8 +25,8 @@ interface Props {
   type: keyof SupportedTypesWithMapped;
   id: string;
   plural?: boolean;
-  count?: number | [number, number] | undefined;
-  overrideText?: string | undefined;
+  count?: number | [number, number];
+  overrideText?: string;
   showIcon?: boolean;
   showText?: boolean;
   link?: boolean;
