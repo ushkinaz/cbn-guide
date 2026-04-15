@@ -51,7 +51,7 @@ describe("the loot section", () => {
     await new Promise((r) => setTimeout(r));
 
     expect(getByText(/fake place/)).toBeTruthy();
-    expect(getByText(/50.00%/)).toBeTruthy();
+    expect(getByText(/50%/)).toBeTruthy();
   });
   it("displays a composite chance", async () => {
     (globalThis as any).__isTesting__ = true;
@@ -93,6 +93,6 @@ describe("the loot section", () => {
     });
     await new Promise((r) => setTimeout(r));
 
-    expect(getByText(/75.00%/)).toBeTruthy();
+    expect(getByText(/75%/)).toBeTruthy();
   });
 });
