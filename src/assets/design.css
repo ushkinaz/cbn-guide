@@ -87,6 +87,12 @@ ul.no-bullets {
   list-style: none;
   padding: 0;
 }
+ul.no-bullets > li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15em;
+}
 ul.comma-separated {
   display: inline;
   word-spacing: -1em;
