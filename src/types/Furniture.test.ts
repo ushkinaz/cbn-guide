@@ -45,12 +45,22 @@ describe("Furniture", () => {
       item: data.byId("furniture", "f_coffin_c"),
     });
 
-    expect(getByText("Requires")).toBeTruthy();
-    expect(getByText("prying")).toBeTruthy();
-    expect(getByText("Difficulty")).toBeTruthy();
-    expect(getByText("7")).toBeTruthy();
-    expect(getByText("Becomes")).toBeTruthy();
-    expect(getByText("open coffin")).toBeTruthy();
+    const requiresDefinition = getByText("Requires").nextElementSibling;
+    const difficultyDefinition = getByText("Difficulty").nextElementSibling;
+    const becomesDefinition = getByText("Becomes").nextElementSibling;
+
+    expect(requiresDefinition).toBeTruthy();
+    expect(
+      within(requiresDefinition as HTMLElement).getByText("prying"),
+    ).toBeTruthy();
+    expect(difficultyDefinition).toBeTruthy();
+    expect(
+      within(difficultyDefinition as HTMLElement).getByText("7"),
+    ).toBeTruthy();
+    expect(becomesDefinition).toBeTruthy();
+    expect(
+      within(becomesDefinition as HTMLElement).getByText("open coffin"),
+    ).toBeTruthy();
     expect(queryByText("Duration")).toBeNull();
   });
 
