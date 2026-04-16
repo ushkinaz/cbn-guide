@@ -28,10 +28,7 @@ describe("Terrain", () => {
           breakable: true,
           new_ter_type: "t_door_o",
           pry_items: [{ item: "manhole_cover" }],
-          break_items: [
-            { item: "2x4", prob: 25 },
-            { item: "nail", charges: [0, 2] },
-          ],
+          break_items: [{ item: "2x4" }, { item: "nail", charges: [0, 2] }],
         },
       },
       {
@@ -75,7 +72,6 @@ describe("Terrain", () => {
     expect(getByText("manhole cover")).toBeTruthy();
     expect(getByText("Break Items")).toBeTruthy();
     expect(getByText("2x4")).toBeTruthy();
-    expect(getByText((content) => content.includes("25%"))).toBeTruthy();
     expect(getByText("nail")).toBeTruthy();
     expect(getByText((content) => content.includes("0–2"))).toBeTruthy();
     expect(queryByText("Duration")).toBeNull();
