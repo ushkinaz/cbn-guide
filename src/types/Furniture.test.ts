@@ -49,7 +49,7 @@ describe("Furniture", () => {
     expect(getByText("prying")).toBeTruthy();
     expect(getByText("Difficulty")).toBeTruthy();
     expect(getByText("7")).toBeTruthy();
-    expect(getByText("Result")).toBeTruthy();
+    expect(getByText("Becomes")).toBeTruthy();
     expect(getByText("open coffin")).toBeTruthy();
     expect(queryByText("Duration")).toBeNull();
   });

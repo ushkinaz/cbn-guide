@@ -32,7 +32,7 @@ const _comment = "activity (oxytorch, hacksaw, boltcut, etc.)";
   <dt>{t("Duration", { _context, _comment })}</dt>
   <dd>{activity.duration ?? "1 s"}</dd>
   {#if result}
-    <dt>{t("Result", { _context, _comment })}</dt>
+    <dt>{t("Becomes", { _context, _comment })}</dt>
     <dd>
       <ThingLink id={result} type={resultType} showIcon={false} />
     </dd>

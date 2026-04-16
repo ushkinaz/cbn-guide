@@ -86,7 +86,7 @@ const _comment = "prying";
   <dt>{t("Breakable", { _context, _comment })}</dt>
   <dd>{pry.breakable ? t("Yes") : t("No")}</dd>
   {#if result}
-    <dt>{t("Result", { _context, _comment })}</dt>
+    <dt>{t("Becomes", { _context, _comment })}</dt>
     <dd>
       <ThingLink id={result} type={resultType} showIcon={false} />
     </dd>
