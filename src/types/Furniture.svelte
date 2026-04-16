@@ -11,6 +11,7 @@ import FurnitureSpawnedIn from "./item/FurnitureSpawnedIn.svelte";
 import LimitedList from "../LimitedList.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
 import { gameSingular } from "../i18n/game-locale";
+import TerFurnPry from "./TerFurnPry.svelte";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
@@ -109,6 +110,12 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
       <dt><ThingLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
       <dd>
         <TerFurnActivity act={item.oxytorch} resultType="furniture" />
+      </dd>
+    {/if}
+    {#if item.pry}
+      <dt><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
+      <dd>
+        <TerFurnPry act={item.pry} resultType="furniture" />
       </dd>
     {/if}
     {#if deconstruct.length}

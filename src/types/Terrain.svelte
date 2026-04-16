@@ -11,6 +11,7 @@ import TerFurnActivity from "./TerFurnActivity.svelte";
 import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
 import { gameSingular } from "../i18n/game-locale";
+import TerFurnPry from "./TerFurnPry.svelte";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";
@@ -87,10 +88,10 @@ const deconstructions = data
         <TerFurnActivity act={item.oxytorch} resultType="terrain" />
       </dd>
     {/if}
-    {#if item.prying}
+    {#if item.pry}
       <dt><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
       <dd>
-        <TerFurnActivity act={item.prying} resultType="terrain" />
+        <TerFurnPry act={item.pry} resultType="terrain" />
       </dd>
     {/if}
     {#if deconstruct.length || item.deconstruct?.ter_set}

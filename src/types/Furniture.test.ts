@@ -8,6 +8,52 @@ import { makeTestCBNData } from "../data.test-helpers";
 import Furniture from "./Furniture.svelte";
 
 describe("Furniture", () => {
+  it("shows pry details from the real furniture pry data", () => {
+    const data = makeTestCBNData([
+      {
+        type: "tool_quality",
+        id: "PRY",
+        name: "prying",
+      },
+      {
+        type: "furniture",
+        id: "f_coffin_c",
+        name: "closed coffin",
+        description: "A sealed test coffin.",
+        move_cost_mod: 0,
+        required_str: 0,
+        pry: {
+          pry_quality: 1,
+          noise: 12,
+          difficulty: 7,
+          new_furn_type: "f_coffin_o",
+        },
+      },
+      {
+        type: "furniture",
+        id: "f_coffin_o",
+        name: "open coffin",
+        description: "The lid has yielded.",
+        move_cost_mod: 0,
+        required_str: 0,
+      },
+    ]);
+
+    const { getByText, queryByText } = render(WithData, {
+      Component: Furniture,
+      data,
+      item: data.byId("furniture", "f_coffin_c"),
+    });
+
+    expect(getByText("Requires")).toBeTruthy();
+    expect(getByText("prying")).toBeTruthy();
+    expect(getByText("Difficulty")).toBeTruthy();
+    expect(getByText("7")).toBeTruthy();
+    expect(getByText("Result")).toBeTruthy();
+    expect(getByText("open coffin")).toBeTruthy();
+    expect(queryByText("Duration")).toBeNull();
+  });
+
   it("shows furniture constructions from post_furniture", () => {
     const data = makeTestCBNData([
       {
