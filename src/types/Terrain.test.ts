@@ -54,6 +54,7 @@ describe("Terrain", () => {
         type: "item",
         id: "nail",
         name: "nail",
+        stackable: true,
       },
     ]);
 

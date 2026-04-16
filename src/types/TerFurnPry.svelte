@@ -1,16 +1,11 @@
 <script lang="ts">
 import { t } from "@transifex/native";
-import { formatPercent } from "../data";
-import type {
-  FurniturePryData,
-  ItemGroupEntry,
-  TerrainPryData,
-} from "src/types";
-import { untrack } from "svelte";
+import { CBNData } from "../data";
+import type { FurniturePryData, TerrainPryData } from "src/types";
+import { getContext, untrack } from "svelte";
 import ThingLink from "./ThingLink.svelte";
 
 type PryData = TerrainPryData | FurniturePryData;
-type PryItemEntry = ItemGroupEntry & { item: string };
 
 interface Props {
   act: PryData;
@@ -18,38 +13,22 @@ interface Props {
 }
 
 let { act, resultType }: Props = $props();
+const data = getContext<CBNData>("data");
 
 const pry = untrack(() => act);
 const result = untrack(() => visibleResult(act, resultType));
-const pryItems = untrack(() => (act.pry_items ?? []).filter(isItemEntry));
-const breakItems = untrack(() => (act.break_items ?? []).filter(isItemEntry));
-
-function isItemEntry(entry: ItemGroupEntry): entry is PryItemEntry {
-  return "item" in entry;
-}
-
-function formatAmount(
-  value?: number | [number, number],
-  hideOne = false,
-): string | undefined {
-  if (value == null) {
-    return undefined;
-  }
-  if (typeof value === "number") {
-    return hideOne && value === 1 ? undefined : String(value);
-  }
-  if (value[0] === value[1]) {
-    return hideOne && value[0] === 1 ? undefined : String(value[0]);
-  }
-  return `${value[0]}–${value[1]}`;
-}
-
-function formatProbability(prob?: number): string | undefined {
-  if (prob == null || prob === 1) {
-    return undefined;
-  }
-  return prob > 1 ? `${prob}%` : formatPercent(prob);
-}
+const pryItems = untrack(() =>
+  data.flattenItemGroup({
+    subtype: "collection",
+    entries: act.pry_items ?? [],
+  }),
+);
+const breakItems = untrack(() =>
+  data.flattenItemGroup({
+    subtype: "collection",
+    entries: act.break_items ?? [],
+  }),
+);
 
 function visibleResult(
   value: PryData,
@@ -96,14 +75,12 @@ const _comment = "prying";
     <dd>
       <ul class="comma-separated">
         {#each pryItems as entry}
-          {@const amount =
-            formatAmount(entry.count, true) ?? formatAmount(entry.charges)}
-          {@const probability = formatProbability(entry.prob)}
           <li>
             <ThingLink
-              id={entry.item}
+              id={entry.id}
               type="item"
-              showIcon={false} />{#if amount}&nbsp;({amount}){/if}{#if probability}&nbsp;({probability}){/if}
+              showIcon={false}
+              count={entry.count} />
           </li>
         {/each}
       </ul>
@@ -114,14 +91,12 @@ const _comment = "prying";
     <dd>
       <ul class="comma-separated">
         {#each breakItems as entry}
-          {@const amount =
-            formatAmount(entry.count, true) ?? formatAmount(entry.charges)}
-          {@const probability = formatProbability(entry.prob)}
           <li>
             <ThingLink
-              id={entry.item}
+              id={entry.id}
               type="item"
-              showIcon={false} />{#if amount}&nbsp;({amount}){/if}{#if probability}&nbsp;({probability}){/if}
+              showIcon={false}
+              count={entry.count} />
           </li>
         {/each}
       </ul>

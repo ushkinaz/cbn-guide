@@ -43,10 +43,7 @@ const _comment = "activity (oxytorch, hacksaw, boltcut, etc.)";
       <ul class="comma-separated">
         {#each activity.byproducts ?? [] as { item: i, count }}
           <li>
-            <ThingLink
-              id={i}
-              type="item"
-              showIcon={false} />{#if typeof count === "number"}&nbsp;({count}){:else if Array.isArray(count)}&nbsp;({count[0]}–{count[1]}){/if}
+            <ThingLink id={i} type="item" showIcon={false} {count} />
           </li>
         {/each}
       </ul>
