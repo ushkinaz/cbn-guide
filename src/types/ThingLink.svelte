@@ -128,11 +128,7 @@ let iconItem = $derived(
   {/if}
   {#if count != null}
     <span class="item-link__count">
-      {#if !countsByCharges(linkItem)}
-        {countToString(count)}
-      {:else}
-        ({countToString(count)})
-      {/if}
+      ({countToString(count)})
     </span>
   {/if}
   {#if showText && linkItem?.type === "mutation"}

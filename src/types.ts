@@ -792,18 +792,36 @@ export type ActivityDataCommon = {
     item: string; // item_id
     count?: number | [number, number];
   }[];
-  prying_data?: {
-    prying_nails?: boolean;
-    difficulty?: integer;
-    prying_level?: integer;
-    noisy?: boolean;
-    alarm?: boolean;
-    breakable?: boolean;
-    failure?: Translation;
-  };
-
+  result?: string;
   message?: Translation;
   sound?: Translation;
+};
+
+export type PryDataCommon = {
+  pry_quality?: integer; // default: -1
+  pry_bonus_mult?: integer; // default: 1
+  difficulty?: integer; // default: 1
+  noise?: integer; // default: 0
+  break_noise?: integer; // default: noise
+  alarm?: boolean; // default: false
+  breakable?: boolean; // default: false
+  pry_items?: ItemGroupEntry[];
+  break_items?: ItemGroupEntry[];
+  sound?: Translation;
+  break_sound?: Translation;
+  success_message?: Translation;
+  fail_message?: Translation;
+  break_message?: Translation;
+};
+
+export type TerrainPryData = PryDataCommon & {
+  new_ter_type?: string; // terrain_id, default: t_null
+  break_ter_type?: string; // terrain_id, default: t_null
+};
+
+export type FurniturePryData = PryDataCommon & {
+  new_furn_type?: string; // furniture_id, default: f_null
+  break_furn_type?: string; // furniture_id, default: f_null
 };
 
 export type MapDataCommon = {
@@ -849,10 +867,10 @@ export type Terrain = MapDataCommon & {
     | { type: "cardreader" }
     | { type: "effect_on_condition" };
 
-  oxytorch?: ActivityDataCommon & { result: string };
-  boltcut?: ActivityDataCommon & { result: string };
-  hacksaw?: ActivityDataCommon & { result: string };
-  prying?: ActivityDataCommon & { result: string };
+  oxytorch?: ActivityDataCommon;
+  boltcut?: ActivityDataCommon;
+  hacksaw?: ActivityDataCommon;
+  pry?: TerrainPryData;
 };
 
 export type Furniture = MapDataCommon & {
@@ -880,9 +898,10 @@ export type Furniture = MapDataCommon & {
   bash?: MapBashInfo;
   deconstruct?: MapDeconstructInfo;
 
-  oxytorch?: ActivityDataCommon & { result?: string };
-  boltcut?: ActivityDataCommon & { result?: string };
-  hacksaw?: ActivityDataCommon & { result?: string };
+  oxytorch?: ActivityDataCommon;
+  boltcut?: ActivityDataCommon;
+  hacksaw?: ActivityDataCommon;
+  pry?: FurniturePryData;
 
   // TODO:
   // open
