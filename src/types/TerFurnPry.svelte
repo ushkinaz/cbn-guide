@@ -36,12 +36,10 @@ function visibleResult(
   value: PryData,
   resultType: "terrain" | "furniture",
 ): string | undefined {
-  let result = undefined;
-  if (resultType === "terrain") {
-    result = "new_ter_type" in value ? value.new_ter_type : undefined;
-  } else if (resultType === "furniture") {
-    result = "new_furn_type" in value ? value.new_furn_type : undefined;
-  }
+  const result =
+    resultType === "terrain"
+      ? (value as TerrainPryData).new_ter_type
+      : (value as FurniturePryData).new_furn_type;
   if (result === (resultType === "terrain" ? "t_null" : "f_null")) {
     return undefined;
   }
@@ -52,12 +50,10 @@ function visibleBreakResult(
   value: PryData,
   resultType: "terrain" | "furniture",
 ): string | undefined {
-  let result = undefined;
-  if (resultType === "terrain") {
-    result = "new_ter_type" in value ? value.break_ter_type : undefined;
-  } else if (resultType === "furniture") {
-    result = "new_furn_type" in value ? value.break_furn_type : undefined;
-  }
+  const result =
+    resultType === "terrain"
+      ? (value as TerrainPryData).break_ter_type
+      : (value as FurniturePryData).break_furn_type;
   if (result === (resultType === "terrain" ? "t_null" : "f_null")) {
     return undefined;
   }
