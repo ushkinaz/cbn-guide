@@ -189,6 +189,6 @@ describe("Trap", () => {
     });
 
     expect(getByText("ration")).toBeTruthy();
-    expect(getByText("(6)")).toBeTruthy();
+    expect(getByText("x6")).toBeTruthy();
   });
 });
