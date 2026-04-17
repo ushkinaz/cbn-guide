@@ -413,6 +413,7 @@ export type UseFunction =
   | HandCrankUseFunction
   | HolsterUseFunction
   | ItemActionUseFunction
+  | LearnSpellUseFunction
   | MessageUseFunction
   | MulticookerUseFunction
   | MusicPlayerUseFunction
@@ -607,6 +608,11 @@ export type MessageUseFunction = {
   type: "message";
   name?: Translation;
   message: Translation;
+};
+
+export type LearnSpellUseFunction = {
+  type: "learn_spell";
+  spells: string[]; // spell_id
 };
 
 export type PocketDimensionUseFunction = {
