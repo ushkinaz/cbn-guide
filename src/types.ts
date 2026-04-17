@@ -682,7 +682,7 @@ export type ItemBasicInfo = {
     byproducts?: string[]; // item_id
   };
   ascii_picture?: string;
-  weapon_category?: string[]; // weapon_category_id
+  weapon_category?: string[] | string; // weapon_category_id
   use_action?:
     | string
     | UseFunction
