@@ -258,7 +258,7 @@ export type GunSlot = {
   ups_charges?: number; // int
   blackpowder_tolerance?: number; // int, default: 8
   min_cycle_recoil?: number; // int, default: 0
-  ammo_effects?: string[];
+  ammo_effects?: string | string[];
   ammo_to_fire?: number; // int, default: 1
 
   valid_mod_locations?: [string, number][]; // [gunmod_location, count]
