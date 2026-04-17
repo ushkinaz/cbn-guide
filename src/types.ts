@@ -409,6 +409,7 @@ export type UseFunction =
   | DelayedTransformUseFunction
   | DimensionTravelUseFunction
   | DnaEditorUseFunction
+  | FlowerpotPlantUseFunction
   | GpsDeviceUseFunction
   | HandCrankUseFunction
   | HolsterUseFunction
@@ -585,6 +586,17 @@ export type ConsumeDrugUseFunction = {
   vitamins?: ([string, integer] | [string, integer, integer])[];
 
   used_up_item?: string;
+};
+
+export type FlowerpotPlantUseFunction = {
+  type: "flowerpot_plant";
+  stages: string[];
+  growth_rate?: number;
+  fert_boost?: number;
+  harvest_mult?: number;
+  seeds_per_use?: integer | [integer, integer];
+  fert_per_use?: integer | [integer, integer];
+  terrain?: string[];
 };
 
 export type RepairItemUseFunction = {
