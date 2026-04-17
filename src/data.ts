@@ -874,6 +874,11 @@ export class CBNData {
       ret.parts = [...parentProps.parts, ...obj.parts];
     }
     for (const k of Object.keys(ret.relative ?? {})) {
+      if (k === "melee_damage" && ret.type === "MONSTER") {
+        // Monster melee_damage is loaded directly in BN, not via assign(), so
+        // relative modifiers do not apply.
+        continue;
+      }
       if (typeof ret.relative[k] === "number") {
         if (k === "weight") {
           ret[k] = (parseMass(ret[k]) ?? 0) + ret.relative[k];
@@ -906,6 +911,11 @@ export class CBNData {
     }
     delete ret.relative;
     for (const k of Object.keys(ret.proportional ?? {})) {
+      if (k === "melee_damage" && ret.type === "MONSTER") {
+        // Monster melee_damage is loaded directly in BN, not via assign(), so
+        // proportional modifiers do not apply.
+        continue;
+      }
       if (typeof ret.proportional[k] === "number") {
         if (k === "attack_cost" && !(k in ret)) ret[k] = 100;
         if (typeof ret[k] === "string") {

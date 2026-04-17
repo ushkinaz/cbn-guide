@@ -141,6 +141,24 @@ describe("DinoMod regressions", () => {
     ).toBe(true);
   });
 
+  test("unsupported monster melee_damage modifiers are ignored", () => {
+    const coreJSON = JSON.parse(
+      fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
+    );
+    const modsJSON = JSON.parse(
+      fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
+    ) as Record<string, { data: unknown[] }>;
+    const merged = [...coreJSON.data, ...modsJSON.DinoMod.data];
+    const loaded = makeTestCBNData(merged);
+
+    expect(
+      loaded.byId("monster", "mon_zosmoceratops_fungus").melee_damage,
+    ).toEqual([{ damage_type: "stab", amount: 15 }]);
+    expect(loaded.byId("monster", "mon_zriceratops_hulk").melee_damage).toEqual(
+      [{ damage_type: "stab", amount: 15 }],
+    );
+  });
+
   test("self copy-from overrides in DinoMod preserve base fields and apply extensions", () => {
     const coreJSON = JSON.parse(
       fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
