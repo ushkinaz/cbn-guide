@@ -1541,7 +1541,7 @@ export type Monster = {
   flags?: string[];
   harvest?: string; // harvest_id
   bodytype?: string;
-  species?: string[];
+  species?: string[] | string;
   speed?: number;
   melee_skill?: integer;
   melee_dice?: integer;
