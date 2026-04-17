@@ -92,78 +92,6 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
         </ul>
       </dd>
     {/if}
-    {#if item.boltcut}
-      <dt>
-        <ThingLink type="item_action" id="BOLTCUTTERS" showIcon={false} />
-      </dt>
-      <dd>
-        <TerFurnActivity act={item.boltcut} resultType="furniture" />
-      </dd>
-    {/if}
-    {#if item.hacksaw}
-      <dt><ThingLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
-      <dd>
-        <TerFurnActivity act={item.hacksaw} resultType="furniture" />
-      </dd>
-    {/if}
-    {#if item.oxytorch}
-      <dt><ThingLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
-      <dd>
-        <TerFurnActivity act={item.oxytorch} resultType="furniture" />
-      </dd>
-    {/if}
-    {#if item.pry}
-      <dt><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
-      <dd>
-        <TerFurnPry act={item.pry} resultType="furniture" />
-      </dd>
-    {/if}
-    {#if deconstruct.length}
-      <dt>{t("Deconstruct", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated">
-          <!-- prettier-ignore -->
-          {#each deconstruct as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
-              ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
-              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
-            {/each}
-        </ul>
-        {#if item.deconstruct?.furn_set}
-          {@const becomes = item.deconstruct.furn_set}
-          <dl>
-            <dt>{t("Becomes", { _context })}</dt>
-            <dd>
-              <ThingLink type="furniture" id={becomes} />
-            </dd>
-          </dl>
-        {/if}
-      </dd>
-    {/if}
-    {#if bash.length}
-      <dt>{t("Bash", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated">
-          <!-- prettier-ignore -->
-          {#each bash as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
-              ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
-              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
-            {/each}
-        </ul>
-        <dl>
-          <dt>{t("Strength Required", { _context })}</dt>
-          <dd>{item.bash?.str_min ?? 0}</dd>
-          {#if item.bash?.furn_set && item.bash?.furn_set !== "f_null"}
-            {@const becomes = item.bash.furn_set}
-            <dt>{t("Becomes", { _context })}</dt>
-            <dd>
-              <ThingLink type="furniture" id={becomes} />
-            </dd>
-          {/if}
-        </dl>
-      </dd>
-    {/if}
     <HarvestedTo {item} />
     <dt>{t("Flags")}</dt>
     <dd>
@@ -178,6 +106,97 @@ const pseudo_items: string[] = asArray(item.crafting_pseudo_item);
   </dl>
   <p style="color: var(--cata-color-gray)">{gameSingular(item.description)}</p>
 </section>
+
+<h2>{t("Dismantling")}</h2>
+{#if item.boltcut}
+  <section>
+    <h3>
+      <ThingLink type="item_action" id="BOLTCUTTERS" showIcon={false} />
+    </h3>
+    <TerFurnActivity act={item.boltcut} resultType="furniture" />
+  </section>
+{/if}
+{#if item.hacksaw}
+  <section>
+    <h3><ThingLink type="item_action" id="HACKSAW" showIcon={false} /></h3>
+    <TerFurnActivity act={item.hacksaw} resultType="furniture" />
+  </section>
+{/if}
+{#if item.oxytorch}
+  <section>
+    <h3><ThingLink type="item_action" id="OXYTORCH" showIcon={false} /></h3>
+    <TerFurnActivity act={item.oxytorch} resultType="furniture" />
+  </section>
+{/if}
+{#if item.pry}
+  <section>
+    <h3><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></h3>
+    <TerFurnPry act={item.pry} resultType="furniture" />
+  </section>
+{/if}
+{#if deconstruct.length}
+  <section>
+    <h3>{t("Deconstruct", { _context })}</h3>
+    <dl>
+      {#if item.deconstruct?.furn_set}
+        {@const becomes = item.deconstruct.furn_set}
+        <dt>{t("Becomes", { _context })}</dt>
+        <dd>
+          <ThingLink type="furniture" id={becomes} showIcon={true} />
+        </dd>
+      {/if}
+      <dt>{t("Salvage")}</dt>
+      <dd>
+        <ul class="no-bullets">
+          {#each deconstruct as { id, prob, count }}
+            <!--        TODO: fix this ugliness-->
+            <li>
+              <ThingLink
+                type="item"
+                {id}
+                showIcon={true}
+                {count} />{#if prob !== 1}{formatPercent(prob)}{/if}
+            </li>
+          {/each}
+        </ul>
+      </dd>
+    </dl>
+  </section>
+{/if}
+{#if bash.length}
+  <section>
+    <h3>{t("Bash", { _context })}</h3>
+    <dl>
+      {#if item.bash?.furn_set && item.bash?.furn_set !== "f_null"}
+        {@const becomes = item.bash.furn_set}
+        <dt>{t("Becomes", { _context })}</dt>
+        <dd>
+          <ThingLink type="furniture" id={becomes} showIcon={true} />
+        </dd>
+      {/if}
+      <dt>{t("Salvage")}</dt>
+      <dd>
+        <ul class="no-bullets">
+          {#each bash as { id, prob, count }}
+            <li>
+              <ThingLink
+                type="item"
+                {id}
+                showIcon={true}
+                {count} />{#if prob !== 1}({formatPercent(prob)}){/if}
+            </li>
+          {/each}
+        </ul>
+      </dd>
+      <dt>{t("Min Str", { _context })}</dt>
+      <dd>{item.bash?.str_min ?? 0}</dd>
+      {#if item.bash?.str_max}
+        <dt>{t("Max Str", { _context })}</dt>
+        <dd>{item.bash?.str_max ?? 0}</dd>
+      {/if}
+    </dl>
+  </section>
+{/if}
 
 {#if constructions.length}
   <h2>{t("Construction", { _context })}</h2>

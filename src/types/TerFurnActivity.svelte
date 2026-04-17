@@ -29,24 +29,24 @@ const _comment = "activity (oxytorch, hacksaw, boltcut, etc.)";
 </script>
 
 <dl>
-  <dt>{t("Duration", { _context, _comment })}</dt>
-  <dd>{activity.duration ?? "1 s"}</dd>
   {#if result}
     <dt>{t("Becomes", { _context, _comment })}</dt>
     <dd>
-      <ThingLink id={result} type={resultType} showIcon={false} />
+      <ThingLink id={result} type={resultType} showIcon={true} />
     </dd>
   {/if}
   {#if activity.byproducts}
     <dt>{t("Byproducts", { _context, _comment })}</dt>
     <dd>
-      <ul class="comma-separated">
+      <ul class="no-bullets">
         {#each activity.byproducts ?? [] as { item: i, count }}
           <li>
-            <ThingLink id={i} type="item" showIcon={false} {count} />
+            <ThingLink id={i} type="item" showIcon={true} {count} />
           </li>
         {/each}
       </ul>
     </dd>
   {/if}
+  <dt>{t("Duration", { _context, _comment })}</dt>
+  <dd>{activity.duration ?? "1 s"}</dd>
 </dl>

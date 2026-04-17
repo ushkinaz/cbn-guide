@@ -17,6 +17,8 @@ const data = getContext<CBNData>("data");
 
 const pry = untrack(() => act);
 const result = untrack(() => visibleResult(act, resultType));
+const brokeResult = untrack(() => visibleBreakResult(act, resultType));
+
 const pryItems = untrack(() =>
   data.flattenItemGroup({
     subtype: "collection",
@@ -46,31 +48,59 @@ function visibleResult(
   return result;
 }
 
+function visibleBreakResult(
+  value: PryData,
+  resultType: "terrain" | "furniture",
+): string | undefined {
+  let result = undefined;
+  if (resultType === "terrain") {
+    result = "new_ter_type" in value ? value.break_ter_type : undefined;
+  } else if (resultType === "furniture") {
+    result = "new_furn_type" in value ? value.break_furn_type : undefined;
+  }
+  if (result === (resultType === "terrain" ? "t_null" : "f_null")) {
+    return undefined;
+  }
+  return result;
+}
+
 const _context = "Terrain / Furniture";
 const _comment = "prying";
 </script>
 
 <dl>
-  <dt>{t("Difficulty", { _context, _comment })}</dt>
-  <dd>{pry.difficulty ?? 1}</dd>
+  {#if result}
+    <dt>{t("Becomes", { _context, _comment })}</dt>
+    <dd>
+      <ThingLink id={result} type={resultType} showIcon={true} />
+    </dd>
+  {/if}
   <dt>{t("Requires", { _context, _comment })}</dt>
   <dd>
     <ThingLink id="PRY" type="tool_quality" showIcon={false} />
     {pry.pry_quality ?? 0}
   </dd>
+  <dt>{t("Difficulty", { _context, _comment })}</dt>
+  <dd>{pry.difficulty ?? 1}</dd>
   <dt>{t("Alarm", { _context, _comment })}</dt>
   <dd>{pry.alarm ? t("Yes") : t("No")}</dd>
   <dt>{t("Noise", { _context, _comment })}</dt>
   <dd>{pry.noise ?? 0}</dd>
-  <dt>{t("Breakable", { _context, _comment })}</dt>
-  <dd>{pry.breakable ? t("Yes") : t("No")}</dd>
   {#if pry.breakable}
+    <dt>{t("Breakable", { _context, _comment })}</dt>
+    <dd>{pry.breakable ? t("Yes") : t("No")}</dd>
+    {#if brokeResult}
+      <dt>{t("Breaks into", { _context, _comment })}</dt>
+      <dd>
+        <ThingLink id={brokeResult} type={resultType} showIcon={true} />
+      </dd>
+    {/if}
     <dt>{t("Break noise", { _context, _comment })}</dt>
     <dd>{pry.break_noise ?? 0}</dd>
     {#if breakItems.length}
-      <dt>{t("Break Items", { _context, _comment })}</dt>
+      <dt>{t("Debris", { _context, _comment })}</dt>
       <dd>
-        <ul class="comma-separated">
+        <ul class="no-bullets">
           {#each breakItems as entry}
             <li>
               <ThingLink
@@ -87,7 +117,7 @@ const _comment = "prying";
   {#if pryItems.length}
     <dt>{t("Pry Items", { _context, _comment })}</dt>
     <dd>
-      <ul class="comma-separated">
+      <ul class="no-bullets">
         {#each pryItems as entry}
           <li>
             <ThingLink
@@ -98,12 +128,6 @@ const _comment = "prying";
           </li>
         {/each}
       </ul>
-    </dd>
-  {/if}
-  {#if result}
-    <dt>{t("Becomes", { _context, _comment })}</dt>
-    <dd>
-      <ThingLink id={result} type={resultType} showIcon={false} />
     </dd>
   {/if}
 </dl>

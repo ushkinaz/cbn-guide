@@ -70,7 +70,7 @@ describe("Terrain", () => {
     expect(getByText("open door")).toBeTruthy();
     expect(getByText("Pry Items")).toBeTruthy();
     expect(getByText("manhole cover")).toBeTruthy();
-    expect(getByText("Break Items")).toBeTruthy();
+    expect(getByText("Debris")).toBeTruthy();
     expect(getByText("2x4")).toBeTruthy();
     expect(getByText("nail")).toBeTruthy();
     expect(getByText((content) => content.includes("0–2"))).toBeTruthy();

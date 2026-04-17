@@ -92,7 +92,10 @@ if (construction.pre_flags)
         <ul class="comma-separated">
           {#each prerequisites as prerequisite}
             <li>
-              <ThingLink type={prerequisite.type} id={prerequisite.id} />
+              <ThingLink
+                type={prerequisite.type}
+                id={prerequisite.id}
+                showIcon={false} />
             </li>
           {/each}
         </ul>
@@ -129,7 +132,7 @@ if (construction.pre_flags)
         <ul class="comma-separated">
           {#each byproducts as { id, count }}
             <li>
-              <ThingLink type="item" {id} {count} />
+              <ThingLink type="item" {id} {count} showIcon={false} />
             </li>
           {/each}
         </ul>
@@ -149,7 +152,7 @@ if (construction.pre_flags)
                       'The furniture/terrain "created" by a deconstruction is...',
                   })}</em>
               {:else}
-                <ThingLink type={result.type} id={result.id} />
+                <ThingLink type={result.type} id={result.id} showIcon={false} />
               {/if}
             </li>
           {/each}

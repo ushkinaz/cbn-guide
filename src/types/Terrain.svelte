@@ -68,70 +68,6 @@ const deconstructions = data
         <ThingLink id={item.transforms_into} type="terrain" />
       </dd>
     {/if}
-    {#if item.boltcut}
-      <dt>
-        <ThingLink type="item_action" id="BOLTCUTTERS" showIcon={false} />
-      </dt>
-      <dd>
-        <TerFurnActivity act={item.boltcut} resultType="terrain" />
-      </dd>
-    {/if}
-    {#if item.hacksaw}
-      <dt><ThingLink type="item_action" id="HACKSAW" showIcon={false} /></dt>
-      <dd>
-        <TerFurnActivity act={item.hacksaw} resultType="terrain" />
-      </dd>
-    {/if}
-    {#if item.oxytorch}
-      <dt><ThingLink type="item_action" id="OXYTORCH" showIcon={false} /></dt>
-      <dd>
-        <TerFurnActivity act={item.oxytorch} resultType="terrain" />
-      </dd>
-    {/if}
-    {#if item.pry}
-      <dt><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></dt>
-      <dd>
-        <TerFurnPry act={item.pry} resultType="terrain" />
-      </dd>
-    {/if}
-    {#if deconstruct.length || item.deconstruct?.ter_set}
-      <dt>{t("Deconstruct", { _context })}</dt>
-      <dd>
-        {#if deconstruct.length}
-          <ul class="comma-separated">
-            <!-- prettier-ignore -->
-            {#each deconstruct as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
-              ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
-              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
-            {/each}
-          </ul>
-        {/if}
-        {#if item.deconstruct?.ter_set}
-          {@const becomes = item.deconstruct.ter_set}
-          <dl>
-            <dt>{t("Becomes", { _context })}</dt>
-            <dd>
-              <ThingLink type="terrain" id={becomes} />
-            </dd>
-          </dl>
-        {/if}
-      </dd>
-    {/if}
-    {#if bash.length}
-      <dt>{t("Bash", { _context })}</dt>
-      <dd>
-        <ul class="comma-separated">
-          <!-- prettier-ignore -->
-          {#each bash as {id, prob, count}}
-            <li><span style="white-space: nowrap"><ThingLink type="item" {id} showIcon={false} />{
-              ''}{#if count[0] === count[1]}{#if count[0] !== 1}&nbsp;({count[0]}){/if}{:else}&nbsp;({count[0]}–{count[1]}){/if}{
-              ''}{#if prob !== 1}&nbsp;({formatPercent(prob)}){/if}</span></li>
-            {/each}
-        </ul>
-      </dd>
-    {/if}
-    <HarvestedTo {item} />
     <dt>{t("Flags")}</dt>
     <dd>
       <ul class="comma-separated">
@@ -148,6 +84,91 @@ const deconstructions = data
   </p>
 </section>
 
+<h2>{t("Dismantling")}</h2>
+{#if item.boltcut}
+  <section>
+    <h3>
+      <ThingLink type="item_action" id="BOLTCUTTERS" showIcon={false} />
+    </h3>
+    <TerFurnActivity act={item.boltcut} resultType="terrain" />
+  </section>
+{/if}
+{#if item.hacksaw}
+  <section>
+    <h3><ThingLink type="item_action" id="HACKSAW" showIcon={false} /></h3>
+    <TerFurnActivity act={item.hacksaw} resultType="terrain" />
+  </section>
+{/if}
+{#if item.oxytorch}
+  <section>
+    <h3><ThingLink type="item_action" id="OXYTORCH" showIcon={false} /></h3>
+    <TerFurnActivity act={item.oxytorch} resultType="terrain" />
+  </section>
+{/if}
+{#if item.pry}
+  <section>
+    <h3><ThingLink type="item_action" id="CROWBAR" showIcon={false} /></h3>
+    <TerFurnPry act={item.pry} resultType="terrain" />
+  </section>
+{/if}
+{#if deconstruct.length || item.deconstruct?.ter_set}
+  <section>
+    <h3>{t("Deconstruct", { _context })}</h3>
+    <dl>
+      {#if item.deconstruct?.ter_set}
+        {@const becomes = item.deconstruct.ter_set}
+        <dt>{t("Becomes", { _context })}</dt>
+        <dd>
+          <ThingLink type="terrain" id={becomes} showIcon={true} />
+        </dd>
+      {/if}
+      {#if deconstruct.length}
+        <dt>{t("Salvage")}</dt>
+        <dd>
+          <ul class="no-bullets">
+            {#each deconstruct as { id, prob, count }}
+              <li>
+                <ThingLink
+                  type="item"
+                  {id}
+                  showIcon={true}
+                  {count} />{#if prob !== 1}({formatPercent(prob)}){/if}
+              </li>
+            {/each}
+          </ul>
+        </dd>
+      {/if}
+    </dl>
+  </section>
+{/if}
+{#if bash.length}
+  <section>
+    <h3>{t("Bash", { _context })}</h3>
+    <dl>
+      <dt>{t("Salvage")}</dt>
+      <dd>
+        <ul class="no-bullets">
+          {#each bash as { id, prob, count }}
+            <li>
+              <ThingLink
+                type="item"
+                {id}
+                showIcon={true}
+                {count} />{#if prob !== 1}({formatPercent(prob)}){/if}
+            </li>
+          {/each}
+        </ul>
+      </dd>
+      <dt>{t("Min Str", { _context })}</dt>
+      <dd>{item.bash?.str_min ?? 0}</dd>
+      {#if item.bash?.str_max}
+        <dt>{t("Max Str", { _context })}</dt>
+        <dd>{item.bash?.str_max ?? 0}</dd>
+      {/if}
+    </dl>
+  </section>
+{/if}
+<HarvestedTo {item} />
 {#if constructions.length}
   <h2>{t("Construction", { _context })}</h2>
   {#each constructions as construction}

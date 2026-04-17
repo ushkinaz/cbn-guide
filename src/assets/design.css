@@ -129,6 +129,7 @@ dl {
 }
 dt {
   text-align: right;
+  align-self: flex-start;
   font-weight: bold;
   color: var(--cata-color-gray);
 }
