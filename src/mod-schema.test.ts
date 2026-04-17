@@ -1,43 +1,11 @@
 import * as TJS from "ts-json-schema-generator";
 import * as fs from "fs";
-import * as util from "util";
-import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
 import { expect, test, describe } from "vitest";
 import { makeTestCBNData } from "./data.test-helpers";
 import type { ModData, ModInfo } from "./types";
 
 type ModsMap = Record<string, ModData>;
-
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toMatchSchema(validate: ValidateFunction): R;
-    }
-  }
-}
-
-expect.extend({
-  toMatchSchema(obj: any, schema: ValidateFunction) {
-    const valid = schema(obj);
-    const errors = schema.errors?.slice();
-    const filename = findFilename(obj);
-    return {
-      pass: valid,
-      message: () => {
-        const errorMessages =
-          errors
-            ?.map(
-              (e) =>
-                `${e.instancePath} ${e.message}, but was ${util.inspect(e.data)}`,
-            )
-            .join("\n") ?? "";
-
-        return (filename ? `[File: ${filename}]\n` : "") + errorMessages;
-      },
-    };
-  },
-});
 
 const program = TJS.createGenerator({
   tsconfig: __dirname + "/../tsconfig.json",
@@ -81,10 +49,6 @@ function getEntityId(entity: any): string | undefined {
   if (entity.id) return entity.id;
   if (entity.result) return entity.result;
   if (entity.om_terrain) return JSON.stringify(entity.om_terrain);
-}
-
-function findFilename(obj: any): string | undefined {
-  return typeof obj?.__filename === "string" ? obj.__filename : undefined;
 }
 
 function resolveDependencyChain(
