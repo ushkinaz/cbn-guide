@@ -1,4 +1,5 @@
 type integer = number;
+type length = number | string;
 type volume = number | string;
 type mass = number | string;
 type duration = number | string;
@@ -399,8 +400,8 @@ export type EngineSlot = {
 };
 
 export type WheelSlot = {
-  diameter?: integer;
-  width?: integer;
+  diameter?: length;
+  width?: length;
 };
 
 export type UseFunction =

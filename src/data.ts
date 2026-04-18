@@ -225,6 +225,10 @@ export function asKilograms(string: string | number): string {
   return formatKg(g);
 }
 
+export function asLength(length: string | number): string {
+  return typeof length === "number" ? `${length}"` : length;
+}
+
 /**
  * Central data store for the application.
  * Handles loading, indexing, and accessing game data.
