@@ -2,11 +2,9 @@ import { expect } from "vitest";
 import type { ValidateFunction } from "ajv";
 import util from "util";
 
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toMatchSchema(validate: ValidateFunction): R;
-    }
+declare module "vitest" {
+  interface Matchers<T = any> {
+    toMatchSchema(validate: ValidateFunction): T;
   }
 }
 
