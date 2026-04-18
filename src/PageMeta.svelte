@@ -5,7 +5,7 @@ import { gameSingular, gameSingularName } from "./i18n/game-locale";
 import { RUNNING_MODE } from "./utils/env";
 import { UI_GUIDE_NAME } from "./constants";
 import { buildURL } from "./routing.svelte";
-import { data } from "./data";
+import { data, normalizeDamageInstance } from "./data";
 import type {
   ArmorSlot,
   DamageInstance,
@@ -154,25 +154,18 @@ const formatQualities = (qualities?: [string, number][]): string | null => {
   return formatted.length > 0 ? formatted.join(", ") : null;
 };
 
-const primaryDamageUnit = (
-  damage?: DamageInstance | number,
-): DamageUnit | null => {
+const primaryDamageUnit = (damage?: DamageInstance): DamageUnit | null => {
   if (damage == null) return null;
-  if (typeof damage === "number") {
-    return {
-      damage_type: "bullet",
-      amount: damage,
-      armor_penetration: 0,
-    };
-  }
-  if (Array.isArray(damage)) return damage[0] ?? null;
+  const normalized = normalizeDamageInstance(damage)[0];
+  if (normalized) return normalized;
   if (
     typeof damage === "object" &&
-    "values" in damage &&
-    Array.isArray(damage.values)
-  )
-    return damage.values[0] ?? null;
-  if (typeof damage === "object") return damage as DamageUnit;
+    !Array.isArray(damage) &&
+    damage !== null &&
+    !("values" in damage)
+  ) {
+    return damage as DamageUnit;
+  }
   return null;
 };
 

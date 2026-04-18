@@ -1854,10 +1854,11 @@ export const countsByCharges = (item: any): boolean => {
 };
 
 export function normalizeDamageInstance(
-  damageInstance: DamageInstance | number | null | undefined,
+  damageInstance: DamageInstance | undefined,
 ): DamageUnit[] {
   if (typeof damageInstance === "number") {
-    return [{ damage_type: "bash", amount: damageInstance }];
+    // BN's legacy scalar damage_instance loader maps numeric values to DT_STAB.
+    return [{ damage_type: "stab", amount: damageInstance }];
   }
   if (!damageInstance || typeof damageInstance !== "object") {
     return [];
@@ -1993,6 +1994,9 @@ function applyProportionalDamageInstance(
 }
 
 export function cloneDamageInstance(di: DamageInstance): DamageInstance {
+  if (typeof di === "number") {
+    return di;
+  }
   if (Array.isArray(di)) {
     return di.map((u) => ({ ...u }));
   } else if ("values" in di) {

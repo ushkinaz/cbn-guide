@@ -235,7 +235,8 @@ export type DamageUnit = {
 export type DamageInstance =
   | DamageUnit[]
   | { values: DamageUnit[] }
-  | DamageUnit;
+  | DamageUnit
+  | number; // Legacy scalar form loaded by BN assign.cpp as DT_STAB.
 
 export type GunSlot = {
   skill: string; // skill_id

@@ -3,6 +3,14 @@ import { describe, expect, test } from "vitest";
 import { CBNData, data, normalizeDamageInstance } from "./data";
 import { makeTestCBNData } from "./data.test-helpers";
 
+describe("damage normalization", () => {
+  test("legacy scalar damage normalizes as stab damage", () => {
+    expect(normalizeDamageInstance(3)).toEqual([
+      { damage_type: "stab", amount: 3 },
+    ]);
+  });
+});
+
 describe("Mod merge ordering", () => {
   async function getLoadedData(): Promise<CBNData> {
     return await new Promise<CBNData>((resolve) => {
