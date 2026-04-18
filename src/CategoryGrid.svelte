@@ -254,10 +254,6 @@ img.category-icon {
   image-rendering: crisp-edges; /* Standard */
 }
 
-.category-card:hover .category-icon,
-.category-card:focus-visible .category-icon {
-}
-
 .label {
   z-index: 5;
   width: 100%;
