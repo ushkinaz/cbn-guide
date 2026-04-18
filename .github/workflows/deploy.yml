@@ -1,0 +1,49 @@
+name: Deploy
+permissions:
+  contents: read
+  deployments: write
+
+on:
+  push:
+    branches: [deploy]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24]
+
+    env:
+      TRANSIFEX_SECRET: ${{ secrets.TRANSIFEX_SECRET }}
+      TRANSIFEX_TOKEN: ${{ vars.TRANSIFEX_TOKEN }}
+      SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload Translation Strings
+        run: pnpm i18n:push
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=cbn-guide
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
