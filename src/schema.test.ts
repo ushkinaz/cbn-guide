@@ -65,7 +65,7 @@ const skipped = new Set<string>([]);
 for (const [type, cases] of groupedCases) {
   describe(`type: ${type}`, () => {
     test.each(cases)("id:%s schema match", (id, obj) => {
-      if (skipped.has(JSON.stringify(id))) {
+      if (skipped.has(id)) {
         return;
       }
       expect(obj).toMatchSchema(schemasByType.get(type)!);
