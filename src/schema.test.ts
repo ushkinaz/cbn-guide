@@ -38,35 +38,6 @@ const getEntityId = (x: any): string | undefined => {
   if (x.om_terrain) return JSON.stringify(x.om_terrain);
 };
 
-// const findFilename = (
-//   obj: any,
-//   parentMap: WeakMap<object, object | null>,
-// ): string | undefined => {
-//   let current: any = obj;
-//
-//   while (current) {
-//     if (current.__filename) return current.__filename;
-//     current = parentMap.get(current) || null; // Move up to parent
-//   }
-//   return undefined;
-// };
-//
-// // Create a parent tracking map before validation
-// const parentMap = new WeakMap<object, object | null>();
-//
-// const buildParentMap = (obj: any, parent: any = null) => {
-//   if (typeof obj !== "object" || obj === null) return;
-//   parentMap.set(obj, parent);
-//   for (const key in obj) {
-//     if (typeof obj[key] === "object" && obj[key] !== null) {
-//       buildParentMap(obj[key], obj);
-//     }
-//   }
-// };
-
-// Build parent-child relationships
-// buildParentMap(data.all());
-
 type TestCase = [id: string, obj: any];
 type TypeGroups = Map<string, TestCase[]>;
 

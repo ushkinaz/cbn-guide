@@ -44,17 +44,3 @@ expect.extend({
 function findFilename(obj: any): string | undefined {
   return typeof obj?.__filename === "string" ? obj.__filename : undefined;
 }
-
-//
-// const findFilename = (
-//   obj: any,
-//   parentMap: WeakMap<object, object | null>,
-// ): string | undefined => {
-//   let current: any = obj;
-//
-//   while (current) {
-//     if (current.__filename) return current.__filename;
-//     current = parentMap.get(current) || null; // Move up to parent
-//   }
-//   return undefined;
-// };
