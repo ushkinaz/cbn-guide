@@ -2,7 +2,7 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import { CBNData, normalizeUseAction, parseDuration } from "../data";
+import { CBNData, normalizeUseAction } from "../data";
 import LimitedList from "../LimitedList.svelte";
 
 import type {
@@ -13,6 +13,7 @@ import type {
 } from "../types";
 import ThingLink from "./ThingLink.svelte";
 import { gameSingular, gameSingularName } from "../i18n/game-locale";
+import { parseDuration } from "../utils/format";
 
 interface Props {
   item: Vitamin;

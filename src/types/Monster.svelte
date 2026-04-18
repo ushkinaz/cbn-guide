@@ -2,20 +2,15 @@
 import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 
-import {
-  asKilograms,
-  asLiters,
-  CBNData,
-  formatPercent,
-  normalizeDamageInstance,
-} from "../data";
+import { CBNData, normalizeDamageInstance } from "../data";
 import ThingLink from "./ThingLink.svelte";
 import type { Harvest, Monster } from "../types";
 import SpecialAttack from "./monster/SpecialAttack.svelte";
 import Spoiler from "../Spoiler.svelte";
 import ItemTable from "./item/ItemTable.svelte";
 import ItemSymbol from "./item/ItemSymbol.svelte";
-import { byName, gameSingular, gameSingularName } from "../i18n/game-locale";
+import { byName, gameSingular } from "../i18n/game-locale";
+import { formatMass, formatPercent, formatVolume } from "../utils/format";
 
 const _context = "Monster";
 interface Props {
@@ -394,9 +389,9 @@ for (const group of sortedGroups) {
           <dd>{[item.species ?? []].flat().join(", ")}</dd>
         {/if}
         <dt>{t("Volume")}</dt>
-        <dd>{asLiters(item.volume ?? 0)}</dd>
+        <dd>{formatVolume(item.volume ?? 0)}</dd>
         <dt>{t("Weight")}</dt>
-        <dd>{asKilograms(item.weight ?? 0)}</dd>
+        <dd>{formatMass(item.weight ?? 0)}</dd>
         {#if materials.length}
           <dt>{t("Material")}</dt>
           <dd>

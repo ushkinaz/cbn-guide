@@ -1,12 +1,5 @@
 import { describe, expect, test } from "vitest";
-import {
-  CBNData,
-  data,
-  parseDuration,
-  parseMass,
-  parseVolume,
-  omsName,
-} from "./data";
+import { CBNData, data, omsName } from "./data";
 import { makeTestCBNData } from "./data.test-helpers";
 import type { OvermapSpecial } from "./types";
 
@@ -270,43 +263,6 @@ test("nested", () => {
     { id: "bottle_plastic", count: [2, 2], prob: "0.90", expected: 1.8 },
     { id: "water_clean", count: [2, 7], prob: "0.90", expected: 4.05 },
   ]);
-});
-
-describe("Parsing units", () => {
-  test("parseVolume", () => {
-    expect(parseVolume(1)).toBe(250); //see legacy_volume_factor
-    expect(parseVolume("100 ml")).toBe(100);
-    expect(parseVolume("2 L")).toBe(2000);
-    expect(parseVolume("1 L 500 ml")).toBe(1500);
-    expect(parseVolume("83.33 ml")).toBe(83.33);
-    expect(parseVolume("0.5 L")).toBe(500);
-  });
-
-  test("parseMass", () => {
-    expect(parseMass(100)).toBe(100);
-    expect(parseMass("1 kg")).toBe(1000);
-    expect(parseMass("500 g")).toBe(500);
-    expect(parseMass("50 mg")).toBe(0.05);
-    expect(parseMass("1 kg 500 g")).toBe(1500);
-    expect(parseMass("1.5 kg")).toBe(1500);
-    expect(parseMass("0.5 g")).toBe(0.5);
-  });
-
-  test("parseDuration", () => {
-    expect(parseDuration(100)).toBe(1);
-    expect(parseDuration("1 turns")).toBe(1);
-    expect(parseDuration("10 s")).toBe(10);
-    expect(parseDuration("1 m")).toBe(60);
-    expect(parseDuration("1 h")).toBe(3600);
-    expect(parseDuration("1 d")).toBe(86400);
-    expect(parseDuration("1 day 12 hours")).toBe(86400 + 12 * 3600);
-    expect(parseDuration("1 h 7 m 30 s")).toBe(3600 + 7 * 60 + 30);
-    expect(parseDuration("+1 day -23 hours 50m")).toBe(110 * 60);
-    expect(parseDuration("1 turn 1 minutes 9 turns")).toBe(70);
-    expect(parseDuration("-10s")).toBe(-10);
-    expect(parseDuration("1.5 m")).toBe(90);
-    expect(parseDuration("0.5 h")).toBe(1800);
-  });
 });
 
 test("flattenItemGroup: deep nested groups", () => {

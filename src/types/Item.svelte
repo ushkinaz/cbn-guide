@@ -4,13 +4,7 @@ import LimitedList from "../LimitedList.svelte";
 import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
 
-import {
-  asKilograms,
-  asLiters,
-  CBNData,
-  normalizeUseAction,
-  parseVolume,
-} from "../data";
+import { CBNData, normalizeUseAction } from "../data";
 import type {
   Item,
   RequirementData,
@@ -53,6 +47,7 @@ import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
 import { i18n, gameSingular, gameSingularName } from "../i18n/game-locale";
+import { formatMass, formatVolume, parseVolume } from "../utils/format";
 
 interface Props {
   item: Item;
@@ -198,9 +193,9 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
           </dd>
         {/if}
         <dt>{t("Volume")}</dt>
-        <dd>{asLiters(normalizeStackVolume(item) ?? "1 ml")}</dd>
+        <dd>{formatVolume(normalizeStackVolume(item) ?? "1 ml")}</dd>
         <dt>{t("Weight")}</dt>
-        <dd>{asKilograms(item.weight ?? 0)}</dd>
+        <dd>{formatMass(item.weight ?? 0)}</dd>
 
         {#if weaponCategories.length}
           <dt>

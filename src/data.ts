@@ -44,8 +44,8 @@ import type {
   RequirementData,
   SupportedTypeMapped,
   SupportedTypesWithMapped,
-  Trap,
   Translation,
+  Trap,
   UseFunction,
   Vehicle,
   VehicleMountedPartDefinition,
@@ -56,20 +56,18 @@ import {
   lootByOMSAppearance,
   terrainByOMSAppearance,
 } from "./types/item/spawnLocations";
-import { cleanText, formatKg, formatL } from "./utils/format";
+import { cleanText, parseMass, parseVolume } from "./utils/format";
 import { yieldUntilIdle } from "./utils/idle";
 import { asArray } from "./utils/collections";
 import {
-  byName,
-  resetI18n,
-  gameSingularName,
   applyLocaleJSON,
+  byName,
+  gameSingularName,
+  resetI18n,
 } from "./i18n/game-locale";
 import { loadRawDataset } from "./data-loader";
 
 import { DEFAULT_LOCALE } from "./constants";
-
-export { formatKg, formatL, formatPercent } from "./utils/format";
 
 const typeMappings = new Map<string, keyof SupportedTypesWithMapped>([
   ["AMMO", "item"],
@@ -97,137 +95,7 @@ export const mapType = (
   type: keyof SupportedTypesWithMapped,
 ): keyof SupportedTypesWithMapped => typeMappings.get(type) ?? type;
 
-const VOLUME_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Z]+)/g;
-const VOLUME_UNIT_MAP: Record<string, number> = {
-  ml: 1,
-  L: 1000,
-};
-
-// Returns ml
-export function parseVolume(string: string | number): number {
-  if (typeof string === "undefined") return 0;
-  if (typeof string === "number") return string * 250;
-  let val = 0;
-  VOLUME_REGEX.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  while ((m = VOLUME_REGEX.exec(string))) {
-    const [_, numStr, unit] = m;
-    const unitVal = VOLUME_UNIT_MAP[unit];
-    if (unitVal !== undefined) {
-      val += parseFloat(numStr) * unitVal;
-    }
-  }
-  return val;
-}
-
-// with g as 1
-const massUnits: Record<string, number> = {
-  μg: 1e-6,
-  ug: 1e-6,
-  mcg: 1e-6,
-  mg: 1e-3,
-  g: 1,
-  kg: 1e3,
-};
-
-const MASS_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-zA-Zμ]+)/g;
-
-// Returns grams
-export function parseMass(string: string | number): number {
-  if (typeof string === "undefined") return 0;
-  if (typeof string === "number") return string;
-  let val = 0;
-  // Reset regex lastIndex for global regex reuse
-  MASS_REGEX.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  while ((m = MASS_REGEX.exec(string))) {
-    const [_, numStr, unit] = m;
-    const unitVal = massUnits[unit];
-    if (unitVal !== undefined) {
-      val += parseFloat(numStr) * unitVal;
-    }
-  }
-  return val;
-}
-
-const durationUnits: Record<string, number> = {
-  turns: 1,
-  turn: 1,
-  t: 1,
-  seconds: 1,
-  second: 1,
-  s: 1,
-  minutes: 60,
-  minute: 60,
-  m: 60,
-  hours: 3600,
-  hour: 3600,
-  h: 3600,
-  days: 86400,
-  day: 86400,
-  d: 86400,
-};
-
-const DURATION_REGEX = /([+-]?\d+(?:\.\d+)?)\s*([a-z]+)/g;
-
 const DIRECTION_SUFFIX_REGEX = /_(north|south|east|west)$/;
-
-// Returns seconds
-export function parseDuration(duration: string | number): number {
-  if (typeof duration === "undefined") return 0;
-  if (typeof duration === "number") return duration / 100;
-  let val = 0;
-  DURATION_REGEX.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  while ((m = DURATION_REGEX.exec(duration))) {
-    const [_, numStr, unit] = m;
-    const unitVal = durationUnits[unit];
-    if (unitVal !== undefined) {
-      val += parseFloat(numStr) * unitVal;
-    }
-  }
-  return val;
-}
-
-export function asMinutes(duration: string | number) {
-  const seconds = parseDuration(duration);
-  return `${Math.round(seconds / 60)} m`;
-}
-
-export function asHumanReadableDuration(duration: string | number) {
-  let seconds = parseDuration(duration);
-  let minutes = (seconds / 60) | 0;
-  seconds -= minutes * 60;
-  let hours = (minutes / 60) | 0;
-  minutes -= hours * 60;
-  let days = (hours / 24) | 0;
-  hours -= days * 24;
-  return (
-    [
-      [days, "d"],
-      [hours, "h"],
-      [minutes, "m"],
-      [seconds, "s"],
-    ] as [number, string][]
-  )
-    .filter(([n]) => n)
-    .map((x) => x.join(""))
-    .join(" ");
-}
-
-export function asLiters(string: string | number): string {
-  const ml = parseVolume(string);
-  return formatL(ml);
-}
-
-export function asKilograms(string: string | number): string {
-  const g = parseMass(string);
-  return formatKg(g);
-}
-
-export function asLength(length: string | number): string {
-  return typeof length === "number" ? `${length}"` : length;
-}
 
 /**
  * Central data store for the application.

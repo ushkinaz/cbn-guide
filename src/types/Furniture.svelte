@@ -1,5 +1,5 @@
 <script lang="ts">
-import { CBNData, formatPercent } from "../data";
+import { CBNData } from "../data";
 import type { Furniture } from "../types";
 import { getContext, untrack } from "svelte";
 import { asArray } from "../utils/collections";
@@ -12,6 +12,7 @@ import LimitedList from "../LimitedList.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
 import { gameSingular } from "../i18n/game-locale";
 import TerFurnPry from "./TerFurnPry.svelte";
+import { formatPercent } from "../utils/format";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";

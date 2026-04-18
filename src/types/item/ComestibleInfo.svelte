@@ -1,9 +1,9 @@
 <script lang="ts">
 import { getContext } from "svelte";
 
-import { CBNData, parseDuration } from "../../data";
+import { CBNData } from "../../data";
 import { t } from "@transifex/native";
-import { formatFixed2 } from "../../utils/format";
+import { formatFixed2, parseDuration } from "../../utils/format";
 import type { ComestibleSlot } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 

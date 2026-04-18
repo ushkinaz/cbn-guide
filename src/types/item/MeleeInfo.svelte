@@ -2,10 +2,11 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import { CBNData, parseMass, parseVolume } from "../../data";
+import { CBNData } from "../../data";
 import type { Item } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import { gameSingular } from "../../i18n/game-locale";
+import { parseMass, parseVolume } from "../../utils/format";
 
 let data = getContext<CBNData>("data");
 interface Props {
@@ -55,6 +56,10 @@ const to_hit: number =
     ? computeToHit(item.to_hit)
     : (item.to_hit ?? 0);
 
+/**
+ * See item::attack_cost() in the game code.
+ * @param item
+ */
 function attackTime(item: Item) {
   return Math.floor(
     65 +

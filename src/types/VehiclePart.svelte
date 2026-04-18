@@ -2,21 +2,20 @@
 import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 
-import {
-  asKilograms,
-  asLiters,
-  asMinutes,
-  CBNData,
-  normalizeVehicleMountedParts,
-  parseDuration,
-  formatPercent,
-} from "../data";
+import { CBNData, normalizeVehicleMountedParts } from "../data";
 import LimitedList from "../LimitedList.svelte";
 
 import type { ItemGroupData, VehiclePart } from "../types";
 import RequirementData from "./item/RequirementData.svelte";
 import ThingLink from "./ThingLink.svelte";
 import { gameSingular, gameSingularName } from "../i18n/game-locale";
+import {
+  formatMass,
+  formatVolume,
+  formatDurationMinutes,
+  parseDuration,
+  formatPercent,
+} from "../utils/format";
 
 const _context = "Vehicle Part";
 
@@ -90,7 +89,7 @@ vehiclesContainingPart.sort((a, b) =>
         : (item.location ?? t("none"))}
     </dd>
     <dt>{t("Weight")}</dt>
-    <dd>{asKilograms(data.byId("item", item.item).weight ?? 0)}</dd>
+    <dd>{formatMass(data.byId("item", item.item).weight ?? 0)}</dd>
     {#if item.fuel_options?.length}
       <dt>{t("Charge", { _context })}</dt>
       <dd>
@@ -120,11 +119,11 @@ vehiclesContainingPart.sort((a, b) =>
     {/if}
     {#if item.size}
       <dt>{t("Capacity", { _context })}</dt>
-      <dd>{asLiters(item.size)}</dd>
+      <dd>{formatVolume(item.size)}</dd>
     {/if}
     {#if item.folded_volume}
       <dt>{t("Folded Volume", { _context })}</dt>
-      <dd>{asLiters(item.folded_volume)}</dd>
+      <dd>{formatVolume(item.folded_volume)}</dd>
     {/if}
     {#if item.qualities?.length}
       <dt>{t("Qualities", { _context })}</dt>
@@ -254,7 +253,7 @@ vehiclesContainingPart.sort((a, b) =>
       </dt>
       <dd>
         {item.requirements?.removal?.time ??
-          asMinutes(
+          formatDurationMinutes(
             `${
               parseDuration(item.requirements?.install?.time ?? "1 hour") / 2
             } s`,

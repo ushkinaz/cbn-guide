@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
 
-import { CBNData, formatPercent } from "../data";
+import { CBNData } from "../data";
 import type { Terrain } from "../types";
 import Construction from "./Construction.svelte";
 import ThingLink from "./ThingLink.svelte";
@@ -12,6 +12,7 @@ import TerrainSpawnedIn from "./item/TerrainSpawnedIn.svelte";
 import HarvestedTo from "./item/HarvestedTo.svelte";
 import { gameSingular } from "../i18n/game-locale";
 import TerFurnPry from "./TerFurnPry.svelte";
+import { formatPercent } from "../utils/format";
 
 const data = getContext<CBNData>("data");
 const _context = "Terrain / Furniture";

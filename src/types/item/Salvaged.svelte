@@ -2,12 +2,13 @@
 import { t } from "@transifex/native";
 
 import { getContext, untrack } from "svelte";
-import { CBNData, parseMass } from "../../data";
+import { CBNData } from "../../data";
 import LimitedList from "../../LimitedList.svelte";
 import type { Item, Material } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 
 import { byName } from "../../i18n/game-locale";
+import { parseMass } from "../../utils/format";
 
 interface Props {
   item_id: string;
