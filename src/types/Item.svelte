@@ -43,11 +43,11 @@ import ToolInfo from "./item/ToolInfo.svelte";
 import TransformedFrom from "./item/TransformedFrom.svelte";
 import WheelInfo from "./item/WheelInfo.svelte";
 import UsageDescription from "./UsageDescription.svelte";
-import InterpolatedTranslation from "../InterpolatedTranslation.svelte";
 import SmokedFrom from "./item/SmokedFrom.svelte";
 import GunInfo from "./item/GunInfo.svelte";
-import { i18n, gameSingular, gameSingularName } from "../i18n/game-locale";
+import { gameSingular, gameSingularName } from "../i18n/game-locale";
 import { formatMass, formatVolume, parseVolume } from "../utils/format";
+import ToolQualityLink from "./ToolQualityLink.svelte";
 
 interface Props {
   item: Item;
@@ -256,26 +256,7 @@ function normalizeStackVolume(item: Item): (string | number) | undefined {
             <ul class="no-bullets">
               {#each qualities as { quality, level }}
                 <li>
-                  <InterpolatedTranslation
-                    str={i18n
-                      .gettext(
-                        "Has level <color_cyan>%1$d %2$s</color> quality",
-                        "{level}",
-                        "{quality}",
-                      )
-                      .replace(/\$[ds]|<\/?color[^>]*>/g, "")}
-                    slot0="level"
-                    slot1="quality">
-                    {#snippet _0()}
-                      <strong>{level}</strong>
-                    {/snippet}
-                    {#snippet _1()}
-                      <ThingLink
-                        type="tool_quality"
-                        id={quality.id}
-                        showIcon={false} />
-                    {/snippet}
-                  </InterpolatedTranslation>
+                  <ToolQualityLink id={quality.id} {level} />
                 </li>
               {/each}
             </ul>

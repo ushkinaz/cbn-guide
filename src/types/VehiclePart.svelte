@@ -16,6 +16,7 @@ import {
   parseDuration,
   formatPercent,
 } from "../utils/format";
+import ToolQualityLink from "./ToolQualityLink.svelte";
 
 const _context = "Vehicle Part";
 
@@ -131,10 +132,7 @@ vehiclesContainingPart.sort((a, b) =>
         <ul class="no-bullets">
           {#each item.qualities as [quality, level]}
             <li>
-              {t("Has level", { _context })}
-              {level ?? 1}
-              <ThingLink type="tool_quality" id={quality} showIcon={false} />
-              {t("quality.", { _context })}
+              <ToolQualityLink id={quality} {level} />
             </li>
           {/each}
         </ul>

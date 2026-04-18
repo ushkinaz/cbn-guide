@@ -9,6 +9,7 @@ import type { Recipe, RequirementData } from "../../types";
 import ThingLink from "../ThingLink.svelte";
 import { gameSingularName, i18n } from "../../i18n/game-locale";
 import { buildLinkTo } from "../../navigation.svelte";
+import ToolQualityLink from "../ToolQualityLink.svelte";
 
 interface Props {
   requirement: RequirementData & { using?: Recipe["using"] };
@@ -42,30 +43,16 @@ function furnLink(id: string): string {
 {#if qualities?.length || tools.length}
   <dt>{t("Tools Required", { _context })}</dt>
   <dd>
-    <ul>
+    <ul class="no-bullets">
       {#each qualities ?? [] as qualityChoices}
         <li>
           {#each qualityChoices as quality, i}
             {#if i !== 0}{" OR "}{/if}
-            <InterpolatedTranslation
-              str={i18n
-                ._n(
-                  "%1$d tool with %2$s of %3$d or more.",
-                  "%1$d tools with %2$s of %3$d or more.",
-                  quality.amount ?? 1,
-                  quality.amount ?? 1,
-                  "{tool_quality}",
-                  quality.level,
-                )
-                .replace(/\$./g, "")}
-              slot0="tool_quality">
-              {#snippet _0()}
-                <ThingLink
-                  type="tool_quality"
-                  id={quality.id}
-                  showIcon={false} />
-              {/snippet}
-            </InterpolatedTranslation>{/each}
+            <ToolQualityLink
+              id={quality.id}
+              count={quality.amount}
+              level={quality.level} />
+          {/each}
         </li>
       {/each}
       {#each tools as toolChoices}

@@ -4,6 +4,7 @@ import { CBNData } from "../data";
 import type { FurniturePryData, TerrainPryData } from "src/types";
 import { getContext, untrack } from "svelte";
 import ThingLink from "./ThingLink.svelte";
+import ToolQualityLink from "./ToolQualityLink.svelte";
 
 type PryData = TerrainPryData | FurniturePryData;
 
@@ -73,8 +74,7 @@ const _comment = "prying";
   {/if}
   <dt>{t("Requires", { _context, _comment })}</dt>
   <dd>
-    <ThingLink id="PRY" type="tool_quality" showIcon={false} />
-    {pry.pry_quality ?? 0}
+    <ToolQualityLink id="PRY" level={pry.pry_quality ?? 0} />
   </dd>
   <dt>{t("Difficulty", { _context, _comment })}</dt>
   <dd>{pry.difficulty ?? 1}</dd>
