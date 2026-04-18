@@ -235,7 +235,8 @@ export type DamageUnit = {
 export type DamageInstance =
   | DamageUnit[]
   | { values: DamageUnit[] }
-  | DamageUnit;
+  | DamageUnit
+  | number; // Legacy scalar form loaded by BN assign.cpp as DT_STAB.
 
 export type GunSlot = {
   skill: string; // skill_id
@@ -258,7 +259,7 @@ export type GunSlot = {
   ups_charges?: number; // int
   blackpowder_tolerance?: number; // int, default: 8
   min_cycle_recoil?: number; // int, default: 0
-  ammo_effects?: string[];
+  ammo_effects?: string | string[];
   ammo_to_fire?: number; // int, default: 1
 
   valid_mod_locations?: [string, number][]; // [gunmod_location, count]
@@ -330,7 +331,7 @@ export type ComestibleSlot = {
     | "none";
   addiction_potential?: integer; // default 0
   calories?: integer;
-  vitamins?: [string, integer][];
+  vitamins?: ([string, integer] | [string, integer, integer])[];
   rot_spawn?: string; // mongroup_id
   rot_spawn_chance?: integer; // default 10
 };
@@ -409,10 +410,12 @@ export type UseFunction =
   | DelayedTransformUseFunction
   | DimensionTravelUseFunction
   | DnaEditorUseFunction
+  | FlowerpotPlantUseFunction
   | GpsDeviceUseFunction
   | HandCrankUseFunction
   | HolsterUseFunction
   | ItemActionUseFunction
+  | LearnSpellUseFunction
   | MessageUseFunction
   | MulticookerUseFunction
   | MusicPlayerUseFunction
@@ -586,6 +589,17 @@ export type ConsumeDrugUseFunction = {
   used_up_item?: string;
 };
 
+export type FlowerpotPlantUseFunction = {
+  type: "flowerpot_plant";
+  stages: string[];
+  growth_rate?: number;
+  fert_boost?: number;
+  harvest_mult?: number;
+  seeds_per_use?: integer | [integer, integer];
+  fert_per_use?: integer | [integer, integer];
+  terrain?: string[];
+};
+
 export type RepairItemUseFunction = {
   type: "repair_item";
   item_action_type: string;
@@ -607,6 +621,11 @@ export type MessageUseFunction = {
   type: "message";
   name?: Translation;
   message: Translation;
+};
+
+export type LearnSpellUseFunction = {
+  type: "learn_spell";
+  spells: string[]; // spell_id
 };
 
 export type PocketDimensionUseFunction = {
@@ -682,7 +701,7 @@ export type ItemBasicInfo = {
     byproducts?: string[]; // item_id
   };
   ascii_picture?: string;
-  weapon_category?: string[]; // weapon_category_id
+  weapon_category?: string[] | string; // weapon_category_id
   use_action?:
     | string
     | UseFunction
@@ -1541,7 +1560,7 @@ export type Monster = {
   flags?: string[];
   harvest?: string; // harvest_id
   bodytype?: string;
-  species?: string[];
+  species?: string[] | string;
   speed?: number;
   melee_skill?: integer;
   melee_dice?: integer;

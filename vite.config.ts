@@ -255,7 +255,7 @@ export default defineConfig({
   // @ts-ignore
   test: {
     environment: "happy-dom",
-    setupFiles: ["src/test-setup.ts"],
+    setupFiles: ["src/test-setup.ts", "src/schema.test-matchers.ts"],
     execArgv: ["--max-old-space-size=3072"],
   },
 });

@@ -3,7 +3,7 @@ import { t } from "@transifex/native";
 
 import type { DamageUnit, GunSlot, Item } from "../../types";
 import ThingLink from "../ThingLink.svelte";
-import { CBNData } from "../../data";
+import { CBNData, normalizeDamageInstance } from "../../data";
 import { getContext, untrack } from "svelte";
 import GunAmmoInfo from "./GunAmmoInfo.svelte";
 
@@ -40,28 +40,7 @@ function extractRangedDamage(): DamageUnit {
     armor_penetration: 0,
   };
 
-  if (Array.isArray(gunProps.ranged_damage)) {
-    return gunProps.ranged_damage[0];
-  }
-
-  if (typeof gunProps.ranged_damage === "number") {
-    return {
-      amount: gunProps.ranged_damage,
-      damage_type: "bullet",
-      armor_penetration: 0,
-    };
-  }
-
-  if (
-    gunProps.ranged_damage &&
-    typeof gunProps.ranged_damage === "object" &&
-    "values" in gunProps.ranged_damage &&
-    Array.isArray(gunProps.ranged_damage.values)
-  ) {
-    return gunProps.ranged_damage.values[0];
-  }
-
-  return (gunProps.ranged_damage as DamageUnit) ?? defaultDamage;
+  return normalizeDamageInstance(gunProps.ranged_damage)[0] ?? defaultDamage;
 }
 
 const ranged_damage = extractRangedDamage();

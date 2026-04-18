@@ -874,6 +874,11 @@ export class CBNData {
       ret.parts = [...parentProps.parts, ...obj.parts];
     }
     for (const k of Object.keys(ret.relative ?? {})) {
+      if (k === "melee_damage" && ret.type === "MONSTER") {
+        // Monster melee_damage is loaded directly in BN, not via assign(), so
+        // relative modifiers do not apply.
+        continue;
+      }
       if (typeof ret.relative[k] === "number") {
         if (k === "weight") {
           ret[k] = (parseMass(ret[k]) ?? 0) + ret.relative[k];
@@ -906,6 +911,11 @@ export class CBNData {
     }
     delete ret.relative;
     for (const k of Object.keys(ret.proportional ?? {})) {
+      if (k === "melee_damage" && ret.type === "MONSTER") {
+        // Monster melee_damage is loaded directly in BN, not via assign(), so
+        // proportional modifiers do not apply.
+        continue;
+      }
       if (typeof ret.proportional[k] === "number") {
         if (k === "attack_cost" && !(k in ret)) ret[k] = 100;
         if (typeof ret[k] === "string") {
@@ -1844,10 +1854,11 @@ export const countsByCharges = (item: any): boolean => {
 };
 
 export function normalizeDamageInstance(
-  damageInstance: DamageInstance | number | null | undefined,
+  damageInstance: DamageInstance | undefined,
 ): DamageUnit[] {
   if (typeof damageInstance === "number") {
-    return [{ damage_type: "bash", amount: damageInstance }];
+    // BN's legacy scalar damage_instance loader maps numeric values to DT_STAB.
+    return [{ damage_type: "stab", amount: damageInstance }];
   }
   if (!damageInstance || typeof damageInstance !== "object") {
     return [];
@@ -1983,6 +1994,9 @@ function applyProportionalDamageInstance(
 }
 
 export function cloneDamageInstance(di: DamageInstance): DamageInstance {
+  if (typeof di === "number") {
+    return di;
+  }
   if (Array.isArray(di)) {
     return di.map((u) => ({ ...u }));
   } else if ("values" in di) {

@@ -1,40 +1,8 @@
 import * as TJS from "ts-json-schema-generator";
 import * as fs from "fs";
-import * as util from "util";
-import type { ValidateFunction } from "ajv";
 import Ajv from "ajv";
 import { makeTestCBNData } from "./data.test-helpers";
-import { expect, test } from "vitest";
-
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toMatchSchema(validate: ValidateFunction): R;
-    }
-  }
-}
-
-expect.extend({
-  toMatchSchema(obj: any, schema: ValidateFunction) {
-    const valid = schema(obj);
-    const errors = schema.errors?.slice();
-    const filename = findFilename(obj, parentMap);
-    return {
-      pass: valid,
-      message: () => {
-        const errorMessages =
-          errors
-            ?.map(
-              (e) =>
-                `${e.instancePath} ${e.message}, but was ${util.inspect(e.data)}`,
-            )
-            .join("\n") ?? "";
-
-        return (filename ? `[File: ${filename}]\n` : "") + errorMessages;
-      },
-    };
-  },
-});
+import { expect, describe, test } from "vitest";
 
 const program = TJS.createGenerator({
   tsconfig: __dirname + "/../tsconfig.json",
@@ -64,53 +32,43 @@ const schemasByType = new Map(
 const data = makeTestCBNData(
   JSON.parse(fs.readFileSync(__dirname + "/../_test/all.json", "utf8")).data,
 );
-const id = (x: any) => {
+const getEntityId = (x: any): string | undefined => {
   if (x.id) return x.id;
   if (x.result) return x.result;
   if (x.om_terrain) return JSON.stringify(x.om_terrain);
 };
 
-const findFilename = (
-  obj: any,
-  parentMap: WeakMap<object, object | null>,
-): string | undefined => {
-  let current: any = obj;
+type TestCase = [id: string, obj: any];
+type TypeGroups = Map<string, TestCase[]>;
 
-  while (current) {
-    if (current.__filename) return current.__filename;
-    current = parentMap.get(current) || null; // Move up to parent
-  }
-  return undefined;
-};
+function buildSchemaCases(): TypeGroups {
+  const groupedCases: TypeGroups = new Map();
 
-// Create a parent tracking map before validation
-const parentMap = new WeakMap<object, object | null>();
+  for (const entity of data.all()) {
+    const id = getEntityId(entity);
+    if (!id || !schemasByType.has(entity.type)) continue;
 
-const buildParentMap = (obj: any, parent: any = null) => {
-  if (typeof obj !== "object" || obj === null) return;
-  parentMap.set(obj, parent);
-  for (const key in obj) {
-    if (typeof obj[key] === "object" && obj[key] !== null) {
-      buildParentMap(obj[key], obj);
+    if (!groupedCases.has(entity.type)) {
+      groupedCases.set(entity.type, []);
     }
+
+    groupedCases.get(entity.type)!.push([id, data._flatten(entity)]);
   }
-};
 
-// Build parent-child relationships
-buildParentMap(data.all());
+  return groupedCases;
+}
 
-const all = data
-  .all()
-  .filter((x) => id(x))
-  .filter((x) => schemasByType.has(x.type))
-  .map((x, i) => [x.type, id(x) ?? i, data._flatten(x)]);
+const groupedCases = buildSchemaCases();
 
 const skipped = new Set<string>([]);
 
-test.each(all)("schema matches %s %s", (type, id, obj) => {
-  if (skipped.has(JSON.stringify(id))) {
-    //pending();
-    return;
-  }
-  expect(obj).toMatchSchema(schemasByType.get(type)!);
-});
+for (const [type, cases] of groupedCases) {
+  describe(`type: ${type}`, () => {
+    test.each(cases)("id:%s schema match", (id, obj) => {
+      if (skipped.has(id)) {
+        return;
+      }
+      expect(obj).toMatchSchema(schemasByType.get(type)!);
+    });
+  });
+}

@@ -3,6 +3,14 @@ import { describe, expect, test } from "vitest";
 import { CBNData, data, normalizeDamageInstance } from "./data";
 import { makeTestCBNData } from "./data.test-helpers";
 
+describe("damage normalization", () => {
+  test("legacy scalar damage normalizes as stab damage", () => {
+    expect(normalizeDamageInstance(3)).toEqual([
+      { damage_type: "stab", amount: 3 },
+    ]);
+  });
+});
+
 describe("Mod merge ordering", () => {
   async function getLoadedData(): Promise<CBNData> {
     return await new Promise<CBNData>((resolve) => {
@@ -139,6 +147,24 @@ describe("DinoMod regressions", () => {
           typeof unit.damage_type === "string",
       ),
     ).toBe(true);
+  });
+
+  test("unsupported monster melee_damage modifiers are ignored", () => {
+    const coreJSON = JSON.parse(
+      fs.readFileSync(__dirname + "/../_test/all.json", "utf8"),
+    );
+    const modsJSON = JSON.parse(
+      fs.readFileSync(__dirname + "/../_test/all_mods.json", "utf8"),
+    ) as Record<string, { data: unknown[] }>;
+    const merged = [...coreJSON.data, ...modsJSON.DinoMod.data];
+    const loaded = makeTestCBNData(merged);
+
+    expect(
+      loaded.byId("monster", "mon_zosmoceratops_fungus").melee_damage,
+    ).toEqual([{ damage_type: "stab", amount: 15 }]);
+    expect(loaded.byId("monster", "mon_zriceratops_hulk").melee_damage).toEqual(
+      [{ damage_type: "stab", amount: 15 }],
+    );
   });
 
   test("self copy-from overrides in DinoMod preserve base fields and apply extensions", () => {
