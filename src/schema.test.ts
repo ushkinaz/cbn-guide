@@ -2,7 +2,7 @@ import * as TJS from "ts-json-schema-generator";
 import * as fs from "fs";
 import Ajv from "ajv";
 import { makeTestCBNData } from "./data.test-helpers";
-import { expect, test } from "vitest";
+import { expect, describe, test } from "vitest";
 
 const program = TJS.createGenerator({
   tsconfig: __dirname + "/../tsconfig.json",
@@ -32,7 +32,7 @@ const schemasByType = new Map(
 const data = makeTestCBNData(
   JSON.parse(fs.readFileSync(__dirname + "/../_test/all.json", "utf8")).data,
 );
-const id = (x: any) => {
+const getEntityId = (x: any): string | undefined => {
   if (x.id) return x.id;
   if (x.result) return x.result;
   if (x.om_terrain) return JSON.stringify(x.om_terrain);
@@ -67,18 +67,37 @@ const id = (x: any) => {
 // Build parent-child relationships
 // buildParentMap(data.all());
 
-const all = data
-  .all()
-  .filter((x) => id(x))
-  .filter((x) => schemasByType.has(x.type))
-  .map((x, i) => [x.type, id(x) ?? i, data._flatten(x)]);
+type TestCase = [id: string, obj: any];
+type TypeGroups = Map<string, TestCase[]>;
+
+function buildSchemaCases(): TypeGroups {
+  const groupedCases: TypeGroups = new Map();
+
+  for (const entity of data.all()) {
+    const id = getEntityId(entity);
+    if (!id || !schemasByType.has(entity.type)) continue;
+
+    if (!groupedCases.has(entity.type)) {
+      groupedCases.set(entity.type, []);
+    }
+
+    groupedCases.get(entity.type)!.push([id, data._flatten(entity)]);
+  }
+
+  return groupedCases;
+}
+
+const groupedCases = buildSchemaCases();
 
 const skipped = new Set<string>([]);
 
-test.each(all)("schema matches %s %s", (type, id, obj) => {
-  if (skipped.has(JSON.stringify(id))) {
-    //pending();
-    return;
-  }
-  expect(obj).toMatchSchema(schemasByType.get(type)!);
-});
+for (const [type, cases] of groupedCases) {
+  describe(`type: ${type}`, () => {
+    test.each(cases)("id:%s schema match", (id, obj) => {
+      if (skipped.has(JSON.stringify(id))) {
+        return;
+      }
+      expect(obj).toMatchSchema(schemasByType.get(type)!);
+    });
+  });
+}
