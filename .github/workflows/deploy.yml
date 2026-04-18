@@ -17,6 +17,7 @@ jobs:
     env:
       TRANSIFEX_SECRET: ${{ secrets.TRANSIFEX_SECRET }}
       TRANSIFEX_TOKEN: ${{ vars.TRANSIFEX_TOKEN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       SENTRY_DSN: ${{ vars.SENTRY_DSN }}
 
     steps:
