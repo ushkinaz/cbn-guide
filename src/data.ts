@@ -126,7 +126,7 @@ export class CBNData {
   _abstractsByType: Map<string, Map<string, any>> = new Map();
   _overrides: Map<any, any> = new Map();
   _toolReplacements: Map<string, string[]> = new Map();
-  _craftingPseudoItems: Map<string, string> = new Map();
+  _craftingPseudoItems: Map<string, string[]> = new Map();
   _migrations: Map<string, string> = new Map();
   _flattenCache: Map<any, any> = new Map();
   _nestedMapgensById: Map<string, Mapgen[]> = new Map();
@@ -250,11 +250,13 @@ export class CBNData {
       }
 
       if (Object.hasOwnProperty.call(obj, "crafting_pseudo_item")) {
-        if (Array.isArray(obj.crafting_pseudo_item)) {
-          for (const pseudo_id of obj.crafting_pseudo_item) {
-            this._craftingPseudoItems.set(pseudo_id, obj.id);
+        for (const pseudoId of asArray(obj.crafting_pseudo_item)) {
+          if (!this._craftingPseudoItems.has(pseudoId)) {
+            this._craftingPseudoItems.set(pseudoId, []);
           }
-        } else this._craftingPseudoItems.set(obj.crafting_pseudo_item, obj.id);
+          const providers = this._craftingPseudoItems.get(pseudoId)!;
+          if (!providers.includes(obj.id)) providers.push(obj.id);
+        }
       }
 
       if (Object.hasOwnProperty.call(obj, "nested_mapgen_id")) {
@@ -523,8 +525,8 @@ export class CBNData {
     return this._toolReplacements.get(type) ?? [];
   }
 
-  craftingPseudoItem(id: string): string | undefined {
-    return this._craftingPseudoItems.get(id);
+  craftingPseudoItems(id: string): string[] {
+    return this._craftingPseudoItems.get(id) ?? [];
   }
 
   nestedMapgensById(id: string): Mapgen[] | undefined {

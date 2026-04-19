@@ -2,13 +2,11 @@
 import { t } from "@transifex/native";
 import { getContext, untrack } from "svelte";
 
-import InterpolatedTranslation from "../../InterpolatedTranslation.svelte";
 import { CBNData } from "../../data";
 
 import type { Recipe, RequirementData } from "../../types";
 import ThingLink from "../ThingLink.svelte";
-import { gameSingularName, i18n } from "../../i18n/game-locale";
-import { buildLinkTo } from "../../navigation.svelte";
+import { gameSingularName } from "../../i18n/game-locale";
 import ToolQualityLink from "../ToolQualityLink.svelte";
 
 interface Props {
@@ -31,19 +29,43 @@ let { tools, qualities } =
     ? data.normalizeRequirements(requirement)
     : data.normalizeRequirementsForDisassembly(requirement);
 
-function furnLink(id: string): string {
-  return buildLinkTo({
-    kind: "item",
-    type: "furniture",
-    id,
-  });
+type ExactToolChoice = {
+  id: string;
+  type: "furniture" | "item";
+  count: number;
+};
+
+function exactToolChoiceName(choice: ExactToolChoice): string {
+  return gameSingularName(data.byId(choice.type, choice.id));
+}
+
+function exactToolChoices(toolChoices: [string, number][]): ExactToolChoice[] {
+  const exactChoices: ExactToolChoice[] = [];
+
+  for (const [toolId, count] of toolChoices) {
+    const furnitureProviders = data
+      .craftingPseudoItems(toolId)
+      .map((id) => ({ id, type: "furniture" as const, count }));
+
+    if (furnitureProviders.length) exactChoices.push(...furnitureProviders);
+    else exactChoices.push({ id: toolId, type: "item", count });
+  }
+
+  exactChoices.sort(
+    (a, b) =>
+      exactToolChoiceName(a).localeCompare(exactToolChoiceName(b)) ||
+      a.type.localeCompare(b.type) ||
+      a.id.localeCompare(b.id),
+  );
+
+  return exactChoices;
 }
 </script>
 
 {#if qualities?.length || tools.length}
   <dt>{t("Tools Required", { _context })}</dt>
   <dd>
-    <ul class="no-bullets">
+    <ul>
       {#each qualities ?? [] as qualityChoices}
         <li>
           {#each qualityChoices as quality, i}
@@ -56,39 +78,24 @@ function furnLink(id: string): string {
         </li>
       {/each}
       {#each tools as toolChoices}
+        {@const tc = exactToolChoices(toolChoices)}
         <li>
-          {#each toolChoices as [toolId, count], i}
-            {#if i !== 0}{i18n.__(" OR ")}{/if}
-            {#if count <= 0}
-              {#if data.craftingPseudoItem(toolId)}
-                <a href={furnLink(data.craftingPseudoItem(toolId)!)}
-                  >{gameSingularName(data.byId("item", toolId))}</a>
-              {:else}
-                <ThingLink type="item" id={toolId} showIcon={false} />
-              {/if}
+          {#each tc as exactChoice, i}
+            {#if i !== 0}{" OR "}{/if}
+            {@const charges = exactChoice.count}
+            {#if charges <= 0}
+              <ThingLink
+                type={exactChoice.type}
+                id={exactChoice.id}
+                showIcon={false} />
             {:else}
-              <InterpolatedTranslation
-                str={i18n
-                  .dcnpgettext(
-                    null,
-                    "requirement",
-                    "%1$s (%2$d charge)",
-                    "%1$s (%2$d charges)",
-                    count,
-                    "{item}",
-                    count,
-                  )
-                  .replace(/\$./g, "")}
-                slot0="item">
-                {#snippet _0()}
-                  {#if data.craftingPseudoItem(toolId)}
-                    <a href={furnLink(data.craftingPseudoItem(toolId)!)}
-                      >{gameSingularName(data.byId("item", toolId))}</a>
-                  {:else}
-                    <ThingLink type="item" id={toolId} showIcon={false} />
-                  {/if}
-                {/snippet}
-              </InterpolatedTranslation>
+              <ThingLink
+                type={exactChoice.type}
+                id={exactChoice.id}
+                showIcon={false} />&nbsp;
+              {t("{charges} {charges, plural, =1 {charge} other {charges}}", {
+                charges,
+              })}
             {/if}
           {/each}
         </li>
