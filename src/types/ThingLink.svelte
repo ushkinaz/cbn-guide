@@ -155,4 +155,8 @@ let iconItem = $derived(
   min-width: 0;
   word-break: break-word;
 }
+
+.item-link__count {
+  font-variant-caps: all-small-caps;
+}
 </style>

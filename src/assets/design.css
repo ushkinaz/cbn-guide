@@ -110,7 +110,6 @@ ul.comma-separated > li:not(:last-child)::after {
 }
 ul.comma-separated.or > li:last-child:not(:first-child)::before {
   content: "or";
-  margin-left: 0.5em;
   margin-right: 0.5em;
   vertical-align: middle;
 }

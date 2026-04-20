@@ -2,6 +2,7 @@
 import { t } from "@transifex/native";
 import JSONView from "../JSONView.svelte";
 
+import RequirementsAndList from "./item/RequirementsAndList.svelte";
 import { getContext, untrack } from "svelte";
 import { CBNData } from "../data";
 import type { Construction, RequirementData } from "../types";
@@ -12,7 +13,8 @@ import {
 } from "./construction";
 import ThingLink from "./ThingLink.svelte";
 import RequirementDataTools from "./item/RequirementDataTools.svelte";
-import { i18n, gameSingular, gameSingularName } from "../i18n/game-locale";
+import { gameSingular, gameSingularName } from "../i18n/game-locale";
+import RequirementsOrList from "./item/RequirementsOrList.svelte";
 
 const data = getContext<CBNData>("data");
 const _context = "Construction";
@@ -61,6 +63,17 @@ if (construction.pre_flags)
       preFlags.push({ flag });
     } else preFlags.push(flag);
   }
+
+function sortComponentChoices(
+  componentChoices: { id: string; count: number }[],
+): { id: string; count: number }[] {
+  return [...componentChoices].sort(
+    (a, b) =>
+      gameSingularName(data.byId("item", a.id)).localeCompare(
+        gameSingularName(data.byId("item", b.id)),
+      ) || a.id.localeCompare(b.id),
+  );
+}
 </script>
 
 <section>
@@ -73,9 +86,13 @@ if (construction.pre_flags)
     <dt>{t("Required Skills")}</dt>
     <dd>
       {#if construction.required_skills?.length}
-        {#each construction.required_skills as [id, level], i}
-          <ThingLink type="skill" {id} showIcon={false} /> ({level}){#if i + 2 === construction.required_skills?.length}{" and "}{:else if i + 1 !== construction.required_skills?.length}{", "}{/if}
-        {/each}
+        <RequirementsAndList
+          items={construction.required_skills}
+          horizontal={true}>
+          {#snippet children({ item: [id, level] })}
+            <ThingLink type="skill" {id} showIcon={false} /> ({level})
+          {/snippet}
+        </RequirementsAndList>
       {:else}
         {t("none")}
       {/if}
@@ -115,15 +132,22 @@ if (construction.pre_flags)
     {#if components.length}
       <dt>{t("Components", { _context: "Requirement" })}</dt>
       <dd>
-        <ul class="no-bullets">
-          {#each components as componentChoices}
-            <li>
-              {#each componentChoices.map( (c) => ({ ...c, item: data.byId("item", c.id) }), ) as { id, count }, i}
-                {#if i !== 0}{i18n.__(" OR ")}{/if}
-                <ThingLink {id} {count} type="item" showIcon={false} />
-              {/each}
-            </li>{/each}
-        </ul>
+        <RequirementsAndList items={components}>
+          {#snippet children({ item: componentChoices })}
+            {@const sortedChoices = sortComponentChoices(componentChoices)}
+            <RequirementsOrList
+              items={sortedChoices}
+              hideLabelWhenSingle={true}>
+              {#snippet children({ item: component })}
+                <ThingLink
+                  id={component.id}
+                  count={component.count}
+                  type="item"
+                  showIcon={false} />
+              {/snippet}
+            </RequirementsOrList>
+          {/snippet}
+        </RequirementsAndList>
       </dd>
     {/if}
     {#if byproducts.length}
