@@ -12,6 +12,14 @@ import { notify } from "./Notification.svelte";
 import { bootstrapApplication } from "./navigation.svelte";
 import { buildURL, navigateToURL } from "./routing.svelte";
 
+/**
+ * Sentry.io will ignore errors here.
+ */
+const KNOWN_ERRORS = [
+  /^Failed to register a ServiceWorker for scope/,
+  /sw\.js load failed/,
+];
+
 tx.init({
   token: __TRANSIFEX_TOKEN__,
 });
@@ -38,6 +46,7 @@ if (isProd) {
     sendDefaultPii: true,
     environment: __DEPLOY_ENV__,
     skipBrowserExtensionCheck: true,
+    ignoreErrors: KNOWN_ERRORS,
   });
 }
 
