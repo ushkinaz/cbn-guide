@@ -80,7 +80,7 @@
     "prettier-plugin-svelte": "^3.5.1",
     "puppeteer": "^24.40.0",
     "sharp": "^0.33.5",
-    "svelte": "^5.55.2",
+    "svelte": "^5.55.4",
     "svelte-check": "^4.4.6",
     "ts-json-schema-generator": "^2.9.0",
     "tsx": "^4.21.0",
