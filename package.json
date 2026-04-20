@@ -66,7 +66,7 @@
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/svelte": "^5.3.1",
-    "@transifex/cli": "^7.1.5",
+    "@transifex/cli": "^7.1.6",
     "@tsconfig/svelte": "^5.0.8",
     "@types/gettext.js": "^2.0.0",
     "@types/node": "^24.10.15",
@@ -94,7 +94,7 @@
   "dependencies": {
     "@sentry/browser": "^10.47.0",
     "@sentry/vite-plugin": "^5.2.0",
-    "@transifex/native": "^7.1.5",
+    "@transifex/native": "^7.1.6",
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",
     "workbox-window": "^7.4.0",
@@ -105,11 +105,7 @@
   },
   "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be",
   "pnpm": {
-    "overrides": {
-      "axios": "^1.15.0",
-      "follow-redirects": "^1.16.0",
-      "basic-ftp": "^5.2.1"
-    }
+    "overrides": {}
   },
   "devEngines": {
     "runtime": {

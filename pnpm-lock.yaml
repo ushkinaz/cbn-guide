@@ -4,11 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  axios: ^1.15.0
-  follow-redirects: ^1.16.0
-  basic-ftp: ^5.2.1
-
 importers:
 
   .:
@@ -20,8 +15,8 @@ importers:
         specifier: ^5.2.0
         version: 5.2.0(encoding@0.1.13)(rollup@2.80.0)
       '@transifex/native':
-        specifier: ^7.1.5
-        version: 7.1.5(encoding@0.1.13)
+        specifier: ^7.1.6
+        version: 7.1.6(encoding@0.1.13)
       fuzzysort:
         specifier: ^3.1.0
         version: 3.1.0
@@ -54,8 +49,8 @@ importers:
         specifier: ^5.3.1
         version: 5.3.1(svelte@5.55.2)(vite@7.3.2(@types/node@24.10.15)(jiti@2.6.1)(terser@5.45.0)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.1.3(@types/node@24.10.15)(happy-dom@20.8.9)(jsdom@26.1.0)(vite@7.3.2(@types/node@24.10.15)(jiti@2.6.1)(terser@5.45.0)(tsx@4.21.0)(yaml@2.8.2)))
       '@transifex/cli':
-        specifier: ^7.1.5
-        version: 7.1.5(encoding@0.1.13)
+        specifier: ^7.1.6
+        version: 7.1.6(encoding@0.1.13)
       '@tsconfig/svelte':
         specifier: ^5.0.8
         version: 5.0.8
@@ -1690,13 +1685,13 @@ packages:
   '@tootallnate/quickjs-emscripten@0.23.0':
     resolution: {integrity: sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==}
 
-  '@transifex/cli@7.1.5':
-    resolution: {integrity: sha512-ViBO+Yricm9DyzCFuOpNvKsWTbj91TsPSdoDLOoCMpgc3Q1Pt6KfScFRF15ie0K8yM915q++yH+SuPVwNGa7Sg==}
+  '@transifex/cli@7.1.6':
+    resolution: {integrity: sha512-bUGJ/YIHi1XcfiPVUMlQZBDpbPu9YKjsoxlkg1mUJggkAvTeHfDS0RGIXfmUsfY/p9Z0GpyPWc6qB9rO1R8R6g==}
     engines: {node: '>=16.0.0'}
     hasBin: true
 
-  '@transifex/native@7.1.5':
-    resolution: {integrity: sha512-W/5opTTjlVAgniiRz4cN+86VaUApbzCsCGzJVDPw2PBG594GFzx38s4L5OBwMDIM5Ns0xhxtrEfJWju7/jNzDA==}
+  '@transifex/native@7.1.6':
+    resolution: {integrity: sha512-bFbwAwCZ4fEkl5F1tl42Tko/Yk+TPRbHOUrvV72D9PD5IPZBy1GZp1el4QL4zka4QvG/WNk6sF5kewZ/92WBxw==}
     engines: {node: '>=16.0.0'}
 
   '@tsconfig/svelte@5.0.8':
@@ -5917,13 +5912,13 @@ snapshots:
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
 
-  '@transifex/cli@7.1.5(encoding@0.1.13)':
+  '@transifex/cli@7.1.6(encoding@0.1.13)':
     dependencies:
       '@babel/parser': 7.28.6
       '@babel/traverse': 7.29.0
       '@colors/colors': 1.6.0
       '@oclif/core': 1.26.2
-      '@transifex/native': 7.1.5(encoding@0.1.13)
+      '@transifex/native': 7.1.6(encoding@0.1.13)
       '@vue/compiler-sfc': 3.5.26
       angular-html-parser: 1.8.0
       axios: 1.15.0
@@ -5936,7 +5931,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@transifex/native@7.1.5(encoding@0.1.13)':
+  '@transifex/native@7.1.6(encoding@0.1.13)':
     dependencies:
       cross-fetch: 4.1.0(encoding@0.1.13)
       intl-messageformat: 10.7.18
