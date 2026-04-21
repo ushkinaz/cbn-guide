@@ -122,8 +122,9 @@ let rows = $derived.by((): RequirementChoiceRow[] => [
                 <ThingLink type={choice.type} id={choice.id} showIcon={false} />
               {:else}
                 <ThingLink type={choice.type} id={choice.id} showIcon={false} />
-                {charges}
-                {t("charges")}
+                {t("{charges} {charges, plural, =1 {charge} other {charges}}", {
+                  charges,
+                })}
               {/if}
             {/if}
           {/snippet}
