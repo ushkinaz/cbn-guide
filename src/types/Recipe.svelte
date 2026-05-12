@@ -100,8 +100,11 @@ writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
     <dt>{t("Primary Skill", { _context })}</dt>
     <dd>
       {#if recipe.skill_used}
-        <ThingLink type="skill" id={recipe.skill_used} showIcon={false} /> ({recipe.difficulty ??
-          0})
+        <ThingLink
+          type="skill"
+          id={recipe.skill_used}
+          showIcon={false}
+          level={recipe.difficulty ?? 0} />
       {:else}
         {t("none")}
       {/if}
@@ -110,7 +113,11 @@ writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
       <dt>{t("Other Skills", { _context })}</dt>
       <dd>
         {#each skillsRequired as [skill, level], i}
-          <ThingLink type="skill" id={skill} showIcon={false} /> ({level}){#if i === skillsRequired.length - 2}{" and "}{:else if i !== skillsRequired.length - 1}{", "}{/if}
+          <ThingLink
+            type="skill"
+            id={skill}
+            showIcon={false}
+            {level} />{#if i === skillsRequired.length - 2}{" and "}{:else if i !== skillsRequired.length - 1}{", "}{/if}
         {:else}
           {t("none")}
         {/each}
@@ -160,18 +167,20 @@ writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
         <ul class="comma-separated">
           {#if Array.isArray(recipe.autolearn)}
             {#each recipe.autolearn as [skill, level]}
-              <li><ThingLink type="skill" id={skill} showIcon={false} /> ({level})</li>
+              <li><ThingLink type="skill" id={skill} showIcon={false} level={level}/></li>
             {/each}
           {:else}
             {#if recipe.skill_used}
               <li>
-                <ThingLink type="skill" id={recipe.skill_used} showIcon={false} /> ({recipe.difficulty ??
-                  0})
+                <ThingLink
+                  type="skill"
+                  id={recipe.skill_used}
+                  showIcon={false} level={recipe.difficulty ?? 0}/>
               </li>
             {/if}
             {#if skillsRequired.length}
               {#each skillsRequired as [skill, level]}
-                <li><ThingLink type="skill" id={skill} showIcon={false} /> ({level})</li>
+                <li><ThingLink type="skill" id={skill} showIcon={false} level={level}/></li>
               {/each}
             {/if}
             {#if !recipe.skill_used && !skillsRequired.length}
@@ -194,7 +203,7 @@ writtenIn.sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0));
         <ul class="comma-separated">
           {#each writtenIn as [item_id, level = 0]}
             <!-- prettier-ignore -->
-            <li><span style="white-space: nowrap"><ThingLink id={item_id} type="item" showIcon={false} /> ({level})</span></li>
+            <li><span style="white-space: nowrap"><ThingLink id={item_id} type="item" showIcon={false} level={level}/></span></li>
           {/each}
         </ul>
       </dd>

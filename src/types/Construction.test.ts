@@ -89,4 +89,47 @@ describe("Construction", () => {
     expect(getByText("door frame")).toBeTruthy();
     expect(getByText("beaded door")).toBeTruthy();
   });
+
+  it("renders required skill levels with the shared lvl token", () => {
+    const data = makeTestCBNData([
+      {
+        type: "construction_group",
+        id: "advanced_forge",
+        name: "Advanced Forge",
+      },
+      {
+        type: "skill",
+        id: "fabrication",
+        name: "fabrication",
+        description: "Test fabrication skill.",
+      },
+      {
+        type: "construction",
+        id: "constr_advanced_forge",
+        group: "advanced_forge",
+        category: "OTHER",
+        time: "90 m",
+        required_skills: [["fabrication", 3]],
+        post_furniture: "f_forge",
+      },
+      {
+        type: "furniture",
+        id: "f_forge",
+        name: "forge",
+        description: "A hot test forge.",
+        move_cost_mod: 0,
+        required_str: 0,
+      },
+    ]);
+
+    const { getByText, queryByText } = render(WithData, {
+      Component: Construction,
+      data,
+      construction: data.byId("construction", "constr_advanced_forge"),
+    });
+
+    expect(getByText("fabrication")).toBeTruthy();
+    expect(getByText("lvl3")).toBeTruthy();
+    expect(queryByText("(3)")).toBeNull();
+  });
 });

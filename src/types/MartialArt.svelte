@@ -83,7 +83,7 @@ const buffMap = new Map(
           {#if item.autolearn}
           <ul class="comma-separated">
           {#each item.autolearn as [skill, level]}
-            <li><ThingLink type="skill" id={skill} showIcon={false} /> ({level})</li>
+            <li><ThingLink type="skill" id={skill} showIcon={false} level={Number(level)}/></li>
           {/each}
           </ul>
         {/if}

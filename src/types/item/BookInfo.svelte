@@ -73,7 +73,9 @@ for (const recipe of data.byType("recipe")) {
           {#each [...bookRecipes.entries()].sort((a, b) => {
             return a[1].level - b[1].level || a[1].recipe_name.localeCompare(b[1].recipe_name);
           }) as [id, { recipe_name, level }]}
-            <li><ThingLink {id} type="item" showIcon={false} /> ({level})</li>
+            <li>
+              <ThingLink {id} type="item" showIcon={false} {level} />
+            </li>
           {/each}
         </ul>
       </dd>

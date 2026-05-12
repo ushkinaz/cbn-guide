@@ -19,6 +19,7 @@ type ItemSymbolItem = {
   bgcolor?: string | [string] | [string, string, string, string];
   symbol?: string | string[];
   type: string;
+  level: number;
 };
 
 interface Props {
@@ -30,6 +31,7 @@ interface Props {
   showIcon?: boolean;
   showText?: boolean;
   link?: boolean;
+  level?: number;
 }
 
 let {
@@ -41,6 +43,7 @@ let {
   showIcon = true,
   showText = true,
   link = true,
+  level = undefined,
 }: Props = $props();
 
 function countToString(count: number | [number, number]): string {
@@ -103,46 +106,46 @@ let iconItem = $derived(
 );
 </script>
 
-<span class="item-link" class:item-link--count={count != null}>
-  <svelte:element
-    this={link ? "a" : "span"}
-    class="item-link"
-    class:item-link--icon={showIcon}
-    href={link ? buildLinkTo({ kind: "item", type, id }) : undefined}>
-    {#if showIcon && iconItem}
-      <ItemSymbol item={iconItem} />
+<span class="thing-link" class:item-link--count={count != null}>
+  {#if showIcon && iconItem}
+    <ItemSymbol item={iconItem} />
+  {/if}
+  <span class="th-text-group">
+    <svelte:element
+      this={link ? "a" : "span"}
+      class="item-link"
+      class:item-link--icon={showIcon}
+      href={link ? buildLinkTo({ kind: "item", type, id }) : undefined}>
+      {#if showText}
+        <span class="th-link-text">
+          {linkText(
+            linkItem,
+            count != null
+              ? countIsPlural(count) && !countsByCharges(linkItem)
+              : plural,
+          )}
+        </span>
+      {/if}
+    </svelte:element>
+    {#if /obsolet/.test(item?.__filename ?? "")}
+      <abbr class="tl-obsolete">{t("†")}</abbr>
     {/if}
-    {#if showText}
-      <span class="item-link__text">
-        {linkText(
-          linkItem,
-          count != null
-            ? countIsPlural(count) && !countsByCharges(linkItem)
-            : plural,
-        )}
+    {#if count != null}
+      <span class="th-link-count">
+        x{countToString(count)}
       </span>
     {/if}
-  </svelte:element>
-  {#if /obsolet/.test(item?.__filename ?? "")}
-    <abbr class="obsolete">{t("†")}</abbr>
-  {/if}
-  {#if count != null}
-    <span class="item-link__count">
-      x{countToString(count)}
-    </span>
-  {/if}
-  {#if showText && linkItem?.type === "mutation"}
-    <MutationColor mutation={linkItem} />
-  {/if}
+    {#if showText && linkItem?.type === "mutation"}
+      <MutationColor mutation={linkItem} />
+    {/if}
+    {#if level != null}
+      <span class="th-level">{t("lvl")}{level}</span>
+    {/if}
+  </span>
 </span>
 
 <style>
-.obsolete {
-  color: var(--cata-color-gray);
-  font-family: var(--font-mono-game);
-}
-
-.item-link {
+.thing-link {
   display: inline-flex;
   align-items: center;
   gap: 0.25em;
@@ -151,12 +154,27 @@ let iconItem = $derived(
   min-width: 0;
 }
 
-.item-link__text {
+.th-text-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25em;
+}
+
+.tl-obsolete {
+  color: var(--cata-color-gray);
+  font-family: var(--font-mono-game);
+}
+
+.th-link-text {
   min-width: 0;
   word-break: break-word;
 }
 
-.item-link__count {
+.th-link-count {
+  font-variant-caps: all-small-caps;
+}
+
+.th-level {
   font-variant-caps: all-small-caps;
 }
 </style>

@@ -78,7 +78,11 @@ function sortComponentChoices(
       <dt>{t("Skills Used", { _context })}</dt>
       <dd>
         {#each mending_method.skills as { id, level }, i}
-          <ThingLink type="skill" {id} showIcon={false} /> ({level}){#if i === mending_method.skills.length - 2}{" and "}{:else if i !== mending_method.skills.length - 1}{", "}{/if}
+          <ThingLink
+            type="skill"
+            {id}
+            showIcon={false}
+            {level} />{#if i === mending_method.skills.length - 2}{" and "}{:else if i !== mending_method.skills.length - 1}{", "}{/if}
         {:else}
           {t("none")}
         {/each}

@@ -212,7 +212,12 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements?.install?.skills ?? [] as [skill, level], i}
-          <ThingLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.install?.skills?.length}
+          <ThingLink
+            type="skill"
+            id={skill}
+            showIcon={false}
+            level={level ??
+              0} />{#if i + 2 === item.requirements?.install?.skills?.length}
             {t("and")}
           {:else if i + 1 !== item.requirements?.install?.skills?.length}{", "}{/if}
         {:else}
@@ -239,7 +244,12 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements?.removal?.skills ?? [] as [skill, level], i}
-          <ThingLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.removal?.skills?.length}
+          <ThingLink
+            type="skill"
+            id={skill}
+            showIcon={false}
+            level={level ??
+              0} />{#if i + 2 === item.requirements?.removal?.skills?.length}
             {t("and")}
           {:else if i + 1 !== item.requirements?.removal?.skills?.length}{", "}{/if}
         {:else}
@@ -271,7 +281,12 @@ vehiclesContainingPart.sort((a, b) =>
       <dt>{t("Skills Required")}</dt>
       <dd>
         {#each item.requirements.repair?.skills ?? [] as [skill, level], i}
-          <ThingLink type="skill" id={skill} showIcon={false} /> ({level}){#if i + 2 === item.requirements?.repair?.skills?.length}
+          <ThingLink
+            type="skill"
+            id={skill}
+            showIcon={false}
+            level={level ??
+              0} />{#if i + 2 === item.requirements?.repair?.skills?.length}
             {t("and")}
           {:else if i + 1 !== item.requirements?.repair?.skills?.length}{", "}{/if}
         {:else}

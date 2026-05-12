@@ -63,7 +63,7 @@ test("search result icon updates when the top match changes", async () => {
   const view = render(SearchResults, { data: searchData, search: "op" });
 
   expect(
-    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+    view.container.querySelector("li .th-link-text")?.textContent?.trim(),
   ).toBe("opal");
   expect(
     view.container.querySelector("li .tile-icon")?.textContent?.trim(),
@@ -74,7 +74,7 @@ test("search result icon updates when the top match changes", async () => {
   await view.rerender({ data: searchData, search: "opo" });
 
   expect(
-    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+    view.container.querySelector("li .th-link-text")?.textContent?.trim(),
   ).toBe("opossum");
   expect(
     view.container.querySelector("li .tile-icon")?.textContent?.trim(),
@@ -93,10 +93,11 @@ test("search result mutation color metadata updates with the top match", async (
   const view = render(SearchResults, { data: searchData, search: "gr" });
 
   expect(
-    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+    view.container.querySelector("li .th-link-text")?.textContent?.trim(),
   ).toBe("growth");
   expect(
-    view.container.querySelector("li .item-link > span[style]")?.textContent,
+    view.container.querySelector("li .th-text-group > span[style]")
+      ?.textContent,
   ).toBe("2");
 
   searchState.sync("sh", searchData);
@@ -104,10 +105,11 @@ test("search result mutation color metadata updates with the top match", async (
   await view.rerender({ data: searchData, search: "sh" });
 
   expect(
-    view.container.querySelector("li .item-link__text")?.textContent?.trim(),
+    view.container.querySelector("li .th-link-text")?.textContent?.trim(),
   ).toBe("shrink");
   expect(
-    view.container.querySelector("li .item-link > span[style]")?.textContent,
+    view.container.querySelector("li .th-text-group > span[style]")
+      ?.textContent,
   ).toBe("-2");
 });
 

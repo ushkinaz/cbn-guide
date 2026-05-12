@@ -90,7 +90,7 @@ function sortComponentChoices(
           items={construction.required_skills}
           horizontal={true}>
           {#snippet children({ item: [id, level] })}
-            <ThingLink type="skill" {id} showIcon={false} /> ({level})
+            <ThingLink type="skill" {id} showIcon={false} {level} />
           {/snippet}
         </RequirementsAndList>
       {:else}
