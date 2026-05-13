@@ -92,8 +92,8 @@
     "wrangler": "^4.83.0"
   },
   "dependencies": {
-    "@sentry/browser": "^10.47.0",
-    "@sentry/vite-plugin": "^5.2.0",
+    "@sentry/browser": "^10.53.1",
+    "@sentry/vite-plugin": "^5.3.0",
     "@transifex/native": "^7.1.6",
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",
