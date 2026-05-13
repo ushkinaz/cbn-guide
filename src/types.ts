@@ -221,6 +221,7 @@ export type DamageTypeId =
   | "cut"
   | "electric"
   | "heat"
+  | "light"
   | "stab"
   | "dark";
 
@@ -420,6 +421,8 @@ export type UseFunction =
   | MessageUseFunction
   | MulticookerUseFunction
   | MusicPlayerUseFunction
+  | PaintStuffConfigUseFunction
+  | PaintStuffUseFunction
   | PlaceTrapUseFunction
   | PocketDimensionUseFunction
   | ProspectPickUseFunction
@@ -492,6 +495,16 @@ export type MusicPlayerUseFunction = {
 export type ProspectPickUseFunction = {
   type: "prospect_pick";
   radius?: integer;
+};
+
+export type PaintStuffUseFunction = {
+  type: "paint_stuff";
+  charge_cost?: integer;
+};
+
+export type PaintStuffConfigUseFunction = {
+  type: "paint_stuff_cfg";
+  color_swap?: boolean;
 };
 
 export type MulticookerUseFunction = {
@@ -1112,6 +1125,19 @@ export type SpellAttack = {
   monster_message?: Translation;
 };
 
+export type DeployerAttack = {
+  type: "deployer";
+  deployables: Record<
+    string,
+    {
+      message: Translation;
+      chance?: number;
+      ammo_percentage?: number;
+      range?: number;
+    }
+  >;
+};
+
 export type GenericMonsterAttack = {
   type?: "monster_attack";
   id: string;
@@ -1122,6 +1148,7 @@ type MonsterAttack = (
   | LeapAttack
   | MeleeAttack
   | BiteAttack
+  | DeployerAttack
   | GunAttack
   | SpellAttack
 ) & { cooldown?: number };
@@ -1411,7 +1438,7 @@ export interface MapgenSet {
   id?: string; // ter/furn/trap id
   x: [number, number] | number;
   y: [number, number] | number;
-  repeat?: [number, number];
+  repeat?: number | [number, number];
   chance?: number;
   x2?: number | [number, number];
   y2?: number | [number, number];
@@ -1527,8 +1554,8 @@ export type HarvestEntry = {
     | "flesh"
     | "offal"
     | "skin";
-  base_num?: [number, number]; // default [1, 1]
-  scale_num?: [number, number]; // default [0, 0]
+  base_num?: number | [number, number]; // default [1, 1]
+  scale_num?: number | [number, number]; // default [0, 0]
   max?: number; // default 1000
   mass_ratio?: number; // default 0
   flags?: string[]; // default []
@@ -1570,7 +1597,7 @@ export type Monster = {
   melee_damage?: DamageInstance;
   grab_strength?: integer;
   diff?: integer;
-  emit_fields?: { emit_id: string; delay: string }[];
+  emit_fields?: (string | { emit_id: string; delay: string })[];
   attack_cost?: integer; // default: 100
   attack_effs?: object[]; // default: 100
   special_attacks?: SpecialAttack[];
