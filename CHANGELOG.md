@@ -2,6 +2,30 @@
 
 This is a monthly changelog for The Hitchhiker's [Guide](https://cataclysmbn-guide.com/) for Cataclysm: Bright Nights. It tries to be as user-centric as possible, with little to no technical details. For full technical details, see commit messages.
 
+## April 2026
+
+### Highlights
+
+- Mod choices and warning preferences now persist more reliably between visits.
+- Terrain and furniture pages gained clearer gameplay details, including prying results, break outcomes, and better requirement wording.
+- Loading, navigation, and large data views became steadier and faster, especially around malformed URLs, flaky fetches, and heavy BN datasets.
+
+### Changes
+
+- [FEATURE] Mod selections can now be remembered locally, so returning to the guide keeps your preferred setup.
+- [FEATURE] Terrain and furniture pages now show prying mechanics and related results more clearly.
+- [FEATURE] Requirement lists now show exact tool choices and nested AND/OR options in a more readable form.
+- [FEATURE] Tool-quality requirements have clearer links and charge display for items that count by charges.
+- [FEATURE] Page titles now include version context, and trap pages are included in the sitemap.
+- [FEATURE] The "next" warning state is remembered more consistently instead of reappearing unnecessarily.
+- [UI] Terrain, furniture, item links, headers, percentages, counts, fonts, spacing, and the app header were polished for cleaner reading.
+- [PERF] Large catalogs, tile lookups, mod filtering, and whitelist/blacklist checks now do less repeated work while browsing.
+- [FIX] Malformed version URLs, hash navigation, default locale and tileset URLs, and metadata links are handled more predictably.
+- [FIX] Data and build downloads retry transient failures, making startup less fragile on unreliable connections.
+- [FIX] The guide now accepts more real BN data shapes, including wheel sizes with units, vitamin ranges, gun ammo effects, planter and spell use actions, species lists, weapon categories, and damage edge cases.
+- [FIX] Terrain and furniture "Becomes", break, and prying results now use clearer wording and count formatting.
+- [FIX] Browser storage failures are handled more gracefully when saving preferences or warning state.
+
 ## March 2026
 
 ### Highlights
