@@ -72,7 +72,7 @@
     "@types/node": "^24.10.15",
     "@types/requestidlecallback": "^0.3.7",
     "@vite-pwa/assets-generator": "^1.0.2",
-    "ajv": "^8.18.0",
+    "ajv": "^8.20.0",
     "happy-dom": "^20.9.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.4",
