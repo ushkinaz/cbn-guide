@@ -75,7 +75,7 @@
     "ajv": "^8.18.0",
     "happy-dom": "^20.8.9",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.0.4",
     "prettier": "^3.8.1",
     "prettier-plugin-svelte": "^3.5.1",
     "puppeteer": "^24.40.0",
