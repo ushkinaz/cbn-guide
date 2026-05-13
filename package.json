@@ -89,7 +89,7 @@
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.6",
     "workbox-build": "^7.4.1",
-    "wrangler": "^4.83.0"
+    "wrangler": "^4.90.1"
   },
   "dependencies": {
     "@sentry/browser": "^10.53.1",
