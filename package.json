@@ -88,7 +88,7 @@
     "vite": "^7.3.3",
     "vite-plugin-pwa": "^1.3.0",
     "vitest": "^4.1.6",
-    "workbox-build": "^7.4.0",
+    "workbox-build": "^7.4.1",
     "wrangler": "^4.83.0"
   },
   "dependencies": {
@@ -97,7 +97,7 @@
     "@transifex/native": "^7.1.6",
     "fuzzysort": "^3.1.0",
     "gettext.js": "^2.0.3",
-    "workbox-window": "^7.4.0",
+    "workbox-window": "^7.4.1",
     "zaraz-ts": "^1.2.0"
   },
   "engines": {
